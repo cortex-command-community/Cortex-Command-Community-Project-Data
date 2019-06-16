@@ -1,0 +1,13 @@
+BigDogReloadStart.wav
+BigDogReloadEnd.wav
+http://www.freesound.org/people/farbin/sounds/36787
+http://www.freesound.org/people/buzzbox/sounds/23989
+
+BigDogSpin.wav
+http://www.freesound.org/people/Sergenious/sounds/55821/
+
+MaulerFire.wav
+MaulerReloadStart.wav
+MaulerReloadEnd.wav
+http://www.freesound.org/people/BMacZero/sounds/94127/
+http://www.freesound.org/people/daveincamas/sounds/44076/

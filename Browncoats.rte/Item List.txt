@@ -1,0 +1,29 @@
+///////
+//Actors
+
+Browncoat Light
+Browncoat Heavy
+
+///////
+//Weapons
+
+HG-10 Stinger
+AR-25 Hammerfist
+SR-06 Longshot
+FL-200 Heatlance
+IN-02 Backblast
+PY-07 Trailblazer
+GL-01 Magmaul
+CA-01 Firestorm
+ML-02 Flash
+
+///////
+//Tools
+
+
+
+///////
+//Bombs
+
+Fire Bomb
+Fuel Bomb

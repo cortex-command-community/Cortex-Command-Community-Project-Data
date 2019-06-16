@@ -1,0 +1,27 @@
+///////
+//Actors
+
+Whitebot
+Silver Man
+
+///////
+//Weapons
+
+Micro Pulsar
+Pulse Rifle
+Giga Pulsar
+Nanorifle
+Nucleo
+Dihelical Cannon
+Nucleo Swarm
+
+///////
+//Tools
+
+Nanolyzer
+
+///////
+//Bombs
+
+Nanoswarm Canister
+Warp Grenade

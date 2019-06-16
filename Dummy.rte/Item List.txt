@@ -1,0 +1,39 @@
+///////
+//Crafts
+
+Rocklet
+Drop Ship
+
+///////
+//Actors
+
+Dummy
+Dreadnought
+Small MG Turret
+Dummy Controller
+
+///////
+//Weapons
+
+Nailgun
+Rail Pistol
+Blaster
+Lancer
+Frag Nailer
+Nailer Cannon
+Scouting Rifle
+Impulse Cannon
+Repeater
+Destroyer Cannon
+Annihiliator
+
+///////
+//Tools
+
+Turbo Digger
+
+///////
+//Bombs
+
+Impulse Grenade
+Disruptor Grenade

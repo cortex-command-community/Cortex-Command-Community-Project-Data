@@ -1,0 +1,44 @@
+///////
+//Actors
+
+Ronin Soldier
+Ronin Heavy
+Ronin Sniper
+
+///////
+//Weapons
+
+Glock
+Desert Eagle
+Peacemaker
+MAC-10
+Uzi
+TommyGun
+MP5K
+AK-47
+M16
+Shortgun
+Pumpgun
+Spas 12
+M1 Garand
+Kar98
+M60
+Thumper
+RPG-7
+RPC M17
+
+///////
+//Tools
+
+Chainsaw
+Shovel
+
+///////
+//Bombs
+
+Stone
+Pineapple Grenade
+Stick Grenade
+Signal Jammer
+Molotov Cocktail
+Antigravity Chocolate

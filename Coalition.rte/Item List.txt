@@ -1,0 +1,37 @@
+///////
+//Actors
+
+Soldier Light
+Soldier Heavy
+Gatling Drone
+Gatling Turret
+
+///////
+//Weapons
+
+Pistol
+Auto Pistol
+Heavy Pistol
+Compact Assault Rifle
+Assault Rifle
+Shotgun
+Auto Shotgun
+Remote-GL
+Gatling Gun
+Sniper Rifle
+Auto Cannon
+Missile Launcher
+Uber Cannon
+
+///////
+//Tools
+
+Pulse Digger
+
+///////
+//Bombs
+
+Grenade
+Cluster Grenade
+Incendiary Grenade
+Timed Explosive

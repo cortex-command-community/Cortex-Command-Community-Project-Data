@@ -1,0 +1,29 @@
+///////
+//Actors
+
+Scouting Robot
+All Purpose Robot
+Combat Robot
+Combat Robot Heavy
+
+///////
+//Weapons
+
+Chunker SP-44
+Slugger GP-03
+Mauler SG-23
+Bullpup AR-14
+Bulldog GG-49
+Marauder CN-05
+Banshee HSR-02
+Devastator CN-72
+
+///////
+//Tools
+
+
+
+///////
+//Bombs
+
+Shredder SB-08
