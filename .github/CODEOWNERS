@@ -1,0 +1,24 @@
+#This file is used to determine who's in charge of different filetypes. Feel free to suggest changes or updates, or additions of new people
+#For more information, see the following link: https://help.github.com/en/articles/about-code-owners
+
+#Global default owners for pull requests
+* @administrators
+
+#C++ Owners
+*.cpp @core-game-coders
+*.h @core-game-coders
+*.c++ @core-game-coders
+
+#Lua Owners
+*.lua @scripters
+
+#INI Owners
+*.ini @ini-coders
+
+#Sprite Owners
+*.bmp @spriters
+
+#Audio Owners
+*.wav @audio-makers
+*.ogg @audio-makers
+*.mp3 @audio-makers
