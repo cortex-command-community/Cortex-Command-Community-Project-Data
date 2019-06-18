@@ -1,2 +1,2 @@
 # Cortex-Command-Community-Project
-The future of Cortex Command
+The incredible future of Cortex Command
