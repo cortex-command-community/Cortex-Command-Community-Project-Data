@@ -42,12 +42,7 @@ luac.out
 Base.rte/Settings.ini
 Base.rte/Tools/
 Benchmark.rte/
-Missions.rte/Activities
-Missions.rte/Scenes
-Missions.rte/Index.ini
-Missions.rte/Item Gibs.ini
-Missions.rte/Mission Activities.ini
-Missions.rte/Scenes.ini
+Missions.rte/
 Scenes.rte/
 Metagames.rte/
 Tutorial.rte/
