@@ -42,10 +42,8 @@ luac.out
 Base.rte/Settings.ini
 Base.rte/Tools/
 Benchmark.rte/
-Missions.rte/
 Scenes.rte/
 Metagames.rte/
-Tutorial.rte/
 Microsoft.VC90.CRT.manifest
 DedicatedServer.bat
 Credits.txt
