@@ -1,6 +1,6 @@
 
-require("Actors/AI/HumanBehaviors")
-require("Actors/AI/CrabBehaviors")
+require("AI/HumanBehaviors")
+require("AI/CrabBehaviors")
 
 NativeCrabAI = {}
 

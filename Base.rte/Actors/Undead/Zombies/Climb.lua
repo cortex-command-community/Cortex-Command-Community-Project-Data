@@ -1,4 +1,4 @@
-require("Actors/AI/NativeHumanAI")   -- or NativeCrabAI or NativeTurretAI
+require("AI/NativeHumanAI")   -- or NativeCrabAI or NativeTurretAI
 
 function Create(self)
 	self.moved = false;

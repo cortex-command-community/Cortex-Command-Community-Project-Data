@@ -1,4 +1,4 @@
-require("Actors/AI/PID")
+require("AI/PID")
 
 NativeDropShipAI = {}
 

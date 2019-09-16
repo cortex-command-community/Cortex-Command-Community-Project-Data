@@ -1,5 +1,5 @@
 
-require("Actors/AI/PID")
+require("AI/PID")
 
 function Create(self)
 	---------------- AI variables start ----------------

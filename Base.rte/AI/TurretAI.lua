@@ -1,6 +1,6 @@
 
 dofile("Base.rte/Constants.lua")
-require("Actors/AI/NativeTurretAI")	--dofile("Base.rte/Actors/AI/NativeTurretAI.lua")
+require("AI/NativeTurretAI")	--dofile("Base.rte/Actors/AI/NativeTurretAI.lua")
 
 function Create(self)
 	self.AI = NativeTurretAI:Create(self)

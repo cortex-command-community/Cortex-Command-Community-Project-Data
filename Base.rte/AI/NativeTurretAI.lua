@@ -1,7 +1,7 @@
 
-require("Actors/AI/HumanBehaviors")		--dofile("Base.rte/Actors/AI/HumanBehaviors.lua")
-require("Actors/AI/CrabBehaviors")		--dofile("Base.rte/Actors/AI/CrabBehaviors.lua")
-require("Actors/AI/TurretBehaviors")	--dofile("Base.rte/Actors/AI/TurretBehaviors.lua")
+require("AI/HumanBehaviors")		--dofile("Base.rte/AI/HumanBehaviors.lua")
+require("AI/CrabBehaviors")		--dofile("Base.rte/AI/CrabBehaviors.lua")
+require("AI/TurretBehaviors")	--dofile("Base.rte/AI/TurretBehaviors.lua")
 
 NativeTurretAI = {}
 

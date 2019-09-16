@@ -1,6 +1,6 @@
 
 dofile("Base.rte/Constants.lua")
-require("Actors/AI/NativeDropShipAI")
+require("AI/NativeDropShipAI")
 --dofile("Base.rte/Actors/AI/NativeDropShipAI.lua")
 
 function Create(self)
