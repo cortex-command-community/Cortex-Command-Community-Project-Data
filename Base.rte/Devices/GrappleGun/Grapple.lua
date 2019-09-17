@@ -17,7 +17,7 @@ function Create(self)
 	self.linelength = 0;
 	self.linevec = Vector(0,0);
 
-	self.pieselection = 0; -- 0 is nothing, 1 is full retract, 2 is partial retract, 3 is partial detract, 4 is full detract
+	self.pieselection = 0; -- 0 is nothing, 1 is full retract, 2 is partial retract, 3 is partial extend, 4 is full extend
 
 	self.climbdelay = 10; -- MS time delay between "climbs" to keep the speed consistant
 	self.taptime = 200; -- maximum amount of time between tapping for claw to return

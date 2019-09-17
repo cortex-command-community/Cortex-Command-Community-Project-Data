@@ -5,7 +5,7 @@ function GrapplePieRetract(actor)
 	end
 end
 
-function GrapplePieDetract(actor)
+function GrapplePieExtend(actor)
 	local gun = ToAHuman(actor).EquippedItem;
 	if gun ~= nil then
 		gun.Sharpness = 2;
