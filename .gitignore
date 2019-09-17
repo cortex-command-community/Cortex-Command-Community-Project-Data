@@ -39,6 +39,7 @@ luac.out
 *.x86_64
 *.hex
 
+.vs/
 Base.rte/Settings.ini
 Base.rte/Tools/
 Benchmark.rte/
