@@ -9,8 +9,8 @@ function Create(self)
 	self.ValidTargets = {}
 	self.Frame = 1
 	
-	-- The "AA-Drone Ammo Counter" object tracks ammo across battles and reduce gold cost of the carrier
-	if self:HasObject("AA-Drone Ammo Counter") then
+	-- The "Anti-Air Drone Ammo Counter" object tracks ammo across battles and reduce gold cost of the carrier
+	if self:HasObject("Anti-Air Drone Ammo Counter") then
 		if self.InventorySize == 1 then
 			self.Frame = 2	-- One SAM left
 		else
@@ -231,7 +231,7 @@ function Update(self)
 								end
 								
 								-- Add an invisible object to the inventory to track ammo
-								local AmmoCounter = CreateMOSRotating("AA-Drone Ammo Counter", "Base.rte")
+								local AmmoCounter = CreateMOSRotating("Anti-Air Drone Ammo Counter", "Base.rte")
 								if AmmoCounter then
 									self:AddInventoryItem(AmmoCounter)
 								end
