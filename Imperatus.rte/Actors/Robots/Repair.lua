@@ -1,4 +1,4 @@
-require("Actors/AI/NativeHumanAI")
+require("AI/NativeHumanAI")
 
 function Create(self)
 	self.AI = NativeHumanAI:Create(self)
