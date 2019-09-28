@@ -7,10 +7,11 @@ function BlastRunnerDetonate(actor)
 end
 
 function Update(self)
+--[[
 	if self:GetController():IsState(Controller.WEAPON_FIRE) then
 		BlastRunnerDetonate(self);
 	end
-
+]]--
 	if self:GetController():IsState(Controller.MOVE_LEFT) then
 		self.AngularVel = math.min(25,self.AngularVel+5);
 	end
