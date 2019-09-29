@@ -1,27 +1,24 @@
 function Create(self)
-
 	self.actionPhase = 0;
 	self.stuck = false;
 	self.lifeTimer = Timer();
-
 end
 
 function Update(self)
-
 	if self.Sharpness == 0 then
 		self.ToDelete = false;
 		self.ToSettle = false;
 	elseif self.Sharpness == 1 then
 		self.ToDelete = true;
 	elseif self.Sharpness == 2 then
-		local explosion = CreateMOSRotating("Coalition Remote Grenade Shot Explosion");
+		local explosion = CreateMOSRotating("Grenade Launcher Grenade Explosion");
 		explosion.Pos = self.Pos;
 		explosion:GibThis();
 		MovableMan:AddParticle(explosion);
 		self.ToDelete = true;
 	elseif self.Sharpness == 3 then
 		if self.lifeTimer:IsPastSimMS(3000) then
-			local explosion = CreateMOSRotating("Coalition Remote Grenade Shot Explosion");
+			local explosion = CreateMOSRotating("Grenade Launcher Grenade Explosion");
 			explosion.Pos = self.Pos;
 			explosion:GibThis();
 			MovableMan:AddParticle(explosion);
@@ -31,7 +28,6 @@ function Update(self)
 			self.ToSettle = false;
 		end
 	end
-
 	if self.actionPhase == 0 then
 		local rayHitPos = Vector(0,0);
 		local rayHit = false;
@@ -75,5 +71,4 @@ function Update(self)
 			self.HitsMOs = true;
 		end
 	end
-
 end
