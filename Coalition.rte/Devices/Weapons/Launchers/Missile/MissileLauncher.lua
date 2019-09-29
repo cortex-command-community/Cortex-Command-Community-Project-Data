@@ -94,9 +94,9 @@ function Update(self)
 					-- Launch the missile slightly upwards, but a bit more for the AI
 					self.missile.Vel = self:RotateOffset(Vector(15, 0))
 					if self.parent:IsPlayerControlled() then
-						self.missile.Vel.Y = self.missile.Vel.Y - 4
+						self.missile.Vel = Vector(self.missile.Vel.X, self.missile.Vel.Y - 4);
 					else
-						self.missile.Vel.Y = self.missile.Vel.Y - 6
+						self.missile.Vel = Vector(self.missile.Vel.X, self.missile.Vel.Y - 6);
 					end
 					
 					self.missile.Vel = self.missile.Vel + self.Vel
