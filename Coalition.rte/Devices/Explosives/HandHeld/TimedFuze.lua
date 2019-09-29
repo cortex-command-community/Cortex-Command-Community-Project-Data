@@ -1,7 +1,7 @@
 function Update(self)
 	if self.Fuze then
 		if self.Fuze:IsPastSimMS(4000) then
-			local Payload = CreateMOSRotating("Timed Grenade Payload", "Coalition.rte")
+			local Payload = CreateMOSRotating("Frag Grenade Payload", "Coalition.rte")
 			if Payload then
 				Payload.Pos = self.Pos
 				MovableMan:AddParticle(Payload)

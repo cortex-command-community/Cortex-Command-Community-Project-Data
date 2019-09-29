@@ -103,7 +103,7 @@ function Update(self)
 
 		if self.blipTimer:IsPastSimMS(self.blipdelay) then
 			self.blipTimer:Reset();
-			local soundfx = CreateAEmitter("Coalition Timed Explosive Sound Blip");
+			local soundfx = CreateAEmitter("Timed Explosive Sound Blip");
 			soundfx.Pos = self.Pos;
 			MovableMan:AddParticle(soundfx);
 		end

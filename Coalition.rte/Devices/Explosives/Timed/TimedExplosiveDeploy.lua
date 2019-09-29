@@ -2,7 +2,7 @@ function Update(self)
 
 	if self:IsActivated() and self.ID == self.RootID then
 
-		local explosive = CreateMOSRotating("Particle Coalition Active Timed Explosive");
+		local explosive = CreateMOSRotating("Particle Active Timed Explosive");
 		explosive.Pos = self.Pos;
 		explosive.Vel = self.Vel;
 		explosive.RotAngle = self.RotAngle;
