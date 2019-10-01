@@ -52,7 +52,7 @@ function Update(self)
 	-- smoke trail
 	local trailLength = math.floor(Offset.Magnitude+0.5)
 	for i = 1, trailLength, 6 do
-		Effect = CreateMOSParticle("Sniper Smoke Trail " .. math.random(3), "Imperatus.rte")
+		Effect = CreateMOSParticle("Tiny Smoke Trail " .. math.random(3), "Base.rte")
 		if Effect then
 			Effect.Pos = self.Pos - Offset * (i/trailLength) + Vector(RangeRand(-2, 2), RangeRand(-2, 2))
 			Effect.Vel = self.Vel * RangeRand(0.9, 1.0)
