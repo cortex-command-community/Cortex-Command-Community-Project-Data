@@ -16,7 +16,7 @@ function Update(self)
 			else
 				self.negativeNum = -1;
 			end
-			for i = 1, 6 do
+			for i = 1, 6 do --replace with Magazine.FullCapacity or GetCapacity() once binded to lua to automate
 				local shell = CreateMOSParticle("Casing");
 				shell.Pos = self.Pos;
 				shell.Vel = Vector(math.random()*(-3)*self.negativeNum,0):RadRotate(self.RotAngle):DegRotate((math.random()*32)-16);
