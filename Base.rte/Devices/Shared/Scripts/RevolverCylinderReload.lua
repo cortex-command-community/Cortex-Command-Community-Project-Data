@@ -1,11 +1,9 @@
 function Create(self)
-
+	self.shellsToEject = self.Magazine.Capacity;
 	self.ejectedShell = false;
-
 end
 
 function Update(self)
-
 	if self.Magazine ~= nil then
 		self.ejectedShell = false;
 	else
@@ -16,13 +14,12 @@ function Update(self)
 			else
 				self.negativeNum = -1;
 			end
-			for i = 1, 6 do --replace with Magazine.FullCapacity or GetCapacity() once binded to lua to automate
-				local shell = CreateMOSParticle("Casing");
+			for i = 1, self.shellsToEject do
+				local shell = CreateMOSParticle("Casing", "Base.rte");
 				shell.Pos = self.Pos;
-				shell.Vel = Vector(math.random()*(-3)*self.negativeNum,0):RadRotate(self.RotAngle):DegRotate((math.random()*32)-16);
+				shell.Vel = Vector(math.random() * (-3) * self.negativeNum, 0):RadRotate(self.RotAngle):DegRotate((math.random() * 32) - 16);
 				MovableMan:AddParticle(shell);
 			end
 		end
 	end
-
 end
