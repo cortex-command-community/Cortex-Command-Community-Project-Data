@@ -123,9 +123,9 @@ function Update(self)
             --Keep the wasps at the desired altitude.
             local alt = self:GetAltitude(0, 10);
             if alt > self.maxIdleAlt then
-                self.Vel.Y = math.abs(self.Vel.Y) / 2;
+                self.Vel = Vector(self.Vel.X, math.abs(self.Vel.Y) / 2);
             elseif alt < self.minIdleAlt then
-                self.Vel.Y = -math.abs(self.Vel.Y) / 2;
+                self.Vel = Vector(self.Vel.X, -math.abs(self.Vel.Y) / 2);
             end
             
             moving = true;
@@ -206,7 +206,7 @@ function Update(self)
 			end
             
             --Counteract gravity.
-            wasp.Vel.Y = wasp.Vel.Y - SceneMan.Scene.GlocalAcc.Y * TimerMan.DeltaTimeSecs;
+            wasp.Vel = Vector(wasp.Vel.X, wasp.Vel.Y - SceneMan.Scene.GlocalAcc.Y * TimerMan.DeltaTimeSecs);
 			
 			if wasp.Vel.Largest > self.maxSpeed * speedMod * attackMax then
 				wasp.Vel = (wasp.Vel / wasp.Vel.Largest) * self.maxSpeed * speedMod * attackMax;
