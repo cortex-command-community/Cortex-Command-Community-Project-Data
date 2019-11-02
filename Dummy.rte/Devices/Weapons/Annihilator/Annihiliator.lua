@@ -30,7 +30,7 @@ function Update(self)
 
 		if self.glowCount < 5 and self.chargeCounter >= self.maxCharge*(self.glowChargeIncrement*self.glowCount) then
 			self.glowCount = self.glowCount + 1;
-			local effectPar = CreateMOPixel("Laser Cannon Effect Particle");
+			local effectPar = CreateMOPixel("Annihilator Effect Particle");
 			effectPar.Pos = self.MuzzlePos;
 			effectPar.PinStrength = 1000;
 			MovableMan:AddParticle(effectPar);
@@ -54,7 +54,7 @@ function Update(self)
 		if self.effectTimer:IsPastSimMS(550-((self.chargeCounter/self.maxCharge)*500)) then
 			self.effectTimer:Reset();
 			local actor = MovableMan:GetMOFromID(self.RootID);
-			local effectPar = CreateMOPixel("Laser Cannon Effect Particle 2");
+			local effectPar = CreateMOPixel("Annihilator Effect Particle 2");
 			effectPar.Pos = self.MuzzlePos;
 			effectPar.Vel = Vector(40,0):RadRotate(math.random()*(math.pi*2));
 			effectPar:SetWhichMOToNotHit(MovableMan:GetMOFromID(self.RootID),-1);
@@ -77,7 +77,7 @@ function Update(self)
 			local actor = MovableMan:GetMOFromID(self.RootID);
 
 			for i = 1, self.chargeCounter do
-				local damagePar = CreateMOPixel("Laser Cannon Particle");
+				local damagePar = CreateMOPixel("Annihilator Particle");
 				damagePar.Pos = self.MuzzlePos + Vector(((i-1)*-1)*self.reverseNum,0):RadRotate(self.RotAngle);
 				damagePar.Vel = Vector(200*self.reverseNum,0):RadRotate(self.RotAngle);
 				damagePar:SetWhichMOToNotHit(MovableMan:GetMOFromID(self.RootID),-1);
@@ -98,7 +98,7 @@ function Update(self)
 
 			self.particleTable = {};
 
-			local soundfx = CreateAEmitter("Dummy Laser Cannon Sound Fire");
+			local soundfx = CreateAEmitter("Annihilator Sound Fire");
 			soundfx.Pos = self.MuzzlePos;
 			MovableMan:AddParticle(soundfx);
 

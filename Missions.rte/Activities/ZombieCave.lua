@@ -401,7 +401,7 @@ function ZombieCaveMission:UpdateActivity()
 				end
 			end
 			-- Ship1 crew goes to investigate cave, ship2 goes to kill the player brain
-			local ship1 = CreateACDropShip("Drop Ship MK1");
+			local ship1 = CreateACDropShip("Dropship MK1");
 			local ronin = self:MakeEnemy(Actor.AIMODE_GOTO);
 			ronin:ClearAIWaypoints();
 			ronin:AddAISceneWaypoint(Vector(200, 500));
@@ -410,7 +410,7 @@ function ZombieCaveMission:UpdateActivity()
 			ronin:ClearAIWaypoints();
 			ronin:AddAISceneWaypoint(Vector(200, 500));
 			ship1:AddInventoryItem(ronin);
-			local ship2 = CreateACDropShip("Drop Ship MK1");
+			local ship2 = CreateACDropShip("Dropship MK1");
 			ship2:AddInventoryItem(self:MakeEnemy(Actor.AIMODE_BRAINHUNT));
 			ship2:AddInventoryItem(self:MakeEnemy(Actor.AIMODE_BRAINHUNT));
 

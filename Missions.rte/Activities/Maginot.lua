@@ -229,7 +229,7 @@ function MaginotMission:UpdateActivity()
 			--Spawn 2 Dummies in a Dummy Drops Ship with a randomly-selected weapon, a digger, and maybe a grenade.
 			local ship = RandomACDropShip("Craft", self.EnemyTech)
 			if not ship then
-				ship = CreateACDropship("Drop Ship MK1", "Base.rte");
+				ship = CreateACDropship("Dropship MK1", "Base.rte");
 			end
 			
 			if ship then
