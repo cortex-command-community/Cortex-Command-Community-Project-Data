@@ -1,10 +1,10 @@
-function BulkyDropShipsScript:StartScript()
+function BulkyDropshipsScript:StartScript()
 end
 
-function BulkyDropShipsScript:UpdateScript()
+function BulkyDropshipsScript:UpdateScript()
 	for actor in MovableMan.Actors do
-		if not actor:NumberValueExists("BulkyDropShipsScript") then
-			actor:SetNumberValue("BulkyDropShipsScript", 1)
+		if not actor:NumberValueExists("BulkyDropshipsScript") then
+			actor:SetNumberValue("BulkyDropshipsScript", 1)
 
 			if IsACDropShip(actor) then
 				local dropship = ToACDropShip(actor)
@@ -17,11 +17,11 @@ function BulkyDropShipsScript:UpdateScript()
 	end
 end
 
-function BulkyDropShipsScript:EndScript()
+function BulkyDropshipsScript:EndScript()
 end
 
-function BulkyDropShipsScript:PauseScript()
+function BulkyDropshipsScript:PauseScript()
 end
 
-function BulkyDropShipsScript:CraftEnteredOrbit()
+function BulkyDropshipsScript:CraftEnteredOrbit()
 end
