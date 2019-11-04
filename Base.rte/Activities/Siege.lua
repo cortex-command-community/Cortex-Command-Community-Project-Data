@@ -432,7 +432,7 @@ function Siege:UpdateActivity()
 	
 		for actor in MovableMan.Actors do
 			if actor.Team == self.CPUTeam then
-				if actor.PresetName == "AHuman" or actor.PresetName == "ACrab" then
+				if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
 					troops = troops + 1
 					self:AddObjectivePoint("Terminate!", actor.AboveHUDPos, self.PlayerTeam, GameActivity.ARROWDOWN)
 				end
