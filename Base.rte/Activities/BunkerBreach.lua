@@ -12,8 +12,8 @@ area. All actors inside "Brain Chamber" but without a brain nearby will be remov
 
 Add defender units by placing areas named:
 "Sniper1" to "Sniper10"
-"Light1" to "Light10"	<-- light actors, light weapons
-"Heavy1" to "Heavy10"	<-- heavy actors, heavy weapons
+"Light1" to "Light10"	<-- light actors, Weapons - Light
+"Heavy1" to "Heavy10"	<-- heavy actors, Weapons - Heavy
 "Crab1" to "Crab10"
 "Turret1" to "Turret10"
 "Engineer1" to "Engineer10"	<-- light actors, digger, gold dig AI-mode
@@ -52,7 +52,7 @@ function BunkerBreach:StartActivity()
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			local Brain = CreateAHuman("Brain Robot", "Base.rte")
 			if Brain then
-				local Weapon = RandomHDFirearm("Light Weapons", self:GetTeamTech(self:GetTeamOfPlayer(player)))
+				local Weapon = RandomHDFirearm("Weapons - Light", self:GetTeamTech(self:GetTeamOfPlayer(player)))
 				if Weapon then
 					Brain:AddInventoryItem(Weapon)
 				end
@@ -680,7 +680,7 @@ end
 
 
 function BunkerBreach:CreateCrab(mode)
-	local Passenger = RandomACrab("Mecha", self.CPUTechName)
+	local Passenger = RandomACrab("Actors - Mecha", self.CPUTechName)
 	if Passenger then
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO
@@ -703,13 +703,13 @@ end
 function BunkerBreach:CreateRandomInfantry(mode)
 	local	Passenger = RandomAHuman("Actors", self.CPUTechName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.CPUTechName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		
 		if math.random() < 0.4 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTechName))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 			end
 		elseif math.random() < 0.5 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName))
@@ -723,13 +723,13 @@ function BunkerBreach:CreateRandomInfantry(mode)
 end
 
 function BunkerBreach:CreateLightInfantry(mode)
-	local	Passenger = RandomAHuman("Light Infantry", self.CPUTechName)
+	local	Passenger = RandomAHuman("Actors - Light", self.CPUTechName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", self.CPUTechName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		
 		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -740,16 +740,16 @@ function BunkerBreach:CreateLightInfantry(mode)
 end
 
 function BunkerBreach:CreateHeavyInfantry(mode)
-	local	Passenger = RandomAHuman("Heavy Infantry", self.CPUTechName)
+	local	Passenger = RandomAHuman("Actors - Heavy", self.CPUTechName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Heavy Weapons", self.CPUTechName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		
 		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTechName))
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 			if math.random() < 0.4 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTechName))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 			end
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName))
@@ -763,10 +763,10 @@ function BunkerBreach:CreateHeavyInfantry(mode)
 end
 
 function BunkerBreach:CreateMediumInfantry(mode)
-	local	Passenger = RandomAHuman("Heavy Infantry", self.CPUTechName)
+	local	Passenger = RandomAHuman("Actors - Heavy", self.CPUTechName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", self.CPUTechName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO
@@ -776,14 +776,14 @@ function BunkerBreach:CreateMediumInfantry(mode)
 end
 
 function BunkerBreach:CreateScoutInfantry(mode)
-	local	Passenger = RandomAHuman("Light Infantry", self.CPUTechName)
+	local	Passenger = RandomAHuman("Actors - Light", self.CPUTechName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		
 		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -796,14 +796,14 @@ end
 function BunkerBreach:CreateSniper(mode)
 	local	Passenger
 	if math.random() < 0.7 then
-		Passenger = RandomAHuman("Light Infantry", self.CPUTechName)
+		Passenger = RandomAHuman("Actors - Light", self.CPUTechName)
 	else
-		Passenger = RandomAHuman("Heavy Infantry", self.CPUTechName)
+		Passenger = RandomAHuman("Actors - Heavy", self.CPUTechName)
 	end
 	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Sniper Weapons", self.CPUTechName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO
@@ -813,9 +813,9 @@ function BunkerBreach:CreateSniper(mode)
 end
 
 function BunkerBreach:CreateEngineer(mode)
-	local Passenger = RandomAHuman("Light Infantry", self.CPUTechName)
+	local Passenger = RandomAHuman("Actors - Light", self.CPUTechName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", self.CPUTechName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName))
 		Passenger:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -838,11 +838,11 @@ end
 function BunkerBreach:CreateBrainBot(mode)
 	local Act = RandomAHuman("Brains", self.CPUTechName)
 	if Act then
-		Act:AddInventoryItem(RandomHDFirearm("Light Weapons", self.CPUTechName))
+		Act:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName))
 		Act:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
 
 		if PosRand() < 0.5 then
-			Act:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName))
+			Act:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		end
 
 		-- Set AI mode and team so it knows who and what to fight for!

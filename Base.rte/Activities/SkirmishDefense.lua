@@ -807,7 +807,7 @@ function SkirmishDefense:CreateBreachDrop(xPosLZ, Team)
 	
 	local Craft
 	if math.random() < crateProb then
-		Craft = RandomACRocket("Crates", self.AI[Team].TechID)
+		Craft = RandomACRocket("Craft - Crates", self.AI[Team].TechID)
 	else
 		Craft = RandomACRocket("Craft", self.AI[Team].TechID)
 	end
@@ -845,7 +845,7 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 		Craft.Pos = Vector(bombPosX, -30)	-- Set the spawn point of the craft
 		
 		for _ = 3, 5 do
-			local Payload = RandomTDExplosive("Payloads", self.AI[Team].TechID)
+			local Payload = RandomTDExplosive("Bombs - Payloads", self.AI[Team].TechID)
 			if Payload then
 				Craft:AddInventoryItem(Payload)
 			end
@@ -867,7 +867,7 @@ end
 
 
 function SkirmishDefense:CreateCrab(Team)
-	local Passenger = RandomACrab("Mecha", self.AI[Team].TechID)
+	local Passenger = RandomACrab("Actors - Mecha", self.AI[Team].TechID)
 	if Passenger then
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
@@ -880,13 +880,13 @@ end
 function SkirmishDefense:CreateRandomInfantry(Team)
 	local	Passenger = RandomAHuman("Actors", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.AI[Team].TechID))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
 		if math.random() < 0.4 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.AI[Team].TechID))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 			end
 		elseif math.random() < 0.5 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.AI[Team].TechID))
@@ -900,13 +900,13 @@ function SkirmishDefense:CreateRandomInfantry(Team)
 end
 
 function SkirmishDefense:CreateLightInfantry(Team)
-	local	Passenger = RandomAHuman("Light Infantry", self.AI[Team].TechID)
+	local	Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", self.AI[Team].TechID))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
 		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -917,16 +917,16 @@ function SkirmishDefense:CreateLightInfantry(Team)
 end
 
 function SkirmishDefense:CreateHeavyInfantry(Team)
-	local	Passenger = RandomAHuman("Heavy Infantry", self.AI[Team].TechID)
+	local	Passenger = RandomAHuman("Actors - Heavy", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Heavy Weapons", self.AI[Team].TechID))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
 		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.AI[Team].TechID))
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 			if math.random() < 0.4 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.AI[Team].TechID))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 			end
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.AI[Team].TechID))
@@ -940,10 +940,10 @@ function SkirmishDefense:CreateHeavyInfantry(Team)
 end
 
 function SkirmishDefense:CreateMediumInfantry(Team)
-	local	Passenger = RandomAHuman("Heavy Infantry", self.AI[Team].TechID)
+	local	Passenger = RandomAHuman("Actors - Heavy", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", self.AI[Team].TechID))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
@@ -953,9 +953,9 @@ function SkirmishDefense:CreateMediumInfantry(Team)
 end
 
 function SkirmishDefense:CreateEngineer(Team)
-	local Passenger = RandomAHuman("Light Infantry", self.AI[Team].TechID)
+	local Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
 		Passenger:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -966,9 +966,9 @@ function SkirmishDefense:CreateEngineer(Team)
 end
 
 function SkirmishDefense:CreateBreachInfantry(Team)
-	local Passenger = RandomAHuman("Light Infantry", self.AI[Team].TechID)
+	local Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
 		Passenger:AddInventoryItem(CreateHDFirearm("Heavy Digger", "Base.rte"))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -979,14 +979,14 @@ function SkirmishDefense:CreateBreachInfantry(Team)
 end
 
 function SkirmishDefense:CreateScoutInfantry(Team)
-	local	Passenger = RandomAHuman("Light Infantry", self.AI[Team].TechID)
+	local	Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.AI[Team].TechID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
 		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!

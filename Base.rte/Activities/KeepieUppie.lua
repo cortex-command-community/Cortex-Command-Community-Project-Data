@@ -157,8 +157,8 @@ function KeepieUppie:UpdateActivity()
 					end
 					-- Equip it with tools and guns if it's a humanoid
 					if IsAHuman(passenger) then
-						passenger:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.CPUTechName));
-						passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName));
+						passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
+						passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 						if PosRand() < 0.5 then
 							passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName));
 						end

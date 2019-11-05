@@ -140,8 +140,8 @@ end
 function ZombieCaveMission:MakeEnemy(whichMode)
 	local passenger = RandomAHuman("Any", self.CPUTechName)
 	if passenger then
-		passenger:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.CPUTechName));
-		passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName));
+		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
+		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 		if PosRand() < 0.25 then
 			passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName));
 		end

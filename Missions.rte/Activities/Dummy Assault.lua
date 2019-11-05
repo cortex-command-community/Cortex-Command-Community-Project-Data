@@ -173,12 +173,12 @@ function DummyAssault:UpdateActivity()
 						actor:AddAISceneWaypoint(self.SearchArea:GetRandomPoint())
 					end
 					
-					actor:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.CPUTech))
+					actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTech))
 					if math.random() > 0.1 then
-						actor:AddInventoryItem(RandomTDExplosive("Grenades", self.CPUTech))
+						actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTech))
 					end
 				else
-					actor = RandomACrab("Mecha", self.CPUTech)
+					actor = RandomACrab("Actors - Mecha", self.CPUTech)
 					actor.AIMode = Actor.AIMODE_BRAINHUNT
 				end
 				

@@ -10,12 +10,12 @@ function OneManArmy:StartActivity()
 				if not foundBrain then
 					local tech = PresetMan:GetModuleID(self:GetTeamTech(self:GetTeamOfPlayer(player)))
 					
-					foundBrain = RandomAHuman("Heavy Infantry", tech)
-					local item = RandomHDFirearm("Light Weapons", tech)
+					foundBrain = RandomAHuman("Actors - Heavy", tech)
+					local item = RandomHDFirearm("Weapons - Light", tech)
 					if item then
 						foundBrain:AddInventoryItem(item)
 					end
-					local item = RandomHDFirearm("Secondary Weapons", tech)
+					local item = RandomHDFirearm("Weapons - Secondary", tech)
 					if item then
 						foundBrain:AddInventoryItem(item)
 					end
@@ -203,8 +203,8 @@ function OneManArmy:UpdateActivity()
 				end
 				-- Equip it with tools and guns if it's a humanoid
 				if IsAHuman(passenger) then
-					passenger:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.CPUTechName));
-					passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName));
+					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
+					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 					if PosRand() < 0.5 then
 						passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName));
 					end

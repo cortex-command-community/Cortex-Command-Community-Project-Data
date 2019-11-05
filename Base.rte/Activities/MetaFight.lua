@@ -1245,10 +1245,10 @@ function MetaFight:SearchLZ(player)
 				if MetaPlayer ~= 0 then
 					local Craft = RandomACDropShip("Craft", MetaPlayer.NativeTechModule)
 					if Craft then
-						local Passenger = RandomAHuman("Light Infantry", MetaPlayer.NativeTechModule)
+						local Passenger = RandomAHuman("Actors - Light", MetaPlayer.NativeTechModule)
 						if Passenger then
-							Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", MetaPlayer.NativeTechModule))
-							Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", MetaPlayer.NativeTechModule))
+							Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", MetaPlayer.NativeTechModule))
+							Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", MetaPlayer.NativeTechModule))
 							Passenger:AddAISceneWaypoint(SceneMan:MovePointToGround(Vector(lzX, 0), Passenger.Height*0.25, 9))
 							Passenger.AIMode = Actor.AIMODE_GOTO
 							Passenger.Team = team
@@ -1749,7 +1749,7 @@ function MetaFight:OrderEscortLoadout(xPosLZ, player, team)
 				Craft:AddInventoryItem(Passenger)
 			end
 		else
-			local Passenger = RandomACrab("Mecha", MetaPlayer.NativeTechModule)
+			local Passenger = RandomACrab("Actors - Mecha", MetaPlayer.NativeTechModule)
 			if Passenger then
 				Passenger.Team = team
 				Craft:AddInventoryItem(Passenger)
@@ -1771,18 +1771,18 @@ end
 function MetaFight:PurchaseHeavyInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Heavy Infantry", techID)
+	local	Cargo = RandomAHuman("Actors - Heavy", techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
 		
-		Cargo = RandomHDFirearm("Heavy Weapons", techID)
+		Cargo = RandomHDFirearm("Weapons - Heavy", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
 		end
 		
-		Cargo = RandomHDFirearm("Secondary Weapons", techID)
+		Cargo = RandomHDFirearm("Weapons - Secondary", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
@@ -1796,7 +1796,7 @@ function MetaFight:PurchaseHeavyInfantry(player, techID)
 				digger = 1
 			end
 		else
-			Cargo = RandomTDExplosive("Grenades", techID)
+			Cargo = RandomTDExplosive("Bombs - Grenades", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
@@ -1810,12 +1810,12 @@ end
 function MetaFight:PurchaseMediumInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Heavy Infantry", techID)
+	local	Cargo = RandomAHuman("Actors - Heavy", techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
 		
-		Cargo = RandomHDFirearm("Light Weapons", techID)
+		Cargo = RandomHDFirearm("Weapons - Light", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
@@ -1829,7 +1829,7 @@ function MetaFight:PurchaseMediumInfantry(player, techID)
 				digger = 1
 			end
 		else
-			Cargo = RandomHDFirearm("Secondary Weapons", techID)
+			Cargo = RandomHDFirearm("Weapons - Secondary", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
@@ -1843,12 +1843,12 @@ end
 function MetaFight:PurchaseLightInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Light Infantry", techID)
+	local	Cargo = RandomAHuman("Actors - Light", techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
 		
-		Cargo = RandomHDFirearm("Light Weapons", techID)
+		Cargo = RandomHDFirearm("Weapons - Light", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
@@ -1862,7 +1862,7 @@ function MetaFight:PurchaseLightInfantry(player, techID)
 				digger = 1
 			end
 		else
-			Cargo = RandomHDFirearm("Secondary Weapons", techID)
+			Cargo = RandomHDFirearm("Weapons - Secondary", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
@@ -1876,19 +1876,19 @@ end
 function MetaFight:PurchaseScoutInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Light Infantry", techID)
+	local	Cargo = RandomAHuman("Actors - Light", techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
 		
 		if math.random() < 0.6 then
-			Cargo = RandomHDFirearm("Secondary Weapons", techID)
+			Cargo = RandomHDFirearm("Weapons - Secondary", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
 			end
 		else
-			Cargo = RandomHDFirearm("Light Weapons", techID)
+			Cargo = RandomHDFirearm("Weapons - Light", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
@@ -1903,18 +1903,18 @@ end
 -----------------------------------------------
 -- Functions for creating random actors
 function MetaFight:CreateHeavyInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Heavy Infantry", techID)
+	local	Passenger = RandomAHuman("Actors - Heavy", techID)
 	if Passenger then
 		Passenger.AIMode = mode
-		Passenger:AddInventoryItem(RandomHDFirearm("Heavy Weapons", techID))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		
 		if math.random() < rte.DiggersRate then
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techID))
 		else
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techID))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID))
 			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techID))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID))
 			end
 		end
 	
@@ -1923,14 +1923,14 @@ function MetaFight:CreateHeavyInfantry(mode, techID)
 end
 
 function MetaFight:CreateMediumInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Heavy Infantry", techID)
+	local	Passenger = RandomAHuman("Actors - Heavy", techID)
 	if Passenger then
 		Passenger.AIMode = mode
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", techID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
 		if math.random() < rte.DiggersRate then
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techID))
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		end
 		
 		return Passenger
@@ -1938,14 +1938,14 @@ function MetaFight:CreateMediumInfantry(mode, techID)
 end
 
 function MetaFight:CreateLightInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Light Infantry", techID)
+	local	Passenger = RandomAHuman("Actors - Light", techID)
 	if Passenger then
 		Passenger.AIMode = mode
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", techID))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
 		if math.random() < rte.DiggersRate then
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techID))
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		end
 		
 		return Passenger
@@ -1953,18 +1953,18 @@ function MetaFight:CreateLightInfantry(mode, techID)
 end
 
 function MetaFight:CreateScoutInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Light Infantry", techID)
+	local	Passenger = RandomAHuman("Actors - Light", techID)
 	if Passenger then
 		Passenger.AIMode = mode
 		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 			if math.random() < 0.6 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techID))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID))
 			else
-				Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techID))
+				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", techID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
 		end
 		
 		return Passenger
