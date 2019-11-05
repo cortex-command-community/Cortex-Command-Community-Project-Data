@@ -85,7 +85,7 @@ function Create(self)
 
 
 	for i = 1, self.trailParNum do
-		self.trailPar[i] = CreateMOPixel("Particle Micro Pulsar Damage");
+		self.trailPar[i] = CreateMOPixel("Particle Techion Micro Pulsar Damage");
 		self.trailPar[i].Pos = Vector(self.Pos.X,self.Pos.Y);
 		self.trailPar[i].Vel = Vector(self.Vel.X,self.Vel.Y);
 		self.trailPar[i].Team = self.Team;
@@ -107,7 +107,7 @@ function Update(self)
 	end
 
 	for i = 1, self.trailParNum do
-		if MovableMan:IsParticle(self.trailPar[i]) and self.trailPar[i].PresetName == "Particle Micro Pulsar Damage" then
+		if MovableMan:IsParticle(self.trailPar[i]) and self.trailPar[i].PresetName == "Particle Techion Micro Pulsar Damage" then
 			self.trailPar[i].Pos = Vector(self.Pos.X,self.Pos.Y);
 			self.trailPar[i].Vel = Vector(self.Vel.X,self.Vel.Y);
 			self.trailPar[i].Team = self.Team;
