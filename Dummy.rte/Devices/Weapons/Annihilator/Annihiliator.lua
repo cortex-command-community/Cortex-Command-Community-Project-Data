@@ -98,7 +98,7 @@ function Update(self)
 
 			self.particleTable = {};
 
-			local soundfx = CreateAEmitter("Annihilator Sound Fire");
+			local soundfx = CreateAEmitter("Dummy Annihilator Sound Fire");
 			soundfx.Pos = self.MuzzlePos;
 			MovableMan:AddParticle(soundfx);
 
