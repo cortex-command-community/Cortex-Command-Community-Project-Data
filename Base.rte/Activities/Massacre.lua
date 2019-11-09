@@ -192,12 +192,12 @@ function Massacre:UpdateActivity()
 				if math.random() >= self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTechName)) then
 					passenger = RandomAHuman("Any", self.CPUTechName);
 				else
-					passenger = RandomACrab("Mecha", self.CPUTechName);
+					passenger = RandomACrab("Actors - Mecha", self.CPUTechName);
 				end
 				-- Equip it with tools and guns if it's a humanoid
 				if IsAHuman(passenger) then
-					passenger:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.CPUTechName));
-					passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", self.CPUTechName));
+					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
+					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 					if PosRand() < 0.5 then
 						passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName));
 					end

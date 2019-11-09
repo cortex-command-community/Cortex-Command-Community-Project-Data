@@ -23,7 +23,7 @@ function Update(self)
 		local actor = MovableMan:GetMOFromID(self.RootID);
 
 		for i = 1, self.chargeCounter do
-			local damagePar = CreateMOPixel("Laser Cannon Particle");
+			local damagePar = CreateMOPixel("Annihilator Particle");
 			damagePar.Pos = self.MuzzlePos + Vector(((i-1)*-2)*self.reverseNum,0):RadRotate(self.RotAngle);
 			damagePar.Vel = Vector(200*self.reverseNum,0):RadRotate(self.RotAngle);
 			damagePar:SetWhichMOToNotHit(MovableMan:GetMOFromID(self.RootID),-1);
@@ -36,7 +36,7 @@ function Update(self)
 			MovableMan:AddParticle(damagePar);
 		end
 
-		local soundfx = CreateAEmitter("Dummy Laser Musket Sound Fire");
+		local soundfx = CreateAEmitter("Dummy Lancer Sound Fire");
 		soundfx.Pos = self.MuzzlePos;
 		MovableMan:AddParticle(soundfx);
 

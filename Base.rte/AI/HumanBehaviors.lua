@@ -164,7 +164,7 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 	AI.AlarmPos = nil
 	
 	local loudness, AlarmVec
-	local canSupress = not AI.flying and Owner.FirearmIsReady and Owner.EquippedItem:HasObjectInGroup("Explosive Weapons")
+	local canSupress = not AI.flying and Owner.FirearmIsReady and Owner.EquippedItem:HasObjectInGroup("Weapons - Explosive")
 	for Event in MovableMan.AlarmEvents do
 		if Event.Team ~= Owner.Team then	-- caused by some other team's activities - alarming!
 			loudness = Owner.AimDistance + FrameMan.PlayerScreenWidth * 0.6 * Owner.Perceptiveness * Event.Range	-- adjust the audible range to the screen resolution
@@ -208,7 +208,7 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 								FoundMO = MovableMan:GetMOFromID(FoundMO.RootID)
 							end
 							
-							if not FoundMO.EquippedItem or not FoundMO.EquippedItem:HasObjectInGroup("Explosive Weapons") then
+							if not FoundMO.EquippedItem or not FoundMO.EquippedItem:HasObjectInGroup("Weapons - Explosive") then
 								FoundMO = nil	-- don't shoot at without weapons or actors using tools
 							end
 							
@@ -275,8 +275,8 @@ end
 function HumanBehaviors.EquipPreferredWeapon(AI, Owner)
 	if AI.PlayerPreferredHD then
 		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
-	elseif not Owner:EquipDeviceInGroup("Primary Weapons", true) then
-		Owner:EquipDeviceInGroup("Secondary Weapons", true)
+	elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+		Owner:EquipDeviceInGroup("Weapons - Secondary", true)
 	end
 	
 	return false
@@ -284,13 +284,13 @@ end
 
 -- deprecated since B30. make sure we equip a primary weapon if we have one. return true if we must run this function again to be sure
 function HumanBehaviors.EquipPrimaryWeapon(AI, Owner)
-	Owner:EquipDeviceInGroup("Primary Weapons", true)
+	Owner:EquipDeviceInGroup("Weapons - Primary", true)
 	return false
 end
 
 -- deprecated since B30. make sure we equip a secondary weapon if we have one. return true if we must run this function again to be sure
 function HumanBehaviors.EquipSecondaryWeapon(AI, Owner)
-	Owner:EquipDeviceInGroup("Secondary Weapons", true)
+	Owner:EquipDeviceInGroup("Weapons - Secondary", true)
 	return false
 end
 
@@ -304,8 +304,8 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 	
 	if AI.PlayerPreferredHD then
 		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
-	elseif not Owner:EquipDeviceInGroup("Primary Weapons", true) then
-		Owner:EquipDeviceInGroup("Secondary Weapons", true)
+	elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+		Owner:EquipDeviceInGroup("Weapons - Secondary", true)
 	end
 	
 	if AI.OldTargetPos then	-- try to reacquire an old target
@@ -476,8 +476,8 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 			-- make sure that we have any preferred weapon equipped
 			if AI.PlayerPreferredHD then
 				Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
-			elseif not Owner:EquipDeviceInGroup("Primary Weapons", true) then
-				Owner:EquipDeviceInGroup("Secondary Weapons", true)
+			elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+				Owner:EquipDeviceInGroup("Weapons - Secondary", true)
 			end
 			
 			if AI.deviceState == AHuman.AIMING then
@@ -518,8 +518,8 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	if Owner.ClassName == "AHuman" then
 		if AI.PlayerPreferredHD then
 			Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
-		elseif not Owner:EquipDeviceInGroup("Primary Weapons", true) then
-			Owner:EquipDeviceInGroup("Secondary Weapons", true)
+		elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+			Owner:EquipDeviceInGroup("Weapons - Secondary", true)
 		end
 	end
 	
@@ -955,7 +955,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 				waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1)
 				if waypoints < minDist and waypoints > -1 then
 					-- estimate the walking distance to the item
-					if Item:HasObjectInGroup("Primary Weapons") then
+					if Item:HasObjectInGroup("Weapons - Primary") then
 						score = waypoints * 0.4	-- prioritize primaries
 					elseif Item.ClassName == "TDExplosive" then
 						score = waypoints * 1.4	-- avoid grenades if there are other weapons
@@ -2273,7 +2273,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 				
 				-- Aim longer with low capacity weapons
 				if ((Weapon.Magazine.Capacity > -1 and Weapon.Magazine.Capacity < 10) or
-						Weapon:HasObjectInGroup("Sniper Weapons")) and
+						Weapon:HasObjectInGroup("Weapons - Sniper")) and
 						Dist.Largest > 100
 				then
 					-- reduce ErrorOffset and increase shootDelay when the target is further away
@@ -2309,7 +2309,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 							if range < 60 and Owner:HasObjectInGroup("Diggers") then
 								AI:CreateHtHBehavior(Owner)
 								break
-							elseif Owner:EquipLoadedFirearmInGroup("Any", "Explosive Weapons", true) then
+							elseif Owner:EquipLoadedFirearmInGroup("Any", "Weapons - Explosive", true) then
 								PrjDat = nil
 								local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 								if _abrt then return true end
@@ -2357,8 +2357,8 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 								end
 							else
 								-- TODO: switch weapon properly
-								if Weapon:HasObjectInGroup("Primary Weapons") then
-									if Owner:EquipDeviceInGroup("Secondary Weapons", true) then
+								if Weapon:HasObjectInGroup("Weapons - Primary") then
+									if Owner:EquipDeviceInGroup("Weapons - Secondary", true) then
 										local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 										if _abrt then return true end
 										PrjDat = nil
@@ -2366,8 +2366,8 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 											break
 										end
 									end
-								elseif Weapon:HasObjectInGroup("Secondary Weapons") then
-									if Owner:EquipDeviceInGroup("Primary Weapons", true) then
+								elseif Weapon:HasObjectInGroup("Weapons - Secondary") then
+									if Owner:EquipDeviceInGroup("Weapons - Primary", true) then
 										local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 										if _abrt then return true end
 										PrjDat = nil
@@ -2483,7 +2483,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 						if openFire > 0 and PrjDat.blast > 0 then
 							if SceneMan:CastObstacleRay(Weapon.MuzzlePos, Weapon:RotateOffset(Vector(50, 0)), Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 2) > -1 then
 								-- equip another primary if possible
-								if Owner:EquipLoadedFirearmInGroup("Any", "Explosive Weapons", true) then
+								if Owner:EquipLoadedFirearmInGroup("Any", "Weapons - Explosive", true) then
 									PrjDat = nil
 									openFire = 0
 									local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
@@ -2531,15 +2531,15 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 					
 					if AI.Target then
 						-- equip another primary if possible
-						if Owner:EquipLoadedFirearmInGroup("Primary Weapons", "None", true) then
+						if Owner:EquipLoadedFirearmInGroup("Weapons - Primary", "None", true) then
 							PrjDat = nil
 						else
 							-- select a secondary instead of reloading if the target is within half a screen
 							if Dist.Largest < (FrameMan.PlayerScreenWidth * 0.5 + AI.Target.Radius + Owner.AimDistance) then
 								-- select a primary if we have an empty secondary equipped
-								if Owner:EquipLoadedFirearmInGroup("Secondary Weapons", "None", true) then
+								if Owner:EquipLoadedFirearmInGroup("Weapons - Secondary", "None", true) then
 									PrjDat = nil
-								elseif Owner:EquipDeviceInGroup("Primary Weapons", true) then
+								elseif Owner:EquipDeviceInGroup("Weapons - Primary", true) then
 									PrjDat = nil
 								end
 							end
@@ -2587,7 +2587,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 	end
 	
 	-- reload the secondary before switching to the primary weapon
-	if Owner:HasObjectInGroup("Primary Weapons") and (Owner.EquippedItem and Owner.EquippedItem:HasObjectInGroup("Secondary Weapons")) then
+	if Owner:HasObjectInGroup("Weapons - Primary") and (Owner.EquippedItem and Owner.EquippedItem:HasObjectInGroup("Weapons - Secondary")) then
 		while Owner.EquippedItem and ToHeldDevice(Owner.EquippedItem):IsReloading() do
 			local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 			if _abrt then return true end
@@ -2596,8 +2596,8 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 	
 	if AI.PlayerPreferredHD then
 		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
-	elseif not Owner:EquipDeviceInGroup("Primary Weapons", true) then
-		Owner:EquipDeviceInGroup("Secondary Weapons", true)
+	elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+		Owner:EquipDeviceInGroup("Weapons - Secondary", true)
 	end
 	
 	if Owner.FirearmIsEmpty then

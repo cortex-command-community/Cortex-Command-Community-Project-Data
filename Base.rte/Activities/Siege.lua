@@ -12,8 +12,8 @@ area. All actors inside "Brain Chamber" but without a brain nearby will be remov
 
 Add defender units by placing areas named:
 "Sniper1" to "Sniper10"
-"Light1" to "Light10"	<-- light actors, light weapons
-"Heavy1" to "Heavy10"	<-- heavy actors, heavy weapons
+"Light1" to "Light10"	<-- light actors, Weapons - Light
+"Heavy1" to "Heavy10"	<-- heavy actors, Weapons - Heavy
 "Crab1" to "Crab10"
 "Turret1" to "Turret10"
 "Engineer1" to "Engineer10"	<-- light actors, digger, gold dig AI-mode
@@ -432,7 +432,7 @@ function Siege:UpdateActivity()
 	
 		for actor in MovableMan.Actors do
 			if actor.Team == self.CPUTeam then
-				if actor.PresetName == "AHuman" or actor.PresetName == "ACrab" then
+				if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
 					troops = troops + 1
 					self:AddObjectivePoint("Terminate!", actor.AboveHUDPos, self.PlayerTeam, GameActivity.ARROWDOWN)
 				end
@@ -776,7 +776,7 @@ end
 
 
 function Siege:CreateCrab(mode, techName)
-	local Passenger = RandomACrab("Mecha", techName)
+	local Passenger = RandomACrab("Actors - Mecha", techName)
 	if Passenger then
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO
@@ -799,13 +799,13 @@ end
 function Siege:CreateRandomInfantry(mode, techName)
 	local	Passenger = RandomAHuman("Actors", techName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Primary Weapons", techName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		
 		if math.random() < 0.4 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 			end
 		elseif not self:PlayerBrainsReachable() then
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techName))
@@ -823,19 +823,19 @@ function Siege:CreateRandomInfantry(mode, techName)
 end
 
 function Siege:CreateSWATInfantry(mode, techName)
-	local	Passenger = RandomAHuman("Light Infantry", techName)
+	local	Passenger = RandomAHuman("Actors - Light", techName)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Shields", techName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		
 		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 		end
 		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 		end
 		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 		end
 		
 		if self.DiggersEssential then
@@ -850,13 +850,13 @@ function Siege:CreateSWATInfantry(mode, techName)
 end
 
 function Siege:CreateLightInfantry(mode, techName)
-	local	Passenger = RandomAHuman("Light Infantry", techName)
+	local	Passenger = RandomAHuman("Actors - Light", techName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", techName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		
 		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 		end
 		
 		if self.DiggersEssential then
@@ -871,16 +871,16 @@ function Siege:CreateLightInfantry(mode, techName)
 end
 
 function Siege:CreateHeavyInfantry(mode, techName)
-	local	Passenger = RandomAHuman("Heavy Infantry", techName)
+	local	Passenger = RandomAHuman("Actors - Heavy", techName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Heavy Weapons", techName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		
 		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 			if math.random() < 0.4 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 			end
 		end
 		
@@ -901,13 +901,13 @@ end
 
 
 function Siege:CreateArtilleryInfantry(mode, techName)
-	local	Passenger = RandomAHuman("Heavy Infantry", techName)
+	local	Passenger = RandomAHuman("Actors - Heavy", techName)
 	if Passenger then
-		local weapon = RandomHDFirearm("Explosive Weapons", techName);
+		local weapon = RandomHDFirearm("Weapons - Explosive", techName);
 		if weapon then
 			Passenger:AddInventoryItem(weapon)
 		end
-		Passenger:AddInventoryItem(RandomHDFirearm("Heavy Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techName))
 		
 		if not self:PlayerBrainsReachable() then
 			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techName))
@@ -929,10 +929,10 @@ end
 
 
 function Siege:CreateMediumInfantry(mode, techName)
-	local	Passenger = RandomAHuman("Heavy Infantry", techName)
+	local	Passenger = RandomAHuman("Actors - Heavy", techName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", techName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		
 		if self.DiggersEssential then
 			Passenger:AddInventoryItem(CreateHDFirearm("Light Digger", "Base.rte"))
@@ -946,14 +946,14 @@ function Siege:CreateMediumInfantry(mode, techName)
 end
 
 function Siege:CreateScoutInfantry(mode, techName)
-	local	Passenger = RandomAHuman("Light Infantry", techName)
+	local	Passenger = RandomAHuman("Actors - Light", techName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		
 		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Grenades", techName))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		end
 		
 		if self.DiggersEssential then
@@ -970,14 +970,14 @@ end
 function Siege:CreateSniper(mode, techName)
 	local	Passenger
 	if math.random() < 0.7 then
-		Passenger = RandomAHuman("Light Infantry", techName)
+		Passenger = RandomAHuman("Actors - Light", techName)
 	else
-		Passenger = RandomAHuman("Heavy Infantry", techName)
+		Passenger = RandomAHuman("Actors - Heavy", techName)
 	end
 	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Sniper Weapons", techName))
-		Passenger:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		
 		if self.DiggersEssential then
 			Passenger:AddInventoryItem(CreateHDFirearm("Light Digger", "Base.rte"))
@@ -991,9 +991,9 @@ function Siege:CreateSniper(mode, techName)
 end
 
 function Siege:CreateEngineer(mode, techName)
-	local Passenger = RandomAHuman("Light Infantry", techName)
+	local Passenger = RandomAHuman("Actors - Light", techName)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Light Weapons", techName))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techName))
 		Passenger:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -1016,11 +1016,11 @@ end
 function Siege:CreateBrainBot(mode, team, techName)
 	local Act = RandomAHuman("Brains", techName)
 	if Act then
-		Act:AddInventoryItem(RandomHDFirearm("Light Weapons", techName))
+		Act:AddInventoryItem(RandomHDFirearm("Weapons - Light", techName))
 		Act:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
 
 		if PosRand() < 0.5 then
-			Act:AddInventoryItem(RandomHDFirearm("Secondary Weapons", techName))
+			Act:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		end
 
 		-- Set AI mode and team so it knows who and what to fight for!

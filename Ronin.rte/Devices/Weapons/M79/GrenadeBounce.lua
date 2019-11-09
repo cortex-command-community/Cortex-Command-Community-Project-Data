@@ -7,7 +7,7 @@ end
 function Update(self)
 
 	if self.lifeTimer:IsPastSimMS(3000) then
-		local explosion = CreateMOSRotating("Ronin Thumper Grenade Explosion");
+		local explosion = CreateMOSRotating("Ronin M79 Grenade Explosion");
 		explosion.Pos = self.Pos;
 		explosion:GibThis();
 		MovableMan:AddParticle(explosion);

@@ -229,20 +229,20 @@ function MaginotMission:UpdateActivity()
 			--Spawn 2 Dummies in a Dummy Drops Ship with a randomly-selected weapon, a digger, and maybe a grenade.
 			local ship = RandomACDropShip("Craft", self.EnemyTech)
 			if not ship then
-				ship = CreateACDropship("Drop Ship MK1", "Base.rte");
+				ship = CreateACDropship("Dropship MK1", "Base.rte");
 			end
 			
 			if ship then
-				local dummya = RandomAHuman("Light Infantry", self.EnemyTech)
+				local dummya = RandomAHuman("Actors - Light", self.EnemyTech)
 				if dummya then
-					local guna = RandomHDFirearm("Primary Weapons", self.EnemyTech)
+					local guna = RandomHDFirearm("Weapons - Primary", self.EnemyTech)
 					if guna then
 						dummya:AddInventoryItem(guna)
 					end
 				end
 				
 				if math.random() > 0.4 then
-					dummya:AddInventoryItem(RandomTDExplosive("Grenades", self.EnemyTech))
+					dummya:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.EnemyTech))
 				else
 					local digger = RandomHDFirearm("Diggers", self.EnemyTech)
 					if not digger then
@@ -258,16 +258,16 @@ function MaginotMission:UpdateActivity()
 				end
 				
 				if math.random() > 0.7 then
-					local dummyb = RandomAHuman("Light Infantry", self.EnemyTech)
+					local dummyb = RandomAHuman("Actors - Light", self.EnemyTech)
 					if dummyb then
-						local gunb = RandomHDFirearm("Primary Weapons", self.EnemyTech)
+						local gunb = RandomHDFirearm("Weapons - Primary", self.EnemyTech)
 						if gunb then
 							dummyb:AddInventoryItem(gunb)
 						end
 					end
 						
 					if math.random() > 0.4 then
-						dummyb:AddInventoryItem(RandomTDExplosive("Grenades", self.EnemyTech))
+						dummyb:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.EnemyTech))
 					else
 						local digger = RandomHDFirearm("Diggers", self.EnemyTech)
 						if not digger then
@@ -303,17 +303,17 @@ function MaginotMission:UpdateActivity()
 				local actor
 				local y = math.random()
 				if y > 0.05 then
-					actor = RandomAHuman("Light Infantry", self.EnemyTech)
+					actor = RandomAHuman("Actors - Light", self.EnemyTech)
 					if actor then
-						actor:AddInventoryItem(RandomHDFirearm("Primary Weapons", self.EnemyTech))
+						actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.EnemyTech))
 						if math.random() > 0.1 then
-							actor:AddInventoryItem(RandomTDExplosive("Grenades", self.EnemyTech))
+							actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.EnemyTech))
 						else
 							actor:AddInventoryItem(RandomHDFirearm("Diggers", self.EnemyTech))
 						end
 					end
 				else
-					actor = RandomACrab("Mecha", self.EnemyTech)
+					actor = RandomACrab("Actors - Mecha", self.EnemyTech)
 				end
 
 				if actor then

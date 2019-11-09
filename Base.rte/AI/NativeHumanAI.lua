@@ -351,7 +351,7 @@ function NativeHumanAI:Update(Owner)
 									local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
 									if OwnerWeapon:IsTool() then
 										-- try equipping a weapon
-										if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Primary Weapons", true) then
+										if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
 											Owner:EquipFirearm(true)
 										end
 									elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
@@ -364,7 +364,7 @@ function NativeHumanAI:Update(Owner)
 							else
 								if Owner.FirearmIsEmpty then
 									Owner:ReloadFirearm()
-								elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Primary Weapons", true) then
+								elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
 									Owner:EquipFirearm(true)
 								end
 							end
