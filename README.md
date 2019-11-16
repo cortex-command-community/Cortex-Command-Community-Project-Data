@@ -1,4 +1,4 @@
-# Cortex-Command-Community-Project
+# Cortex Command Community Project
 This is where you can find the community's plans for Cortex Command's future. There'll be new sprites, rebalancing, new weapons and units and more. Stay up to date in our [discord channel](https://discord.gg/SdNnKJN).
 
 # How To Make Your Voice Heard #
