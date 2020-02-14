@@ -1,0 +1,5 @@
+Digital Extremes: Warframe
+
+CrpElectroMag Firing Sounds
+CrpElectroMag Reload Sounds
+CrpChargeGun Firing Sounds

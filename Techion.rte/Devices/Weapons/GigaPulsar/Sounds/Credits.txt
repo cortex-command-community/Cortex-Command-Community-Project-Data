@@ -1,0 +1,5 @@
+Digital Extremes: Warframe
+
+MoaLaser Firing Sounds
+CrpDualMinigun Reload Sounds
+CrpSplitLaser Reload Sounds

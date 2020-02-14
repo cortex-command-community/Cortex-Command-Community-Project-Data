@@ -1,0 +1,5 @@
+Digital Extremes: Warframe
+
+Multron Sounds
+CrpShotgun Reload Sounds
+CrpSentExperimentalPistol Firing Sounds

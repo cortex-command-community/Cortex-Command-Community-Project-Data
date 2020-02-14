@@ -1,0 +1,5 @@
+Digital Extremes: Warframe
+
+CrpGrenadeLauncher Firing Sounds
+CrpGrenadeLauncher Reload Sounds
+CrpFreezeRay Reload Sounds

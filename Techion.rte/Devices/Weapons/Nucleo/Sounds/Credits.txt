@@ -1,0 +1,5 @@
+Digital Extremes: Warframe
+
+EnergyRifle Firing Sounds
+LibrarianTrap Firing Sounds
+CephPrimary Reload Sounds
