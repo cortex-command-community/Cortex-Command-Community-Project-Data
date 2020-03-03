@@ -1,33 +1,59 @@
 function InfiniteAmmo:StartScript()
-	self.Exclude = {}
-	self.Exclude["Dihelical Cannon"] = true -- Endless shooting causes endless lag
-	self.Exclude["Nucleo"] = true -- Can't shoot for whatever reasons
 end
-
 function InfiniteAmmo:UpdateScript()
+	local items = {};
 	for actor in MovableMan.Actors do
-		if actor.ClassName == "AHuman" then
-			local human = ToAHuman(actor)
-			if human then
-				if human.EquippedItem and human.EquippedItem.ClassName == "HDFirearm" and self.Exclude[human.EquippedItem.PresetName] == nil then
-					local item = ToHDFirearm(human.EquippedItem)
-					if item then
-						local mag = item.Magazine
-						if mag and mag.Capacity > 0 then
-							mag.RoundCount = mag.Capacity
+		local weapon;
+		local item;
+		if IsAHuman(actor) then
+			item = ToAHuman(actor).EquippedItem;
+			if item then
+				if IsHDFirearm(item) then
+					table.insert(items, ToHDFirearm(item));
+				elseif IsTDExplosive(item) then
+					local grenade = ToTDExplosive(item);
+					if grenade:IsActivated() then
+						local count = 0;
+						for i = 1, actor.InventorySize do
+							local potentialWep = actor:Inventory();
+							if potentialWep.PresetName == grenade.PresetName then
+								count = count + 1;
+							end	
+							actor:SwapNextInventory(potentialWep, true);
+						end
+						if count == 0 then
+							actor:AddInventoryItem(CreateTDExplosive(grenade:GetModuleAndPresetName()));
 						end
 					end
 				end
 			end
+			local itemBG = ToAHuman(actor).EquippedBGItem;
+			if itemBG and IsHDFirearm(itemBG)then
+				table.insert(items, ToHDFirearm(itemBG));
+			end
+		elseif IsACrab(actor) then
+			item = ToACrab(actor).EquippedItem;
+			if item and IsHDFirearm(item) then
+				table.insert(items, ToHDFirearm(item));
+			end
 		end
 	end
-end
-
-function InfiniteAmmo:EndScript()
-end
-
-function InfiniteAmmo:PauseScript()
-end
-
-function InfiniteAmmo:CraftEnteredOrbit()
+	-- Run this script for rogue weapons as well
+	for item in MovableMan.Items do
+		if IsHDFirearm(item) then
+			table.insert(items, ToHDFirearm(item));
+		end
+	end
+	for i = 1, #items do
+		local weapon = items[i];
+		if weapon and weapon.Magazine then
+			-- Stop weapons like Dihelical Cannon from misbehaving
+			if weapon.ActivationDelay > 0 and weapon:IsActivated() and weapon.Magazine.Capacity == 1 and weapon.Magazine.RoundCount == 0 then
+				weapon:Deactivate();
+			end
+			if weapon.Magazine.RoundCount == 0 or not weapon:IsActivated() then
+				weapon.Magazine.RoundCount = weapon.Magazine.Capacity;
+			end
+		end
+	end
 end
