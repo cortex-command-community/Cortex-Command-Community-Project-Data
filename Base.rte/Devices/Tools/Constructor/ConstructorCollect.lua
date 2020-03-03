@@ -1,5 +1,8 @@
 function Create(self)
 
+	self.speed = 8;
+
+	self.ToSettle = false;
 	if self.Sharpness > -1 then
 		for i = 1, MovableMan:GetMOIDCount()-1 do
 			local mo = MovableMan:GetMOFromID(i);
@@ -13,18 +16,17 @@ function Create(self)
 	else
 		self.ToDelete = true;
 	end
-
 end
 
 function Update(self)
 
+	self.ToSettle = false;
 	if self.target ~= nil and self.target.ID ~= 255 then
 		local dist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
-		if dist.Magnitude > 10 then
-			self.Vel = Vector(dist.X,dist.Y):SetMagnitude(10);
+		if dist.Magnitude > self.speed then
+			self.Vel = Vector(dist.X,dist.Y):SetMagnitude(self.speed);
 		else
 			self.ToDelete = true;
 		end
 	end
-
 end
