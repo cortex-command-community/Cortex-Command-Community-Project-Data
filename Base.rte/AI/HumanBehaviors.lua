@@ -21,7 +21,7 @@ function HumanBehaviors.GetTeamShootingSkill(team)
 		aimSkill = 1/(0.65/(3.0-math.exp(skill*0.01))) -- [1.36 .. 0.48]
 	end
 	
-	return aimSpeed, aimSkill
+	return aimSpeed, aimSkill, skill
 end
 
 function HumanBehaviors.SetShootingSkill()
@@ -35,7 +35,7 @@ function HumanBehaviors.GetShootingSkill()
 end
 
 -- spot targets by casting a ray in a random direction
-function HumanBehaviors.LookForTargets(AI, Owner)
+function HumanBehaviors.LookForTargets(AI, Owner, Skill)	-- Skill is obsolete here
 	local viewAngDeg = RangeRand(35, 85)
 	if AI.deviceState == AHuman.AIMING then
 		viewAngDeg = 20
@@ -53,15 +53,15 @@ function HumanBehaviors.LookForTargets(AI, Owner)
 end
 
 -- brains spot targets by casting rays at all nearby enemy actors
-function HumanBehaviors.CheckEnemyLOS(AI, Owner)
+function HumanBehaviors.CheckEnemyLOS(AI, Owner, Skill)
 	if not AI.Enemies then	-- add all enemy actors on our screen to a table and check LOS to them, one per frame
 		AI.Enemies = {}
 		for Act in MovableMan.Actors do
 			if Act.Team ~= Owner.Team then
 				if not AI.isPlayerOwned or not SceneMan:IsUnseen(Act.Pos.X, Act.Pos.Y, Owner.Team) then	-- AI-teams ignore the fog
 					local Dist = SceneMan:ShortestDistance(Owner.ViewPoint, Act.Pos, false)
-					if (math.abs(Dist.X) - Act.Diameter < FrameMan.PlayerScreenWidth * 0.6) and
-						(math.abs(Dist.Y) - Act.Diameter < FrameMan.PlayerScreenHeight * 0.6)
+					if (math.abs(Dist.X) - Act.Diameter < FrameMan.PlayerScreenWidth * (0.4 + Skill * 0.005)) and
+						(math.abs(Dist.Y) - Act.Diameter < FrameMan.PlayerScreenHeight * (0.4 + Skill * 0.005))
 					then
 						table.insert(AI.Enemies, Act)
 					end
@@ -69,7 +69,7 @@ function HumanBehaviors.CheckEnemyLOS(AI, Owner)
 			end
 		end
 		
-		return HumanBehaviors.LookForTargets(AI, Owner)	-- cast rays like normal actors occasionally
+		return HumanBehaviors.LookForTargets(AI, Owner, Skill)	-- cast rays like normal actors occasionally
 	else
 		local Enemy = table.remove(AI.Enemies)
 		if Enemy then
@@ -87,7 +87,7 @@ function HumanBehaviors.CheckEnemyLOS(AI, Owner)
 					if Door and Door:IsAttached() then
 						LookTarget = Door.Pos
 					else
-						return HumanBehaviors.LookForTargets(AI, Owner)		-- this door is destroyed, cast rays like normal actors
+						return HumanBehaviors.LookForTargets(AI, Owner, Skill)		-- this door is destroyed, cast rays like normal actors
 					end
 				else
 					LookTarget = Enemy.Pos
@@ -133,7 +133,7 @@ function HumanBehaviors.CheckEnemyLOS(AI, Owner)
 			end
 		else
 			AI.Enemies = nil
-			return HumanBehaviors.LookForTargets(AI, Owner)		-- cast rays like normal actors occasionally
+			return HumanBehaviors.LookForTargets(AI, Owner, Skill)		-- cast rays like normal actors occasionally
 		end
 	end
 end
@@ -273,13 +273,15 @@ end
 
 -- deprecated since B30. make sure we equip our preferred device if we have one. return true if we must run this function again to be sure
 function HumanBehaviors.EquipPreferredWeapon(AI, Owner)
+	if AI.squadshoot == false then
 	if AI.PlayerPreferredHD then
 		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
 	elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
 		Owner:EquipDeviceInGroup("Weapons - Secondary", true)
 	end
-	
 	return false
+	end
+	
 end
 
 -- deprecated since B30. make sure we equip a primary weapon if we have one. return true if we must run this function again to be sure
@@ -840,7 +842,7 @@ function HumanBehaviors.BrainSearch(AI, Owner, Abort)
 				Owner:AddAIMOWaypoint(Brains[1])
 				AI:CreateGoToBehavior(Owner)
 			end
-		else
+		else	-- lobotomy test
 			local ClosestBrain
 			local minDist = math.huge
 			for _, Act in pairs(Brains) do
@@ -893,9 +895,10 @@ function HumanBehaviors.BrainSearch(AI, Owner, Abort)
 				end
 			end
 			
-			Owner:ClearAIWaypoints()
-			
-			if MovableMan:IsActor(ClosestBrain) then
+			--Owner:ClearAIWaypoints()			-- this part freezes the script when facing the opposing brain
+									--
+			if MovableMan:IsActor(ClosestBrain) then	--
+				Owner:ClearAIWaypoints()		-- moving the function here fixes it (4zK)
 				Owner:AddAIMOWaypoint(ClosestBrain)
 				AI:CreateGoToBehavior(Owner)
 			else
@@ -914,7 +917,7 @@ end
 function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	local minDist
 	local Devices = {}
-	local pickupDiggers = not Owner:HasObjectInGroup("Diggers")
+	local pickupDiggers = not Owner:HasObjectInGroup("Tools - Diggers")
 	
 	if AI.isPlayerOwned then
 		minDist = 100	-- don't move player actors more than 4m
@@ -960,7 +963,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 					elseif Item.ClassName == "TDExplosive" then
 						score = waypoints * 1.4	-- avoid grenades if there are other weapons
 					elseif Item:IsTool() then
-						if pickupDiggers and Item:HasObjectInGroup("Diggers") then
+						if pickupDiggers and Item:HasObjectInGroup("Tools - Diggers") then
 							score = waypoints * 1.8	-- avoid diggers if there are other weapons
 						else
 							waypoints = minDist -- don't pick up
@@ -1061,7 +1064,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		
 		local DevicesToPickUp = {}
 		for _, Item in pairs(Devices) do
-			if MovableMan:ValidMO(Item) and Item:HasObjectInGroup("Diggers") then
+			if MovableMan:ValidMO(Item) and Item:HasObjectInGroup("Tools - Diggers") then
 				-- estimate the walking distance to the item
 				local waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1)
 				if waypoints < minDist and waypoints > -1 then
@@ -1328,7 +1331,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								local Free = Vector()
 								
 								-- only if we have a digging tool
-								if Waypoint.Type ~= "drop" and Owner:HasObjectInGroup("Diggers") then
+								if Waypoint.Type ~= "drop" and Owner:HasObjectInGroup("Tools - Diggers") then
 									local PathSegRay = SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false)	-- detect material blocking the path and start digging through it
 									if AI.teamBlockState ~= Actor.BLOCKED and SceneMan:CastStrengthRay(PrevWptPos, PathSegRay, 4, Free, 2, rte.doorID, true) then
 										if SceneMan:ShortestDistance(Owner.Pos, Free, false).Magnitude < Owner.Height*0.4 then	-- check that we're close enough to start digging
@@ -1663,7 +1666,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							
 							if Waypoint then	-- move towards the waypoint
 								-- control horizontal movement
-								if Owner.FGLeg or Owner.BGLeg then
+								--if Owner.FGLeg or Owner.BGLeg then	-- test
 									if not AI.flying then
 										if CurrDist.X < -3 then
 											nextLatMove = Actor.LAT_LEFT
@@ -1672,11 +1675,14 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										else
 											nextLatMove = Actor.LAT_STILL
 										end
+										if not Owner.FGLeg and not Owner.BGLeg then
+											Owner:GetController():SetState(Controller.BODY_CROUCH,true)	-- crawl if no legs
+										end
 									end
-								elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
-									-- no legs, jump forward
-									AI.jump = true
-								end
+								--elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
+								--	-- no legs, jump forward
+								--	AI.jump = true
+								--end
 								
 								if Waypoint.Type == "right" then
 									if CurrDist.X > -3 then
@@ -2001,7 +2007,11 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 		if (AI.Target and AI.BehaviorName ~= "AttackTarget") or
 			(Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm"))
 		then
-			AI.lateralMoveState = Actor.LAT_STILL
+			if AI.behaviorType == 1 then	-- aggressive (4zK)
+				AI.lateralMoveState = nextLatMove
+			else
+				AI.lateralMoveState = Actor.LAT_STILL
+			end
 			if not AI.flying then
 				AI.jump = false
 			end
@@ -2306,7 +2316,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 						aimTarget = Dist.AbsRadAngle
 						AI.canHitTarget = true
 						if Owner.InventorySize > 0 then	-- we have more things in the inventory
-							if range < 60 and Owner:HasObjectInGroup("Diggers") then
+							if range < 60 and Owner:HasObjectInGroup("Tools - Diggers") then
 								AI:CreateHtHBehavior(Owner)
 								break
 							elseif Owner:EquipLoadedFirearmInGroup("Any", "Weapons - Explosive", true) then
@@ -2421,7 +2431,9 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 				end
 				
 				if AI.canHitTarget then
-					AI.lateralMoveState = Actor.LAT_STILL
+					if AI.behaviorType ~= 1 then	-- non-aggressive
+						AI.lateralMoveState = Actor.LAT_STILL
+					end
 					if not AI.flying then
 						AI.deviceState = AHuman.AIMING
 					end
@@ -2806,19 +2818,37 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		if not AI.Target or not MovableMan:ValidMO(AI.Target) then
 			break
 		end
+		-- Use following sequence to attack either with a suited melee weapon or arms
+		local meleeDist = 0;
+		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y);
 		
 		if Owner.EquippedItem then
-			if Owner.EquippedItem:HasObjectInGroup("Diggers") then	-- attack with digger
-				local Dist = SceneMan:ShortestDistance(Owner.EquippedItem.Pos, AI.Target.Pos, false)
-				if Dist.Magnitude < 40 then
-					AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, AI.Target.Pos, false).Normalized
-					AI.fire = true
-				else
-					AI.fire = false
-				end
-			elseif not Owner:EquipDiggingTool(true) then
-				break
+			if Owner.EquippedItem:HasObjectInGroup("Tools - Diggers")
+			or Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then
+			
+				meleeDist = Owner.Radius + 25;
+				startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
 			end
+		--[[	disabled
+		elseif Owner.FGArm then
+			meleeDist = Owner.Radius + Owner.FGArm.Radius;
+			startPos = Owner.FGArm.Pos;
+		elseif Owner.BGArm then
+			meleeDist = Owner.Radius + Owner.BGArm.Radius;
+			startPos = Owner.BGArm.Pos;
+		]]--
+		end
+		if meleeDist > 0 then
+	
+			local Dist = SceneMan:ShortestDistance(startPos, AI.Target.Pos, false)
+			if Dist.Magnitude < meleeDist then
+				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, AI.Target.Pos, false).Normalized;
+				AI.fire = true
+			else
+				AI.fire = false
+			end
+		else--if not Owner:EquipDiggingTool(true) then
+			break
 		-- else TODO: periodically look for weapons?
 		end
 	end
@@ -3070,7 +3100,9 @@ function HumanBehaviors.FaceAlarm(AI, Owner, Abort)
 		AI.AlarmPos = nil
 		for _ = 1, math.ceil(200/TimerMan.DeltaTimeMS) do
 			AI.deviceState = AHuman.AIMING
-			AI.lateralMoveState = Actor.LAT_STILL
+			if AI.behaviorType ~= 1 then	-- non-aggressive
+				AI.lateralMoveState = Actor.LAT_STILL
+			end
 			AI.Ctrl.AnalogAim = AlarmDist.Normalized
 			local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 			if _abrt then return true end

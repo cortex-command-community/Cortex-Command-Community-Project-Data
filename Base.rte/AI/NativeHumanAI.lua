@@ -15,6 +15,12 @@ function NativeHumanAI:Create(Owner)
 	Members.SentryFacing = Owner.HFlipped
 	Members.fire = false
 	Members.groundContact = 5
+
+	Members.squadShoot = false; 	-- 
+	Members.usemedikit = false;	-- 
+	Members.scatter = false;		-- 4zK
+	
+	Members.behaviorType = 0;	-- WIP
 	
 	-- timers
 	Members.AirTimer = Timer()
@@ -22,6 +28,7 @@ function NativeHumanAI:Create(Owner)
 	Members.ReloadTimer = Timer()
 	Members.BlockedTimer = Timer()
 	Members.SquadShootTimer = Timer()
+	Members.SquadShootDelay = math.random(50,100);
 	
 	Members.AlarmTimer = Timer()
 	Members.AlarmTimer:SetSimTimeLimitMS(400)
@@ -29,7 +36,10 @@ function NativeHumanAI:Create(Owner)
 	Members.TargetLostTimer = Timer()
 	Members.TargetLostTimer:SetSimTimeLimitMS(1000)
 	
-	if Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Snipers") then
+	-- set shooting skill
+	Members.aimSpeed, Members.aimSkill, Members.skill = HumanBehaviors.GetTeamShootingSkill(Owner.Team)
+	-- default to enhanced AI if AI skill has been set high enough
+	if Members.skill >= GameActivity.NUTSDIFFICULTY or Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Actors - Snipers") then
 		Members.SpotTargets = HumanBehaviors.CheckEnemyLOS
 	else
 		Members.SpotTargets = HumanBehaviors.LookForTargets
@@ -41,9 +51,6 @@ function NativeHumanAI:Create(Owner)
 		Members.PlayerInterferedTimer = Timer()
 		Members.PlayerInterferedTimer:SetSimTimeLimitMS(500)
 	end
-	
-	-- set shooting skill
-	Members.aimSpeed, Members.aimSkill = HumanBehaviors.GetTeamShootingSkill(Owner.Team)
 	
 	-- the native AI assume the jetpack cannot be destroyed
 	if Owner.Jetpack then
@@ -99,7 +106,10 @@ function NativeHumanAI:Update(Owner)
 			self.fire = false
 			self.canHitTarget = false
 			self.jump = false
-			
+
+			self.squadShoot = false; 	-- 
+			self.usemedikit = false;	-- 4zK
+
 			self.proneState = AHuman.NOTPRONE
 			self.SentryFacing = Owner.HFlipped
 			self.deviceState = AHuman.STILL
@@ -107,7 +117,7 @@ function NativeHumanAI:Update(Owner)
 			self.teamBlockState = Actor.NOTBLOCKED
 			
 			if Owner.EquippedItem then
-				self.PlayerPreferredHD = Owner.EquippedItem.PresetName
+				self.PlayerPreferredHD = Owner.EquippedItem:GetModuleAndPresetName()
 			else
 				self.PlayerPreferredHD = nil
 			end
@@ -216,14 +226,14 @@ function NativeHumanAI:Update(Owner)
 		
 		local Origin
 		if Owner.FGLeg then
-			Origin = Owner.FGLeg.Pos
+			Origin = Vector(Owner.FGLeg.Pos.X, Owner.FGLeg.Pos.Y);
 		elseif Owner.BGLeg then
-			Origin = Owner.BGLeg.Pos
+			Origin = Vector(Owner.BGLeg.Pos.X, Owner.BGLeg.Pos.Y);
 		else
-			Origin = Owner.Pos
+			Origin = Vector(Owner.Pos.X, Owner.Pos.Y);
 		end
 		
-		if -1 < SceneMan:CastObstacleRay(Origin, Vector(RangeRand(-8, 8), Owner.Height*0.17), Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3) then
+		if -1 < SceneMan:CastObstacleRay(Origin, Vector(RangeRand(-8, 8), Owner.Height * 0.17), Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3) then
 			self.groundContact = 3
 		else
 			self.groundContact = self.groundContact - 1
@@ -238,7 +248,7 @@ function NativeHumanAI:Update(Owner)
 	end
 	
 	-- look for targets
-	local FoundMO, HitPoint = self.SpotTargets(self, Owner)	
+	local FoundMO, HitPoint = self.SpotTargets(self, Owner, self.skill)	
 	if FoundMO then
 		if self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
 			self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y)
@@ -313,7 +323,7 @@ function NativeHumanAI:Update(Owner)
 		end
 	end
 	
-	self.squadShoot = false
+	--self.squadShoot = false	-- let's not update this every frame (4zK)
 	if Owner.MOMoveTarget then
 		-- make the last waypoint marker stick to the MO we are following
 		if MovableMan:ValidMO(Owner.MOMoveTarget) then
@@ -334,41 +344,79 @@ function NativeHumanAI:Update(Owner)
 						end
 					end
 					
-					if Leader and Leader.EquippedItem and IsHDFirearm(Leader.EquippedItem) and
-						SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest < (Leader.Height + Owner.Height) * 0.5
-					then
-						local LeaderWeapon = ToHDFirearm(Leader.EquippedItem)
-						if LeaderWeapon:IsWeapon() then
-							local AimDelta = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false)
-							self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Leader.ViewPoint+AimDelta, false).Normalized
-							self.deviceState = AHuman.POINTING
+					if Leader and Leader.EquippedItem and SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest < (Leader.Height + Owner.Height) * 0.5 then
+
+						if IsHDFirearm(Leader.EquippedItem) then
+						--
+							local LeaderWeapon = ToHDFirearm(Leader.EquippedItem)
+							if LeaderWeapon:IsWeapon() then
+								local AimDelta = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false)
+								self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Leader.ViewPoint+AimDelta, false).Normalized
+								self.deviceState = AHuman.POINTING
+
+								--local LeaderWeapon
 							
-							-- check if the SL is shooting and if we have a similar weapon
-							if Owner.FirearmIsReady then
-								self.deviceState = AHuman.AIMING
+								-- check if the SL is shooting and if we have a similar weapon
+								if Owner.FirearmIsReady then
+									self.deviceState = AHuman.AIMING
 								
-								if IsHDFirearm(Owner.EquippedItem) and Leader:GetController():IsState(Controller.WEAPON_FIRE) then
-									local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
-									if OwnerWeapon:IsTool() then
-										-- try equipping a weapon
-										if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
-											Owner:EquipFirearm(true)
+									if IsHDFirearm(Owner.EquippedItem) and Leader:GetController():IsState(Controller.WEAPON_FIRE) then
+										local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
+										if OwnerWeapon:IsTool() then
+											-- try equipping a weapon
+											if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+												Owner:EquipFirearm(true)
+											end
+										elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
+											OwnerWeapon:CompareTrajectories(LeaderWeapon) < math.max(100, OwnerWeapon:GetAIBlastRadius())
+										then
+											-- trying to slightly displace full auto shots to create a more dense fire rate (4zK)
+
+											if OwnerWeapon.FullAuto == true then-- and self.squadShoot == false
+												if math.random() < 0.3 then
+													self.Target = nil
+													self.squadShoot = true
+												end
+											else
+												self.Target = nil
+												self.squadShoot = true
+											end
 										end
-									elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
-										OwnerWeapon:CompareTrajectories(LeaderWeapon) < math.max(100, OwnerWeapon:GetAIBlastRadius())
-									then
-										self.Target = nil
-										self.squadShoot = true
+									else
+										self.squadShoot = false
+									end
+								else
+									if Owner.FirearmIsEmpty then
+										Owner:ReloadFirearm()
+									elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+										Owner:EquipFirearm(true)
 									end
 								end
-							else
-								if Owner.FirearmIsEmpty then
-									Owner:ReloadFirearm()
-								elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
-									Owner:EquipFirearm(true)
+							end
+						-- squad grenade throw mechanic (4zK)
+						elseif IsTDExplosive(Leader.EquippedItem) and Leader:IsPlayerControlled() == true then
+
+							local LeaderWeapon = ToTDExplosive(Leader.EquippedItem);
+							if LeaderWeapon:HasObjectInGroup("Bombs - Grenades") and Owner:HasObjectInGroup("Bombs - Grenades") then
+
+								self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false).Normalized
+								self.deviceState = AHuman.POINTING
+
+								if Leader:GetController():IsState(Controller.WEAPON_FIRE) then
+
+									Owner:EquipDeviceInGroup("Bombs - Grenades", true);
+
+									self.Target = nil
+									self.squadShoot = true
+								else
+									self.squadShoot = false
 								end
 							end
 						end
+					end
+					if Leader and Leader.AIMode == Actor.AIMODE_GOLDDIG then	-- make entire squad dig gold (4zK)
+						Owner.AIMode = Actor.AIMODE_GOLDDIG
+						Owner:ClearMovePath()
 					end
 				end
 			end
@@ -392,9 +440,10 @@ function NativeHumanAI:Update(Owner)
 	
 	if self.squadShoot then
 		-- cycle semi-auto weapons on and off so the AI will shoot even if the player only press and hold the trigger
-		if Owner.FirearmIsSemiAuto and self.SquadShootTimer:IsPastSimMS(Owner.FirearmActivationDelay+50) then
+		if Owner.FirearmIsSemiAuto and self.SquadShootTimer:IsPastSimMS(Owner.FirearmActivationDelay+self.SquadShootDelay) then
 			self.SquadShootTimer:Reset()
 			self.squadShoot = false
+			self.squadShootDelay = math.random(50,100);	-- 4zK
 		end
 	else
 		-- run the move behavior and delete it if it returns true
@@ -487,9 +536,30 @@ function NativeHumanAI:Update(Owner)
 					self:CreateFaceAlarmBehavior(Owner)
 				end
 			end
-		elseif not self.Target and not self.UnseenTarget then	
-			if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
-				self.AlarmTimer:Reset()
+		elseif not self.Target and not self.UnseenTarget then	-- no targets
+		
+			-- medikit script by 4zK --	
+			if Owner.Health < (Owner.MaxHealth / 2) then
+				if Owner:HasObject("Medikit") then
+
+					Owner:EquipNamedDevice("Medikit", true);-- equip it
+					self.usemedikit = true;			-- and "fire" to activate the item
+				else
+					self.usemedikit = false;		-- revert
+					if self.scatter ~= true and Owner.AIMode == Actor.AIMODE_SENTRY then
+						Owner.AIMode = Actor.AIMODE_PATROL;
+						self.scatter = true;
+					end
+				end
+			-- carry on with script --
+			else
+				if self.usemedikit == true then		-- we just healed with a medikit
+					self.usemedikit = false;		-- revert
+					Owner:EquipFirearm(true);		-- try to equip a weapon
+				end
+				if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
+					self.AlarmTimer:Reset();
+				end
 			end
 		end
 	end
@@ -510,7 +580,11 @@ function NativeHumanAI:Update(Owner)
 	end
 	
 	-- controller states
-	self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.squadShoot))
+	if self.squadShoot then
+		self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.squadShoot))
+	else
+		self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.usemedikit))	-- medikits
+	end
 	
 	if self.deviceState == AHuman.AIMING then
 		self.Ctrl:SetState(Controller.AIM_SHARP, true)
@@ -637,9 +711,15 @@ end
 function NativeHumanAI:CreateAttackBehavior(Owner)
 	self.ReloadTimer:Reset()
 	self.TargetLostTimer:Reset()
+
 	if Owner:EquipFirearm(true) then
-		self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
-		self.NextBehaviorName = "ShootTarget"
+		if Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then   
+			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
+			self.NextBehaviorName = "AttackTarget"
+		else
+			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
+			self.NextBehaviorName = "ShootTarget"
+		end
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
@@ -680,8 +760,8 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 end
 
 -- force the use of a digger when attacking
-function NativeHumanAI:CreateHtHBehavior(Owner)
-	if Owner.AIMode ~= Actor.AIMODE_SQUAD and self.Target and Owner:EquipDiggingTool(true) then
+function NativeHumanAI:CreateHtHBehavior(Owner)					-- has to be digger, not just "tool"
+	if Owner.AIMode ~= Actor.AIMODE_SQUAD and self.Target and Owner:HasObjectInGroup("Tools - Diggers") then	--Owner:EquipDiggingTool(true) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 		self.NextBehaviorName = "AttackTarget"
 		self.NextCleanup = function(AI)
