@@ -811,7 +811,7 @@ function BrainvsBrain:CreateRandomInfantry(team, mode)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
 			end
 		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.TechName[team]))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -869,7 +869,7 @@ function BrainvsBrain:CreateHeavyInfantry(team, mode)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.TechName[team]))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!

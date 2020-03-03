@@ -852,7 +852,7 @@ function WaveDefense:CreateRandomInfantry()
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
 			end
 		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.AI.Tech))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI.Tech))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -892,7 +892,7 @@ function WaveDefense:CreateHeavyInfantry()
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.AI.Tech))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI.Tech))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!

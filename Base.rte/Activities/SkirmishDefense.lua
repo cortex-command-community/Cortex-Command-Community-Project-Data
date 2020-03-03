@@ -889,7 +889,7 @@ function SkirmishDefense:CreateRandomInfantry(Team)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 			end
 		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI[Team].TechID))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -929,7 +929,7 @@ function SkirmishDefense:CreateHeavyInfantry(Team)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI[Team].TechID))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
