@@ -3,3 +3,5 @@ Digital Extremes: Warframe
 CrpElectroMag Firing Sound
 CorpusPolearm Sounds
 CorpusWhip Sounds
+Harlequin Sounds
+CrpSentExperimentalPistol Firing Sounds
