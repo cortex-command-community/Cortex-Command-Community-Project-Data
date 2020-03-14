@@ -8,3 +8,5 @@ GP30 Firing Sounds
 Digital Extremes: Warframe
 
 GrnCannon Reload Sounds
+WeaponPunchLayersCannon Sounds
+GrnFourBarrelRifle Firing Sounds
