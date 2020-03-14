@@ -6,3 +6,4 @@ Galil Reload Sounds
 Digital Extremes: Warframe
 
 GrnUziPistol Firing Sounds
+WeaponPunchLayersCannon Sounds
