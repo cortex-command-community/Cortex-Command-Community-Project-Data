@@ -1,0 +1,6 @@
+Digital Extremes: Warframe
+
+Explode1-3 - GrnBowProjectileExplosion
+ShipExplosion1-3 - RailJackEnemyShipInitialDeathExplosion
+CrashWoosh1-3 - GrnGalleonBarrelDrop
+CrashRubble - GrnFortressAsteroidExplosion
