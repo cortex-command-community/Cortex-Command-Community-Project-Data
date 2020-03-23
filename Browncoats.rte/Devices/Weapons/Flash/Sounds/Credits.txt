@@ -5,3 +5,13 @@ GrineerJetPolearm Sounds
 FlameThrower Firing Sounds
 DoubleBarrelShotgun Sounds
 Gorgon Reload Sounds
+
+
+explosions:
+GrnHellionEliteRPGExplosionA
+
+New World Interactive: Insurgency: Sandstorm
+
+explosions:
+exp_small_tail_close
+exp_small_core_close
