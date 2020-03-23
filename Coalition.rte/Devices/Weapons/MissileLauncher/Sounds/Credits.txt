@@ -2,6 +2,12 @@ New World Interactive: Insurgency
 
 RPG7 Firing Sounds
 
+New World Interactive: Insurgency: Sandstorm
+
+exp_rpg_core_close
+exp_rpg_ambience_close
+exp_large_tail_close
+
 Digital Extremes: Warframe
 
 GrnOgris Firing Sounds
