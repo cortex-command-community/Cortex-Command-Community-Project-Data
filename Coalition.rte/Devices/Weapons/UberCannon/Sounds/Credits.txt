@@ -10,3 +10,7 @@ Digital Extremes: Warframe
 GrnCannon Reload Sounds
 WeaponPunchLayersCannon Sounds
 GrnFourBarrelRifle Firing Sounds
+
+GrnFlakCannonProjHit
+
+GrineerEmplacementShot2D
