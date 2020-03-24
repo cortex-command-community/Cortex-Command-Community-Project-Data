@@ -2,3 +2,13 @@ Digital Extremes: Warframe
 
 GrnFlakCannon Firing Sounds
 GrnFourBarrelRifle Sounds
+
+explosion:
+SargasRukFlameThrowerLoop
+GrineerJetPackIdleExplosion
+
+New World Interactive: Insurgency: Sandstorm
+
+explosion:
+exp_small_core_close
+exp_mortar_tail_close
