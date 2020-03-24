@@ -5,3 +5,8 @@ Ithaca Firing Sounds
 Digital Extremes: Warframe
 
 Strun Firing Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+exp_30mm_core_close
+exp_30mm_tail_close
