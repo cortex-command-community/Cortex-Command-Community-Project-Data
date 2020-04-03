@@ -7,10 +7,8 @@ function Update(self)
 		if parent and IsActor(parent) then
 			parent = ToActor(parent);
 			local target;
-			local extend = 0;
-			if parent:GetController():IsState(Controller.AIM_SHARP) then
-				extend = self.Radius;	-- Reach out further
-			end
+			local extend = parent:GetController():IsState(Controller.AIM_SHARP) and self.Radius or 0;
+
 			for actor in MovableMan.Actors do
 				local dist = SceneMan:ShortestDistance(self.MuzzlePos, actor.Pos, SceneMan.SceneWrapsX);
 				if dist.Magnitude < (actor.Radius + extend) and actor.Team == self.Team and actor.ID ~= parent.ID then
@@ -31,11 +29,11 @@ function Update(self)
 				target:FlashWhite(50);
 				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.wav", SceneMan:TargetDistanceScalar(self.Pos), false, true, -1);
 
-				local radist = math.ceil(5 + target.Radius / 2);
-				for i = 1, radist do
+				local targetSize = math.ceil(5 + target.Radius / 2);
+				for i = 1, targetSize do
 					local part = CreateMOPixel("Heal Glow", "Base.rte");
-					local vec = Vector(radist * 2, 0):RadRotate(6.28 / radist * i);
-					part.Pos = target.Pos + Vector(0, -radist / 3):RadRotate(target.RotAngle) + vec;
+					local vec = Vector(targetSize * 2, 0):RadRotate(6.28 / targetSize * i);
+					part.Pos = target.Pos + Vector(0, -targetSize / 3):RadRotate(target.RotAngle) + vec;
 					part.Vel = target.Vel * 0.5 - Vector(vec.X, vec.Y) / 4;
 					MovableMan:AddParticle(part);
 				end
