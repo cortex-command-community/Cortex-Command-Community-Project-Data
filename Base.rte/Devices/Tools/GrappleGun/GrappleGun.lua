@@ -8,70 +8,77 @@ function Create(self)
 	self.tapTime = 200;
 	self.tapAmount = 2;
 	self.guide = false;
+	
+	self.arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
 end
 
 function Update(self)
-	local actor = MovableMan:GetMOFromID(self.RootID);
-	if actor and IsActor(actor) then
-		self.parent = ToActor(actor);
-		local ctrl = self.parent:GetController();
-		if self.parent:IsPlayerControlled() and self.parent.Status < 2 then
-			local mouse = ctrl:IsMouseControlled();
+	local parent = self:GetRootParent();
+	if parent and IsActor(parent) then
+		if IsAHuman(parent) then
+			parent = ToAHuman(parent)
+		elseif IsACrab(parent) then
+			parent = ToACrab(parent);
+		else
+			parent = ToActor(parent);
+		end
+		if parent:IsPlayerControlled() and parent.Status < Actor.DYING then
+			local controller = parent:GetController();
+			local mouse = controller:IsMouseControlled();
 			-- Deactivate when equipped in BG arm to allow FG arm shooting
-			if IsAHuman(self.parent) and ToAHuman(self.parent).EquippedBGItem then
-				local itemBG = ToAHuman(self.parent).EquippedBGItem;
+			if parent.EquippedBGItem and parent.EquippedItem then
+				local itemBG = parent.EquippedBGItem;
 				if itemBG.ID == self.ID then
 					self:Deactivate();
 				end
 			end
-			-- Alternatively you can tap Jump twice to grapple
-			if ctrl:IsState(Controller.BODY_JUMPSTART) then
-				if self.tapTimerJump:IsPastSimMS(self.tapTime) then
-					self.tapTimerJump:Reset();
-				else
-					self:Activate();
+			if self.Magazine then
+				-- Double tapping crouch retrieves the hook
+				if self.Magazine.Scale == 1 then
+					if controller and controller:IsState(Controller.BODY_CROUCH) then
+						if self.canTap then
+							controller:SetState(Controller.BODY_CROUCH, false);
+							self.tapTimerJump:Reset();
+							self.didTap = true;
+							self.canTap = false;
+							self.tapCounter = self.tapCounter + 1;
+						end
+					else
+						self.canTap = true;
+					end
+					if self.tapTimerJump:IsPastSimMS(self.tapTime) then
+						self.tapCounter = 0;
+					else
+						if self.tapCounter >= self.tapAmount then
+							self:Activate();
+							self.tapCounter = 0;
+						end
+					end
 				end
-			end
-			-- Tap sharp aim twice to toggle aim guide
-			if ctrl:IsState(Controller.AIM_SHARP) then
-				if mouse then
+				-- A guide arrow appears at higher speeds
+				if (self.Magazine.Scale == 0 and not controller:IsState(Controller.AIM_SHARP)) or parent.Vel.Magnitude > 6 then
 					self.guide = true;
-				elseif self.canTap == true then
-					self.tapTimerAim:Reset();
-					self.didTap = true;
-					self.canTap = false;
-					self.tapCounter = self.tapCounter + 1;
-				end
-			else
-				self.canTap = true;
-				if mouse then
+				else
 					self.guide = false;
 				end
 			end
-			if self.tapTimerAim:IsPastSimMS(self.tapTime) then
-				self.tapCounter = 0;
-			else
-				if self.tapCounter >= self.tapAmount then
-					if self.guide == false then
-						self.guide = true;
-					else
-						self.guide = false;
-					end
-				end
-			end
-			if self.guide == true then
+			if self.guide then
 				local frame = 0;
-				if self.parent.Vel.Magnitude > 10 then
+				if parent.Vel.Magnitude > 12 then
 					frame = 1;
 				end
-				local startPos = (self.parent.Pos + self.parent.EyePos + self.Pos) / 3;
-				local arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
-				local guidePos = startPos + Vector(self.parent.AimDistance + (self.parent.Vel.Magnitude), 0):RadRotate(self.parent:GetAimAngle(true));
-				FrameMan:DrawBitmapPrimitive(self.parent.Team, guidePos, arrow, self.parent:GetAimAngle(true), frame);
+				local startPos = (parent.Pos + parent.EyePos + self.Pos) / 3;
+				local guidePos = startPos + Vector(parent.AimDistance + (parent.Vel.Magnitude), 0):RadRotate(parent:GetAimAngle(true));
+				FrameMan:DrawBitmapPrimitive(ActivityMan:GetActivity():ScreenOfPlayer(controller.Player), guidePos, self.arrow, parent:GetAimAngle(true), frame);
 			end
 		else
 			self:Deactivate();
-			ctrl:SetState(Controller.AIM_SHARP, false);
+		end
+		self.StanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
+		self.SharpStanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
+		if self.Magazine then
+			self.Magazine.Scale = 1;
+			self.Magazine.Frame = 1;
 		end
 	end
 end
