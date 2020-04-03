@@ -5,8 +5,8 @@ function Create(self)
 	self.AI = NativeDropShipAI:Create(self);
 	self.Frame = math.random(0, self.FrameCount - 1);
 	
-	self.explTimer = Timer();
-	self.expldelay = 3000 / math.sqrt(self.Radius + 1);
+	self.explosionTimer = Timer();
+	self.explosiondelay = 3000 / math.sqrt(self.Radius + 1);
 	
 	self.height = ToMOSprite(self):GetSpriteHeight();
 	self.width = ToMOSprite(self):GetSpriteWidth();
@@ -25,9 +25,9 @@ function Update(self)
 		self.RotAngle = self.RotAngle + (math.pi * 2);
 	end
 	-- Explosion effects on scuttle
-	if self.Status > 2 or self.AIMode == Actor.AIMODE_SCUTTLE then
-		if self.explTimer:IsPastSimMS(self.expldelay) then
-			self.explTimer:Reset();
+	if self.Status > Actor.UNSTABLE or self.AIMode == Actor.AIMODE_SCUTTLE then
+		if self.explosionTimer:IsPastSimMS(self.explosiondelay) then
+			self.explosionTimer:Reset();
 			local expl = CreateAEmitter("Scuttle Explosion");
 			expl.Pos = self.Pos + Vector(self.width / 2, self.height / 2):RadRotate(self.RotAngle) * RangeRand(-0.8, 0.8);
 			expl.Vel = self.Vel;

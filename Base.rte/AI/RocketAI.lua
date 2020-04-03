@@ -202,7 +202,6 @@ function UpdateAI(self)
 	
 	-- Control up/down movement
 	if self.DeliveryState ~= ACraft.UNLOAD then
-		--local limit = self.Mass * -0.0157 + 29	-- Descend slower when carrying a heavy cargo
 		local change = self.YposPID:Update(-(self.LZpos.Y - (self.Pos.Y + self.Vel.Y)), 0);
 		if math.abs(self.RotAngle) < 0.9 then
 			if self.DeliveryState == ACraft.LAUNCH and change > 7 then
