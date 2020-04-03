@@ -1,18 +1,16 @@
-function InfiniteAmmo:StartScript()
-end
 function InfiniteAmmo:UpdateScript()
 	local items = {};
 	for actor in MovableMan.Actors do
-		local weapon;
-		local item;
+		local weapon, item;
 		if IsAHuman(actor) then
 			item = ToAHuman(actor).EquippedItem;
 			if item then
 				if IsHDFirearm(item) then
 					table.insert(items, ToHDFirearm(item));
 				elseif IsTDExplosive(item) then
+					-- Add a new grenade to the inventory every time one is thrown
 					local grenade = ToTDExplosive(item);
-					if grenade:IsActivated() then
+					if actor:GetController():IsState(Controller.WEAPON_FIRE) then	-- if grenade:IsActivated() then
 						local count = 0;
 						for i = 1, actor.InventorySize do
 							local potentialWep = actor:Inventory();
