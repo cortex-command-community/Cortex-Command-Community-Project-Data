@@ -35,10 +35,11 @@ function HumanBehaviors.GetShootingSkill()
 end
 
 -- spot targets by casting a ray in a random direction
-function HumanBehaviors.LookForTargets(AI, Owner, Skill)	-- Skill is obsolete here
-	local viewAngDeg = RangeRand(35, 85)
+function HumanBehaviors.LookForTargets(AI, Owner, Skill)
+	local viewAngDeg = RangeRand(50, 120) * (0.5 + Skill / 200)
 	if AI.deviceState == AHuman.AIMING then
-		viewAngDeg = 20
+		AI.Ctrl:SetState(Controller.AIM_SHARP, true)	-- reinforce sharp aim controller state to enable SharpLength in LookForMOs
+		viewAngDeg = 15 + (Skill / 10)
 	end
 	
 	local FoundMO = Owner:LookForMOs(viewAngDeg, rte.grassID, false)
@@ -52,7 +53,7 @@ function HumanBehaviors.LookForTargets(AI, Owner, Skill)	-- Skill is obsolete he
 	end
 end
 
--- brains spot targets by casting rays at all nearby enemy actors
+-- brains and snipers spot targets by casting rays at all nearby enemy actors
 function HumanBehaviors.CheckEnemyLOS(AI, Owner, Skill)
 	if not AI.Enemies then	-- add all enemy actors on our screen to a table and check LOS to them, one per frame
 		AI.Enemies = {}
@@ -273,15 +274,14 @@ end
 
 -- deprecated since B30. make sure we equip our preferred device if we have one. return true if we must run this function again to be sure
 function HumanBehaviors.EquipPreferredWeapon(AI, Owner)
-	if AI.squadshoot == false then
-	if AI.PlayerPreferredHD then
-		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
-	elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
-		Owner:EquipDeviceInGroup("Weapons - Secondary", true)
+	if AI.squadShoot == false then
+		if AI.PlayerPreferredHD then
+			Owner:EquipNamedDevice(AI.PlayerPreferredHD, true)
+		elseif not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+			Owner:EquipDeviceInGroup("Weapons - Secondary", true)
+		end
+		return false
 	end
-	return false
-	end
-	
 end
 
 -- deprecated since B30. make sure we equip a primary weapon if we have one. return true if we must run this function again to be sure
@@ -1666,7 +1666,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							
 							if Waypoint then	-- move towards the waypoint
 								-- control horizontal movement
-								--if Owner.FGLeg or Owner.BGLeg then	-- test
+								if Owner.FGLeg or Owner.BGLeg then
 									if not AI.flying then
 										if CurrDist.X < -3 then
 											nextLatMove = Actor.LAT_LEFT
@@ -1675,14 +1675,14 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										else
 											nextLatMove = Actor.LAT_STILL
 										end
-										if not Owner.FGLeg and not Owner.BGLeg then
+										if not (Owner.FGLeg and Owner.BGLeg) and not AI.jump then
 											Owner:GetController():SetState(Controller.BODY_CROUCH,true)	-- crawl if no legs
 										end
 									end
-								--elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
-								--	-- no legs, jump forward
-								--	AI.jump = true
-								--end
+								elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
+									-- no legs, jump forward
+									AI.jump = true
+								end
 								
 								if Waypoint.Type == "right" then
 									if CurrDist.X > -3 then
@@ -2007,7 +2007,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 		if (AI.Target and AI.BehaviorName ~= "AttackTarget") or
 			(Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm"))
 		then
-			if AI.behaviorType == 1 then	-- aggressive (4zK)
+			if Owner.aggressive then	-- the aggressive behavior setting makes the AI pursue waypoint at all times
 				AI.lateralMoveState = nextLatMove
 			else
 				AI.lateralMoveState = Actor.LAT_STILL
@@ -2431,7 +2431,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 				end
 				
 				if AI.canHitTarget then
-					if AI.behaviorType ~= 1 then	-- non-aggressive
+					if not Owner.aggressive then
 						AI.lateralMoveState = Actor.LAT_STILL
 					end
 					if not AI.flying then
@@ -2818,36 +2818,33 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		if not AI.Target or not MovableMan:ValidMO(AI.Target) then
 			break
 		end
-		-- Use following sequence to attack either with a suited melee weapon or arms
-		local meleeDist = 0;
-		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y);
+		-- use following sequence to attack either with a suited melee weapon or arms
+		local meleeDist = 0
+		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y)
 		
 		if Owner.EquippedItem then
-			if Owner.EquippedItem:HasObjectInGroup("Tools - Diggers")
-			or Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then
-			
-				meleeDist = Owner.Radius + 25;
-				startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
+			if Owner.EquippedItem:HasObjectInGroup("Tools - Diggers") or Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then
+				meleeDist = Owner.Radius + 25
+				startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 			end
-		--[[	disabled
-		elseif Owner.FGArm then
-			meleeDist = Owner.Radius + Owner.FGArm.Radius;
-			startPos = Owner.FGArm.Pos;
-		elseif Owner.BGArm then
-			meleeDist = Owner.Radius + Owner.BGArm.Radius;
-			startPos = Owner.BGArm.Pos;
-		]]--
+		elseif Owner.armSway then
+			if Owner.FGArm then
+				meleeDist = Owner.Radius + Owner.FGArm.Radius
+				startPos = Owner.FGArm.Pos
+			elseif Owner.BGArm then
+				meleeDist = Owner.Radius + Owner.BGArm.Radius
+				startPos = Owner.BGArm.Pos
+			end
 		end
 		if meleeDist > 0 then
-	
-			local Dist = SceneMan:ShortestDistance(startPos, AI.Target.Pos, false)
-			if Dist.Magnitude < meleeDist then
-				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, AI.Target.Pos, false).Normalized;
+			local dist = SceneMan:ShortestDistance(startPos, AI.Target.Pos, false)
+			if dist.Magnitude < meleeDist then
+				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, AI.Target.Pos, false).Normalized
 				AI.fire = true
 			else
 				AI.fire = false
 			end
-		else--if not Owner:EquipDiggingTool(true) then
+		else
 			break
 		-- else TODO: periodically look for weapons?
 		end
@@ -3100,7 +3097,7 @@ function HumanBehaviors.FaceAlarm(AI, Owner, Abort)
 		AI.AlarmPos = nil
 		for _ = 1, math.ceil(200/TimerMan.DeltaTimeMS) do
 			AI.deviceState = AHuman.AIMING
-			if AI.behaviorType ~= 1 then	-- non-aggressive
+			if not Owner.aggressive then
 				AI.lateralMoveState = Actor.LAT_STILL
 			end
 			AI.Ctrl.AnalogAim = AlarmDist.Normalized

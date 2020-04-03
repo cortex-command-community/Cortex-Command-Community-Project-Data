@@ -16,19 +16,17 @@ function NativeHumanAI:Create(Owner)
 	Members.fire = false
 	Members.groundContact = 5
 
-	Members.squadShoot = false; 	-- 
-	Members.usemedikit = false;	-- 
-	Members.scatter = false;		-- 4zK
-	
-	Members.behaviorType = 0;	-- WIP
-	
+	Members.squadShoot = false
+	Members.useMedikit = false
+	Members.scatter = false
+
 	-- timers
 	Members.AirTimer = Timer()
 	Members.PickUpTimer = Timer()
 	Members.ReloadTimer = Timer()
 	Members.BlockedTimer = Timer()
 	Members.SquadShootTimer = Timer()
-	Members.SquadShootDelay = math.random(50,100);
+	Members.SquadShootDelay = math.random(50,100)
 	
 	Members.AlarmTimer = Timer()
 	Members.AlarmTimer:SetSimTimeLimitMS(400)
@@ -107,8 +105,8 @@ function NativeHumanAI:Update(Owner)
 			self.canHitTarget = false
 			self.jump = false
 
-			self.squadShoot = false; 	-- 
-			self.usemedikit = false;	-- 4zK
+			self.squadShoot = false
+			self.useMedikit = false
 
 			self.proneState = AHuman.NOTPRONE
 			self.SentryFacing = Owner.HFlipped
@@ -226,11 +224,11 @@ function NativeHumanAI:Update(Owner)
 		
 		local Origin
 		if Owner.FGLeg then
-			Origin = Vector(Owner.FGLeg.Pos.X, Owner.FGLeg.Pos.Y);
+			Origin = Vector(Owner.FGLeg.Pos.X, Owner.FGLeg.Pos.Y)
 		elseif Owner.BGLeg then
-			Origin = Vector(Owner.BGLeg.Pos.X, Owner.BGLeg.Pos.Y);
+			Origin = Vector(Owner.BGLeg.Pos.X, Owner.BGLeg.Pos.Y)
 		else
-			Origin = Vector(Owner.Pos.X, Owner.Pos.Y);
+			Origin = Vector(Owner.Pos.X, Owner.Pos.Y)
 		end
 		
 		if -1 < SceneMan:CastObstacleRay(Origin, Vector(RangeRand(-8, 8), Owner.Height * 0.17), Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3) then
@@ -322,8 +320,7 @@ function NativeHumanAI:Update(Owner)
 			end
 		end
 	end
-	
-	--self.squadShoot = false	-- let's not update this every frame (4zK)
+
 	if Owner.MOMoveTarget then
 		-- make the last waypoint marker stick to the MO we are following
 		if MovableMan:ValidMO(Owner.MOMoveTarget) then
@@ -347,15 +344,13 @@ function NativeHumanAI:Update(Owner)
 					if Leader and Leader.EquippedItem and SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest < (Leader.Height + Owner.Height) * 0.5 then
 
 						if IsHDFirearm(Leader.EquippedItem) then
-						--
+
 							local LeaderWeapon = ToHDFirearm(Leader.EquippedItem)
 							if LeaderWeapon:IsWeapon() then
 								local AimDelta = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false)
 								self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Leader.ViewPoint+AimDelta, false).Normalized
 								self.deviceState = AHuman.POINTING
 
-								--local LeaderWeapon
-							
 								-- check if the SL is shooting and if we have a similar weapon
 								if Owner.FirearmIsReady then
 									self.deviceState = AHuman.AIMING
@@ -370,9 +365,8 @@ function NativeHumanAI:Update(Owner)
 										elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
 											OwnerWeapon:CompareTrajectories(LeaderWeapon) < math.max(100, OwnerWeapon:GetAIBlastRadius())
 										then
-											-- trying to slightly displace full auto shots to create a more dense fire rate (4zK)
-
-											if OwnerWeapon.FullAuto == true then-- and self.squadShoot == false
+											-- slightly displace full-auto shots to diminish stacking sounds and create a more dense fire rate
+											if OwnerWeapon.FullAuto then
 												if math.random() < 0.3 then
 													self.Target = nil
 													self.squadShoot = true
@@ -393,18 +387,16 @@ function NativeHumanAI:Update(Owner)
 									end
 								end
 							end
-						-- squad grenade throw mechanic (4zK)
-						elseif IsTDExplosive(Leader.EquippedItem) and Leader:IsPlayerControlled() == true then
-
-							local LeaderWeapon = ToTDExplosive(Leader.EquippedItem);
-							if LeaderWeapon:HasObjectInGroup("Bombs - Grenades") and Owner:HasObjectInGroup("Bombs - Grenades") then
+						elseif IsTDExplosive(Leader.EquippedItem) and Leader:IsPlayerControlled() then
+							-- throw grenades in unison with squad
+							if ToTDExplosive(Leader.EquippedItem):HasObjectInGroup("Bombs - Grenades") and Owner:HasObjectInGroup("Bombs - Grenades") then
 
 								self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false).Normalized
 								self.deviceState = AHuman.POINTING
 
 								if Leader:GetController():IsState(Controller.WEAPON_FIRE) then
 
-									Owner:EquipDeviceInGroup("Bombs - Grenades", true);
+									Owner:EquipDeviceInGroup("Bombs - Grenades", true)
 
 									self.Target = nil
 									self.squadShoot = true
@@ -414,7 +406,7 @@ function NativeHumanAI:Update(Owner)
 							end
 						end
 					end
-					if Leader and Leader.AIMode == Actor.AIMODE_GOLDDIG then	-- make entire squad dig gold (4zK)
+					if Leader and Leader.AIMode == Actor.AIMODE_GOLDDIG then
 						Owner.AIMode = Actor.AIMODE_GOLDDIG
 						Owner:ClearMovePath()
 					end
@@ -443,7 +435,7 @@ function NativeHumanAI:Update(Owner)
 		if Owner.FirearmIsSemiAuto and self.SquadShootTimer:IsPastSimMS(Owner.FirearmActivationDelay+self.SquadShootDelay) then
 			self.SquadShootTimer:Reset()
 			self.squadShoot = false
-			self.squadShootDelay = math.random(50,100);	-- 4zK
+			self.squadShootDelay = math.random(50,100)
 		end
 	else
 		-- run the move behavior and delete it if it returns true
@@ -536,29 +528,27 @@ function NativeHumanAI:Update(Owner)
 					self:CreateFaceAlarmBehavior(Owner)
 				end
 			end
-		elseif not self.Target and not self.UnseenTarget then	-- no targets
-		
-			-- medikit script by 4zK --	
+		elseif not self.Target and not self.UnseenTarget then
+			-- use medikit if not engaging enemy
 			if Owner.Health < (Owner.MaxHealth / 2) then
 				if Owner:HasObject("Medikit") then
 
-					Owner:EquipNamedDevice("Medikit", true);-- equip it
-					self.usemedikit = true;			-- and "fire" to activate the item
+					Owner:EquipNamedDevice("Medikit", true)
+					self.useMedikit = true
 				else
-					self.usemedikit = false;		-- revert
+					self.useMedikit = false
 					if self.scatter ~= true and Owner.AIMode == Actor.AIMODE_SENTRY then
-						Owner.AIMode = Actor.AIMODE_PATROL;
-						self.scatter = true;
+						Owner.AIMode = Actor.AIMODE_PATROL
+						self.scatter = true
 					end
 				end
-			-- carry on with script --
 			else
-				if self.usemedikit == true then		-- we just healed with a medikit
-					self.usemedikit = false;		-- revert
-					Owner:EquipFirearm(true);		-- try to equip a weapon
+				if self.useMedikit == true then	
+					self.useMedikit = false
+					Owner:EquipFirearm(true)
 				end
 				if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
-					self.AlarmTimer:Reset();
+					self.AlarmTimer:Reset()
 				end
 			end
 		end
@@ -583,13 +573,16 @@ function NativeHumanAI:Update(Owner)
 	if self.squadShoot then
 		self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.squadShoot))
 	else
-		self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.usemedikit))	-- medikits
+		self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.useMedikit))
 	end
 	
 	if self.deviceState == AHuman.AIMING then
 		self.Ctrl:SetState(Controller.AIM_SHARP, true)
 	end
-	
+	-- force jetpack at detrimental downwards velocity
+	if (not self.jump and Owner.Vel.Y > 18) then
+		self.jump = true
+	end
 	if self.jump and Owner.JetTimeLeft > TimerMan.DeltaTimeMS then
 		if self.jumpState == AHuman.PREJUMP then
 			self.jumpState = AHuman.UPJUMP
