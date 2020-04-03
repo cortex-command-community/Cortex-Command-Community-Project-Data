@@ -99,17 +99,16 @@ function Create(self)
 
 	self.buildTimer = Timer();
 	self.buildlist = {};
-	self.resperbit = 80;	-- how much resource is required per one build bit
-							-- concrete collect/build ratio is 1:1
-							-- one block requires 65 bits of resource
-	self.fullBlock = 65 * self.resperbit;
+	self.buildcost = 80;	-- how much resource is required per one build 2 x 2 px piece
+							
+	self.fullBlock = 65 * self.buildcost;	-- one full block of concrete requires 65 units of resource
 	self.resource = 1 + self.startresource * self.fullBlock;
 	self.tunnelFillTimer = Timer();
 
 	self.clearer = CreateMOSRotating("Constructor Terrain Clearer");
 
-	self.digstrength = 100;	-- is now the LIMIT of StructualIntegrity it can dig
-							-- Stone = 80	Concrete = 90	Metal = 110
+	self.digstrength = 100;	-- the StructualIntegrity limit the device can harvest
+	
 	self.diglength = 50;
 	self.digspersecond = 100;
 	self.buildspersecond = 100;
@@ -303,7 +302,7 @@ function Update(self)
 					
 					if self:GetNumberValue("Constructor Mode") == 1 then
 					
-						if self.resource > self.resperbit / 5 then
+						if self.resource > self.buildcost / 5 then
 							for i = 1, 4 do
 								local hue = "Light";
 								if math.random() < 0.5 then
@@ -316,7 +315,7 @@ function Update(self)
 								spray.IgnoresTeamHits = true;
 								MovableMan:AddParticle(spray);
 							end
-							self.resource = self.resource - self.resperbit / 5;
+							self.resource = self.resource - self.buildcost / 5;
 						else
 							self:Deactivate();
 						end
@@ -459,12 +458,12 @@ function Update(self)
 			local buildamount = (self.buildTimer.ElapsedSimTimeMS/1000)*self.buildspersecond;
 			self.buildTimer:Reset();
 			for i = 1, buildamount do
-				if self.resource > self.resperbit then
+				if self.resource > self.buildcost then
 					if self.buildlist[1] ~= nil then
 
 						if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildlist[1][1],self.buildlist[1][2]), SceneMan.SceneWrapsX).Magnitude < self.builddistance then
 
-							self.resource = self.resource - self.resperbit;
+							self.resource = self.resource - self.buildcost;
 							if self.buildlist[1][3] < 64 then
 								local by = math.floor(self.buildlist[1][3]/8);
 								local bx = self.buildlist[1][3]-(by*8);
