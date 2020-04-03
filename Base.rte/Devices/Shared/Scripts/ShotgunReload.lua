@@ -3,7 +3,7 @@ function Create(self)
 	self.loadedShell = false;
 	self.reloadCycle = false;
 
-	self.reloadDelay = self.ReloadTime;
+	self.reloadDelay = 100;
 
 	if self.Magazine then
 		self.ammoCounter = self.Magazine.RoundCount;
