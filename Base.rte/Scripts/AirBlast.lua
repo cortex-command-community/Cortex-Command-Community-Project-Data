@@ -9,21 +9,17 @@ function Update(self)
 		if mo and mo.PinStrength == 0 then
 			local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 			if dist.Magnitude < self.range then
-				local strength = self.strength;
 				local strSumCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, 3, 0);
-				if strSumCheck < strength then
-					strength = strength - strSumCheck;
+				if strSumCheck < self.strength then
 					local massFactor = math.sqrt(1 + math.abs(mo.Mass));
 					local distFactor = 1 + dist.Magnitude * 0.1;
-					local forceVector =	dist:SetMagnitude(strength / distFactor);
-					mo.Vel = mo.Vel + forceVector / massFactor;
-					mo.AngularVel = mo.AngularVel - forceVector.X / (massFactor + math.abs(mo.AngularVel));
+					local forceVector =	dist:SetMagnitude((self.strength - strSumCheck) /distFactor);
+					mo.Vel = mo.Vel + forceVector /massFactor;
+					mo.AngularVel = mo.AngularVel - forceVector.X /(massFactor + math.abs(mo.AngularVel));
 					mo:AddForce(forceVector * massFactor, Vector());
 				end
 			end
 		end	
 	end
-	-- Debug: visualize effect range
-	-- FrameMan:DrawCirclePrimitive(self.Pos, self.range, 254);
 	self.ToDelete = true;
 end
