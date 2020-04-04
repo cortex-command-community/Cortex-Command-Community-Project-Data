@@ -11,20 +11,21 @@ function Create(self)
 end
 function Update(self)
 	local parent = self:GetParent();
-	if parent and IsActor(parent) then
-	
-		local parent = ToActor(parent);
-		local controller = parent:GetController();
-		
-		if controller:IsState(Controller.MOVE_RIGHT) then
-			self.rotation = self.rotation + self.turnSpeed;
-		end
-		if controller:IsState(Controller.MOVE_LEFT) then
-			self.rotation = self.rotation - self.turnSpeed;
-		end
-		-- Spread / tighten aim when moving up / down
-		if controller:IsState(Controller.MOVE_DOWN) then
-			self.verticalFactor = self.verticalFactor - self.turnSpeed;
+	if parent then
+		if IsActor(parent) then
+			parent = ToActor(parent);
+			local controller = parent:GetController();
+				
+			if controller:IsState(Controller.MOVE_RIGHT) then
+				self.rotation = self.rotation + self.turnSpeed;
+			end
+			if controller:IsState(Controller.MOVE_LEFT) then
+				self.rotation = self.rotation - self.turnSpeed;
+			end
+			-- Spread / tighten aim when moving up / down
+			if controller:IsState(Controller.MOVE_DOWN) then
+				self.verticalFactor = self.verticalFactor - self.turnSpeed;
+			end
 		end
 		if math.abs(self.rotation) > 0.001 then
 			self.rotation = self.rotation / (1 + self.turnSpeed * 2);
@@ -36,9 +37,9 @@ function Update(self)
 		else
 			self.verticalFactor = 0;
 		end
-		-- Aim directly away from parent ship
+		-- Aim directly away from parent
 		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange / 2);
-		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle) / (1 + self.verticalFactor) - self.rotation;
+		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0)) / (1 + self.verticalFactor) - self.rotation;
 		if self.areaMode then	-- Area Mode
 			local aimPos = self.Pos + Vector((self.searchRange / 2), 0):RadRotate(self.RotAngle);
 			-- Debug: visualize aim area
