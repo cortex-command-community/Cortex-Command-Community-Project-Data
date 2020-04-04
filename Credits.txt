@@ -1,6 +1,4 @@
- Credits.txt
--------------------------------------------------------------------------------
-C R E D I T S :
+﻿C R E D I T S :
 
 Game Design - Engine and Physics Programming - Art Direction - Project Coordination
 D A N I E L   " D A T A "   T A B A R
@@ -63,6 +61,13 @@ Portions Copyright � 2001, Xiphophorus
 
 
 Cortex Command is TM and � 2017 Data Realms, LLC
+
+
+
+
+
+S O U N D   E F F E C T S   C R E D I T S :
+
 *******************************************************************************
  Browncoats.rte\Devices\Weapons\Magmaul\Sounds\Credits.txt
 -------------------------------------------------------------------------------
