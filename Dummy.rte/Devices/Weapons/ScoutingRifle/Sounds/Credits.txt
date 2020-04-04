@@ -1,7 +1,0 @@
-Digital Extremes: Warframe
-
-GrineerLAR Firing Sounds
-GrineerLAR Reload Sounds
-GrnUzi Reload Sounds
-
-GrineerM16RifleShot

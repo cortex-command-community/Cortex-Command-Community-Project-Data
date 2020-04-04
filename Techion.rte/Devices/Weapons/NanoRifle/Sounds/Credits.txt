@@ -1,6 +1,0 @@
-Digital Extremes: Warframe
-
-Snipetron Firing Sounds
-CrpElectroMag Sounds
-CrpHandRocketLauncher Reload Sounds
-CrpShockRifle Sounds

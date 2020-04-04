@@ -1,9 +1,0 @@
-Digital Extremes: Warframe
-
-Explode1-3 - GrnBowProjectileExplosion
-CrashWoosh1-3 - GrnGalleonBarrelDrop
-CrashRubble - GrnFortressAsteroidExplosion
-
-New World Interactive: Insurgency
-
-ShipExplosion1-3 - vehicle_explode

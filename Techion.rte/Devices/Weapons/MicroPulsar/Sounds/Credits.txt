@@ -1,5 +1,0 @@
-Digital Extremes: Warframe
-
-CrpMinigun Firing Sounds
-MoaLaser Firing Sounds
-CrpScopeGun Reload Sounds

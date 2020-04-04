@@ -1,7 +1,0 @@
-New World Interactive: Insurgency: Sandstorm
-
-RPG7 Firing Sounds
-RPG7 Reload Sounds
-exp_rpg_core_close
-exp_rpg_ambience_close
-exp_large_tail_close

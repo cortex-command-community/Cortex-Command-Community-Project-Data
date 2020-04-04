@@ -1,6 +1,0 @@
-Digital Extremes: Warframe
-
-RevolverPistol Firing Sounds
-TennoMagnum Firing Sounds
-TennoMagnum Reload Sounds
-WeaponPunchRifleCommonFour Sounds
