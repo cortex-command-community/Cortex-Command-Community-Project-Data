@@ -2,22 +2,13 @@ function FragileUnitsScript:UpdateScript()
 	for actor in MovableMan.Actors do
 		if not actor:NumberValueExists("FragileUnitsScript") then
 			actor:SetNumberValue("FragileUnitsScript", 1);
-			local parts = {};
-			if IsAHuman(actor) then
+			if IsAHuman(actor) or IsACrab(actor) then
 				actor.GibWoundLimit = 1;
-				local human = ToAHuman(actor);
-				local parts = {human.Head, human.FGArm, human.BGArm, human.FGLeg, human.BGLeg};
-			end
-			if IsACrab(actor) then
-				actor.GibWoundLimit = 1;
-				local crab = ToACrab(actor);
-				local parts = {crab.Turret, crab.RFGLeg, crab.RBGLeg, crab.LFGLeg, crab.LBGLeg};
-			end
-			for i = 1, #parts do
-				local part = parts[i];
-				if part then
-					part.GibWoundLimit = 1;
-					part.JointStrength = 1;
+				for att in actor.Attachables do
+					att.GibWoundLimit = 1;
+					if not IsAEmitter(att) then
+						att.JointStrength = 1;
+					end
 				end
 			end
 		end
