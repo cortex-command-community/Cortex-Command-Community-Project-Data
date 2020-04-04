@@ -27,8 +27,7 @@ function Update(self)
 			local mouse = controller:IsMouseControlled();
 			-- Deactivate when equipped in BG arm to allow FG arm shooting
 			if parent.EquippedBGItem and parent.EquippedItem then
-				local itemBG = parent.EquippedBGItem;
-				if itemBG.ID == self.ID then
+				if parent.EquippedBGItem.ID == self.ID then
 					self:Deactivate();
 				end
 			end

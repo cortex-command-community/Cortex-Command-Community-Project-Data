@@ -6,7 +6,7 @@ function Update(self)
 	if self.Magazine then
 		if self.coolDownTimer then
 			local parent = self:GetRootParent();
-			if self.coolDownTimer:IsPastSimMS(self.coolDownDelay) and (parent and IsActor(parent)) and (not self:IsActivated() or not ToActor(parent):IsPlayerControlled()) then
+			if self.coolDownTimer:IsPastSimMS(self.coolDownDelay) and parent and IsActor(parent) and not (self:IsActivated() and ToActor(parent):IsPlayerControlled()) then
 				self.coolDownTimer, self.shotCounter = nil;
 			else
 				self:Deactivate();

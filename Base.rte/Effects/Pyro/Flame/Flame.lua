@@ -1,5 +1,5 @@
 function Create(self)
-	self.strength = 80;	-- Damage frequency factor
+	self.strength = 80;
 	self.checkTimer = Timer();
 	self.checkDelay = math.random(20);
 end
@@ -8,8 +8,8 @@ function Update(self)
 	self.ToSettle = false;
 	if self.target and IsMOSRotating(self.target) then
 		self.Vel = self.target.Vel;
-		self.Pos = self.target.Pos - Vector(self.stickPos.X, self.stickPos.Y):RadRotate(self.target.RotAngle - self.tsAngle);
-		local actor = MovableMan:GetMOFromID(self.target.RootID);	-- Inflict damage on the root actor
+		self.Pos = self.target.Pos - Vector(self.stickPos.X, self.stickPos.Y):RadRotate(self.target.RotAngle - self.targetStickAngle);
+		local actor = MovableMan:GetMOFromID(self.target.RootID);
 		if MovableMan:IsActor(actor) then
 			actor = ToActor(actor);
 			if math.random() < (self.strength * self.target.DamageMultiplier) / actor.Mass / (self.target.Material.StructuralIntegrity) then
@@ -22,19 +22,19 @@ function Update(self)
 			self.checkTimer:Reset();
 			self.checkDelay = self.checkDelay + 1;	-- Gradually extend the delay for optimization reasons
 			local checkPos = self.Pos + Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.sqrt(self.Vel.Magnitude));
-			local mocheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
-			if mocheck ~= 255 then
-				local mo = MovableMan:GetMOFromID(mocheck);
+			local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
+			if moCheck ~= rte.NoMOID then
+				local mo = MovableMan:GetMOFromID(moCheck);
 				if mo then
 					self.target = ToMOSRotating(mo);
-					self.tsAngle = mo.RotAngle;	-- Target angle when sticking	
+					self.targetStickAngle = mo.RotAngle;	
 					self.stickPos = SceneMan:ShortestDistance(mo.Pos, self.Pos, SceneMan.SceneWrapsX) * 0.8;
 					self.Pos = mo.Pos - Vector(self.stickPos.X, self.stickPos.Y);
 				end
 			end
 		end
 	end
-	local age = self.Age * 0.0001 + 1;
+	local age = self.Age * 0.0001 + 1;	-- Have age slightly affect particle settings relative to 10 seconds
 	local chance = math.random();
 	local particle;
 	if chance < (0.1 / age) then

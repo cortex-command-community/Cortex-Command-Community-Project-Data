@@ -23,4 +23,9 @@ function Update(self)
 						actor.Vel = actor.Vel + Vector(speed / 2, 0):RadRotate(actor:GetAimAngle(true)) - Vector(0, speed);
 					elseif controller:IsState(Controller.BODY_CROUCH) then
 						actor.Vel = actor.Vel / 2;
-end	end	end	end	end	end
+					end	
+				end	
+			end	
+		end	
+	end	
+end
