@@ -44,7 +44,6 @@ luac.out
 
 .vs/
 Base.rte/Settings.ini
-Base.rte/Tools/
 Benchmark.rte/
 Scenes.rte/
 Metagames.rte/
