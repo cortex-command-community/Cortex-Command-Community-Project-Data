@@ -73,14 +73,13 @@ function Update(self)
 		self.lineVec = SceneMan:ShortestDistance(self.parent.Pos, self.Pos, self.mapWrapsX);
 		self.lineLength = self.lineVec.Magnitude;
 
-		if self.parentGun and self.parentGun.ID ~= 255 then
+		if self.parentGun and self.parentGun.ID ~= rte.NoMOID then
 			self.parent = ToMOSRotating(MovableMan:GetMOFromID(self.parentGun.RootID));
 
 			if self.parentGun.Magazine then
 				self.parentGun.Magazine.Scale = 0;
 			end
 			startPos = self.parentGun.Pos;
-			-- Rotate the gun towards the hook
 			local flipAng = self.parent.HFlipped and 3.14 or 0;
 			self.parentGun.RotAngle = self.lineVec.AbsRadAngle + flipAng;
 			if self.parentGun.Sharpness ~= 0 then
@@ -103,7 +102,7 @@ function Update(self)
 			-- We now have a user that controls this grapple
 			controller = self.parent:GetController();
 			-- Point the gun towards the hook if our user is holding it
-			if (self.parentGun and self.parentGun.ID ~= 255) and (self.parentGun:GetRootParent().ID == self.parent.ID) then
+			if (self.parentGun and self.parentGun.ID ~= rte.NoMOID) and (self.parentGun:GetRootParent().ID == self.parent.ID) then
 				local offset = Vector(ToMOSprite(self.parentGun:GetParent()):GetSpriteWidth(), 0):RadRotate(self.parent.FlipFactor * (self.lineVec.AbsRadAngle - self.parent:GetAimAngle(true)))
 				self.parentGun.StanceOffset = offset;
 				if self.parent.EquippedItem and self.parent.EquippedItem.ID == self.parentGun.ID and (self.parent.Vel.Magnitude < 5 and controller:IsState(Controller.AIM_SHARP)) then

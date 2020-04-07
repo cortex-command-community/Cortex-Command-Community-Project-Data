@@ -27,7 +27,7 @@ end
 	
 function HumanFunctions.DoAutomaticEquip(actor)
 	-- Equip a weapon automatically if the one held by a player is destroyed
-	if actor:IsPlayerControlled() and actor.EquippedItem == nil and actor.InventorySize > 0 then
+	if actor:IsPlayerControlled() and actor.EquippedItem == nil and actor.InventorySize > 0 and not actor.controller:IsState(Controller.WEAPON_FIRE) then
 		actor:EquipFirearm(true);
 	end
 end

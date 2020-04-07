@@ -10,7 +10,7 @@ function InfiniteAmmo:UpdateScript()
 				elseif IsTDExplosive(item) then
 					-- Add a new grenade to the inventory every time one is thrown
 					local grenade = ToTDExplosive(item);
-					if actor:GetController():IsState(Controller.WEAPON_FIRE) then	-- if grenade:IsActivated() then
+					if actor:GetController():IsState(Controller.WEAPON_FIRE) then
 						local count = 0;
 						for i = 1, actor.InventorySize do
 							local potentialWep = actor:Inventory();
