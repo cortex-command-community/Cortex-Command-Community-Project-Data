@@ -712,7 +712,7 @@ function BunkerBreach:CreateRandomInfantry(mode)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 			end
 		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -752,7 +752,7 @@ function BunkerBreach:CreateHeavyInfantry(mode)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName))
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!

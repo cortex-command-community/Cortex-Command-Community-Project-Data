@@ -808,7 +808,7 @@ function Siege:CreateRandomInfantry(mode, techName)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techName))
 			end
 		elseif not self:PlayerBrainsReachable() then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techName))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techName))
 		else 
 			if self.DiggersEssential then
 				Passenger:AddInventoryItem(CreateHDFirearm("Light Digger", "Base.rte"))
@@ -885,7 +885,7 @@ function Siege:CreateHeavyInfantry(mode, techName)
 		end
 		
 		if not self:PlayerBrainsReachable() then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techName))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techName))
 		else
 			if self.DiggersEssential then
 				Passenger:AddInventoryItem(CreateHDFirearm("Light Digger", "Base.rte"))
@@ -910,7 +910,7 @@ function Siege:CreateArtilleryInfantry(mode, techName)
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techName))
 		
 		if not self:PlayerBrainsReachable() then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techName))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techName))
 		else
 			if self.DiggersEssential then
 				Passenger:AddInventoryItem(CreateHDFirearm("Light Digger", "Base.rte"))

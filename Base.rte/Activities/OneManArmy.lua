@@ -1,31 +1,157 @@
 dofile("Base.rte/Constants.lua")
 
 function OneManArmy:StartActivity()
+
+	self.BuyMenuEnabled = false;
+	-- Brain strength multiplier
+	self.multiplier = math.ceil(11 - (self.Difficulty * 0.1));	-- Med = 6, Max = 11, Min = 1
+
+	local primaryGroup = "Weapons - Heavy";
+	local secondaryGroup = "Weapons - Light";
+	-- Tertiary weapon is always a grenade
+	local actorGroup = "Actors - Heavy";
+	-- Default actors if no tech is chosen
+	local defaultActor = ("Soldier Heavy");
+	local defaultPrimary = ("Coalition/Assault Rifle");
+	local defaultSecondary = ("Coalition/Auto Pistol");
+	local defaultTertiary = ("Coalition/Frag Grenade");
+
+	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
+		self.TimeLimit = 3 * 60000 + 5000;
+		self.timeDisplay = "three minutes";
+		self.BaseSpawnTime = 6000;
+		
+		primaryGroup = "Weapons - Heavy";
+		secondaryGroup = "Weapons - Explosive";
+	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
+		self.TimeLimit = 4 * 60000 + 5000;
+		self.timeDisplay = "four minutes";
+		self.BaseSpawnTime = 5500;
+
+	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
+		self.TimeLimit = 5 * 60000 + 5000;
+		self.timeDisplay = "five minutes";
+		self.BaseSpawnTime = 5000;
+		
+	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
+		self.TimeLimit = 6 * 60000 + 5000;
+		self.timeDisplay = "six minutes";
+		self.BaseSpawnTime = 4500;
+
+	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
+		self.TimeLimit = 7 * 60000 + 5000;
+		self.timeDisplay = "seven minutes";
+		self.BaseSpawnTime = 4000;
+		
+		primaryGroup = "Weapons - Primary";
+		secondaryGroup = "Weapons - Secondary";
+		actorGroup = "Actors - Light";
+	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
+		self.TimeLimit = 9 * 60000 + 5000;
+		self.timeDisplay = "nine minutes";
+		self.BaseSpawnTime = 3500;
+		
+		primaryGroup = "Weapons - Secondary";
+		secondaryGroup = "Weapons - Secondary";
+		actorGroup = "Actors - Light";
+	end
+
 	-- Check if we already have a brain assigned
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			if not self:GetPlayerBrain(player) then
-				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player))
-				-- If we can't find an unassigned brain in the scene to give the player, then force to go into editing mode to place one
+				local team = self:GetTeamOfPlayer(player);
+				local foundBrain = MovableMan:GetUnassignedBrain(team);
+				-- If we can't find an unassigned brain in the scene to give the player, create one
 				if not foundBrain then
-					local tech = PresetMan:GetModuleID(self:GetTeamTech(self:GetTeamOfPlayer(player)))
-					
-					foundBrain = RandomAHuman("Actors - Heavy", tech)
-					local item = RandomHDFirearm("Weapons - Light", tech)
-					if item then
-						foundBrain:AddInventoryItem(item)
+					local tech = PresetMan:GetModuleID(self:GetTeamTech(team));
+					foundBrain = CreateAHuman(defaultActor);
+					-- If a faction was chosen, pick the first item from faction listing
+					if tech ~= -1 then
+						local module = PresetMan:GetDataModule(tech);
+						local primaryWeapon, secondaryWeapon, throwable, actor;
+						for entity in module.Presets do
+							local picked;	-- Prevent duplicates
+							if not primaryWeapon and entity.ClassName == "HDFirearm" then
+								if ToMOSRotating(entity):HasObjectInGroup(primaryGroup) then
+									primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
+									picked = true;
+								end
+							end
+							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" then
+								if ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) then
+									secondaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
+									picked = true;
+								end
+							end
+							if not picked and not throwable and entity.ClassName == "TDExplosive" then
+								if ToMOSRotating(entity):HasObjectInGroup("Bombs - Grenades") then
+									throwable = CreateTDExplosive(entity:GetModuleAndPresetName());
+									picked = true;
+								end
+							end
+							if not picked and not actor and entity.ClassName == "AHuman" then
+								if ToMOSRotating(entity):HasObjectInGroup(actorGroup) then
+									actor = CreateAHuman(entity:GetModuleAndPresetName());
+								end
+							end
+						end
+						if actor then
+							foundBrain = actor;
+						end
+						local weapons = {primaryWeapon, secondaryWeapon, throwable};
+						for i = 1, #weapons do
+							local item = weapons[i];
+							if item then
+								item.GibWoundLimit = item.GibWoundLimit * self.multiplier;
+								item.JointStrength = item.JointStrength * self.multiplier;
+								foundBrain:AddInventoryItem(weapons[i]);
+							end
+						end
+					else	-- If no tech selected, use default items
+						local weapons = {defaultPrimary, defaultSecondary};
+						for i = 1, #weapons do
+							local item = weapons[i];
+							if item then
+								item.GibWoundLimit = item.GibWoundLimit * self.multiplier;
+								item.JointStrength = item.JointStrength * self.multiplier;
+								foundBrain:AddInventoryItem(CreateHDFirearm(weapons[i]));
+							end
+						end
+						local item = CreateTDExplosive(defaultTertiary);
+						if item then
+							foundBrain:AddInventoryItem(item);
+						end
 					end
-					local item = RandomHDFirearm("Weapons - Secondary", tech)
-					if item then
-						foundBrain:AddInventoryItem(item)
+					-- Reinforce the brain actor
+					local parts = {foundBrain, foundBrain.Head, foundBrain.FGArm, foundBrain.BGArm, foundBrain.FGLeg, foundBrain.BGLeg};
+					for i = 1, #parts do
+						local part = parts[i];
+						if part then
+							part.GibWoundLimit = math.ceil(part.GibWoundLimit * self.multiplier);
+							part.DamageMultiplier = part.DamageMultiplier / self.multiplier;
+							if IsAttachable(part) then
+								ToAttachable(part).JointStrength = ToAttachable(part).JointStrength * self.multiplier;
+							else
+								part.GibImpulseLimit = foundBrain.GibImpulseLimit * self.multiplier;
+								part.ImpulseDamageThreshold = foundBrain.GibImpulseLimit * self.multiplier;
+							end
+							for att in part.Attachables do
+								att.GibWoundLimit = math.ceil(att.GibWoundLimit * self.multiplier);
+								att.JointStrength = att.JointStrength * self.multiplier;
+							end
+						end
 					end
-					foundBrain:AddInventoryItem(CreateHDFirearm("Base/Light Digger"))
-					
-					--foundBrain = CreateAHuman("Soldier Heavy")
-					--foundBrain:AddInventoryItem(CreateHDFirearm("Coalition/Assault Rifle"))
-					--foundBrain:AddInventoryItem(CreateHDFirearm("Coalition/Auto Pistol"))
-					--foundBrain:AddInventoryItem(CreateHDFirearm("Base/Light Digger"))
-					foundBrain.Pos = SceneMan:MovePointToGround(Vector(math.random(0, SceneMan.SceneWidth), 0), 0, 0) + Vector(0, -50)
+					local medikit = CreateHDFirearm("Base/Medikit");
+					if medikit then
+						foundBrain:AddInventoryItem(medikit);
+					end
+					-- Reinforce FGArm so that we don't lose it
+					-- No FGArm = no weapons = no gameplay
+					foundBrain.FGArm.GibWoundLimit = 999999;
+					foundBrain.FGArm.JointStrength = 999999;
+
+					foundBrain.Pos = SceneMan:MovePointToGround(Vector(math.random(0, SceneMan.SceneWidth), 0), 0, 0) + Vector(0, -foundBrain.Radius);
 					foundBrain.Team = self:GetTeamOfPlayer(player)
 					MovableMan:AddActor(foundBrain)
 					-- Set the found brain to be the selected actor at start
@@ -52,38 +178,6 @@ function OneManArmy:StartActivity()
 	self.LZ = SceneMan.Scene:GetArea("LZ Team 1")
 	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All")
 	self.SurvivalTimer = Timer()
-	
-	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
-		self.TimeLimit = 60000+5000
-		self.timeDisplay = "one minute"
-		self.BaseSpawnTime = 6000
-		self.RandomSpawnTime = 8000
-	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
-		self.TimeLimit = 1.5*60000+5000
-		self.timeDisplay = "one minute and thirty seconds"
-		self.BaseSpawnTime = 5500
-		self.RandomSpawnTime = 7000
-	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		self.TimeLimit = 2*60000+5000
-		self.timeDisplay = "two minutes"
-		self.BaseSpawnTime = 5000
-		self.RandomSpawnTime = 6000
-	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
-		self.TimeLimit = 3*60000+5000
-		self.timeDisplay = "three minutes"
-		self.BaseSpawnTime = 4500
-		self.RandomSpawnTime = 5000
-	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
-		self.TimeLimit = 5*60000+5000
-		self.timeDisplay = "five minutes"
-		self.BaseSpawnTime = 4000
-		self.RandomSpawnTime = 4500
-	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
-		self.TimeLimit = 10*60000+5000
-		self.timeDisplay = "ten minutes"
-		self.BaseSpawnTime = 3500
-		self.RandomSpawnTime = 4000
-	end
 
 	self.StartTimer = Timer()
 	ActivityMan:GetActivity():SetTeamFunds(0,Activity.TEAM_1)
@@ -176,10 +270,10 @@ function OneManArmy:UpdateActivity()
 					DeleteEntity(ship);
 					ship = RandomACRocket("Any", self.CPUTechName);
 				end
-				actorsInCargo = ship.MaxPassengers
+				actorsInCargo = math.min(ship.MaxPassengers, 3);
 			else
 				ship = RandomACRocket("Any", self.CPUTechName);
-				actorsInCargo = math.min(ship.MaxPassengers, 2)
+				actorsInCargo = math.min(ship.MaxPassengers, 2);
 			end
 			
 			ship.Team = self.CPUTeam;
@@ -203,10 +297,10 @@ function OneManArmy:UpdateActivity()
 				end
 				-- Equip it with tools and guns if it's a humanoid
 				if IsAHuman(passenger) then
-					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
+					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName));
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 					if PosRand() < 0.5 then
-						passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName));
+						passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
 					end
 				end
 				-- Set AI mode and team so it knows who and what to fight for!
@@ -275,7 +369,7 @@ function OneManArmy:UpdateActivity()
 			end
 
 			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale)
+			self.TimeLeft = (self.BaseSpawnTime + math.random(self.BaseSpawnTime) * rte.SpawnIntervalScale);
 		end
 	end
 end

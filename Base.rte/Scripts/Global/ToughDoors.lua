@@ -1,38 +1,20 @@
 function ToughDoorsScript:StartScript()
-	--print ("ToughDoorsScript:StartScript()")
-	self.Multiplier = 4
+	self.multiplier = 4;
 end
-
 function ToughDoorsScript:UpdateScript()
-	--print ("ToughDoorsScript:UpdateScript()")
 	for actor in MovableMan.Actors do
 		if not actor:NumberValueExists("ToughDoorsScript") then
-			actor:SetNumberValue("ToughDoorsScript", 1)
-
+			actor:SetNumberValue("ToughDoorsScript", 1);
 			if IsADoor(actor) then
-				local door = ToADoor(actor)
-				if door then
-					door.GibWoundLimit = door.GibWoundLimit * self.Multiplier
-					door.GibImpulseLimit = door.GibImpulseLimit * self.Multiplier
-					if door.Door then
-						door.Door.GibWoundLimit = door.Door.GibWoundLimit * self.Multiplier
-						door.Door.GibImpulseLimit = door.Door.GibImpulseLimit * self.Multiplier
-						door.Door.JointStrength = door.Door.JointStrength * self.Multiplier
-					end
+				local door = ToADoor(actor);
+				door.GibWoundLimit = door.GibWoundLimit * self.multiplier;
+				door.GibImpulseLimit = door.GibImpulseLimit * self.multiplier;
+				if door.Door then
+					door.Door.GibWoundLimit = door.Door.GibWoundLimit * self.multiplier;
+					door.Door.GibImpulseLimit = door.Door.GibImpulseLimit * self.multiplier;
+					door.Door.JointStrength = door.Door.JointStrength * self.multiplier;
 				end
 			end
 		end
 	end
-end
-
-function ToughDoorsScript:EndScript()
-	--print ("ToughDoorsScript:UpdateScript()")
-end
-
-function ToughDoorsScript:PauseScript()
-	--print ("ToughDoorsScript:UpdateScript()")
-end
-
-function ToughDoorsScript:CraftEnteredOrbit()
-	--print ("ToughDoorsScript:UpdateScript()")
 end

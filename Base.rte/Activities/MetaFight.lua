@@ -1789,7 +1789,7 @@ function MetaFight:PurchaseHeavyInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Diggers", techID)
+			Cargo = RandomHDFirearm("Tools - Diggers", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
@@ -1822,7 +1822,7 @@ function MetaFight:PurchaseMediumInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Diggers", techID)
+			Cargo = RandomHDFirearm("Tools - Diggers", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
@@ -1855,7 +1855,7 @@ function MetaFight:PurchaseLightInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Diggers", techID)
+			Cargo = RandomHDFirearm("Tools - Diggers", techID)
 			if Cargo then
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
@@ -1910,7 +1910,7 @@ function MetaFight:CreateHeavyInfantry(mode, techID)
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		
 		if math.random() < rte.DiggersRate then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techID))
 		else
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID))
 			if math.random() < 0.5 then
@@ -1928,7 +1928,7 @@ function MetaFight:CreateMediumInfantry(mode, techID)
 		Passenger.AIMode = mode
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
 		if math.random() < rte.DiggersRate then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techID))
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		end
@@ -1943,7 +1943,7 @@ function MetaFight:CreateLightInfantry(mode, techID)
 		Passenger.AIMode = mode
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
 		if math.random() < rte.DiggersRate then
-			Passenger:AddInventoryItem(RandomHDFirearm("Diggers", techID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techID))
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		end

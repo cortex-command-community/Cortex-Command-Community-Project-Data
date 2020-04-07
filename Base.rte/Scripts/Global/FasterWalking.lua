@@ -1,43 +1,23 @@
 function FasterWalkingScript:StartScript()
-	self.Multiplier = 1.75
-	self.PushForceDenominator = 1.25
+	self.multiplier = 1.6;
+	self.pushForceDenominator = 1.2;
 end
-
 function FasterWalkingScript:UpdateScript()
 	for actor in MovableMan.Actors do
 		if not actor:NumberValueExists("FasterWalkingScript") then
-			actor:SetNumberValue("FasterWalkingScript", 1)
-
+			actor:SetNumberValue("FasterWalkingScript", 1);
+			local walker;
 			if IsAHuman(actor) then
-				local human = ToAHuman(actor)
-				if human then
-					human:SetLimbPathSpeed(0, human:GetLimbPathSpeed(0) * self.Multiplier)
-					human:SetLimbPathSpeed(1, human:GetLimbPathSpeed(1) * self.Multiplier)
-					human:SetLimbPathSpeed(2, human:GetLimbPathSpeed(2) * self.Multiplier)
-					
-					human.LimbPathPushForce = human.LimbPathPushForce * self.PushForceDenominator
-				end
+				walker = ToAHuman(actor);
+			elseif IsACrab(actor) then
+				walker = ToACrab(actor);
 			end
-			
-			if IsACrab(actor) then
-				local crab = ToACrab(actor)
-				if crab then
-					crab:SetLimbPathSpeed(0, crab:GetLimbPathSpeed(0) * self.Multiplier)
-					crab:SetLimbPathSpeed(1, crab:GetLimbPathSpeed(1) * self.Multiplier)
-					crab:SetLimbPathSpeed(2, crab:GetLimbPathSpeed(2) * self.Multiplier)
-					
-					crab.LimbPathPushForce = crab.LimbPathPushForce * self.PushForceDenominator
-				end
+			if walker then
+				walker:SetLimbPathSpeed(0, walker:GetLimbPathSpeed(0) * self.multiplier);
+				walker:SetLimbPathSpeed(1, walker:GetLimbPathSpeed(1) * self.multiplier);
+				walker:SetLimbPathSpeed(2, walker:GetLimbPathSpeed(2) * self.multiplier);
+				walker.LimbPathPushForce = walker.LimbPathPushForce * self.pushForceDenominator;
 			end
 		end
 	end
-end
-
-function FasterWalkingScript:EndScript()
-end
-
-function FasterWalkingScript:PauseScript()
-end
-
-function FasterWalkingScript:CraftEnteredOrbit()
 end

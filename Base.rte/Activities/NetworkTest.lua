@@ -41,7 +41,7 @@ function NetworkTest:StartActivity()
 		end
 	end
 	
-	local ship = RandomACDropShip("Dropship", "Base.rte")
+	local ship = RandomACDropShip("Dropship MK1", "Base.rte")
 	local cargo = CreateAHuman("Fat Culled Clone")
 	ship.Pos = SceneMan:MovePointToGround(Vector(0,0) , 75 , 3)
 	ship:AddInventoryItem(cargo);
