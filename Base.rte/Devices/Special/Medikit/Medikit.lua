@@ -27,7 +27,7 @@ function Update(self)
 					target:RemoveAnyRandomWounds(math.ceil(strength / 7));
 				end
 				target:FlashWhite(50);
-				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.wav", SceneMan:TargetDistanceScalar(self.Pos), false, true, -1);
+				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.wav", self.Pos);
 
 				local targetSize = math.ceil(5 + target.Radius / 2);
 				for i = 1, targetSize do
