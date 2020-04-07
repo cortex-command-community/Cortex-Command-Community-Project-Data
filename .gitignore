@@ -1,3 +1,6 @@
+# Linker output
+*.ilk
+
 # Compiled Lua sources
 luac.out
 
@@ -61,3 +64,4 @@ LogLoading.txt
 LogConsole.txt
 Console.dump.log
 Console.input.log
+Base.rte/LoadoutsP1.ini
