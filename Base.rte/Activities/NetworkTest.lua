@@ -141,15 +141,9 @@ function NetworkTest:UpdateActivity()
 	end--]]--
 	
 	if self.SoundTimer:IsPastSimMS(1000) then
-		--local snd = AudioMan:PlaySound("Base.rte/Sounds/HeavySniper.wav", math.random(), true, -1);
-		local snd = AudioMan:PlaySound("Dummy.rte/Effects/Sounds/BlasterFire.wav", math.random(), false, true, -1);
-		--print ("Sound")
-		--if (snd:IsPlaying()) then
-		--	snd:Stop(-1);
-		--end
-		--AudioMan:PlaySound(nil, math.random(), true, -1);
+		local snd = AudioMan:PlaySound("Dummy.rte/Effects/Sounds/BlasterFire.wav", Vector(math.random(), math.random()));
 		self.SoundTimer:Reset();
-	end--]]--
+	end
 	
 	FrameMan:DrawBoxPrimitive(0, Vector(10,410), Vector(100,449), 5)
 	FrameMan:DrawBoxPrimitive(1, Vector(10,450), Vector(100,500), 10)
