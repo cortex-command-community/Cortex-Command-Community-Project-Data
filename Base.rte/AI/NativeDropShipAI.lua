@@ -16,11 +16,16 @@ function NativeDropShipAI:Create(Owner)
 	
 	Members.LastAIMode = Actor.AIMODE_NONE
 	
+	local item = Owner:Inventory();
+	if item and IsTDExplosive(item) then
+		Members.AIMode = Actor.AIMODE_BOMB;
+	end
+	
 	-- The drop ship tries to hover this many pixels above the ground
 	if Members.AIMode == Actor.AIMODE_BRAINHUNT then
 		Members.hoverAlt = Owner.Radius * 1.7
 	elseif Members.AIMode == Actor.AIMODE_BOMB then
-		Members.hoverAlt = Owner.Radius * 7
+		Members.hoverAlt = Owner.Radius * 6
 	else
 		Members.hoverAlt = Owner.Radius * 2	
 	end
