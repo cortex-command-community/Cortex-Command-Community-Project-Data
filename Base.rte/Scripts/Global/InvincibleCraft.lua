@@ -1,5 +1,5 @@
 function InvincibleCraftScript:UpdateScript()
-	for actor in MovableMan.Actors do
+	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("InvincibleCraftScript") then
 			actor:SetNumberValue("InvincibleCraftScript", 1)
 			if IsACDropShip(actor) or IsACRocket(actor) then

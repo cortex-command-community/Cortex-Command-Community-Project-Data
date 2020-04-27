@@ -2,7 +2,7 @@ function ToughCraftScript:StartScript()
 	self.multiplier = 4;
 end
 function ToughCraftScript:UpdateScript()
-	for actor in MovableMan.Actors do
+	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("ToughCraftScript") then
 			actor:SetNumberValue("ToughCraftScript", 1);
 			if IsACDropShip(actor) or IsACRocket(actor) then

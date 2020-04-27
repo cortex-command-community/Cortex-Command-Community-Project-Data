@@ -1,5 +1,5 @@
 function BulkyDropshipsScript:UpdateScript()
-	for actor in MovableMan.Actors do
+	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("BulkyDropshipsScript") then
 			actor:SetNumberValue("BulkyDropshipsScript", 1);
 			if IsACDropShip(actor) then

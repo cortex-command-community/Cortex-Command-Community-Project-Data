@@ -3,21 +3,29 @@ function FasterWalkingScript:StartScript()
 	self.pushForceDenominator = 1.2;
 end
 function FasterWalkingScript:UpdateScript()
-	for actor in MovableMan.Actors do
+	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("FasterWalkingScript") then
-			actor:SetNumberValue("FasterWalkingScript", 1);
-			local walker;
-			if IsAHuman(actor) then
-				walker = ToAHuman(actor);
-			elseif IsACrab(actor) then
-				walker = ToACrab(actor);
-			end
-			if walker then
-				walker:SetLimbPathSpeed(0, walker:GetLimbPathSpeed(0) * self.multiplier);
-				walker:SetLimbPathSpeed(1, walker:GetLimbPathSpeed(1) * self.multiplier);
-				walker:SetLimbPathSpeed(2, walker:GetLimbPathSpeed(2) * self.multiplier);
-				walker.LimbPathPushForce = walker.LimbPathPushForce * self.pushForceDenominator;
+			self:DeployEffect(actor);
+			for i = 1, actor.InventorySize do
+				local item = actor:Inventory();
+				self:DeployEffect(item);
+				actor:SwapNextInventory(item, true);
 			end
 		end
+	end
+end
+function FasterWalkingScript:DeployEffect(actor)
+	local walker;
+	if IsAHuman(actor) then
+		walker = ToAHuman(actor);
+	elseif IsACrab(actor) then
+		walker = ToACrab(actor);
+	end
+	if walker then
+		actor:SetNumberValue("FasterWalkingScript", 1);
+		walker:SetLimbPathSpeed(0, walker:GetLimbPathSpeed(0) * self.multiplier);
+		walker:SetLimbPathSpeed(1, walker:GetLimbPathSpeed(1) * self.multiplier);
+		walker:SetLimbPathSpeed(2, walker:GetLimbPathSpeed(2) * self.multiplier);
+		walker.LimbPathPushForce = walker.LimbPathPushForce * self.pushForceDenominator;
 	end
 end

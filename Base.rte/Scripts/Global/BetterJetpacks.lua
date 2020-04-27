@@ -2,21 +2,29 @@ function BetterJetpacksScript:StartScript()
 	self.multiplier = 1.5;
 end
 function BetterJetpacksScript:UpdateScript()
-	for actor in MovableMan.Actors do
+	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("BetterJetpacksScript") then
-			actor:SetNumberValue("BetterJetpacksScript", 1);
-			if IsAHuman(actor) then
-				actor = ToAHuman(actor);
-			elseif IsACrab(actor) then
-				actor = ToACrab(actor);
+			self:DeployEffect(actor);
+			for i = 1, actor.InventorySize do
+				local item = actor:Inventory();
+				self:DeployEffect(item);
+				actor:SwapNextInventory(item, true);
 			end
-			if actor.Jetpack then
-				actor.JetTimeTotal = actor.JetTimeTotal * self.multiplier;
-				for em in actor.Jetpack.Emissions do
-					em.ParticlesPerMinute = em.ParticlesPerMinute * self.multiplier;
-					em.BurstSize = em.BurstSize * self.multiplier;
-				end
-			end
+		end
+	end
+end
+function BetterJetpacksScript:DeployEffect(actor)
+	if IsAHuman(actor) then
+		actor = ToAHuman(actor);
+	elseif IsACrab(actor) then
+		actor = ToACrab(actor);
+	end
+	if actor.Jetpack then
+		actor:SetNumberValue("BetterJetpacksScript", 1);
+		actor.JetTimeTotal = actor.JetTimeTotal * self.multiplier;
+		for em in actor.Jetpack.Emissions do
+			em.ParticlesPerMinute = em.ParticlesPerMinute * self.multiplier;
+			em.BurstSize = em.BurstSize * self.multiplier;
 		end
 	end
 end

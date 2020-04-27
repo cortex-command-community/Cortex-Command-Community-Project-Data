@@ -2,7 +2,7 @@ function ToughDoorsScript:StartScript()
 	self.multiplier = 4;
 end
 function ToughDoorsScript:UpdateScript()
-	for actor in MovableMan.Actors do
+	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("ToughDoorsScript") then
 			actor:SetNumberValue("ToughDoorsScript", 1);
 			if IsADoor(actor) then
