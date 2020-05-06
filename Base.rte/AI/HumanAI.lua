@@ -1,10 +1,10 @@
 dofile("Base.rte/Constants.lua")
 require("AI/NativeHumanAI")
-require("AI/HumanFunctions");
+require("AI/HumanFunctions")
 
 function Create(self)
 	self.AI = NativeHumanAI:Create(self);
-	-- You can turn features on and off here
+	--You can turn features on and off here
 	self.armSway = true;
 	self.automaticEquip = true;
 	self.alternativeGib = true;
@@ -21,10 +21,10 @@ function Update(self)
 		HumanFunctions.DoAutomaticEquip(self);
 	end
 	if self.armSway then
-		HumanFunctions.DoArmSway(self, 10);	-- Argument: shove strength
+		HumanFunctions.DoArmSway(self, (self.Health / self.MaxHealth));	--Argument: shove strength
 	end
 	if self.visibleInventory then
-		HumanFunctions.DoVisibleInventory(self, false);	--  Argument: whether to show all items
+		HumanFunctions.DoVisibleInventory(self, false);	--Argument: whether to show all items
 	end
 end
 function UpdateAI(self)
