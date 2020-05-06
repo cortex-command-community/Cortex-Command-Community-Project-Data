@@ -2,17 +2,18 @@ function Create(self)
 
 	self.delayTimer = Timer();
 	self.blinkTimer = Timer();
-	self.dustTimer = Timer();
 	self.actionPhase = 0;
 	self.faceDirection = 0;
-	self.dustDelay = 0;
+	self.detectionAngleTurn = math.random() * math.pi;
+	self.detectionAngleDegrees = 50;
+	self.detectionTurnSpeed = 25;
 	self.tempLaserLength = 0;
 
 	self.laserLength = 80;
-	self.minVisualDelay = 0;
-	self.maxVisualDelay = 200;
 
 	self.alliedTeam = self.Sharpness;
+	self.Team = self.alliedTeam;
+	self.IgnoresTeamHits = true;
 	self.Sharpness = 0;
 
 	self.blink = false;
@@ -25,48 +26,55 @@ function Create(self)
 	self.tableNum = #coalitionMineTable+1;
 	coalitionMineTable[self.tableNum] = self;
 
+	self.checkDelay = 100;
+	self.checkDelayExtension = 0.1;
+	self.detonateThreshold = 10;
+	self.detonateDelay = 200;
 end
 
 function Update(self)
 
-	if self.Sharpness == 0 then
-		self.ToDelete = false;
-		self.ToSettle = false;
-		if coalitionMineTable == nil then
-			coalitionMineTable = {};
-			coalitionMineTable[self.tableNum] = self;
-		end
-	else
+	self.ToSettle = false;
+	if coalitionMineTable == nil then
+		coalitionMineTable = {};
+		coalitionMineTable[self.tableNum] = self;
+	end
+	if self.Sharpness ~= 0 then
 		self.ToDelete = true;
 	end
 
 	if self.actionPhase == 0 then
 
-		local rayHitPos = Vector(0,0);
-		local terrainRaycast = SceneMan:CastStrengthRay(self.Pos,Vector(self.Vel.X,self.Vel.Y):SetMagnitude(15),0,rayHitPos,0,0,SceneMan.SceneWrapsX);
+		local trace = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Radius + self.Vel.Magnitude);
+		local rayHitPos = Vector();
+		local terrainRaycast = SceneMan:CastStrengthRay(self.Pos, trace, 5, rayHitPos, 0, 0, SceneMan.SceneWrapsX);
 
 		if terrainRaycast == true then
 
-			local rayHitPosA = Vector(0,0);
-			local terrainRaycastA = SceneMan:CastStrengthRay(self.Pos+Vector(0,3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle),Vector(self.Vel.X,self.Vel.Y):SetMagnitude(20),0,rayHitPosA,0,0,SceneMan.SceneWrapsX);
+			trace = Vector(trace.X, trace.Y):SetMagnitude(trace.Magnitude + 5);
+			local rayHitPosA = Vector();
+			local terrainRaycastA = SceneMan:CastStrengthRay(self.Pos + Vector(0, 3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosA, 0, 0, SceneMan.SceneWrapsX);
 
-			local rayHitPosB = Vector(0,0);
-			local terrainRaycastB = SceneMan:CastStrengthRay(self.Pos+Vector(0,-3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle),Vector(self.Vel.X,self.Vel.Y):SetMagnitude(20),0,rayHitPosB,0,0,SceneMan.SceneWrapsX);
+			local rayHitPosB = Vector();
+			local terrainRaycastB = SceneMan:CastStrengthRay(self.Pos + Vector(0,-3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosB, 0, 0, SceneMan.SceneWrapsX);
 
 			if terrainRaycastA == true and terrainRaycastB == true then
-				self.faceDirection = SceneMan:ShortestDistance(rayHitPosA,rayHitPosB,SceneMan.SceneWrapsX).AbsRadAngle+(math.pi/2);
+				self.faceDirection = SceneMan:ShortestDistance(rayHitPosA, rayHitPosB, SceneMan.SceneWrapsX).AbsRadAngle + (math.pi /2);
 			else
 				self.faceDirection = (self.Vel*-1).AbsRadAngle;
 			end
 
-			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(3);
+			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(2);
 			self.RotAngle = self.faceDirection-(math.pi/2);
-			self.PinStrength = 1000;
+			self.PinStrength = self.GibImpulseLimit;
 			self.actionPhase = 1;
+			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", SceneMan:TargetDistanceScalar(self.Pos), false, true, -1);
 			self.delayTimer:Reset();
 		end
 
 	elseif self.actionPhase == 1 then
+	
+		self.Vel = self.PinStrength == 0 and self.Vel or Vector();
 
 		if self.blinkTimer:IsPastSimMS(500) then
 
@@ -79,75 +87,39 @@ function Update(self)
 				self.blink = false;
 				self.Frame = ((self.alliedTeam+1)*2)+1;
 			end
-
 		end
-
-		if self.delayTimer:IsPastSimMS(100) then
-
+		
+		if self.delayTimer:IsPastSimMS(self.checkDelay) then
+			self.checkDelay = self.checkDelay + self.checkDelayExtension;
+			
+			self.detectionAngleTurn = self.detectionAngleTurn + math.rad(self.detectionTurnSpeed);
+			local detectionAngle = self.faceDirection + (math.sin(self.detectionAngleTurn) * math.rad(self.detectionAngleDegrees / 2));
+			
 			self.delayTimer:Reset();
 
-			local rayHitPos = Vector(0,0);
-			local terrainRaycast = SceneMan:CastStrengthRay(self.Pos,Vector(self.laserLength,0):RadRotate(self.faceDirection),0,rayHitPos,0,0,SceneMan.SceneWrapsX);
+			local rayHitPos = Vector();
+			local startPos = self.Pos + Vector(self.Radius, 0):RadRotate(detectionAngle);
+			local terrainRaycast = SceneMan:CastStrengthRay(startPos, Vector(self.laserLength, 0):RadRotate(detectionAngle), 10, rayHitPos, 1, 0, SceneMan.SceneWrapsX);
 
 			if terrainRaycast == true then
-				self.tempLaserLength = SceneMan:ShortestDistance(self.Pos,rayHitPos,SceneMan.SceneWrapsX).Magnitude;
+				self.tempLaserLength = SceneMan:ShortestDistance(startPos,rayHitPos,SceneMan.SceneWrapsX).Magnitude;
 			else
 				self.tempLaserLength = self.laserLength;
 			end
-
-			local raycast = SceneMan:CastMORay(self.Pos,Vector(self.tempLaserLength,0):RadRotate(self.faceDirection),self.ID,self.alliedTeam,0,false,4);
+			local raycast = SceneMan:CastMORay(startPos,Vector(self.tempLaserLength,0):RadRotate(detectionAngle),self.ID,self.alliedTeam,0,true,4);
 			if raycast ~= rte.NoMOID then
-				local targetpart = MovableMan:GetMOFromID(raycast);
-				local target = MovableMan:GetMOFromID(targetpart.RootID);
-				if MovableMan:IsActor(target) then
-					if ToActor(target).Team ~= self.alliedTeam then
-						self.actionPhase = 2;
-						self.blink = false;
-					end
-				else
+				local targetpart = ToMOSRotating(MovableMan:GetMOFromID(raycast));
+				local target = ToMOSRotating(MovableMan:GetMOFromID(targetpart.RootID));
+				if not (target.Team == self.alliedTeam and IsActor(target)) and (target.Vel.Magnitude * (1 + math.abs(target.AngularVel) + math.sqrt(target.Radius))) > self.detonateThreshold then
 					self.actionPhase = 2;
 					self.blink = false;
+					self.faceDirection = detectionAngle;
 				end
 			end
-
-		end
-
-		if self.dustTimer:IsPastSimMS(self.dustDelay) then
-
-			local dustBrightness = math.ceil(math.random()*7);
-
-			if dustBrightness > 0 then
-
-				self.dustTimer:Reset();
-				self.dustDelay = (math.random()*(self.maxVisualDelay-self.minVisualDelay))+self.minVisualDelay;
-
-				local dustPos = (math.random()*(self.tempLaserLength-3))+3;
-
-				local effectpar = CreateMOPixel("Mine Laser Particle "..dustBrightness);
-				effectpar.Pos = self.Pos + Vector(dustPos,0):RadRotate(self.faceDirection);
-				MovableMan:AddParticle(effectpar);
-
-				if dustBrightness >= 3 then
-					local effectpar = CreateMOPixel("Mine Laser Particle "..(dustBrightness-2));
-					effectpar.Pos = self.Pos + Vector(dustPos+2,0):RadRotate(self.faceDirection);
-					MovableMan:AddParticle(effectpar);
-
-					local effectpar = CreateMOPixel("Mine Laser Particle "..(dustBrightness-2));
-					effectpar.Pos = self.Pos + Vector(dustPos-2,0):RadRotate(self.faceDirection);
-					MovableMan:AddParticle(effectpar);
-
-					if dustBrightness >= 5 then
-						local effectpar = CreateMOPixel("Mine Laser Particle "..(dustBrightness-4));
-						effectpar.Pos = self.Pos + Vector(dustPos+4,0):RadRotate(self.faceDirection);
-						MovableMan:AddParticle(effectpar);
-
-						local effectpar = CreateMOPixel("Mine Laser Particle "..(dustBrightness-4));
-						effectpar.Pos = self.Pos + Vector(dustPos-4,0):RadRotate(self.faceDirection);
-						MovableMan:AddParticle(effectpar);
-					end
-				end
-			end
-
+			local effectpar = CreateMOPixel("Mine Laser Beam ".. math.random(3));
+			effectpar.Pos = startPos + Vector(math.random() * self.tempLaserLength, 0):RadRotate(detectionAngle);
+			effectpar.EffectRotAngle = detectionAngle;
+			MovableMan:AddParticle(effectpar);
 		end
 
 	elseif self.actionPhase == 2 then
@@ -156,21 +128,14 @@ function Update(self)
 			self.blink = true;
 			self.Frame = ((self.alliedTeam+1)*2)+1;
 			self.delayTimer:Reset();
-			local soundfx = CreateAEmitter("Mine Sound Detonate");
-			soundfx.Pos = self.Pos;
-			MovableMan:AddParticle(soundfx);
+			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", SceneMan:TargetDistanceScalar(self.Pos), false, true, -1);
 		end
-
-		if self.delayTimer:IsPastSimMS(300) then
+		if self.delayTimer:IsPastSimMS(self.detonateDelay) then
+			self.Vel = Vector(25, 0):RadRotate(self.faceDirection);
 			self:GibThis();
 		end
-
 	end
-
 end
-
 function Destroy(self)
-
 	coalitionMineTable[self.tableNum] = nil;
-
 end
