@@ -1,16 +1,16 @@
 function FragileUnitsScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("FragileUnitsScript") then
-			self:DeployEffect(actor);
+			self:MakeFragile(actor);
 			for i = 1, actor.InventorySize do
 				local item = actor:Inventory();
-				self:DeployEffect(item);
+				self:MakeFragile(item);
 				actor:SwapNextInventory(item, true);
 			end
 		end
 	end
 end
-function FragileUnitsScript:DeployEffect(actor)
+function FragileUnitsScript:MakeFragile(actor)
 	if IsAHuman(actor) or IsACrab(actor) then
 		actor = ToActor(actor);
 		actor.MaxHealth = 1000;

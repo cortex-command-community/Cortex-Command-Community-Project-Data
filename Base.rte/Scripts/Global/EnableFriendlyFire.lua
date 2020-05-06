@@ -1,5 +1,5 @@
 function FriendlyFireScript:StartScript()
-	-- Minimum distance in pixels that the particles ingore teammates for
+	-- Minimum distance in pixels that the particles ignore teammates for
 	self.safeDist = 100;
 	self.updateTimer = Timer();
 	self.updateTimer:SetSimTimeLimitMS(math.ceil(TimerMan.DeltaTimeMS * 3));

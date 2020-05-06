@@ -5,12 +5,12 @@ function ToughUnitsScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("ToughUnitsScript") then
 			if IsAHuman(actor) or IsACrab(actor) then
-				self:DeployEffect(actor);
+				self:Buff(actor);
 			else
 				for i = 1, actor.InventorySize do
 					local item = actor:Inventory();
 					if IsActor(item) then
-						self:DeployEffect(ToActor(item));
+						self:Buff(ToActor(item));
 					end
 					actor:SwapNextInventory(item, true);
 				end
@@ -18,7 +18,7 @@ function ToughUnitsScript:UpdateScript()
 		end
 	end
 end
-function ToughUnitsScript:DeployEffect(actor)
+function ToughUnitsScript:Buff(actor)
 	actor:SetNumberValue("ToughUnitsScript", 1);
 	actor.GibWoundLimit = actor.GibWoundLimit * self.multiplier;
 	actor.GibImpulseLimit = actor.GibImpulseLimit * self.multiplier;

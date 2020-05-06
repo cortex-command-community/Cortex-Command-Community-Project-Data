@@ -5,16 +5,16 @@ end
 function FasterWalkingScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("FasterWalkingScript") then
-			self:DeployEffect(actor);
+			self:BoostWalkSpeed(actor);
 			for i = 1, actor.InventorySize do
 				local item = actor:Inventory();
-				self:DeployEffect(item);
+				self:BoostWalkSpeed(item);
 				actor:SwapNextInventory(item, true);
 			end
 		end
 	end
 end
-function FasterWalkingScript:DeployEffect(actor)
+function FasterWalkingScript:BoostWalkSpeed(actor)
 	local walker;
 	if IsAHuman(actor) then
 		walker = ToAHuman(actor);

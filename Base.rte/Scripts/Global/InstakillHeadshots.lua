@@ -1,18 +1,18 @@
 function InstakillHeadshotsScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("InstakillHeadshotsScript") then
-			self:DeployEffect(actor);
+			self:WeakenHead(actor);
 			for i = 1, actor.InventorySize do
 				local item = actor:Inventory();
 				if IsActor(item) then
-					self:DeployEffect(ToActor(item));
+					self:WeakenHead(ToActor(item));
 				end
 				actor:SwapNextInventory(item, true);
 			end
 		end
 	end
 end
-function InstakillHeadshotsScript:DeployEffect(actor)
+function InstakillHeadshotsScript:WeakenHead(actor)
 	actor:SetNumberValue("InstakillHeadshotsScript", 1)
 	if IsAHuman(actor) then
 		local human = ToAHuman(actor)
