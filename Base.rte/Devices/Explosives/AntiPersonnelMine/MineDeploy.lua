@@ -15,14 +15,12 @@ function Update(self)
 
 	if self:IsActivated() and self.ID == self.RootID then
 
-		local mine = CreateMOSRotating("Particle Mine");
+		local mine = CreateMOSRotating("Anti Personnel Mine Active");
 		mine.Pos = self.Pos;
 		mine.Vel = self.Vel;
 		mine.Sharpness = self.alliedTeam;
 		MovableMan:AddParticle(mine);
 
 		self.ToDelete = true;
-
 	end
-
 end

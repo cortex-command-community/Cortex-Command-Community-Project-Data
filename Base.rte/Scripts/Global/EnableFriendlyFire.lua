@@ -1,16 +1,15 @@
 function FriendlyFireScript:StartScript()
-	-- Amount of frames the particles still ignore teammates for
-	self.frames = 6;
-	self.minAge = 17 * self.frames;
-	-- Default settings are approximately according to squad sizes
+	-- Minimum distance in pixels that the particles ignore teammates for
+	self.safeDist = 100;
 	self.updateTimer = Timer();
+	self.updateTimer:SetSimTimeLimitMS(math.ceil(TimerMan.DeltaTimeMS * 3));
 end
 function FriendlyFireScript:UpdateScript()
-	if self.updateTimer:IsPastSimMS(51) then
+	if self.updateTimer:IsPastSimTimeLimit() then
 		for part in MovableMan.Particles do
 			if part.HitsMOs and part.Team ~= -1 then
-				if part.Age > self.minAge / (1 + part.Vel.Magnitude / 100) then
-					part.Team = -1;		-- Hit everyone
+				if (part.Age * FrameMan.PPM * part.Vel.Magnitude) / 1000 > self.safeDist then
+					part.Team = -1;
 					part.IgnoresTeamHits = false;
 				end
 			end

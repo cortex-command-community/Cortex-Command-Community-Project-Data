@@ -23,8 +23,8 @@ function Update(self)
 			self.guideTable[1] = Vector(self.MuzzlePos.X,self.MuzzlePos.Y);
 
 			local actor = ToActor(actor);
-			guideParPos = self.MuzzlePos;
-			guideParVel = Vector(self.projectileVel,0):RadRotate(actor:GetAimAngle(true));
+			local guideParPos = self.MuzzlePos;
+			local guideParVel = Vector(self.projectileVel,0):RadRotate(actor:GetAimAngle(true));
 			for i = 1, self.maxTrajectoryPars do
 				guideParVel = guideParVel + Vector((SceneMan.GlobalAcc.X/FrameMan.PPM),(SceneMan.GlobalAcc.Y/FrameMan.PPM));
 				guideParPos = guideParPos + guideParVel;

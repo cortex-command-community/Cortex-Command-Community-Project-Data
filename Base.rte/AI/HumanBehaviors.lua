@@ -36,10 +36,10 @@ end
 
 -- spot targets by casting a ray in a random direction
 function HumanBehaviors.LookForTargets(AI, Owner, Skill)
-	local viewAngDeg = RangeRand(50, 120) * (0.5 + Skill / 200)
+	local viewAngDeg = RangeRand(50, 120) * Owner.Perceptiveness * (0.5 + Skill / 200)
 	if AI.deviceState == AHuman.AIMING then
 		AI.Ctrl:SetState(Controller.AIM_SHARP, true)	-- reinforce sharp aim controller state to enable SharpLength in LookForMOs
-		viewAngDeg = 15 + (Skill / 10)
+		viewAngDeg = 15 * Owner.Perceptiveness + (Skill / 10)
 	end
 	
 	local FoundMO = Owner:LookForMOs(viewAngDeg, rte.grassID, false)
@@ -500,6 +500,13 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				elseif AI.SentryFacing and Owner.HFlipped ~= AI.SentryFacing then
 					Owner.HFlipped = AI.SentryFacing	-- turn to the direction we have been order to guard
 					break	-- restart this behavior
+				elseif math.random() < Owner.Perceptiveness then
+				
+					-- turn around occasionally if there is open space behind our back
+					local backAreaRay = Vector(-math.random(FrameMan.PlayerScreenWidth/4, FrameMan.PlayerScreenWidth/2) * Owner.FlipFactor, 0):DegRotate(math.random(-25, 25) * Owner.Perceptiveness)
+					if not SceneMan:CastStrengthRay(Owner.EyePos, backAreaRay, 10, Vector(), 10, rte.grassID, SceneMan.SceneWrapsX) then
+						Owner.HFlipped = Owner.FlipFactor == 1 and true or false
+					end
 				end
 			end
 		end

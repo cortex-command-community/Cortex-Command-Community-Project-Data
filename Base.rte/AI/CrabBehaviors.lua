@@ -2,9 +2,10 @@
 CrabBehaviors = {}
 
 function CrabBehaviors.LookForTargets(AI, Owner)
-	local viewAngDeg = RangeRand(35, 85)
+	local viewAngDeg = RangeRand(35, 85) * Owner.Perceptiveness
 	if AI.deviceState == AHuman.AIMING then
-		viewAngDeg = 20
+		AI.Ctrl:SetState(Controller.AIM_SHARP, true)
+		viewAngDeg = 20 * Owner.Perceptiveness
 	end
 	
 	local HitPoint

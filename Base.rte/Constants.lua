@@ -21,6 +21,7 @@ rte.StartingFundsScale = 1.0;
 rte.PassengerMax = 3; -- Deprecated. Use 'Craft.MaxPassengers' instead
 rte.DiggersRate = 0.4
 rte.MetabaseArea = "MetabaseServiceArea"
+rte.PxTravelledPerFrame = FrameMan.PPM * TimerMan.DeltaTimeSecs;
 
 -- Materials
 rte.airID = 0;

@@ -35,10 +35,7 @@ function Update(self)
 						end
 					end
 				end
-
-				local soundfx = CreateAEmitter("Mine Sound Detonate");
-				soundfx.Pos = self.Pos;
-				MovableMan:AddParticle(soundfx);
+				AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", SceneMan:TargetDistanceScalar(self.Pos), false, true, -1);
 				self.fireOn = true;
 			end
 		end

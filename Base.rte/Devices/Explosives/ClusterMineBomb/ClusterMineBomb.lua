@@ -3,7 +3,10 @@ function Create(self)
 	self.alliedTeam = -1;
 	self.lastAngle = self.RotAngle;
 	self.lastVel = Vector(self.Vel.X,self.Vel.Y);
-
+	
+	self.deployRange = 100;
+	
+	self.mineCount = 4;
 end
 
 function Update(self)
@@ -22,20 +25,20 @@ function Update(self)
 		end
 	end
 
-	local rayHitPos = Vector(0,0);
-	local terrainRaycast = SceneMan:CastStrengthRay(self.Pos,Vector(self.Vel.X,self.Vel.Y):SetMagnitude(150),0,rayHitPos,0,0,SceneMan.SceneWrapsX);
+	local rayHitPos = Vector();
+	local terrainRaycast = SceneMan:CastStrengthRay(self.Pos, Vector(self.Vel.X,self.Vel.Y):SetMagnitude(self.Radius + self.deployRange + self.Vel.Magnitude),0,rayHitPos,0,0,SceneMan.SceneWrapsX);
 
 	if terrainRaycast == true then
-		for i = 1, 5 do
-			local mine = CreateMOSRotating("Particle Mine");
+		local spread = 3;
+		for i = 1, self.mineCount do
+			local mine = CreateMOSRotating("Anti Personnel Mine Active");
 			mine.Pos = self.Pos;
-			mine.Vel = self.Vel + Vector((math.random()*15)+5,0):RadRotate(math.random()*(math.pi*2));
+			mine.Vel = self.Vel /2 + Vector(self.Vel.X, self.Vel.Y):RadRotate(spread * 0.6 - (spread * (i / self.mineCount)) + RangeRand(-0.1, 0.1)):SetMagnitude(20);
 			mine.Sharpness = self.alliedTeam;
 			MovableMan:AddParticle(mine);
 			self:GibThis();
 		end
 	end
-
 end
 
 function Destroy(self)
@@ -49,14 +52,14 @@ function Destroy(self)
 	local gibB = CreateMOSRotating("Cluster Mine Bomb Gib B");
 	gibB.Pos = self.Pos + Vector(1,-3):RadRotate(self.lastAngle);
 	gibB.Vel = self.Vel + Vector(0,20):RadRotate(self.lastAngle);
-	gibB.AngularVel = 20;
+	gibB.AngularVel = 10;
 	gibB.RotAngle = self.lastAngle;
 	MovableMan:AddParticle(gibB);
 
 	local gibC = CreateMOSRotating("Cluster Mine Bomb Gib C");
-	gibC.Pos = self.Pos + Vector(1,4):RadRotate(self.lastAngle);
+	gibC.Pos = self.Pos + Vector(1,3):RadRotate(self.lastAngle);
 	gibC.Vel = self.Vel + Vector(0,-20):RadRotate(self.lastAngle);
-	gibC.AngularVel = -20;
+	gibC.AngularVel = -10;
 	gibC.RotAngle = self.lastAngle;
 	MovableMan:AddParticle(gibC);
 

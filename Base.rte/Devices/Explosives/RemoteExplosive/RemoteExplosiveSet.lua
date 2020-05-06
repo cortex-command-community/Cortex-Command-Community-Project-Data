@@ -7,6 +7,7 @@ function Create(self)
 	self.stuck = false;
 
 	self.alliedTeam = self.Sharpness;
+	self.Team = self.alliedTeam;
 	self.Sharpness = 0;
 
 	if coalitionC4TableA == nil then
