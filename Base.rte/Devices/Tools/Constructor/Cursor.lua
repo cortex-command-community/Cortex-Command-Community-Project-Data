@@ -13,8 +13,8 @@ function Update(self)
 	self.ctrl = self:GetController();
 	
 	local screen = ActivityMan:GetActivity():ScreenOfPlayer(self.ctrl.Player);
-	FrameMan:DrawLinePrimitive(screen, self.Pos + Vector(0, 4), self.Pos + Vector(0, -4), 120);
-	FrameMan:DrawLinePrimitive(screen, self.Pos + Vector(4, 0), self.Pos + Vector(-4, 0), 120);
+	PrimitiveMan:DrawLinePrimitive(screen, self.Pos + Vector(0, 4), self.Pos + Vector(0, -4), 120);
+	PrimitiveMan:DrawLinePrimitive(screen, self.Pos + Vector(4, 0), self.Pos + Vector(-4, 0), 120);
 
 	if self.ctrl:IsMouseControlled() == false then
 		if self.ctrl:IsState(Controller.HOLD_UP) or self.ctrl:IsState(Controller.BODY_JUMP) then

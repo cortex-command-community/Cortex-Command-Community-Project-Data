@@ -59,39 +59,39 @@ function Update(self)
 			end
 		end
 		if self.guidePos ~= null then
-		--	FrameMan:DrawBoxPrimitive(self.guidePos+Vector(-self.guideSize,-self.guideSize),self.guidePos+Vector(self.guideSize,self.guideSize),13);
-		--	FrameMan:DrawCirclePrimitive(self.guidePos,self.guideSize,13);
+		--	PrimitiveMan:DrawBoxPrimitive(self.guidePos+Vector(-self.guideSize,-self.guideSize),self.guidePos+Vector(self.guideSize,self.guideSize),13);
+		--	PrimitiveMan:DrawCirclePrimitive(self.guidePos,self.guideSize,13);
 		--	if self.guideLine.Magnitude-self.guideSize > 0 then
 		--		local endPoint = self.guideLine:SetMagnitude(self.guideLine.Magnitude);
-		--		FrameMan:DrawLinePrimitive(self.MuzzlePos,self.guideLinePoint,13);
+		--		PrimitiveMan:DrawLinePrimitive(self.MuzzlePos,self.guideLinePoint,13);
 		--	end
 			local cornerPos = Vector(self.guidePos.X-self.guideSize,self.guidePos.Y-self.guideSize);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
 
 			cornerPos = Vector(self.guidePos.X-self.guideSize,self.guidePos.Y+self.guideSize);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
 
 			cornerPos = Vector(self.guidePos.X+self.guideSize,self.guidePos.Y+self.guideSize);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
 
 			cornerPos = Vector(self.guidePos.X+self.guideSize,self.guidePos.Y-self.guideSize);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
 
 			cornerPos = Vector(self.guidePos.X,self.guidePos.Y-self.guideSize);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
 
 			cornerPos = Vector(self.guidePos.X-self.guideSize,self.guidePos.Y);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
 
 			cornerPos = Vector(self.guidePos.X,self.guidePos.Y+self.guideSize);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
 
 			cornerPos = Vector(self.guidePos.X+self.guideSize,self.guidePos.Y);
-			FrameMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
 		end
 	else
 		self.guidePos = null;

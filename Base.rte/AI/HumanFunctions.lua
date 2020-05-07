@@ -146,7 +146,7 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 							local screen = ActivityMan:GetActivity():ScreenOfPlayer(actor.controller.Player);
 							if not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
-								FrameMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0);
+								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0);
 							end
 						end
 					end

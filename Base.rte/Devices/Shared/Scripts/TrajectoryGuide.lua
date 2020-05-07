@@ -52,9 +52,9 @@ function Update(self)
 
 	if #self.guideTable > 1 then
 		for i = 1, #self.guideTable-1 do
-			FrameMan:DrawLinePrimitive(self.guideTable[i],self.guideTable[i+1],120);
+			PrimitiveMan:DrawLinePrimitive(self.guideTable[i],self.guideTable[i+1],120);
 		end
-		FrameMan:DrawCirclePrimitive(self.guideTable[#self.guideTable],12,120);
+		PrimitiveMan:DrawCirclePrimitive(self.guideTable[#self.guideTable],12,120);
 	end
 
 end

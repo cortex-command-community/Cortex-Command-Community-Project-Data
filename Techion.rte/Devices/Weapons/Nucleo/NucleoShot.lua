@@ -46,7 +46,7 @@ function Update(self)
 			else
 				local raydirection = SceneMan:ShortestDistance(self.Pos,g_nucleocommunicationtable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX)
 				if MovableMan:IsParticle(g_nucleocommunicationtable[self.Sharpness][i][2]) and raydirection.Magnitude < self.linkRange then
-					FrameMan:DrawLinePrimitive(self.Pos, g_nucleocommunicationtable[self.Sharpness][i][2].Pos, 5);
+					PrimitiveMan:DrawLinePrimitive(self.Pos, g_nucleocommunicationtable[self.Sharpness][i][2].Pos, 5);
 					local moid = SceneMan:CastMORay(self.Pos, raydirection, 0, self.Team, 0, true, 1);
 					if moid ~= 255 then
 						local hitPos = Vector();

@@ -211,7 +211,7 @@ function Update(self)
 			local mode = {"Dig", "Spray"};
 			
 			if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
-				FrameMan:DrawTextPrimitive(screen, actor.AboveHUDPos + Vector(0, 26), "Mode: " .. mode[self:GetNumberValue("Constructor Mode") + 1], true, 1);
+				PrimitiveMan:DrawTextPrimitive(screen, actor.AboveHUDPos + Vector(0, 26), "Mode: " .. mode[self:GetNumberValue("Constructor Mode") + 1], true, 1);
 			end
 			
 			-- constructor actions if the user is in gold dig mode
@@ -410,7 +410,7 @@ function Update(self)
 
 					local mapx = math.floor((self.cursor.Pos.X-12)/24)*24+12;
 					local mapy = math.floor((self.cursor.Pos.Y-12)/24)*24+12;
-					FrameMan:DrawBoxPrimitive(screen, Vector(mapx, mapy), Vector(mapx+23, mapy+23), 120);
+					PrimitiveMan:DrawBoxPrimitive(screen, Vector(mapx, mapy), Vector(mapx+23, mapy+23), 120);
 
 					-- add blocks to the build queue if the cursor is firing
 					if self.cursor:IsPlayerControlled() then
@@ -445,9 +445,9 @@ function Update(self)
 					templist[#templist+1] = self.buildlist[i];
 					if self.displaygrid then
 						if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildlist[i][1],self.buildlist[i][2]), SceneMan.SceneWrapsX).Magnitude < self.builddistance then
-							FrameMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), 5);
+							PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), 5);
 						else
-							FrameMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), 13);
+							PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), 13);
 						end
 					end
 				end
@@ -470,8 +470,8 @@ function Update(self)
 								by = by*3-1;
 								bx = bx*3-1;
 								
-								FrameMan:DrawLinePrimitive(screen, self.Pos, self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx+self.buildlist[1][1]+2,by+self.buildlist[1][2]+2), SceneMan.SceneWrapsX ), 5);
-								FrameMan:DrawBoxFillPrimitive(screen, Vector(bx+self.buildlist[1][1]+1,by+self.buildlist[1][2]+1),Vector(bx+self.buildlist[1][1]+3,by+self.buildlist[1][2]+3),254);
+								PrimitiveMan:DrawLinePrimitive(screen, self.Pos, self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx+self.buildlist[1][1]+2,by+self.buildlist[1][2]+2), SceneMan.SceneWrapsX ), 5);
+								PrimitiveMan:DrawBoxFillPrimitive(screen, Vector(bx+self.buildlist[1][1]+1,by+self.buildlist[1][2]+1),Vector(bx+self.buildlist[1][1]+3,by+self.buildlist[1][2]+3),254);
 
 								for x = 1, 3 do
 									for y = 1, 3 do

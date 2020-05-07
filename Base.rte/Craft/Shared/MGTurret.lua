@@ -44,13 +44,13 @@ function Update(self)
 			local aimPos = self.Pos + Vector((self.searchRange / 2), 0):RadRotate(self.RotAngle);
 			-- Debug: visualize aim area
 			if self.showAim then
-				FrameMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange / 2), 13);
+				PrimitiveMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange / 2), 13);
 			end
 			local aimTarget = MovableMan:GetClosestEnemyActor(self.Team, aimPos, (self.searchRange / 2), Vector());
 			if aimTarget then
 				-- Debug: visualize search trace
 				if self.showAim then
-					FrameMan:DrawLinePrimitive(self.Team, aimPos, aimTarget.Pos, 13);
+					PrimitiveMan:DrawLinePrimitive(self.Team, aimPos, aimTarget.Pos, 13);
 				end
 				-- Check that the target isn't obscured by terrain
 				local aimTrace = SceneMan:ShortestDistance(self.Pos, aimTarget.Pos, SceneMan.SceneWrapsX);
@@ -59,7 +59,7 @@ function Update(self)
 					self.RotAngle = aimTrace.AbsRadAngle;
 					-- Debug: visualize aim trace
 					if self.showAim then
-						FrameMan:DrawLinePrimitive(self.Team, self.Pos, aimTarget.Pos, 254);
+						PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, aimTarget.Pos, 254);
 					end
 					self:EnableEmission(true);
 					self:TriggerBurst();
@@ -89,8 +89,8 @@ function Update(self)
 			end
 			-- Debug: visualize aim traces
 			if self.showAim then
-				FrameMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(1 / math.sqrt(self.searchRange)), color);
-				FrameMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(-1 / math.sqrt(self.searchRange)), color);
+				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(1 / math.sqrt(self.searchRange)), color);
+				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(-1 / math.sqrt(self.searchRange)), color);
 			end
 		end
 	end

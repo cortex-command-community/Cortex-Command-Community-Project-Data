@@ -433,7 +433,7 @@ function Update(self)
 			end
 			AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/Return.wav", drawPos);
 		end
-		FrameMan:DrawLinePrimitive(startPos, drawPos, 249);
+		PrimitiveMan:DrawLinePrimitive(startPos, drawPos, 249);
 	elseif self.parentGun and IsHDFirearm(self.parentGun) then
 		self.parent = self.parentGun;
 	else

@@ -109,9 +109,9 @@ function NetworkTest:UpdateActivity()
 	end
 	--ConsoleMan:ForceVisibility(true)
 	
-	--FrameMan:DrawBoxPrimitive(Vector(1,401), Vector(9,409), 20)
+	--PrimitiveMan:DrawBoxPrimitive(Vector(1,401), Vector(9,409), 20)
 
-	--FrameMan:DrawBoxPrimitive(-1, Vector(30,430), Vector(50,450), 30)
+	--PrimitiveMan:DrawBoxPrimitive(-1, Vector(30,430), Vector(50,450), 30)
 	
 		--for actor in MovableMan.Actors do
 		--	print (actor.DeploymentID)
@@ -145,11 +145,11 @@ function NetworkTest:UpdateActivity()
 		self.SoundTimer:Reset();
 	end
 	
-	FrameMan:DrawBoxPrimitive(0, Vector(10,410), Vector(100,449), 5)
-	FrameMan:DrawBoxPrimitive(1, Vector(10,450), Vector(100,500), 10)
+	PrimitiveMan:DrawBoxPrimitive(0, Vector(10,410), Vector(100,449), 5)
+	PrimitiveMan:DrawBoxPrimitive(1, Vector(10,450), Vector(100,500), 10)
 	
-	FrameMan:DrawTextPrimitive(0, Vector(30, 430), "Player One Sees This!", true, 0);
-	FrameMan:DrawTextPrimitive(1, Vector(30, 430), "Player Two Sees This!", true, 0);
+	PrimitiveMan:DrawTextPrimitive(0, Vector(30, 430), "Player One Sees This!", true, 0);
+	PrimitiveMan:DrawTextPrimitive(1, Vector(30, 430), "Player Two Sees This!", true, 0);
 	
 	for actor in MovableMan.Actors do
 		--[[if actor.ClassName == "ACRocket" then

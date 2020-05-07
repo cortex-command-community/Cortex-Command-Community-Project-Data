@@ -68,7 +68,7 @@ function Update(self)
 				end
 				local startPos = (parent.Pos + parent.EyePos + self.Pos) / 3;
 				local guidePos = startPos + Vector(parent.AimDistance + (parent.Vel.Magnitude), 0):RadRotate(parent:GetAimAngle(true));
-				FrameMan:DrawBitmapPrimitive(ActivityMan:GetActivity():ScreenOfPlayer(controller.Player), guidePos, self.arrow, parent:GetAimAngle(true), frame);
+				PrimitiveMan:DrawBitmapPrimitive(ActivityMan:GetActivity():ScreenOfPlayer(controller.Player), guidePos, self.arrow, parent:GetAimAngle(true), frame);
 			end
 		else
 			self:Deactivate();
