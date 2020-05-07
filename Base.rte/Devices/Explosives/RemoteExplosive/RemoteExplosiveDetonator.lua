@@ -35,7 +35,7 @@ function Update(self)
 						end
 					end
 				end
-				AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", SceneMan:TargetDistanceScalar(self.Pos), false, true, -1);
+				AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", self.Pos);
 				self.fireOn = true;
 			end
 		end
