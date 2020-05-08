@@ -90,8 +90,8 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 				local armStrength = (arm.Mass + arm.Material.StructuralIntegrity) * pushStrength;
 				for i = 1, dots do
 					local part = CreateMOPixel("Smack Particle Light");
-					part.Pos = arm.HandPos;
-					part.Vel = Vector(handVector.X, handVector.Y):RadRotate(RangeRand(-0.1, 0.1)) * pushStrength + Vector(0, -0.5);
+					part.Pos = arm.HandPos - Vector(handVector.X/2, handVector.Y /2);
+					part.Vel = Vector(handVector.X, handVector.Y):RadRotate(RangeRand(-0.1, 0.1)) + Vector(0, -0.5);
 					part.Mass = armStrength;	part.Sharpness = math.random() * 0.1;
 					part.Team = actor.Team;	part.IgnoresTeamHits = true;
 					MovableMan:AddParticle(part);
