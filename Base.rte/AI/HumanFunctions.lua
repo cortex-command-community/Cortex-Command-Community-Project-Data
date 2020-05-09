@@ -144,9 +144,8 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						local rotAng = actor.RotAngle + tallAng + (heldCount * tilt - itemCount * tilt + isFirearm /itemSize) /itemCount * actor.FlipFactor;
 
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-							local screen = ActivityMan:GetActivity():ScreenOfPlayer(actor.controller.Player);
 							if not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
-								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0);
+								PrimitiveMan:DrawBitmapPrimitive(ActivityMan:GetActivity():ScreenOfPlayer(player), drawPos, item, rotAng, 0);
 							end
 						end
 					end
