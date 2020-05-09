@@ -424,6 +424,10 @@ New World Interactive: Insurgency: Sandstorm
 G3 Firing Sounds
 SVD Firing Sounds
 
+New World Interactive: Insurgency
+
+M1A1 Reload Sounds
+
 *******************************************************************************
  Ronin.rte\Devices\Weapons\M16A2\Sounds\Credits.txt
 -------------------------------------------------------------------------------
