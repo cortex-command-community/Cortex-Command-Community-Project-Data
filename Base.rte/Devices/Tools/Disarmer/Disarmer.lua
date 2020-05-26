@@ -7,7 +7,7 @@ function Create(self)
 	self.blink = false;
 	self.fireOn = false;
 
-	self.disarmRange = FrameMan.PPM * 5;
+	self.disarmRange = GetPPM() * 5;
 	self.targetTable = {};
 end
 
