@@ -1,0 +1,15 @@
+LimbImpact:
+
+metalpanel_bullet_impact		(Insurgency)
+
+TorsoImpact:
+
+vehicle_bullet_impact			(Insurgency)
+
+HeadImpact:
+
+metalbarrel_bullet_impact		(Insurgency)
+
+LimbGib:
+
+BulletImpactMetalNoWhizz		(Warframe)
