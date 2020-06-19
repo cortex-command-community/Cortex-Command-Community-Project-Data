@@ -1,0 +1,9 @@
+Torso, LimbImpact:
+
+concrete_bullet_impact		(Insurgency)
+cardboard_bullet_impact		-
+
+HeadImpact:
+
+pl_heavyarmor_damagebullet	(Insurgency)
+concrete_bullet_impact		-
