@@ -1,0 +1,36 @@
+TorsoImpact:
+
+BulletImpactGeneric		(Warframe)
+plasticbox_bullet_impact	(Insurgency)
+
+LimbImpact:
+
+BulletImpactGeneric		(Warframe)
+
+HeadImpact:
+
+BulletImpactGeneric		(Warframe)
+plasticbarrel_bullet_impact	(Insurgency)
+
+TorsoGib:
+
+plasticbarrel_impact_hard	(Insurgency)
+plasticbarrel_scrape_rough	-
+plasticbarrel_bullet_impact	-
+plasticbox_impact_hard		-
+
+LimbGib:
+
+plasticbox_impact_hard		(Insurgency)
+plasticbox_scrape_smooth	-
+plasticbox_bullet_impact	-
+
+HeadGib:
+	
+plasticbarrel_impact_hard	(Insurgency)
+plasticbarrel_scrape_rough	-
+plasticbarrel_bullet_impact	-
+
+ExitSweetener:
+
+small_box_breakable_prop	(Insurgency: Sandstorm)

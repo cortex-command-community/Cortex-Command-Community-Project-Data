@@ -1,0 +1,27 @@
+TorsoImpact:
+
+3p_bulletbodyimpact		(Insurgency)
+
+LimbImpact:
+
+pl_damagebullet			(Insurgency)
+
+HeadImpact:
+
+headshot_tp			(Insurgency)
+
+HeadGib:
+
+headshot_tp_pumpkin		(Insurgency)
+
+TorsoGib:
+
+ImpactGoreLarge			(Warframe)
+
+LimbGib:
+
+InfestedCrawlerDeathFall	(Warframe)
+
+ExitSweetener:
+
+HeadshotImpactFlesh		(Warframe)

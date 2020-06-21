@@ -1,0 +1,12 @@
+TorsoImpact:
+
+pl_heavyarmor_damagebullet		(Insurgency)
+
+LimbImpact:
+
+PlayerBulletImpactFlesh			(Warframe)
+
+HeadImpact:
+
+PlayerBulletImpactFlesh			(Warframe)
+PlayerArrowImpactFlesh			-

@@ -1,0 +1,8 @@
+MetalDoorImpact:
+
+BulletImpactGenericMetal	(Warframe)
+
+MetalDoorGib:
+
+GrnLootCrateOpen		(Warframe)
+StorageContainerCylinderSmash	-
