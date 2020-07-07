@@ -26,7 +26,7 @@ function Update(self)
 			local guideParPos = self.MuzzlePos;
 			local guideParVel = Vector(self.projectileVel,0):RadRotate(actor:GetAimAngle(true));
 			for i = 1, self.maxTrajectoryPars do
-				guideParVel = guideParVel + Vector((SceneMan.GlobalAcc.X/FrameMan.PPM),(SceneMan.GlobalAcc.Y/FrameMan.PPM));
+				guideParVel = guideParVel + Vector((SceneMan.GlobalAcc.X/GetPPM()),(SceneMan.GlobalAcc.Y/GetPPM()));
 				guideParPos = guideParPos + guideParVel;
 				-- No need to wrap the seam manually, primitives can handle out-of-scene coordinates correctly
 				--if SceneMan.SceneWrapsX == true then

@@ -56,8 +56,8 @@ function NativeHumanAI:Create(Owner)
 			Owner.Jetpack.Throttle = 0.15	-- increase jetpack strength slightly to compensate for AI ineptitude
 		end
 		
-		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * FrameMan.PPM / TimerMan.DeltaTimeSecs
-		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * FrameMan.PPM / TimerMan.DeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5
+		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs
+		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5
 		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.JetTimeTotal*0.99)	-- in milliseconds
 	end
 	
