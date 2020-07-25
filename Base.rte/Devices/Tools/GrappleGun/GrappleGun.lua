@@ -66,7 +66,7 @@ function Update(self)
 				if parent.Vel.Magnitude > 12 then
 					frame = 1;
 				end
-				local startPos = (parent.Pos + parent.EyePos + self.Pos) / 3;
+				local startPos = (parent.Pos + parent.EyePos + self.Pos)/3;
 				local guidePos = startPos + Vector(parent.AimDistance + (parent.Vel.Magnitude), 0):RadRotate(parent:GetAimAngle(true));
 				PrimitiveMan:DrawBitmapPrimitive(ActivityMan:GetActivity():ScreenOfPlayer(controller.Player), guidePos, self.arrow, parent:GetAimAngle(true), frame);
 			end
@@ -76,8 +76,9 @@ function Update(self)
 		self.StanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
 		self.SharpStanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
 		if self.Magazine then
+			self.Magazine.RoundCount = 1;
 			self.Magazine.Scale = 1;
-			self.Magazine.Frame = 1;
+			self.Magazine.Frame = 0;
 		end
 	end
 end

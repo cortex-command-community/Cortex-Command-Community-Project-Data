@@ -1,6 +1,6 @@
 function Create(self)
 	local Effect
-	local Offset = self.Vel*(20*TimerMan.DeltaTimeSecs)	-- the effect will be created the next frame so move it one frame backwards towards the barrel
+	local Offset = self.Vel * rte.PxTravelledPerFrame	-- The effect will be created the next frame so move it one frame backwards towards the barrel
 	
 	for i = 1, 2 do
 		Effect = CreateMOSParticle("Tiny Smoke Ball 1", "Base.rte")

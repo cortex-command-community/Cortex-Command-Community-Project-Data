@@ -1,13 +1,13 @@
 function GrapplePieRetract(actor)
 	local gun = ToAHuman(actor).EquippedItem;
-	if gun ~= nil then
-		gun.Sharpness = 1;
+	if gun then
+		ToMOSRotating(gun):SetNumberValue("GrappleMode", 1);
 	end
 end
 
 function GrapplePieExtend(actor)
 	local gun = ToAHuman(actor).EquippedItem;
-	if gun ~= nil then
-		gun.Sharpness = 2;
+	if gun then
+		ToMOSRotating(gun):SetNumberValue("GrappleMode", 2);
 	end
 end

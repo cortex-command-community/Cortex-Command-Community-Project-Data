@@ -17,14 +17,14 @@ function Create(self)
 	self.Sharpness = 0;
 
 	self.blink = false;
-	self.Frame = (self.alliedTeam+1)*2;
+	self.Frame = (self.alliedTeam + 1) * 2;
 
-	if coalitionMineTable == nil then
-		coalitionMineTable = {};
+	if AntiPersonnelMineTable == nil then
+		AntiPersonnelMineTable = {};
 	end
 
-	self.tableNum = #coalitionMineTable+1;
-	coalitionMineTable[self.tableNum] = self;
+	self.tableNum = #AntiPersonnelMineTable + 1;
+	AntiPersonnelMineTable[self.tableNum] = self;
 
 	self.checkDelay = 100;
 	self.checkDelayExtension = 0.1;
@@ -35,9 +35,9 @@ end
 function Update(self)
 
 	self.ToSettle = false;
-	if coalitionMineTable == nil then
-		coalitionMineTable = {};
-		coalitionMineTable[self.tableNum] = self;
+	if AntiPersonnelMineTable == nil then
+		AntiPersonnelMineTable = {};
+		AntiPersonnelMineTable[self.tableNum] = self;
 	end
 	if self.Sharpness ~= 0 then
 		self.ToDelete = true;
@@ -56,16 +56,16 @@ function Update(self)
 			local terrainRaycastA = SceneMan:CastStrengthRay(self.Pos + Vector(0, 3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosA, 0, 0, SceneMan.SceneWrapsX);
 
 			local rayHitPosB = Vector();
-			local terrainRaycastB = SceneMan:CastStrengthRay(self.Pos + Vector(0,-3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosB, 0, 0, SceneMan.SceneWrapsX);
+			local terrainRaycastB = SceneMan:CastStrengthRay(self.Pos + Vector(0, -3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosB, 0, 0, SceneMan.SceneWrapsX);
 
 			if terrainRaycastA == true and terrainRaycastB == true then
-				self.faceDirection = SceneMan:ShortestDistance(rayHitPosA, rayHitPosB, SceneMan.SceneWrapsX).AbsRadAngle + (math.pi /2);
+				self.faceDirection = SceneMan:ShortestDistance(rayHitPosA, rayHitPosB, SceneMan.SceneWrapsX).AbsRadAngle + (math.pi/2);
 			else
-				self.faceDirection = (self.Vel*-1).AbsRadAngle;
+				self.faceDirection = (self.Vel * -1).AbsRadAngle;
 			end
 
 			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(2);
-			self.RotAngle = self.faceDirection-(math.pi/2);
+			self.RotAngle = self.faceDirection - (math.pi/2);
 			self.PinStrength = self.GibImpulseLimit;
 			self.actionPhase = 1;
 			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", self.Pos);
@@ -82,10 +82,10 @@ function Update(self)
 
 			if self.blink == false then
 				self.blink = true;
-				self.Frame = (self.alliedTeam+1)*2;
+				self.Frame = (self.alliedTeam + 1) * 2;
 			else
 				self.blink = false;
-				self.Frame = ((self.alliedTeam+1)*2)+1;
+				self.Frame = ((self.alliedTeam + 1) * 2) + 1;
 			end
 		end
 		
@@ -93,7 +93,7 @@ function Update(self)
 			self.checkDelay = self.checkDelay + self.checkDelayExtension;
 			
 			self.detectionAngleTurn = self.detectionAngleTurn + math.rad(self.detectionTurnSpeed);
-			local detectionAngle = self.faceDirection + (math.sin(self.detectionAngleTurn) * math.rad(self.detectionAngleDegrees / 2));
+			local detectionAngle = self.faceDirection + (math.sin(self.detectionAngleTurn) * math.rad(self.detectionAngleDegrees/2));
 			
 			self.delayTimer:Reset();
 
@@ -106,7 +106,7 @@ function Update(self)
 			else
 				self.tempLaserLength = self.laserLength;
 			end
-			local raycast = SceneMan:CastMORay(startPos,Vector(self.tempLaserLength,0):RadRotate(detectionAngle),self.ID,self.alliedTeam,0,true,4);
+			local raycast = SceneMan:CastMORay(startPos,Vector(self.tempLaserLength, 0):RadRotate(detectionAngle),self.ID,self.alliedTeam, 0, true, 4);
 			if raycast ~= rte.NoMOID then
 				local targetpart = ToMOSRotating(MovableMan:GetMOFromID(raycast));
 				local target = ToMOSRotating(MovableMan:GetMOFromID(targetpart.RootID));
@@ -126,7 +126,7 @@ function Update(self)
 
 		if self.blink == false then
 			self.blink = true;
-			self.Frame = ((self.alliedTeam+1)*2)+1;
+			self.Frame = ((self.alliedTeam + 1) * 2) + 1;
 			self.delayTimer:Reset();
 			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", self.Pos);
 		end
@@ -137,5 +137,5 @@ function Update(self)
 	end
 end
 function Destroy(self)
-	coalitionMineTable[self.tableNum] = nil;
+	AntiPersonnelMineTable[self.tableNum] = nil;
 end
