@@ -203,7 +203,7 @@ function ZombiePitMission:UpdateActivity()
             zombie.Pos = attackLZ:GetRandomPoint();
         else
             -- Will appear anywhere when there is no designated LZ
-            zombie.Pos = Vector(SceneMan.Scene.Width * PosRand(), 0);
+            zombie.Pos = Vector(SceneMan.Scene.Width * math.random(), 0);
         end
         zombie.Team = self.CPUTeam;
         zombie:SetControllerMode(Controller.CIM_AI, -1);

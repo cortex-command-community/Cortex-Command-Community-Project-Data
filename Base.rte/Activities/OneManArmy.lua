@@ -55,7 +55,14 @@ function OneManArmy:StartActivity()
 		secondaryGroup = "Weapons - Secondary";
 		actorGroup = "Actors - Light";
 	end
-
+	-- Destroy all doors for this Activity
+	MovableMan:OpenAllDoors(true, -1);
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.ToSettle = true;
+			actor:GibThis();
+		end
+	end
 	-- Check if we already have a brain assigned
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -111,9 +118,9 @@ function OneManArmy:StartActivity()
 					else	-- If no tech selected, use default items
 						local weapons = {defaultPrimary, defaultSecondary};
 						for i = 1, #weapons do
-							local item = weapons[i];
+							local item = CreateHDFirearm(weapons[i]);
 							if item then
-								item.GibWoundLimit = item.GibWoundLimit * self.multiplier;
+								item.GibWoundLimit = item.GibWoundLimit and item.GibWoundLimit * self.multiplier or item.GibWoundLimit;
 								item.JointStrength = item.JointStrength * self.multiplier;
 								foundBrain:AddInventoryItem(CreateHDFirearm(weapons[i]));
 							end
@@ -262,7 +269,7 @@ function OneManArmy:UpdateActivity()
 		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 			local ship, actorsInCargo
 			
-			if PosRand() < 0.5 then
+			if math.random() < 0.5 then
 				-- Set up the ship to deliver this stuff
 				ship = RandomACDropShip("Any", self.CPUTechName);
 				-- If we can't afford this dropship, then try a rocket instead
@@ -299,7 +306,7 @@ function OneManArmy:UpdateActivity()
 				if IsAHuman(passenger) then
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName));
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
-					if PosRand() < 0.5 then
+					if math.random() < 0.5 then
 						passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
 					end
 				end

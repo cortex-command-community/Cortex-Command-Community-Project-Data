@@ -135,7 +135,7 @@ function KeepieUppie:UpdateActivity()
 			if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 				local ship, actorsInCargo
 				
-				if PosRand() < 0.5 then
+				if math.random() < 0.5 then
 					-- Set up the ship to deliver this stuff
 					ship = RandomACDropShip("Any", self.CPUTechName);
 					actorsInCargo = ship.MaxPassengers
@@ -159,7 +159,7 @@ function KeepieUppie:UpdateActivity()
 					if IsAHuman(passenger) then
 						passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
 						passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
-						if PosRand() < 0.5 then
+						if math.random() < 0.5 then
 							passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
 						end
 					end
