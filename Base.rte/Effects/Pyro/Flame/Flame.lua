@@ -22,6 +22,8 @@ function Update(self)
 				if math.random() < (self.strength * self.target.DamageMultiplier) / (actor.Mass + self.target.Material.StructuralIntegrity) then
 					actor.Health = actor.Health - 1;
 				end
+				-- Stop, drop and roll!
+				self.Lifetime = self.Lifetime - math.abs(actor.AngularVel);
 			end
 		else
 			self.target = nil;
@@ -53,19 +55,19 @@ function Update(self)
 	local age = (self.Age * 0.0001) + 1;	-- Have age slightly affect particle settings relative to 10 seconds
 	local chance = math.random();
 	local particle;
-	if chance < (0.1 / age) then
+	if chance < (0.1/age) then
 		particle = CreateMOPixel("Ground Fire Burn Particle");
 		particle.Vel = self.Vel + Vector(RangeRand(-15, 15), -math.random(-10, 20));
 		particle.Sharpness = particle.Sharpness * RangeRand(0.5, 1.0);
-	elseif chance < (0.5 / age) then
+	elseif chance < (0.5/age) then
 		-- Spawn another, shorter flame particle occasionally
 		if not self.isShort and math.random() < 0.05 then
 			particle = CreateMOSParticle("Flame Hurt Short Float");
-			particle.Lifetime = 4000 / age;
+			particle.Lifetime = 4000/age;
 			particle.Vel = self.Vel + Vector(0, -3);
 		else
 			particle = CreateMOSParticle("Flame Smoke 2");
-			particle.Lifetime = math.random(250, 1000) / age;
+			particle.Lifetime = math.random(250, 1000)/age;
 			particle.Vel = self.Vel + Vector(0, -1);
 		end
 		particle.Vel = particle.Vel + Vector(math.random(), 0):RadRotate(math.random() * 6.28);
