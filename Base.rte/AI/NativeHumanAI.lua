@@ -218,25 +218,28 @@ function NativeHumanAI:Update(Owner)
 	end
 	
 	
-	-- check if the legs reach the ground
+	-- check if the feet reach the ground
 	if self.AirTimer:IsPastSimMS(120) then
 		self.AirTimer:Reset()
 		
-		local Origin
-		if Owner.FGLeg then
-			Origin = Vector(Owner.FGLeg.Pos.X, Owner.FGLeg.Pos.Y)
-		elseif Owner.BGLeg then
-			Origin = Vector(Owner.BGLeg.Pos.X, Owner.BGLeg.Pos.Y)
-		else
-			Origin = Vector(Owner.Pos.X, Owner.Pos.Y)
+		local Origin = {}
+		if Owner.FGFoot then
+			table.insert(Origin, Vector(Owner.FGFoot.Pos.X, Owner.FGFoot.Pos.Y) + Vector(0, 4))
 		end
-		
-		if -1 < SceneMan:CastObstacleRay(Origin, Vector(RangeRand(-8, 8), Owner.Height * 0.17), Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3) then
-			self.groundContact = 3
-		else
-			self.groundContact = self.groundContact - 1
+		if Owner.BGFoot then
+			table.insert(Origin, Vector(Owner.BGFoot.Pos.X, Owner.BGFoot.Pos.Y) + Vector(0, 4))
 		end
-		
+		if #Origin == 0 then
+			table.insert(Origin, Vector(Owner.Pos.X, Owner.Pos.Y) + Vector(0, 4 + ToMOSprite(Owner):GetSpriteHeight() + Owner.SpriteOffset.Y))
+		end
+		for i = 1, #Origin do
+			if SceneMan:GetTerrMatter(Origin[i].X, Origin[i].Y) ~= rte.airID then
+				self.groundContact = 3
+				break
+			else
+				self.groundContact = self.groundContact - 1
+			end
+		end
 		self.flying = false
 		if self.groundContact < 0 then
 			self.flying = true
@@ -275,7 +278,8 @@ function NativeHumanAI:Update(Owner)
 					FoundMO = ToACRocket(FoundMO)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
-				elseif FoundMO.ClassName == "ADoor" then
+				elseif FoundMO.ClassName == "ADoor" and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached()
+				and (Owner:EquipNamedDevice("Heavy Digger", true) or (Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen > ToADoor(FoundMO).Door.Material.StructuralIntegrity)) then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then
 					FoundMO = ToActor(FoundMO)
@@ -409,9 +413,6 @@ function NativeHumanAI:Update(Owner)
 						end
 						if Leader.AIMode == Actor.AIMODE_GOTO then
 							Owner.leaderWaypoint = Leader:GetLastAIWaypoint()
-						elseif Leader.AIMode ~= Actor.AIMODE_SENTRY then
-							Owner.AIMode = Leader.AIMode
-							Owner:ClearMovePath()
 						end
 					end
 				end
@@ -484,6 +485,8 @@ function NativeHumanAI:Update(Owner)
 				self.jump = false
 				self.lateralMoveState = Actor.LAT_STILL
 			end
+		else
+			self.jump = false
 		end
 		
 		-- run the selected behavior and delete it if it returns true
@@ -543,8 +546,7 @@ function NativeHumanAI:Update(Owner)
 			if Owner.Health < (Owner.MaxHealth / 2) then
 				if Owner:HasObject("Medikit") then
 
-					Owner:EquipNamedDevice("Medikit", true)
-					self.useMedikit = true
+					self.useMedikit = Owner:EquipNamedDevice("Medikit", true)
 				else
 					self.useMedikit = false
 					if self.scatter ~= true and Owner.AIMode == Actor.AIMODE_SENTRY then
@@ -714,8 +716,18 @@ end
 function NativeHumanAI:CreateAttackBehavior(Owner)
 	self.ReloadTimer:Reset()
 	self.TargetLostTimer:Reset()
+	
+	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
 
-	if Owner:EquipFirearm(true) then
+	if self.Target and IsADoor(self.Target) and Owner:EquipNamedDevice("Heavy Digger", true) then
+		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
+		self.NextBehaviorName = "AttackTarget"
+	-- favor grenades as the initiator to a sneak attack
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true) and
+		dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * 20 and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
+		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
+		self.NextBehaviorName = "ThrowTarget"
+	elseif Owner:EquipFirearm(true) then
 		if Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then   
 			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 			self.NextBehaviorName = "AttackTarget"
@@ -723,12 +735,10 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
 		end
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem).MaxThrowVel * 10) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and
-		SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude < 150
-	then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 150 then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 		self.NextBehaviorName = "AttackTarget"
 	else	-- unarmed or far away
