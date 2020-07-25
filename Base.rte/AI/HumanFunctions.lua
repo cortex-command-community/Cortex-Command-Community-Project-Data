@@ -2,26 +2,27 @@ HumanFunctions = {};
 
 function HumanFunctions.DoAlternativeGib(actor)
 	--Detach limbs instead of regular gibbing
-	if not actor.detachLimit then
-		actor.detachLimit = actor.GibWoundLimit;
-		actor.GibWoundLimit = actor.GibWoundLimit * 1.5;
-	end
-	if actor.WoundCount > actor.detachLimit then
-		actor.detachLimit = actor.WoundCount + 1;
-		local parts = {actor.BGArm, actor.BGLeg, actor.FGArm, actor.FGLeg, actor.Head};	--Piority order
-		local mostWounds = -1;
-		local detachLimb;
-		--Pick the limb with most wounds and detach it
-		for i = 1, #parts do
-			local limb = parts[i];
-			if limb and limb.WoundCount > mostWounds then
-				detachLimb = limb;
-				mostWounds = limb.WoundCount;
+	if actor.detachLimit then
+		if actor.WoundCount > actor.detachLimit then
+			actor.detachLimit = actor.WoundCount + 1;
+			local parts = {actor.BGArm, actor.BGLeg, actor.FGArm, actor.FGLeg, actor.Head};	--Piority order
+			local mostWounds = -1;
+			local detachLimb;
+			--Pick the limb with most wounds and detach it
+			for i = 1, #parts do
+				local limb = parts[i];
+				if limb and limb.WoundCount > mostWounds then
+					detachLimb = limb;
+					mostWounds = limb.WoundCount;
+				end
+			end
+			if detachLimb then
+				detachLimb.JointStrength = -1;
 			end
 		end
-		if detachLimb then
-			detachLimb.JointStrength = -1;
-		end
+	elseif actor.GibWoundLimit > 0 then
+		actor.detachLimit = actor.GibWoundLimit;
+		actor.GibWoundLimit = actor.GibWoundLimit * 1.5;
 	end
 end
 	
@@ -39,20 +40,15 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 		actor.lastAngle = aimAngle;
 		actor.lastHandPos = {actor.Pos, actor.Pos};
 	end
-	if actor.controller:IsMouseControlled() then
-		--Flail around if moving mouse too fast
-		local mouseVec = Vector(actor.controller.MouseMovement.X, actor.controller.MouseMovement.Y):SetMagnitude(math.sqrt(actor.controller.MouseMovement.Magnitude));
-		local ang = actor.lastAngle - aimAngle;
-
-		actor.AngularVel = actor.AngularVel - (2 * ang * actor.FlipFactor + mouseVec.Y * actor.FlipFactor /10) /math.sqrt(math.abs(actor.AngularVel) + 1);
-		
-		actor.lastAngle = aimAngle;
-	end
+	--Flail around if aiming around too fast
+	local ang = actor.lastAngle - aimAngle;
+	actor.AngularVel = actor.AngularVel - (2 * ang * actor.FlipFactor)/(math.abs(actor.AngularVel)/10 + 1);
+	actor.lastAngle = aimAngle;
 	--Shove when unarmed
 	if actor.controller:IsState(Controller.WEAPON_FIRE) and (actor.FGArm or actor.BGArm) and not (actor.EquippedItem or actor.EquippedBGItem) and actor.Status == Actor.STABLE then
-		actor.AngularVel = actor.AngularVel /(actor.shoved and 1.3 or 3) + (aimAngle - actor.RotAngle * actor.FlipFactor - 1.57) * (actor.shoved and 0.3 or 3) * actor.FlipFactor /(1 + math.abs(actor.RotAngle));
+		actor.AngularVel = actor.AngularVel/(actor.shoved and 1.3 or 3) + (aimAngle - actor.RotAngle * actor.FlipFactor - 1.57) * (actor.shoved and 0.3 or 3) * actor.FlipFactor/(1 + math.abs(actor.RotAngle));
 		if not actor.shoved then
-			actor.Vel = actor.Vel + Vector(2 /(1 + actor.Vel.Magnitude), 0):RadRotate(actor:GetAimAngle(true)) * math.abs(math.cos(actor:GetAimAngle(true)));
+			actor.Vel = actor.Vel + Vector(2/(1 + actor.Vel.Magnitude), 0):RadRotate(actor:GetAimAngle(true)) * math.abs(math.cos(actor:GetAimAngle(true)));
 			actor.shoved = true;
 		end
 	else
@@ -78,31 +74,31 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 			if actor.controller:IsState(Controller.AIM_SHARP) then
 				arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
 			else
-				arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i /5));
+				arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i/5));
 			end
 			if actor.shoved or (actor.EquippedItem and IsTDExplosive(actor.EquippedItem) and actor.controller:IsState(Controller.WEAPON_FIRE)) then
 				arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
 				local handVector = SceneMan:ShortestDistance(actor.lastHandPos[i], arm.HandPos, SceneMan.SceneWrapsX);
 				--Diminish hand relocation vector to potentially prevent post-superhuman pushing powers
-				handVector:SetMagnitude(handVector.Magnitude / (1 + handVector.Magnitude / 100));
+				handVector:SetMagnitude(handVector.Magnitude/(1 + handVector.Magnitude/100));
 				--Emphasize the first frames that signify contracted arm = highest potential energy
-				local dots = math.sqrt(arm.Radius) / (1 + arm.Frame /arm.FrameCount);
+				local dots = math.sqrt(arm.Radius)/(1 + arm.Frame/arm.FrameCount);
 				local armStrength = (arm.Mass + arm.Material.StructuralIntegrity) * pushStrength;
 				for i = 1, dots do
 					local part = CreateMOPixel("Smack Particle Light");
-					part.Pos = arm.HandPos - Vector(handVector.X/2, handVector.Y /2);
+					part.Pos = arm.HandPos - Vector(handVector.X/2, handVector.Y/2);
 					part.Vel = Vector(handVector.X, handVector.Y):RadRotate(RangeRand(-0.1, 0.1)) + Vector(0, -0.5);
 					part.Mass = armStrength;	part.Sharpness = math.random() * 0.1;
 					part.Team = actor.Team;	part.IgnoresTeamHits = true;
 					MovableMan:AddParticle(part);
 				end
 				--Apply some additional forces if the travel vector of the moving hand is half an arms length
-				if handVector.Magnitude > (armLength /2) then
+				if handVector.Magnitude > (armLength/2) then
 					local moCheck = SceneMan:GetMOIDPixel(arm.HandPos.X, arm.HandPos.Y)
 					if moCheck ~= rte.NoMOID then
 						local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-						if mo and mo.Team ~= actor.Team and IsActor(mo) and actor.Mass > (mo.Mass / 2) then
-							mo:AddForce(handVector * (actor.Mass / 2), Vector());
+						if mo and mo.Team ~= actor.Team and IsActor(mo) and actor.Mass > (mo.Mass/2) then
+							mo:AddForce(handVector * (actor.Mass/2), Vector());
 							ToActor(mo).Status = Actor.UNSTABLE;
 						end
 					end
@@ -141,11 +137,13 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						local tallAng = ToMOSprite(item):GetSpriteWidth() > ToMOSprite(item):GetSpriteHeight() and 1.57 or 0;
 
 						local tilt = 0.3;
-						local rotAng = actor.RotAngle + tallAng + (heldCount * tilt - itemCount * tilt + isFirearm /itemSize) /itemCount * actor.FlipFactor;
+						local rotAng = actor.RotAngle + tallAng + (heldCount * tilt - itemCount * tilt + isFirearm/itemSize)/itemCount * actor.FlipFactor;
 
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-							if not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
-								PrimitiveMan:DrawBitmapPrimitive(ActivityMan:GetActivity():ScreenOfPlayer(player), drawPos, item, rotAng, 0);
+
+							local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
+							if screen ~= -1 and not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
+								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0);
 							end
 						end
 					end

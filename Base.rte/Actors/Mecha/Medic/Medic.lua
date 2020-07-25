@@ -1,6 +1,8 @@
 function Create(self)
 	self.healTimer = Timer();
-	self.healTimer:SetSimTimeLimitMS(150);
+	self.baseHealDelay = 100;
+	self.healIncrementPerTarget = 50;
+	self.healTimer:SetSimTimeLimitMS(self.baseHealDelay);
 	self.crossTimer = Timer();
 	self.crossTimer:SetSimTimeLimitMS(800);
 	
@@ -54,7 +56,7 @@ function Update(self)
 					end
 				end
 			end
-			self.healTimer:SetSimTimeLimitMS(100 + #self.healTargets * 50);
+			self.healTimer:SetSimTimeLimitMS(self.baseHealDelay + (#self.healTargets * self.healIncrementPerTarget));
 		end
 	end
 end
