@@ -19,17 +19,12 @@ function Update(self)
 			local actor = MovableMan:GetMOFromID(self.RootID);
 			if MovableMan:IsActor(actor) then
 				self.parent = ToActor(actor);
-				if self.HFlipped == false then
-					self.negativeNum = 1;
-				else
-					self.negativeNum = -1;
-				end
 				for x = 1, self.numberOfScans do
 					local angleVariance = (-self.scanSpreadAngle*0.5) + (math.random()*self.scanSpreadAngle);
 					local terrHitCount = 0;
 					local dots = math.floor(self.maxScanRange/self.scanSpacing)
 					for i = 1, dots do
-						local checkPos = self.MuzzlePos + Vector((self.scanSpacing*i)*self.negativeNum,0):RadRotate(self.RotAngle):DegRotate(angleVariance);
+						local checkPos = self.MuzzlePos + Vector((self.scanSpacing*i)*self.FlipFactor,0):RadRotate(self.RotAngle):DegRotate(angleVariance);
 						if SceneMan.SceneWrapsX == true then
 							if checkPos.X > SceneMan.SceneWidth then
 								checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y);
@@ -38,13 +33,13 @@ function Update(self)
 							end
 						end
 						local terrCheck = SceneMan:GetTerrMatter(checkPos.X,checkPos.Y);
-						if terrCheck ~= 0 then
+						if terrCheck ~= rte.airID then
 							terrHitCount = terrHitCount + 1;
 						end
 					end
 					local scanLength = math.floor((self.maxScanRange-(self.scanDisruption*(terrHitCount/dots)))/self.scanSpacing);
 					for i = 1, scanLength do
-						local checkPos = self.MuzzlePos + Vector((self.scanSpacing*i)*self.negativeNum,0):RadRotate(self.RotAngle):DegRotate(angleVariance);
+						local checkPos = self.MuzzlePos + Vector((self.scanSpacing*i)*self.FlipFactor,0):RadRotate(self.RotAngle):DegRotate(angleVariance);
 						if SceneMan.SceneWrapsX == true then
 							if checkPos.X > SceneMan.SceneWidth then
 								checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y);
@@ -58,5 +53,4 @@ function Update(self)
 			end
 		end
 	end
-
 end

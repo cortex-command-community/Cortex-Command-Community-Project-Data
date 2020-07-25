@@ -85,9 +85,9 @@ function BrainvsBrain:StartActivity()
 					local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player))
 					-- Spawn a brain if we can't find an unassigned brain in the scene to give each player
 					if not foundBrain then
-						local Brain = CreateAHuman("Brain Robot", "Base.rte")
+						local Brain = RandomAHuman("Brains", self:GetTeamTech(self:GetTeamOfPlayer(player)))
 						if Brain then
-							local Weapon = CreateHDFirearm("SMG", "Base.rte")
+							local Weapon = RandomHDFirearm("Weapons - Primary", self:GetTeamTech(self:GetTeamOfPlayer(player)))
 							if Weapon then
 								Brain:AddInventoryItem(Weapon)
 							end
@@ -548,7 +548,7 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
 		
 		for i = 1, Craft.MaxPassengers do
-			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.TechName[self.CPUTeam])) + self.Difficulty / 800 then
+			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.TechName[self.CPUTeam])) then
 				Passenger = self:CreateCrab(self.CPUTeam)
 			elseif RangeRand(0, 105) < self.Difficulty then
 				Passenger = self:CreateHeavyInfantry(self.CPUTeam)

@@ -10,14 +10,14 @@ function Create(self)
 	self.Team = self.alliedTeam;
 	self.Sharpness = 0;
 
-	if coalitionC4TableA == nil then
-		coalitionC4TableA = {};
-		coalitionC4TableB = {};
+	if RemoteExplosiveTableA == nil then
+		RemoteExplosiveTableA = {};
+		RemoteExplosiveTableB = {};
 	end
 
-	self.tableNum = #coalitionC4TableA+1;
-	coalitionC4TableA[self.tableNum] = self;
-	coalitionC4TableB[self.tableNum] = self.alliedTeam;
+	self.tableNum = #RemoteExplosiveTableA + 1;
+	RemoteExplosiveTableA[self.tableNum] = self;
+	RemoteExplosiveTableB[self.tableNum] = self.alliedTeam;
 
 	self.breachStrength = 100;
 end
@@ -98,6 +98,6 @@ function Update(self)
 	end
 end
 function Destroy(self)
-	coalitionC4TableA[self.tableNum] = nil;
-	coalitionC4TableB[self.tableNum] = nil;
+	RemoteExplosiveTableA[self.tableNum] = nil;
+	RemoteExplosiveTableB[self.tableNum] = nil;
 end

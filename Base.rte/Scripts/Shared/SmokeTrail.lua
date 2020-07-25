@@ -1,7 +1,7 @@
 
 function Update(self)
 	local Effect
-	local Offset = self.Vel*(20*TimerMan.DeltaTimeSecs)	-- the effect will be created the next frame so move it one frame backwards towards the barrel
+	local Offset = self.Vel * rte.PxTravelledPerFrame	-- the effect will be created the next frame so move it one frame backwards towards the barrel
 	
 	for i = 1, math.floor(self.Vel.Magnitude*0.045) do
 		Effect = CreateMOSParticle("Tiny Smoke Trail " .. math.random(3), "Base.rte")

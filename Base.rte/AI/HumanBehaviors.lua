@@ -9,18 +9,14 @@ function HumanBehaviors.GetTeamShootingSkill(team)
 	end
 	
 	local aimSpeed, aimSkill
-	if skill < Activity.AVERAGESKILL then	-- the AI shoot later and tracks the target slower
-		aimSpeed = -0.025 * skill + 3.3 -- affects the delay before the shooting starts [3.30 .. 1.55]
-		aimSkill = -0.011 * skill + 2.2 -- affects the precision of the shots [2.20 .. 1.43]
-	elseif skill >= Activity.UNFAIRSKILL then
-		aimSpeed = 0.05
-		aimSkill = 0.05
+	if skill >= Activity.UNFAIRSKILL then
+		aimSpeed = 0.04
+		aimSkill = 0.04
 	else
 		-- the AI shoot sooner and with slightly better precision
-		aimSpeed = 1/(0.55/(2.9-math.exp(skill*0.01))) -- [1.42 .. 0.38]
-		aimSkill = 1/(0.65/(3.0-math.exp(skill*0.01))) -- [1.36 .. 0.48]
+		aimSpeed = 1/(0.65/(2.9-math.exp(skill*0.01))) -- [1.42 .. 0.38]
+		aimSkill = 1/(0.75/(3.0-math.exp(skill*0.01))) -- [1.36 .. 0.48]
 	end
-	
 	return aimSpeed, aimSkill, skill
 end
 
@@ -84,6 +80,8 @@ function HumanBehaviors.CheckEnemyLOS(AI, Owner, Skill)
 				
 				local LookTarget
 				if Enemy.ClassName == "ADoor" then
+					-- TO-DO: use explosive weapons on doors?
+					
 					local Door = ToADoor(Enemy).Door
 					if Door and Door:IsAttached() then
 						LookTarget = Door.Pos
@@ -500,8 +498,7 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				elseif AI.SentryFacing and Owner.HFlipped ~= AI.SentryFacing then
 					Owner.HFlipped = AI.SentryFacing	-- turn to the direction we have been order to guard
 					break	-- restart this behavior
-				elseif math.random() < Owner.Perceptiveness then
-				
+				elseif AI.Target == nil and math.random() < Owner.Perceptiveness then
 					-- turn around occasionally if there is open space behind our back
 					local backAreaRay = Vector(-math.random(FrameMan.PlayerScreenWidth/4, FrameMan.PlayerScreenWidth/2) * Owner.FlipFactor, 0):DegRotate(math.random(-25, 25) * Owner.Perceptiveness)
 					if not SceneMan:CastStrengthRay(Owner.EyePos, backAreaRay, 10, Vector(), 10, rte.grassID, SceneMan.SceneWrapsX) then
@@ -1682,13 +1679,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										else
 											nextLatMove = Actor.LAT_STILL
 										end
-										if not (Owner.FGLeg and Owner.BGLeg) and not AI.jump then
-											Owner:GetController():SetState(Controller.BODY_CROUCH,true)	-- crawl if no legs
-										end
 									end
 								elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
 									-- no legs, jump forward
 									AI.jump = true
+								elseif not AI.jump then
+									AI.proneState = AHuman.GOPRONE
 								end
 								
 								if Waypoint.Type == "right" then
@@ -1821,7 +1817,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range
 											if delta < 1 then
 												AI.jump = false
-											elseif AI.flying or delta > 15 then
+											elseif AI.flying or delta > 25 then
 												AI.jump = true
 												nextAimAngle = Owner:GetAimAngle(false) * 0.5 + Facings[1].aim * 0.5	-- adjust jetpack nozzle direction
 												nextLatMove = Actor.LAT_STILL
@@ -2146,7 +2142,6 @@ function HumanBehaviors.GetProjectileData(Owner)
 		
 		-- find muzzle velocity
 		PrjDat.vel = Weapon:GetAIFireVel()
-		
 		-- half of the theoretical upper limit for the total amount of material strength this weapon can destroy in 250ms
 		PrjDat.pen = Weapon:GetAIPenetration() * math.max((Weapon.RateOfFire / 240), 1)
 		
@@ -2162,8 +2157,9 @@ function HumanBehaviors.GetProjectileData(Owner)
 			PrjDat.rng = math.huge
 		elseif PrjDat.drg < 1 then	-- AirResistance
 			PrjDat.rng = 0
-			local threshold = PrjDat.thr * GetPPM() * TimerMan.DeltaTimeSecs	-- AirThreshold in pixels/frame
-			local vel = PrjDat.vel * GetPPM() * TimerMan.DeltaTimeSecs	-- muzzle velocity in pixels/frame
+			local threshold = PrjDat.thr * rte.PxTravelledPerFrame	-- AirThreshold in pixels/frame
+			local vel = PrjDat.vel * rte.PxTravelledPerFrame	-- muzzle velocity in pixels/frame
+
 			for _ = 0, math.ceil(lifeTime/TimerMan.DeltaTimeMS) do
 				PrjDat.rng = PrjDat.rng + vel
 				if vel > threshold then
@@ -2171,7 +2167,7 @@ function HumanBehaviors.GetProjectileData(Owner)
 				end
 			end
 		else	-- no AirResistance
-			PrjDat.rng = PrjDat.vel * GetPPM() * TimerMan.DeltaTimeSecs * (lifeTime / TimerMan.DeltaTimeMS)
+			PrjDat.rng = PrjDat.vel * rte.PxTravelledPerFrame * (lifeTime / TimerMan.DeltaTimeMS)
 		end
 		
 		-- Artificially decrease reported range to make sure AI 
@@ -2633,9 +2629,9 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 	local scan = 0
 	local miss = 0	-- stop scanning after a few missed attempts
 	local AimPoint, Dist, MO, ID, rootID, LOS, aim
-	
+
 	AI.TargetLostTimer:SetSimTimeLimitMS(1500)
-	
+
 	while true do
 		if not MovableMan:ValidMO(AI.Target) then
 			break
@@ -2747,7 +2743,7 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, Grenade.MaxThrowVel)
 							if aim then
 								ThrowTimer:Reset()
-								aimTime = RangeRand(1000, 1200)
+								aimTime = RangeRand(900, 1100)
 								local maxAim = aim
 								
 								-- try again with an average throw vel
@@ -2829,24 +2825,22 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		local meleeDist = 0
 		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y)
 		
-		if Owner.EquippedItem then
-			if Owner.EquippedItem:HasObjectInGroup("Tools - Diggers") or Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then
-				meleeDist = Owner.Radius + 25
-				startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
-			end
+		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) then
+			meleeDist = Owner.Radius + 25
+			startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 		elseif Owner.armSway then
-			if Owner.FGArm then
-				meleeDist = Owner.Radius + Owner.FGArm.Radius
-				startPos = Owner.FGArm.Pos
-			elseif Owner.BGArm then
-				meleeDist = Owner.Radius + Owner.BGArm.Radius
-				startPos = Owner.BGArm.Pos
+			local arm = Owner.FGArm or Owner.BGArm
+			if arm then
+				meleeDist = arm.Radius + arm.Radius
+				startPos = arm.Pos
 			end
 		end
 		if meleeDist > 0 then
-			local dist = SceneMan:ShortestDistance(startPos, AI.Target.Pos, false)
+			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos
+			local dist = SceneMan:ShortestDistance(startPos, attackPos, false)
 			if dist.Magnitude < meleeDist then
-				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, AI.Target.Pos, false).Normalized
+				AI.lateralMoveState = Actor.LAT_STILL
+				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized
 				AI.fire = true
 			else
 				AI.fire = false
