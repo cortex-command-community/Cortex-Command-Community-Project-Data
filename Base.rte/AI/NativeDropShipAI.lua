@@ -36,7 +36,7 @@ function NativeDropShipAI:Create(Owner)
 	
 	-- Check if this team is controlled by a human
 	if Owner.AIMode == Actor.AIMODE_DELIVER and Owner:IsInventoryEmpty() and
-		ActivityMan:GetActivity():IsPlayerTeam(Owner.Team)
+		ActivityMan:GetActivity():IsHumanTeam(Owner.Team)
 	then
 		Owner.AIMode = Actor.AIMODE_STAY	-- Stop the craft from returning to orbit immediately
 	end

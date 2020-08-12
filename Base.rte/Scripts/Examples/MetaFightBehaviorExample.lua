@@ -65,9 +65,9 @@ function MetaScript:PauseScript()
 	end
 end
 
-function MetaScript:CraftEnteredOrbit()
+function MetaScript:CraftEnteredOrbit(orbitedCraft)
 	if SettingsMan.PrintDebugInfo then
 		print (self.PresetName.." Orbited")
-		print (self.OrbitedCraft)
+		print (orbitedCraft)
 	end
 end
