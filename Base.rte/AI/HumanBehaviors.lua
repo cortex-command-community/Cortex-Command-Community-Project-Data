@@ -257,7 +257,7 @@ function HumanBehaviors.GetGrenadeAngle(AimPoint, TargetVel, StartPos, muzVel)
 			Dist = SceneMan:ShortestDistance(StartPos, AimPoint, false)
 		end
 		
-		Dist = Dist / FrameMan.PPM	-- convert from pixels to meters
+		Dist = Dist / GetPPM()	-- convert from pixels to meters
 		local velSqr = math.pow(muzVel, 2)
 		local gravity = SceneMan.GlobalAcc.Y * 0.67	-- underestimate gravity
 		local root = math.sqrt(velSqr*velSqr - gravity*(gravity*Dist.X*Dist.X+2*-Dist.Y*velSqr))
@@ -1715,8 +1715,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												-- predict jetpack movement when jumping and there is a target (check one direction)
 												local jetStrength = AI.jetImpulseFactor / Owner.Mass
 												local t = math.min(0.4, Owner.JetTimeLeft*0.001)
-												local PixelVel = Owner.Vel * (FrameMan.PPM * t)
-												local Accel = SceneMan.GlobalAcc * FrameMan.PPM
+												local PixelVel = Owner.Vel * (GetPPM() * t)
+												local Accel = SceneMan.GlobalAcc * GetPPM()
 												
 												-- a burst use 10x more fuel
 												if Owner.Jetpack:CanTriggerBurst() then
@@ -1779,8 +1779,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											-- predict jetpack movement...
 											local jetStrength = AI.jetImpulseFactor / Owner.Mass
 											local t = math.min(0.4, Owner.JetTimeLeft*0.001)
-											local PixelVel = Owner.Vel * (FrameMan.PPM * t)
-											local Accel = SceneMan.GlobalAcc * FrameMan.PPM
+											local PixelVel = Owner.Vel * (GetPPM() * t)
+											local Accel = SceneMan.GlobalAcc * GetPPM()
 											
 											-- a burst use 10x more fuel
 											if Owner.Jetpack:CanTriggerBurst() then
@@ -2162,8 +2162,8 @@ function HumanBehaviors.GetProjectileData(Owner)
 			PrjDat.rng = math.huge
 		elseif PrjDat.drg < 1 then	-- AirResistance
 			PrjDat.rng = 0
-			local threshold = PrjDat.thr * FrameMan.PPM * TimerMan.DeltaTimeSecs	-- AirThreshold in pixels/frame
-			local vel = PrjDat.vel * FrameMan.PPM * TimerMan.DeltaTimeSecs	-- muzzle velocity in pixels/frame
+			local threshold = PrjDat.thr * GetPPM() * TimerMan.DeltaTimeSecs	-- AirThreshold in pixels/frame
+			local vel = PrjDat.vel * GetPPM() * TimerMan.DeltaTimeSecs	-- muzzle velocity in pixels/frame
 			for _ = 0, math.ceil(lifeTime/TimerMan.DeltaTimeMS) do
 				PrjDat.rng = PrjDat.rng + vel
 				if vel > threshold then
@@ -2171,7 +2171,7 @@ function HumanBehaviors.GetProjectileData(Owner)
 				end
 			end
 		else	-- no AirResistance
-			PrjDat.rng = PrjDat.vel * FrameMan.PPM * TimerMan.DeltaTimeSecs * (lifeTime / TimerMan.DeltaTimeMS)
+			PrjDat.rng = PrjDat.vel * GetPPM() * TimerMan.DeltaTimeSecs * (lifeTime / TimerMan.DeltaTimeMS)
 		end
 		
 		-- Artificially decrease reported range to make sure AI 
@@ -2931,7 +2931,7 @@ function HumanBehaviors.GetAngleToHit(PrjDat, Dist)
 		return Dist.AbsRadAngle
 	else	-- compensate for gravity
 		local rootSq, muzVelSq
-		local D = Dist / FrameMan.PPM	-- convert from pixels to meters
+		local D = Dist / GetPPM()	-- convert from pixels to meters
 		if PrjDat.drg < 1 then	-- compensate for air resistance
 			local rng = D.Magnitude
 			local timeToTarget = math.floor((rng / math.max(PrjDat.vel*PrjDat.drg^math.floor(rng/(PrjDat.vel+1)+0.5), PrjDat.thr)) / TimerMan.DeltaTimeSecs)	-- estimate time of flight in frames

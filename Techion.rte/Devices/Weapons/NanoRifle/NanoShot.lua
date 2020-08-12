@@ -1,13 +1,13 @@
 function Create(self)
    --Collide with objects and deploy the destroy effect.
    self.CheckCollision = function(Vel)
-      local Trace = Vel * TimerMan.DeltaTimeSecs * FrameMan.PPM
+      local Trace = Vel * TimerMan.DeltaTimeSecs * GetPPM()
       local moid = SceneMan:CastMORay(self.Pos, Trace, 0, self.Team, 0, true, 1)
       if moid > 0 and moid < rte.NoMOID then
          local hitPos = Vector()
          SceneMan:CastFindMORay(self.Pos, Trace, moid, hitPos, 0, true, 1)
          self.deleteNextFrame = true
-         self.Vel = (SceneMan:ShortestDistance(self.Pos, hitPos, true) / TimerMan.DeltaTimeSecs) / FrameMan.PPM
+         self.Vel = (SceneMan:ShortestDistance(self.Pos, hitPos, true) / TimerMan.DeltaTimeSecs) / GetPPM()
 
          local target = MovableMan:GetMOFromID(moid)
          if target then
