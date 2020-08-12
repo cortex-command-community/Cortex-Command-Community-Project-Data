@@ -377,9 +377,9 @@ end
 -- Craft Entered Orbit
 -----------------------------------------------------------------------------------------
 
-function MaginotMission:CraftEnteredOrbit()
+function MaginotMission:CraftEnteredOrbit(orbitedCraft)
 	--If a craft leaves with the brain robot...
-	if self.OrbitedCraft:HasObjectInGroup("Brains") then
+	if orbitedCraft:HasObjectInGroup("Brains") then
 		--Team 1 wins!
 		self.WinnerTeam = Activity.TEAM_1
 		ActivityMan:EndActivity()
