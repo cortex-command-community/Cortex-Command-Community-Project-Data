@@ -69,6 +69,17 @@ Cortex Command is TM and � 2017 Data Realms, LLC
 S O U N D   E F F E C T S   C R E D I T S :
 
 *******************************************************************************
+ Base.rte\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+
+Digital Extremes: Warframe
+
+Door Sounds:
+GrnCannoPodLiftLoop
+GrnElevatorStart
+GrnElevatorStop
+
+*******************************************************************************
  Browncoats.rte\Devices\Weapons\Magmaul\Sounds\Credits.txt
 -------------------------------------------------------------------------------
 New World Interactive: Day of Infamy
