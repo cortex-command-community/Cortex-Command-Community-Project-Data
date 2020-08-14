@@ -18,7 +18,7 @@ end
 function Update(self)
 
 	self.ToSettle = false;
-	if self.target ~= nil and self.target.ID ~= 255 then
+	if self.target and self.target.ID ~= rte.NoMOID then
 		local dist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
 		if dist.Magnitude > self.speed then
 			self.Vel = Vector(dist.X,dist.Y):SetMagnitude(self.speed);

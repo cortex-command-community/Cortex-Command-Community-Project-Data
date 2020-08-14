@@ -13,7 +13,7 @@ end
 function Update(self)
 	self.ToSettle = false;
 	if not self.notSticky then
-		if self.target and IsMOSRotating(self.target) then
+		if self.target and self.target.ID ~= rte.NoMOID then
 			self.Vel = self.target.Vel;
 			self.Pos = self.target.Pos + Vector(self.stickPos.X, self.stickPos.Y):RadRotate(self.target.RotAngle - self.targetStickAngle);
 			local actor = MovableMan:GetMOFromID(self.target.RootID);

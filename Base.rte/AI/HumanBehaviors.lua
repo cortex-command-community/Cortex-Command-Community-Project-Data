@@ -32,10 +32,10 @@ end
 
 -- spot targets by casting a ray in a random direction
 function HumanBehaviors.LookForTargets(AI, Owner, Skill)
-	local viewAngDeg = RangeRand(50, 120) * Owner.Perceptiveness * (0.5 + Skill / 200)
+	local viewAngDeg = RangeRand(50, 120) * Owner.Perceptiveness * (0.5 + Skill/200)
 	if AI.deviceState == AHuman.AIMING then
 		AI.Ctrl:SetState(Controller.AIM_SHARP, true)	-- reinforce sharp aim controller state to enable SharpLength in LookForMOs
-		viewAngDeg = 15 * Owner.Perceptiveness + (Skill / 10)
+		viewAngDeg = 15 * Owner.Perceptiveness + (Skill/10)
 	end
 	
 	local FoundMO = Owner:LookForMOs(viewAngDeg, rte.grassID, false)
@@ -2143,13 +2143,13 @@ function HumanBehaviors.GetProjectileData(Owner)
 		-- find muzzle velocity
 		PrjDat.vel = Weapon:GetAIFireVel()
 		-- half of the theoretical upper limit for the total amount of material strength this weapon can destroy in 250ms
-		PrjDat.pen = Weapon:GetAIPenetration() * math.max((Weapon.RateOfFire / 240), 1)
 		
 		PrjDat.g = SceneMan.GlobalAcc.Y * 0.67 * Weapon:GetBulletAccScalar()	-- underestimate gravity
 		PrjDat.vsq = PrjDat.vel^2	-- muzzle velocity squared
 		PrjDat.vqu = PrjDat.vsq^2	-- muzzle velocity quad
 		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs	-- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel)
+		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg
 		
 		-- estimate theoretical max range with ...
 		local lifeTime = Weapon:GetAIBulletLifeTime()

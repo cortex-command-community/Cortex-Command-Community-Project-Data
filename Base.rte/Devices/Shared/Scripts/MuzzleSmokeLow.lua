@@ -1,7 +1,7 @@
 function Create(self)
 	self.minSmokeCount = 1;
 	self.maxSmokeCount = 3;
-	self.spread = 0.2;
+	self.smokeSpread = math.rad(self.ParticleSpreadRange) + 0.1;
 end
 function Update(self)
 	if self.FiredFrame then
@@ -10,7 +10,7 @@ function Update(self)
 		for i = 1, smokeCount do
 			local smokefx = CreateMOSParticle("Tiny Smoke Ball 1");
 			smokefx.Pos = self.MuzzlePos;
-			smokefx.Vel = Vector(i * self.FlipFactor, 0):RadRotate(self.RotAngle + (math.random() * self.spread) - (self.spread/2));
+			smokefx.Vel = Vector(i * self.FlipFactor, 0):RadRotate(self.RotAngle + (math.random() * self.smokeSpread) - (self.smokeSpread/2));
 			MovableMan:AddParticle(smokefx);
 		end
 	end

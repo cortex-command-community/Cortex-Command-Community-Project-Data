@@ -11,7 +11,7 @@ function OnPieMenu(item)
 end
 
 function ConstructorWrapPos(checkPos)
-	if SceneMan.SceneWrapsX == true then
+	if SceneMan.SceneWrapsX then
 		if checkPos.X > SceneMan.SceneWidth then
 			checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y);
 		elseif checkPos.X < 0 then
@@ -491,7 +491,7 @@ function Update(self)
 			self.buildTimer:Reset();
 			for i = 1, buildamount do
 				if self.resource > self.buildcost then
-					if self.buildlist[1] ~= nil then
+					if self.buildlist[1] then
 
 						if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildlist[1][1],self.buildlist[1][2]), SceneMan.SceneWrapsX).Magnitude < self.builddistance then
 
@@ -502,16 +502,17 @@ function Update(self)
 								by = by*3-1;
 								bx = bx*3-1;
 
-								PrimitiveMan:DrawLinePrimitive(screen, self.Pos, self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx+self.buildlist[1][1]+2,by+self.buildlist[1][2]+2), SceneMan.SceneWrapsX ), displayColorBlue);
+								local bpos = self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx+self.buildlist[1][1]+2,by+self.buildlist[1][2]+2), SceneMan.SceneWrapsX);
+								PrimitiveMan:DrawLinePrimitive(screen, self.Pos, bpos, displayColorBlue);
 								PrimitiveMan:DrawBoxFillPrimitive(screen, Vector(bx+self.buildlist[1][1]+1,by+self.buildlist[1][2]+1),Vector(bx+self.buildlist[1][1]+3,by+self.buildlist[1][2]+3), displayColorWhite);
 								
 								for x = 1, 3 do
 									for y = 1, 3 do
 										local name = "";
 										if bx+x == 0 or bx+x == 23 or by+y == 0 or by+y == 23 then
-											name = "Particle Constructor Concrete Border "..(math.floor(math.random()*4)+1);
+											name = "Particle Constructor Concrete Border "..math.random(4);
 										else
-											name = "Particle Constructor Concrete "..(math.floor(math.random()*13)+1);
+											name = "Particle Constructor Concrete "..math.random(13);
 										end
 										local terrainpar = CreateMOPixel(name);
 										terrainpar.Pos = ConstructorWrapPos(Vector(bx+self.buildlist[1][1]+x,by+self.buildlist[1][2]+y));
@@ -519,6 +520,7 @@ function Update(self)
 										terrainpar.ToSettle = true;
 									end
 								end
+								AudioMan:PlaySound("Base.rte/Sounds/Geiger".. math.random(3) ..".wav", bpos);
 								self.buildlist[1][3] = self.buildlist[1][3] + 1;
 							else
 								self.buildlist[1] = nil;

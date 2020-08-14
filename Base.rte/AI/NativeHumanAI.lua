@@ -543,7 +543,7 @@ function NativeHumanAI:Update(Owner)
 			end
 		elseif not self.Target and not self.UnseenTarget then
 			-- use medikit if not engaging enemy
-			if Owner.Health < (Owner.MaxHealth / 2) then
+			if Owner.Health < (Owner.MaxHealth/2) then
 				if Owner:HasObject("Medikit") then
 
 					self.useMedikit = Owner:EquipNamedDevice("Medikit", true)

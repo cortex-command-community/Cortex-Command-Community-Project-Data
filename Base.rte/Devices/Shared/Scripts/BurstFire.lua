@@ -5,13 +5,19 @@ end
 function Update(self)
 	if self.Magazine then
 		if self.coolDownTimer then
-			local parent = self:GetRootParent();
-			if self.coolDownTimer:IsPastSimMS(self.coolDownDelay) and parent and IsActor(parent) and not (self:IsActivated() and ToActor(parent):IsPlayerControlled()) then
+			if self.coolDownTimer:IsPastSimMS(self.coolDownDelay) and not (self:IsActivated() and self.triggerPulled) then
 				self.coolDownTimer, self.shotCounter = nil;
 			else
 				self:Deactivate();
+				local parent = self:GetRootParent();
+				if parent and IsActor(parent) and not ToActor(parent):IsPlayerControlled() then
+					self.triggerPulled = false;
+				end
 			end
 		elseif self.shotCounter then
+
+			self.triggerPulled = self:IsActivated();
+				
 			self:Activate();
 			if self.FiredFrame then
 				self.shotCounter = self.shotCounter + 1;

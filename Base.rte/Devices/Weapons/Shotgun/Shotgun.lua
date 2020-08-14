@@ -30,7 +30,7 @@ function Update(self)
 				self.shell = nil;
 			end
 			self.Frame = 1;
-			self.SupportOffset = Vector(1, 3);
+			self.SupportOffset = Vector(1, 2);
 			local rotTotal = math.sin(self.rotFactor)/5;
 			self.RotAngle = self.RotAngle + self.FlipFactor * rotTotal;
 			local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
@@ -40,7 +40,7 @@ function Update(self)
 		if self.rotFactor <= 0 then
 			self.loaded = true;
 			self.Frame = 0;
-			self.SupportOffset = Vector(4, 2);
+			self.SupportOffset = Vector(4, 1);
 			self.rotFactor = 0;
 		end
 	else

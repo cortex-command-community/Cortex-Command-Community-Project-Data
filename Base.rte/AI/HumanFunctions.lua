@@ -116,7 +116,6 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 		for i = 1, actor.InventorySize do
 			local item = actor:Inventory();
 			if item then
-				local fixNum = actor.HFlipped and -1 or 0;	--Fix offsets slightly when facing left
 				if item.ClassName == "TDExplosive" then
 					thrownCount = thrownCount + 1;
 				elseif item.ClassName == "HDFirearm" or item.ClassName == "HeldDevice" then
@@ -127,7 +126,7 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						local isFirearm = item.ClassName == "HeldDevice" and 0 or 1;
 						local actorSize, itemSize = math.sqrt(actor.Radius), math.sqrt(item.Radius + math.abs(item.Mass));
 
-						fixNum = fixNum + item.Radius * 0.2 + math.sqrt(heldCount);
+						local fixNum = item.Radius * 0.2 + math.sqrt(heldCount);
 
 						--Bigger actors carry weapons higher up, smaller weapons are carried lower down
 						local drawPos = actor.Pos + Vector((-actorSize - fixNum) * actor.FlipFactor, -actorSize - itemSize + 1 + isFirearm * 3):RadRotate(actor.RotAngle);

@@ -5,8 +5,8 @@ end
 
 function Update(self)
 
-	self.Mass = 1 + self.RoundCount / (self.maxresource / 100);	-- full mag is 101kg
-	self.Scale = 0.5 + (self.RoundCount / self.maxresource) * 0.5;
+	self.Mass = 1 + self.RoundCount/(self.maxresource/100);	--Full mag is 101kg
+	self.Scale = 0.5 + (self.RoundCount/self.maxresource)/2;
 
 	local fixNum = self.HFlipped and -1 or 0;
 
