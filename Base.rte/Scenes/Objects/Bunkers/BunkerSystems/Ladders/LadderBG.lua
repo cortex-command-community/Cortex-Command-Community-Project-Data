@@ -29,7 +29,9 @@ function Update(self)
 					local controller = actor:GetController();
 					local limbs = actor.FGLeg or actor.BGLeg or actor.FGArm or actor.BGArm;
 					if limbs and actor.Status == Actor.STABLE and not controller:IsState(Controller.BODY_JUMP) then
-						local velFactor, aimAngle, climb = 1 + actor.Vel.Magnitude * 0.3, actor:GetAimAngle(false), false;
+						local velFactor = 1 + actor.Vel.Magnitude * 0.3;
+						local aimAngle = actor:GetAimAngle(false);
+						local climb = false;
 						-- Climb by looking up/down or moving
 						if (aimAngle > 1.5 and controller:IsState(Controller.MOVE_UP)) or (aimAngle < -1.5 and controller:IsState(Controller.MOVE_DOWN)) then
 							climb = true;

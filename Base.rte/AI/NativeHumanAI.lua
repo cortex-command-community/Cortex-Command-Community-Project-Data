@@ -279,7 +279,7 @@ function NativeHumanAI:Update(Owner)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
 				elseif FoundMO.ClassName == "ADoor" and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached()
-				and (Owner:EquipNamedDevice("Heavy Digger", true) or (Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen > ToADoor(FoundMO).Door.Material.StructuralIntegrity)) then
+				and (Owner:EquipNamedDevice("Heavy Digger", true) or (Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity)) then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then
 					FoundMO = ToActor(FoundMO)
@@ -723,8 +723,8 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 		self.NextBehaviorName = "AttackTarget"
 	-- favor grenades as the initiator to a sneak attack
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true) and
-		dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * 20 and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
+	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * 20 and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner:EquipFirearm(true) then

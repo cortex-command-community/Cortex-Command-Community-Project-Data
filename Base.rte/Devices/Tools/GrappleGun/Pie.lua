@@ -11,3 +11,10 @@ function GrapplePieExtend(actor)
 		ToMOSRotating(gun):SetNumberValue("GrappleMode", 2);
 	end
 end
+
+function GrapplePieDualWield(actor)
+	local gun = ToAHuman(actor).EquippedItem;
+	if gun then
+		ToHDFirearm(gun):SetDualWieldable(not ToHDFirearm(gun):IsDualWieldable());
+	end
+end

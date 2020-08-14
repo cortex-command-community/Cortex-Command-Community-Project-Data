@@ -4,7 +4,7 @@ function Create(self)
 	-- Choose a random horizontal direction
 	local randomDirection = math.random() > 0.5 and 1 or -1;
 	-- Randomize velocities
-	self.RotAngle = math.random() * (math.pi * 2);
+	self.RotAngle = RangeRand(0, math.pi * 2);
 	self.AngularVel = -randomDirection * math.random(1, 10);
 	self.Pos = Vector(self.Pos.X - randomDirection * math.random(99), self.Pos.Y);
 	-- Try not to fly off the edge in non-wrapping scenes

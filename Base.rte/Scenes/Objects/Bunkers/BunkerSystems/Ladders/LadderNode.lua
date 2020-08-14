@@ -15,9 +15,10 @@ function Update(self)
 			local mo = MovableMan:GetMOFromID(moCheck);
 			if IsAttachable(mo) and ToAttachable(mo):GetParent() and IsAHuman(ToAttachable(mo):GetParent()) then
 				local actor = ToAHuman(MovableMan:GetMOFromID(mo.RootID));
-				local controller, velFactor = actor:GetController(), 1 + actor.Vel.Magnitude * 0.3;
+				local controller = actor:GetController();
+				local velFactor = 1 + actor.Vel.Magnitude * 0.3;
 				if actor.Status == Actor.STABLE and actor.FlipFactor ~= self.FlipFactor and not controller:IsState(Controller.BODY_JUMP) then
-					actor.Vel = actor.Vel * (1 - 1 / velFactor);
+					actor.Vel = actor.Vel * (1 - 1/velFactor);
 					if controller:IsState(Controller.MOVE_LEFT) or controller:IsState(Controller.MOVE_RIGHT) then
 						local speed = actor:GetLimbPathSpeed(1)/velFactor;
 						actor.Vel = actor.Vel + Vector(speed/2, 0):RadRotate(actor:GetAimAngle(true)) - Vector(0, speed);

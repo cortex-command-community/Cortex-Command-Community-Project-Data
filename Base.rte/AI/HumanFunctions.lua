@@ -5,7 +5,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 	if actor.detachLimit then
 		if actor.WoundCount > actor.detachLimit then
 			actor.detachLimit = actor.WoundCount + 1;
-			local parts = {actor.BGArm, actor.BGLeg, actor.FGArm, actor.FGLeg, actor.Head};	--Piority order
+			local parts = {actor.BGArm, actor.BGLeg, actor.FGArm, actor.FGLeg, actor.Head};	--Priority order
 			local mostWounds = -1;
 			local detachLimb;
 			--Pick the limb with most wounds and detach it
@@ -41,8 +41,8 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 		actor.lastHandPos = {actor.Pos, actor.Pos};
 	end
 	--Flail around if aiming around too fast
-	local ang = actor.lastAngle - aimAngle;
-	actor.AngularVel = actor.AngularVel - (2 * ang * actor.FlipFactor)/(math.abs(actor.AngularVel)/10 + 1);
+	local angleMovement = actor.lastAngle - aimAngle;
+	actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel)/10 + 1);
 	actor.lastAngle = aimAngle;
 	--Shove when unarmed
 	if actor.controller:IsState(Controller.WEAPON_FIRE) and (actor.FGArm or actor.BGArm) and not (actor.EquippedItem or actor.EquippedBGItem) and actor.Status == Actor.STABLE then

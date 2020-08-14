@@ -14,8 +14,8 @@ function HumanBehaviors.GetTeamShootingSkill(team)
 		aimSkill = 0.04
 	else
 		-- the AI shoot sooner and with slightly better precision
-		aimSpeed = 1/(0.65/(2.9-math.exp(skill*0.01))) -- [1.42 .. 0.38]
-		aimSkill = 1/(0.75/(3.0-math.exp(skill*0.01))) -- [1.36 .. 0.48]
+		aimSpeed = 1/(0.65/(2.9-math.exp(skill*0.01)))
+		aimSkill = 1/(0.75/(3.0-math.exp(skill*0.01)))
 	end
 	return aimSpeed, aimSkill, skill
 end

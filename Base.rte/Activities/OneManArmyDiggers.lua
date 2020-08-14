@@ -233,21 +233,10 @@ function OneManArmy:UpdateActivity()
 
 		--Spawn the AI.
 		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-			local ship, actorsInCargo
-			
-			if math.random() < 0.5 then
-				-- Set up the ship to deliver this stuff
-				ship = RandomACDropShip("Any", self.CPUTechName);
-				-- If we can't afford this dropship, then try a rocket instead
-				if ship:GetTotalValue(0,3) > self:GetTeamFunds(self.CPUTeam) then
-					DeleteEntity(ship);
-					ship = RandomACRocket("Any", self.CPUTechName);
-				end
-				actorsInCargo = ship.MaxPassengers
-			else
-				ship = RandomACRocket("Any", self.CPUTechName);
-				actorsInCargo = math.min(ship.MaxPassengers, 2)
-			end
+
+			-- Set up the ship to deliver this stuff
+			local ship = RandomACRocket("Any", self.CPUTechName);
+			local actorsInCargo = math.min(ship.MaxPassengers, 2)
 			
 			ship.Team = self.CPUTeam;
 			

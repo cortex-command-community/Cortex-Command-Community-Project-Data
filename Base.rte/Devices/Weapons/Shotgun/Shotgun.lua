@@ -10,7 +10,7 @@ function Update(self)
 		parent = ToAHuman(actor);
 	end
 	if self.FiredFrame then
-		self.shell = CreateMOSParticle("Shell");
+		self.shell = CreateMOSParticle("Base.rte/Shell");
 		self.loaded = false;
 		self.playedSound = false;
 		self.rotFactor = math.pi;
