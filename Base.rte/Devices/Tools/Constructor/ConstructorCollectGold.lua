@@ -6,7 +6,7 @@ function Create(self)
 
 	self.ToSettle = false;
 	if self.Sharpness ~= rte.NoMOID then
-		local mo = MovableMan:GetMOFromID(i);
+		local mo = MovableMan:GetMOFromID(self.Sharpness);
 		if mo then
 			self.target = mo;
 			self.Sharpness = 0;
