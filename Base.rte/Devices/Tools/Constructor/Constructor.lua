@@ -342,7 +342,7 @@ function Update(self)
 												self.clearer:EraseFromTerrain();
 												local collectfx2 = CreateMOPixel("Particle Constructor Gather Material Gold");
 												collectfx2.Pos = Vector(checkpos.X,checkpos.Y);
-												collectfx2.Sharpness = self.UniqueID;
+												collectfx2.Sharpness = self.ID;
 												MovableMan:AddParticle(collectfx2);
 											else
 												local matstrength = SceneMan:CastStrengthSumRay(Vector(checkpos.X,checkpos.Y-1),Vector(checkpos.X,checkpos.Y),0,0);
@@ -365,7 +365,7 @@ function Update(self)
 								if diddig then
 									local collectfx = CreateMOPixel("Particle Constructor Gather Material");
 									collectfx.Pos = Vector(digpos.X,digpos.Y);
-									collectfx.Sharpness = self.UniqueID;
+									collectfx.Sharpness = self.ID;
 									MovableMan:AddParticle(collectfx);
 								end
 							else	-- deactivate if digging air
