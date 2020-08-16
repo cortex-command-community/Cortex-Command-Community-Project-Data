@@ -481,7 +481,7 @@ function Siege:CreateHeavyDrop(xPosLZ, techName)
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
 		
 		for i = 1, Craft.MaxPassengers do
-			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(techName)) + self.Difficulty / 800 then
+			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(techName)) then
 				Passenger = self:CreateCrab(Actor.AIMODE_GOTO, techName)
 			elseif RangeRand(0, 105) < self.Difficulty then
 				Passenger = self:CreateHeavyInfantry(Actor.AIMODE_GOTO,techName)
@@ -1019,7 +1019,7 @@ function Siege:CreateBrainBot(mode, team, techName)
 		Act:AddInventoryItem(RandomHDFirearm("Weapons - Light", techName))
 		Act:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
 
-		if PosRand() < 0.5 then
+		if math.random() < 0.5 then
 			Act:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techName))
 		end
 

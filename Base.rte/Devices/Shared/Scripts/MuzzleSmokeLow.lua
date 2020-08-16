@@ -1,31 +1,17 @@
 function Create(self)
-	if self.Magazine then
-		self.ammo = self.Magazine.RoundCount
-	else
-		self.ammo = 0
-	end
+	self.minSmokeCount = 1;
+	self.maxSmokeCount = 3;
+	self.smokeSpread = math.rad(self.ParticleSpreadRange) + 0.1;
 end
-
 function Update(self)
-	if self.Magazine then
-		if self.ammo > self.Magazine.RoundCount then
+	if self.FiredFrame then
+		local smokeCount = math.random(self.minSmokeCount, self.maxSmokeCount);
 
-			local checkFlip = 1;
-			if self.HFlipped then
-				checkFlip = -1;
-			end
-
-			local randomSmoke = math.floor(math.random()*3)+1;
-
-			for i = 1, randomSmoke do
-				local smokefx = CreateMOSParticle("Tiny Smoke Ball 1");
-				smokefx.Pos = self.MuzzlePos;
-				smokefx.Vel = Vector(2*checkFlip,0):RadRotate(self.RotAngle+(math.random()*0.2)-0.1);
-				MovableMan:AddParticle(smokefx);
-				smokefx = nil;
-			end
-
+		for i = 1, smokeCount do
+			local smokefx = CreateMOSParticle("Tiny Smoke Ball 1");
+			smokefx.Pos = self.MuzzlePos;
+			smokefx.Vel = Vector(i * self.FlipFactor, 0):RadRotate(self.RotAngle + (math.random() * self.smokeSpread) - (self.smokeSpread/2));
+			MovableMan:AddParticle(smokefx);
 		end
-		self.ammo = self.Magazine.RoundCount
 	end
 end

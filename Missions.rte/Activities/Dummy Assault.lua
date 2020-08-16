@@ -160,12 +160,12 @@ function DummyAssault:UpdateActivity()
 			
 			if MovableMan:GetTeamMOIDCount(Activity.TEAM_2) < rte.DefenderMOIDMax then
 				local actor
-				if math.random() > 0.05 then
-					actor = RandomAHuman("Infantry Light", self.CPUTech)
+				if math.random() > self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTech)) then
+					actor = RandomAHuman("Actors - Light", self.CPUTech)
 					if math.random() > 0.5 then
 						actor.AIMode = Actor.AIMODE_BRAINHUNT
 						if math.random() > 0.5 then
-							actor:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTech))
+							actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTech))
 						end
 					else
 						actor.AIMode = Actor.AIMODE_GOTO
