@@ -3,7 +3,7 @@ function Create(self)
 	self.loadedShell = false;
 	self.reloadCycle = false;
 
-	self.reloadDelay = 100;
+	self.reloadDelay = 75;
 
 	self.ammoCounter = self.RoundInMagCount;
 end

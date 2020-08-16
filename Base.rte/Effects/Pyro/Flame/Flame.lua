@@ -22,14 +22,14 @@ function Update(self)
 				if math.random() < (self.strength * self.target.DamageMultiplier) / (actor.Mass + self.target.Material.StructuralIntegrity) then
 					actor.Health = actor.Health - 1;
 				end
-				-- Stop, drop and roll!
+				--Stop, drop and roll!
 				self.Lifetime = self.Lifetime - math.abs(actor.AngularVel);
 			end
 		else
 			self.target = nil;
 			if self.checkTimer:IsPastSimMS(self.checkDelay) then
 				self.checkTimer:Reset();
-				self.checkDelay = self.checkDelay + 3;	-- Gradually extend the delay for optimization reasons
+				self.checkDelay = self.checkDelay + 3;	--Gradually extend the delay for optimization reasons
 				local checkPos = self.Pos + self.Vel * rte.PxTravelledPerFrame * math.random();
 				local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 				if moCheck ~= rte.NoMOID then
@@ -52,7 +52,7 @@ function Update(self)
 			end
 		end
 	end
-	local age = (self.Age * 0.0001) + 1;	-- Have age slightly affect particle settings relative to 10 seconds
+	local age = (self.Age * 0.0001) + 1;	--Have age slightly affect particle settings relative to 10 seconds
 	local chance = math.random();
 	local particle;
 	if chance < (0.1/age) then
@@ -60,7 +60,7 @@ function Update(self)
 		particle.Vel = self.Vel + Vector(RangeRand(-15, 15), -math.random(-10, 20));
 		particle.Sharpness = particle.Sharpness * RangeRand(0.5, 1.0);
 	elseif chance < (0.5/age) then
-		-- Spawn another, shorter flame particle occasionally
+		--Spawn another, shorter flame particle occasionally
 		if not self.isShort and math.random() < 0.05 then
 			particle = CreateMOSParticle("Flame Hurt Short Float");
 			particle.Lifetime = 4000/age;
