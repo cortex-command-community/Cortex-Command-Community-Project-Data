@@ -42,25 +42,26 @@ luac.out
 *.x86_64
 *.hex
 
+# Manifest files
+*.manifest
+
 .vs/
 Base.rte/Settings.ini
 Benchmark.rte/
 Scenes.rte/
 Metagames.rte/
-Microsoft.VC90.CRT.manifest
 DedicatedServer.bat
 DedicatedServerDebug.bat
 
 Cortex Command Experimental Multiplayer Operations Guide.docx
 
 allegro.log
-Cortex Command.exe.manifest
-Cortex Command.debug.ilk
 abortscreen.bmp
-MemCleanupInfo.txt
 
+MemCleanupInfo.txt
 LogPublish.txt
 LogLoading.txt
+LogLoadingWarning.txt
 LogConsole.txt
 Console.dump.log
 Console.input.log
