@@ -20,10 +20,11 @@ function Update(self)
 		if (parent:IsPlayerControlled() and parent:GetController():IsState(Controller.WEAPON_FIRE)) or #self.healTargets > 0 then
 			local screen = ActivityMan:GetActivity():ScreenOfPlayer(parent:GetController().Player);
 			if screen ~= -1 then
-				PrimitiveMan:DrawCirclePrimitive(screen, self.Pos, healRange, self.colors[math.random(#self.colors)]);
+				local color = self.colors[math.random(#self.colors)];
+				PrimitiveMan:DrawCirclePrimitive(screen, self.Pos, healRange, color);
 				for i = 1, math.random(10, 20) do
 					local vector = Vector(healRange, 0):RadRotate(6.28 * math.random());
-					PrimitiveMan:DrawLinePrimitive(screen, self.Pos + vector * RangeRand(0.66, 0.99), self.Pos + vector, self.colors[math.random(#self.colors)]);
+					PrimitiveMan:DrawLinePrimitive(screen, self.Pos + vector * RangeRand(0.66, 0.99), self.Pos + vector, color);
 				end
 			end
 		end

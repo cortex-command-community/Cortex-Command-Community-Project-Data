@@ -487,7 +487,6 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				aimTime = RangeRand(6000, 12000) * angDiff
 				AI.deviceState = AHuman.AIMING
 			end
-			
 			if Owner.AIMode ~= Actor.AIMODE_SQUAD then
 				if SceneMan:ShortestDistance(Owner.Pos, AI.SentryPos, false).Magnitude > Owner.Height*0.7 then
 					AI.SentryPos = SceneMan:MovePointToGround(AI.SentryPos, Owner.Height*0.25, 3)
@@ -498,7 +497,7 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				elseif AI.SentryFacing and Owner.HFlipped ~= AI.SentryFacing then
 					Owner.HFlipped = AI.SentryFacing	-- turn to the direction we have been order to guard
 					break	-- restart this behavior
-				elseif AI.Target == nil and math.random() < Owner.Perceptiveness then
+				elseif AI.TargetLostTimer:IsPastSimTimeLimit() and math.random() < Owner.Perceptiveness then
 					-- turn around occasionally if there is open space behind our back
 					local backAreaRay = Vector(-math.random(FrameMan.PlayerScreenWidth/4, FrameMan.PlayerScreenWidth/2) * Owner.FlipFactor, 0):DegRotate(math.random(-25, 25) * Owner.Perceptiveness)
 					if not SceneMan:CastStrengthRay(Owner.EyePos, backAreaRay, 10, Vector(), 10, rte.grassID, SceneMan.SceneWrapsX) then

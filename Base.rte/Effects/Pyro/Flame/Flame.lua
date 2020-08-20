@@ -1,7 +1,7 @@
 function Create(self)
 	self.strength = 1;
 	self.checkTimer = Timer();
-	self.checkDelay = math.random(30);
+	self.checkDelay = math.random(25);
 	if string.find(self.PresetName, "Short") then
 		self.isShort = true;
 		self.deleteDelay = self.Lifetime * RangeRand(0.05, 0.15);
@@ -19,7 +19,7 @@ function Update(self)
 			local actor = MovableMan:GetMOFromID(self.target.RootID);
 			if MovableMan:IsActor(actor) then
 				actor = ToActor(actor);
-				if math.random() < (self.strength * self.target.DamageMultiplier) / (actor.Mass + self.target.Material.StructuralIntegrity) then
+				if math.random() < (self.strength * self.target.DamageMultiplier)/(actor.Mass + self.target.Material.StructuralIntegrity) then
 					actor.Health = actor.Health - 1;
 				end
 				--Stop, drop and roll!
@@ -29,7 +29,7 @@ function Update(self)
 			self.target = nil;
 			if self.checkTimer:IsPastSimMS(self.checkDelay) then
 				self.checkTimer:Reset();
-				self.checkDelay = self.checkDelay + 3;	--Gradually extend the delay for optimization reasons
+				self.checkDelay = math.floor(self.checkDelay * 1.05 + 3);	--Gradually extend the delay for optimization reasons
 				local checkPos = self.Pos + self.Vel * rte.PxTravelledPerFrame * math.random();
 				local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 				if moCheck ~= rte.NoMOID then
@@ -55,11 +55,11 @@ function Update(self)
 	local age = (self.Age * 0.0001) + 1;	--Have age slightly affect particle settings relative to 10 seconds
 	local chance = math.random();
 	local particle;
-	if chance < (0.1/age) then
+	if chance < (0.08/age) then
 		particle = CreateMOPixel("Ground Fire Burn Particle");
 		particle.Vel = self.Vel + Vector(RangeRand(-15, 15), -math.random(-10, 20));
 		particle.Sharpness = particle.Sharpness * RangeRand(0.5, 1.0);
-	elseif chance < (0.5/age) then
+	elseif chance < (0.4/age) then
 		--Spawn another, shorter flame particle occasionally
 		if not self.isShort and math.random() < 0.05 then
 			particle = CreateMOSParticle("Flame Hurt Short Float");
