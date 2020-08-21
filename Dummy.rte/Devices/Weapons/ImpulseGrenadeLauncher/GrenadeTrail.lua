@@ -1,5 +1,3 @@
-function Create(self)
-end
 function Update(self)
 	local velNum = math.ceil(math.sqrt(self.Vel.Magnitude));
 	for i = 1, velNum do

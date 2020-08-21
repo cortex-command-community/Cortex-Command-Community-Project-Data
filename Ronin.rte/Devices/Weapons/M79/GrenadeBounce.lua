@@ -1,10 +1,8 @@
 function Create(self)
-
-	self.lifeTimer = Timer();
+	self.detonationDelay = 3000;
 end
 function Update(self)
-
-	if self.lifeTimer:IsPastSimMS(3000) then
+	if self.Age > self.detonationDelay then
 		local explosion = CreateMOSRotating("Ronin M79 Grenade Explosion");
 		explosion.Pos = self.Pos;
 		explosion:GibThis();

@@ -1,8 +1,8 @@
 function Create(self)
-	self.detTimer = Timer();
+	self.detonateTimer = Timer();
 	self.fuseTriggered = false;
 
-	self.smallAngle = 6.283/12;
+	self.smallAngle = math.pi/6;
 	self.angleList = {};
 
 	self.initFuse = math.random(4000, 5000);
@@ -13,10 +13,10 @@ function Update(self)
 	if not self.fuseTriggered then
 		if self:IsActivated() then
 			self.fuseTriggered = true;
-			self.detTimer:Reset();
+			self.detonateTimer:Reset();
 		end
 	else
-		if self.detTimer:IsPastSimMS(self.initFuse) then
+		if self.detonateTimer:IsPastSimMS(self.initFuse) then
 			self.angleList = {};
 			for i = 1, 12 do
 				local angleCheck = self.smallAngle * i;

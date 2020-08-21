@@ -5,7 +5,7 @@ function Create(self)
 	self.emitTimerA = Timer();
 	self.emitTimerB = Timer();
 
-	self.smallAngle = 6.283/12;
+	self.smallAngle = math.pi/6;
 
 	self.angleList = {};
 end

@@ -1,5 +1,6 @@
 function Create(self)
 	self.impulseSoundThreshold = 200;
+	self.impulseSounds = {"Duns", "Flumph", "SmallThud"};
 
 	self.width = ToMOSprite(self):GetSpriteWidth();
 	self.height = ToMOSprite(self):GetSpriteHeight();
@@ -29,8 +30,7 @@ function Update(self)
 			end
 		end
 		if self.TravelImpulse.Magnitude > self.impulseSoundThreshold then
-			local sounds = {"Duns", "Flumph", "SmallThud"};
-			AudioMan:PlaySound("Base.rte/Sounds/Physics/".. sounds[math.random(#sounds)] ..".wav", self.Pos);
+			AudioMan:PlaySound("Base.rte/Sounds/Physics/".. self.impulseSounds[math.random(#self.impulseSounds)] ..".wav", self.Pos);
 		end
 		self.GibWoundLimit = self.Mass * 3;
 		self.GibImpulseLimit = self.Mass * 30;

@@ -4,9 +4,7 @@ function Create(self)
 	self.loadTimer = Timer();
 	self.shellsToEject = 0;
 end
-
 function Update(self)
-
 	if self.setAngle > 0 then
 		self.setAngle = self.setAngle - 0.0001 * self.RateOfFire;
 		if self.setAngle < 0 then

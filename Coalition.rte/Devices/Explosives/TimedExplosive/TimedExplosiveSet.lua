@@ -13,7 +13,7 @@ function Create(self)
 	self.medBlipDelay = 250;
 	self.maxBlipDelay = 500;
 	
-	self.detDelay = 11000;
+	self.detonateDelay = 11000;
 	self.Frame = 1;
 
 	self.breachStrength = 100;
@@ -69,7 +69,7 @@ function Update(self)
 
 	if self.stuck == true then
 
-		if self.lifeTimer:IsPastSimMS(self.detDelay) then
+		if self.lifeTimer:IsPastSimMS(self.detonateDelay) then
 			--Gib the thing we're attached to if it's fragile enough
 			if self.target ~= nil and IsMOSRotating(self.target) then
 				local targetStrength = math.sqrt(1 + math.abs(self.target.GibWoundLimit - self.target.WoundCount)) * (self.target.Material.StructuralIntegrity * 0.1 + math.sqrt(self.target.Diameter + self.target.Mass));
@@ -82,7 +82,7 @@ function Update(self)
 			self.ToDelete = false;
 			self.ToSettle = false;
 		
-			local number = math.ceil((self.detDelay - self.lifeTimer.ElapsedSimTimeMS)/100)/10;
+			local number = math.ceil((self.detonateDelay - self.lifeTimer.ElapsedSimTimeMS)/100)/10;
 			local text = "".. number;
 			if number == math.ceil(number) then
 				text = text ..".0";
@@ -107,17 +107,17 @@ function Update(self)
 			self.blinkTimer:Reset();
 			AudioMan:PlaySound("Coalition.rte/Devices/Explosives/TimedExplosive/Sounds/TimedExplosiveBlip.wav", self.Pos);
 
-			if self.changeCounter == 0 and self.lifeTimer.ElapsedSimTimeMS > (self.detDelay * 0.85 - 5000) then
+			if self.changeCounter == 0 and self.lifeTimer.ElapsedSimTimeMS > (self.detonateDelay * 0.85 - 5000) then
 				self.changeCounter = 1;
 				self.blipdelay = self.maxBlipDelay;
 			end
 
-			if self.changeCounter == 1 and self.lifeTimer.ElapsedSimTimeMS > (self.detDelay * 0.90 - 3000) then
+			if self.changeCounter == 1 and self.lifeTimer.ElapsedSimTimeMS > (self.detonateDelay * 0.90 - 3000) then
 				self.changeCounter = 2;
 				self.blipdelay = self.medBlipDelay;
 			end
 
-			if self.changeCounter == 2 and self.lifeTimer.ElapsedSimTimeMS > (self.detDelay * 0.95 - 1000) then
+			if self.changeCounter == 2 and self.lifeTimer.ElapsedSimTimeMS > (self.detonateDelay * 0.95 - 1000) then
 				self.changeCounter = 3;
 				self.blipdelay = self.minBlipDelay;
 			end

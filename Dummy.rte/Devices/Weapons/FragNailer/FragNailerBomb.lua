@@ -1,6 +1,7 @@
 function Create(self)
 	self.toDetonate = false;
-	self.detTimer = Timer();
+	self.detonateTimer = Timer();
+	self.detonateDelay = 2000;
 
 	self.actionPhase = 0;
 	self.stuck = false;
@@ -22,9 +23,9 @@ function Update(self)
 				checkPos = checkPos + SceneMan:ShortestDistance(checkPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(3);
 				
 				self.target = MovableMan:GetMOFromID(checkPix);
-				self.stickposition = SceneMan:ShortestDistance(self.target.Pos, checkPos, SceneMan.SceneWrapsX);
-				self.stickrotation = self.target.RotAngle;
-				self.stickdirection = self.RotAngle;
+				self.stickPosition = SceneMan:ShortestDistance(self.target.Pos, checkPos, SceneMan.SceneWrapsX);
+				self.stickRotation = self.target.RotAngle;
+				self.stickDirection = self.RotAngle;
 				
 				self.stuck = true;
 				rayHit = true;
@@ -45,8 +46,8 @@ function Update(self)
 		end
 	elseif self.actionPhase == 1 then
 		if self.target and self.target.ID ~= rte.NoMOID then
-			self.Pos = self.target.Pos + Vector(self.stickposition.X, self.stickposition.Y):RadRotate(self.target.RotAngle - self.stickrotation);
-			self.RotAngle = self.stickdirection + (self.target.RotAngle - self.stickrotation);
+			self.Pos = self.target.Pos + Vector(self.stickPosition.X, self.stickPosition.Y):RadRotate(self.target.RotAngle - self.stickRotation);
+			self.RotAngle = self.stickDirection + (self.target.RotAngle - self.stickRotation);
 			self.PinStrength = 1000;
 			self.Vel = Vector();
 			self.HitsMOs = false;
@@ -54,7 +55,7 @@ function Update(self)
 			self.toDetonate = true;
 		end
 	end
-	if self.detTimer:IsPastSimMS(2000) or self.toDetonate then
+	if self.detonateTimer:IsPastSimMS(self.detonateDelay) or self.toDetonate then
 		local explosion = CreateMOSRotating("Particle Dummy Frag Nailer Explosion");
 		explosion.Pos = self.Pos;
 		explosion:GibThis();

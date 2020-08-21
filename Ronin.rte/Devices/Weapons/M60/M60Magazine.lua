@@ -7,7 +7,7 @@ function Update(self)
 		if self.RoundCount < self.FrameCount - self.loopFrames then
 			self.Frame = self.FrameCount - self.RoundCount - 1;
 		else
-			self.Frame = self.Frame >= self.loopFrames - 1 and 0 or self.Frame + 1;
+			self.Frame = (self.Frame + 1) % self.loopFrames;
 		end
 	end
 	self.lastRoundCount = self.RoundCount;

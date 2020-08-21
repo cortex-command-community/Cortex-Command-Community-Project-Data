@@ -17,13 +17,9 @@ function Create(self)
 	end
 end
 function Update(self)
-
 	if self.updateTimer:IsPastSimMS(1000) then
-		if self.Health < self.MaxHealth/2 then
-			self.aggressive = true;
-		else
-			self.aggressive = false;
-		end
+		self.updateTimer:Reset();
+		self.aggressive = self.Health < self.MaxHealth/2;
 	end
 	if self.Head then
 		self.Head.Frame = self.face;

@@ -88,11 +88,9 @@ function Update(self)
 				self:Deactivate();
 
 			elseif self:GetNumberValue("CowboyMode") == 2 then	--Ready to draw
-
 				self:Deactivate();
 
 			elseif self:GetNumberValue("CowboyMode") == 3 then	--Drawing gun
-			
 				if self.triggerPulled == true then
 					self:Deactivate();
 				else
