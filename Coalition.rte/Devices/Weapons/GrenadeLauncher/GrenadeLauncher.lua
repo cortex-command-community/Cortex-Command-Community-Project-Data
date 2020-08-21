@@ -1,40 +1,48 @@
+function OnPieMenu(item)
+	if item and IsHDFirearm(item) and item.PresetName == "Grenade Launcher" then
+		item = ToHDFirearm(item);
+		if item.Magazine then
+			--Remove corresponding pie slices if mode is already active
+			if item.Magazine.PresetName == "Magazine Grenade Launcher Impact Grenade" then
+				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Impact Mode", "GrenadeLauncherImpact");
+			elseif item.Magazine.PresetName == "Magazine Grenade Launcher Bounce Grenade" then
+				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Bounce Mode", "GrenadeLauncherBounce");
+			elseif item.Magazine.PresetName == "Magazine Grenade Launcher Remote Grenade" then
+				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Remote Mode", "GrenadeLauncherRemote");
+			end
+		end
+	end
+end
 function Create(self)
 	self.reloaded = false;
 	self.ammoCounter = 0;
 	self.grenadeTableA = {};
 	self.grenadeTableB = {};
 	self.maxActiveGrenades = 12;
-	self.particleSpread = 6;
-	self.particleSpreadSharp = 2;
 end
 
 function Update(self)
-	if self.Magazine ~= nil then
+	if self.Magazine then
 		if self.reloaded == false then
 			self.reloaded = true;
 			self.ammoCounter = self.Magazine.RoundCount;
 		else
 			if self.ammoCounter ~= self.Magazine.RoundCount then
-				if self.HFlipped == false then
-					self.negativeNum = 1;
-				else
-					self.negativeNum = -1;
-				end
 				if self.Magazine.PresetName == "Magazine Grenade Launcher Remote Grenade" then				
 					local bullet = CreateActor("Grenade Launcher Shot Remote");
 					bullet.Pos = self.MuzzlePos;
-					bullet.Vel = self.Vel + Vector(30*self.negativeNum,0):RadRotate(self.RotAngle):DegRotate((self.particleSpread*-0.5)+(self.particleSpread*math.random()));
+					bullet.Vel = self.Vel + Vector(30 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.ShakeRange/2) - (self.ShakeRange * math.random()));
 					local actor = MovableMan:GetMOFromID(self.RootID);
 					if MovableMan:IsActor(actor) then
 						if ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
-							bullet.Vel = self.Vel + Vector(30*self.negativeNum,0):RadRotate(self.RotAngle):DegRotate((self.particleSpreadSharp*-0.5)+(self.particleSpreadSharp*math.random()));
+							bullet.Vel = self.Vel + Vector(30 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.SharpShakeRange/2) - (self.SharpShakeRange * math.random()));
 						end
 						if ToActor(actor):IsPlayerControlled() then
 							if self.grenadeTableA[self.maxActiveGrenades] ~= nil then
 								self.grenadeTableA[self.maxActiveGrenades].Sharpness = 2;
 							end
 							for i = 1, self.maxActiveGrenades do
-								self.grenadeTableB[i+1] = self.grenadeTableA[i];
+								self.grenadeTableB[i + 1] = self.grenadeTableA[i];
 							end
 							self.grenadeTableA = {};
 							for i = 1, self.maxActiveGrenades do
