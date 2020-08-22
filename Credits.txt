@@ -163,9 +163,9 @@ exp_30mm_tail_close
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
-Sounds\Enemies\GrineerGhouls\GhoulSawman\Attacks*******************************
+Sounds\Enemies\GrineerGhouls\GhoulSawman\Attacks
 
-************************************************
+*******************************************************************************
  Dummy.rte\Devices\Weapons\ScoutingRifle\Sounds\Credits.txt
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
@@ -868,5 +868,3 @@ Ambient Fire Sounds
 New World Interactive: Day of Infamy
 
 MG34 Reload Sounds
-
-*******************************************************************************
