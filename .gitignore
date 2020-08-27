@@ -46,6 +46,7 @@ luac.out
 *.manifest
 
 .vs/
+_Screenshots/
 Base.rte/Settings.ini
 Benchmark.rte/
 Scenes.rte/
