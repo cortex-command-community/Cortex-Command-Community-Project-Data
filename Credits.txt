@@ -1,4 +1,4 @@
-ï»¿C R E D I T S :
+C R E D I T S :
 
 Game Design - Engine and Physics Programming - Art Direction - Project Coordination
 D A N I E L   " D A T A "   T A B A R
@@ -30,7 +30,7 @@ Lua AI Implementation
 S T E F A N   " A B D U L   A L H A Z R E D "   W I N B E R G
 
 Intro and Main Menu Music Composition and Production
-R O B E R T   S T J ï¿½ R N S T R ï¿½ M   &   J O N A S   R ï¿½ R L I N G,   H U B N E S T E R   I N D U S T R I E S
+R O B E R T   S T J Ä R N S T R Ö M   &   J O N A S   R Ö R L I N G,   H U B N E S T E R   I N D U S T R I E S
 
 Campaign Menu, Launch Trailer, and In-game Music Composition and Production
 D A N N Y   B A R A N O W S K Y ,   D B   S O U N D W O R K S
@@ -55,12 +55,13 @@ Special Thanks
 LEE THOMASON, 'JAMES' GENGE, RAIGAN BURNS, NICK WAANDERS, JAMIE CHENG, NATHANIEL SABANSKI
 
 Technology Platform
-ALLEGRO, FMOD, LUA, LUAJIT, LUABIND, LIBCURL, OGG VORBIS, MICROPATHER, MSVC8 CRTs
-FMOD Sound System, copyright ï¿½ Firelight Technologies Pty, Ltd., 1994-2007.
-Portions Copyright ï¿½ 2001, Xiphophorus
+ALLEGRO, FMOD, LUA, LUAJIT, LUABIND, OGG VORBIS, MICROPATHER, RAKNET, LZ4
+
+FMOD Sound System, copyright © Firelight Technologies Pty, Ltd., 1994-2007.
+Portions Copyright © 2001, Xiphophorus
 
 
-Cortex Command is TM and ï¿½ 2017 Data Realms, LLC
+Cortex Command is TM and © 2019 Data Realms, LLC
 
 
 
@@ -162,7 +163,9 @@ exp_30mm_tail_close
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
-Sounds\Enemies\GrineerGhouls\GhoulSawman\Attacks*******************************************************************************
+Sounds\Enemies\GrineerGhouls\GhoulSawman\Attacks
+
+*******************************************************************************
  Dummy.rte\Devices\Weapons\ScoutingRifle\Sounds\Credits.txt
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
@@ -301,7 +304,9 @@ CrpElectroMag Firing Sound
 CorpusPolearm Sounds
 CorpusWhip Sounds
 Harlequin Sounds
-CrpSentExperimentalPistol Firing Sounds*******************************************************************************
+CrpSentExperimentalPistol Firing Sounds
+
+*******************************************************************************
  Techion.rte\Devices\Weapons\PulseRifle\Sounds\Credits.txt
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
@@ -863,5 +868,3 @@ Ambient Fire Sounds
 New World Interactive: Day of Infamy
 
 MG34 Reload Sounds
-
-*******************************************************************************
