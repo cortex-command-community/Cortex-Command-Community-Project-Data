@@ -1,6 +1,6 @@
 function Create(self)
 	self.turnSpeed = 0.015;	--Speed of the turret turning, in rad per frame
-	self.searchRange = 250;	--Detection area diameter or max ray distance to search enemies from, in px
+	self.searchRange = self:NumberValueExists("TurretSearchRange") and self:GetNumberValue("TurretSearchRange") or 250;	--Detection area diameter or max ray distance to search enemies from, in px
 	--Whether turret searches for enemies in a larger area. Default mode is a narrower ray detection
 	self.areaMode = true;
 	--Toggle visibility of the aim area / trace to see how the detection works
@@ -8,6 +8,9 @@ function Create(self)
 	--Angle alteration variables (do not touch)
 	self.rotation = 0;	--Left / Right movement affecting turret angle
 	self.verticalFactor = 0;	--How Up / Down movement affects turret angle
+	
+	self.fireTimer = Timer();
+	self.fireTimer:SetSimTimeLimitMS(500);
 end
 function Update(self)
 	local parent = self:GetParent();
@@ -63,6 +66,7 @@ function Update(self)
 					end
 					self:EnableEmission(true);
 					self:TriggerBurst();
+					self.fireTimer:Reset();
 				end
 			end
 		else	--Default Mode
@@ -82,6 +86,7 @@ function Update(self)
 			if target and IsActor(target) then
 				self:EnableEmission(true);
 				self:TriggerBurst();
+				self.fireTimer:Reset();
 				
 				if self:IsSetToBurst() then
 					color = 254;	--Debug trace color: white
@@ -93,5 +98,8 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(-1/math.sqrt(self.searchRange)), color);
 			end
 		end
+	end
+	if self.fireTimer:IsPastSimTimeLimit() then
+		self:EnableEmission(false);
 	end
 end

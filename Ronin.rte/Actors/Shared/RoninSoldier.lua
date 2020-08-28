@@ -2,7 +2,9 @@ function Create(self)
 	self.updateTimer = Timer();
 	if not self:NumberValueExists("Identity") then
 		self.face = math.random(0, (self.Head.FrameCount/2) - 1);
-		self.Head.Frame = self.face;
+		if self.Head then
+			self.Head.Frame = self.face;
+		end
 		self:SetNumberValue("Identity", self.face);
 		--Equip loadout actors with random weapons
 		if string.find(self.PresetName, "Infantry") then
@@ -28,17 +30,19 @@ function Create(self)
 			end
 		elseif self.PresetName == "Ronin Heavy" then
 			local headgear = CreateAttachable("Ronin ".. RoninLoadouts["Heavy"]["Headgear"][math.random(#RoninLoadouts["Heavy"]["Headgear"])]);
-			if headgear then
+			if headgear and self.Head then
 				self.Head:AddAttachable(headgear);
 			end
 			local armor = CreateAttachable("Ronin ".. RoninLoadouts["Heavy"]["Armor"][math.random(#RoninLoadouts["Heavy"]["Armor"])]);
 			if armor then
 				self:AddAttachable(armor);
 			end
-		elseif self.face == 1 then	--"Mia"
-			self.Head:AddAttachable(CreateAttachable("Ronin Black Hair"));
-		elseif self.face == 4 then	--"Sandra"
-			self.Head:AddAttachable(CreateAttachable("Ronin Blonde Hair"));
+		elseif self.Head then
+			if self.face == 1 then	--"Mia"
+				self.Head:AddAttachable(CreateAttachable("Ronin Black Hair"));
+			elseif self.face == 4 then	--"Sandra"
+				self.Head:AddAttachable(CreateAttachable("Ronin Blonde Hair"));
+			end
 		end
 	else
 		self.face = self:GetNumberValue("Identity");
@@ -48,11 +52,11 @@ function Update(self)
 	if self.updateTimer:IsPastSimMS(1000) then
 		self.updateTimer:Reset();
 		self.aggressive = self.Health < (self.MaxHealth/2);
-	end
-	if self.Head then
-		self.Head.Frame = self.face;
-		if self.controller and self.controller:IsState(Controller.WEAPON_FIRE) or self.aggressive then
-			self.Head.Frame = self.face + (self.Head.FrameCount/2);
+		if self.Head then
+			self.Head.Frame = self.face;
+			if self.controller and self.controller:IsState(Controller.WEAPON_FIRE) or self.aggressive then
+				self.Head.Frame = self.face + (self.Head.FrameCount/2);
+			end
 		end
 	end
 end

@@ -42,15 +42,15 @@ function Update(self)
 						flip = -1;
 					end
 					--Different factors that affect the lunge
-					local vel = (self.Vel.Magnitude^2) * 0.001 + 1;
+					local vel = (self.Vel.Magnitude^2) * 0.0005 + 1;
 					local ang = math.abs(self.AngularVel * 0.05) + 1;
 					local mass = math.abs(self.Mass * 0.005) + 1;
 					local aimAng = self:GetAimAngle(false);
 					local vertical = math.abs(math.cos(aimAng))/vel;
-					local strength = (self.lungePower/100) * math.min(self.Health, self.MaxHealth);
+					local strength = (self.lungePower/self.MaxHealth) * math.min(self.Health, self.MaxHealth);
 					
 					local jumpVec =	Vector((self.lungePower + strength/vel) * flip, -(self.lungePower/2 + (strength/3)) * vertical):RadRotate(aimAng * self.FlipFactor);
-									
+					
 					self.Vel = self.Vel + jumpVec/mass;
 					self.AngularVel = self.AngularVel - 4/ang * flip * vertical;
 					self.Status = Actor.UNSTABLE;

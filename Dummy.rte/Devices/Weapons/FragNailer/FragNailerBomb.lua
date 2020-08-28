@@ -45,7 +45,7 @@ function Update(self)
 			end
 		end
 	elseif self.actionPhase == 1 then
-		if self.target and self.target.ID ~= rte.NoMOID then
+		if self.target and self.target.ID ~= rte.NoMOID and not self.target.ToDelete then
 			self.Pos = self.target.Pos + Vector(self.stickPosition.X, self.stickPosition.Y):RadRotate(self.target.RotAngle - self.stickRotation);
 			self.RotAngle = self.stickDirection + (self.target.RotAngle - self.stickRotation);
 			self.PinStrength = 1000;

@@ -42,7 +42,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 	end
 	--Flail around if aiming around too fast
 	local angleMovement = actor.lastAngle - aimAngle;
-	actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel)/10 + 1);
+	actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel) * 0.1 + 1);
 	actor.lastAngle = aimAngle;
 	--Shove when unarmed
 	if actor.controller:IsState(Controller.WEAPON_FIRE) and (actor.FGArm or actor.BGArm) and not (actor.EquippedItem or actor.EquippedBGItem) and actor.Status == Actor.STABLE then
@@ -74,31 +74,31 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 			if actor.controller:IsState(Controller.AIM_SHARP) then
 				arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
 			else
-				arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i/5));
+				arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
 			end
 			if actor.shoved or (actor.EquippedItem and IsTDExplosive(actor.EquippedItem) and actor.controller:IsState(Controller.WEAPON_FIRE)) then
 				arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
 				local handVector = SceneMan:ShortestDistance(actor.lastHandPos[i], arm.HandPos, SceneMan.SceneWrapsX);
 				--Diminish hand relocation vector to potentially prevent post-superhuman pushing powers
-				handVector:SetMagnitude(handVector.Magnitude/(1 + handVector.Magnitude/100));
+				handVector:SetMagnitude(handVector.Magnitude/(1 + handVector.Magnitude * 0.01));
 				--Emphasize the first frames that signify contracted arm = highest potential energy
 				local dots = math.sqrt(arm.Radius)/(1 + arm.Frame/arm.FrameCount);
 				local armStrength = (arm.Mass + arm.Material.StructuralIntegrity) * pushStrength;
 				for i = 1, dots do
 					local part = CreateMOPixel("Smack Particle Light");
-					part.Pos = arm.HandPos - Vector(handVector.X/2, handVector.Y/2);
+					part.Pos = arm.HandPos - Vector(handVector.X * 0.5, handVector.Y * 0.5);
 					part.Vel = Vector(handVector.X, handVector.Y):RadRotate(RangeRand(-0.1, 0.1)) + Vector(0, -0.5);
 					part.Mass = armStrength;	part.Sharpness = math.random() * 0.1;
 					part.Team = actor.Team;	part.IgnoresTeamHits = true;
 					MovableMan:AddParticle(part);
 				end
 				--Apply some additional forces if the travel vector of the moving hand is half an arms length
-				if handVector.Magnitude > (armLength/2) then
+				if handVector.Magnitude > (armLength * 0.5) then
 					local moCheck = SceneMan:GetMOIDPixel(arm.HandPos.X, arm.HandPos.Y)
 					if moCheck ~= rte.NoMOID then
 						local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
 						if mo and mo.Team ~= actor.Team and IsActor(mo) and actor.Mass > (mo.Mass/2) then
-							mo:AddForce(handVector * (actor.Mass/2), Vector());
+							mo:AddForce(handVector * (actor.Mass * 0.5), Vector());
 							ToActor(mo).Status = Actor.UNSTABLE;
 						end
 					end
