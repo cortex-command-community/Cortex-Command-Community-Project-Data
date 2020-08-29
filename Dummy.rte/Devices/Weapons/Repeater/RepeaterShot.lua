@@ -37,7 +37,7 @@ function Update(self)
 end
 function Destroy(self)
 	self.endPar.Pos = Vector(self.Pos.X, self.Pos.Y) + Vector(self.Vel.X, self.Vel.Y) * 0.16;
-	self.endPar.Vel = Vector(self.Vel.X + math.random(-5, 5), self.Vel.Y + math.random(-5, 5))/2;
+	self.endPar.Vel = Vector(self.Vel.X + math.random(-5, 5), self.Vel.Y + math.random(-5, 5)) * 0.5;
 	self.endPar.HitsMOs = true;
 	self.endPar.Mass = self.Mass;
 	self.endPar.Lifetime = self.endPar.Lifetime/(1 + self.Age/self.Lifetime);

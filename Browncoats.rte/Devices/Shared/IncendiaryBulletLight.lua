@@ -2,15 +2,15 @@ function Create(self)
 	self.trailGlow = CreateMOPixel("Incendiary Bullet Trail Glow Light");
 	self.trailLength = 40;
 
-	self.trailGlow.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame/2;
+	self.trailGlow.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame * 0.5;
 	MovableMan:AddParticle(self.trailGlow);
 	
 	self.fire = CreateMOSParticle("Flame Hurt Short");
 end
 function Update(self)
 	if self.trailGlow and MovableMan:IsParticle(self.trailGlow) then
-		self.trailGlow.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.min(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.trailLength)/2);
-		self.trailGlow.Vel = self.Vel/2;
+		self.trailGlow.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.min(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.trailLength) * 0.5);
+		self.trailGlow.Vel = self.Vel * 0.5;
 		self.trailGlow.Lifetime = self.Age + TimerMan.DeltaTimeMS;
 	end
 
@@ -38,7 +38,7 @@ function Update(self)
 			else
 				local smoke = CreateMOSParticle("Tiny Smoke Ball 1");
 				smoke.Pos = Vector(self.Pos.X, self.Pos.Y);
-				smoke.Vel = Vector(self.Vel.X, self.Vel.Y)/2;
+				smoke.Vel = Vector(self.Vel.X, self.Vel.Y) * 0.5;
 				smoke.Lifetime = math.random(200, 400);
 				MovableMan:AddParticle(smoke);
 			end

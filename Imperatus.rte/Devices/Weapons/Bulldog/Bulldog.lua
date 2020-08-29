@@ -2,7 +2,7 @@ function Create(self)
 	self.origActivationDelay = self.ActivationDelay;
 	self.origDeactivationDelay = self.DeactivationDelay;
 	self.maxRateOfFire = self.RateOfFire;
-	self.minRateOfFire = self.maxRateOfFire/2;
+	self.minRateOfFire = self.maxRateOfFire * 0.5;
 	self.RateOfFire = self.minRateOfFire;
 	self.increasePerShot = 1.05;
 	self.decreasePerFrame = 0.99;

@@ -16,7 +16,7 @@ function Update(self)
 		self.ToDelete = true;
 
 	elseif self.TravelImpulse.Magnitude > self.Mass then
-		for i = 1, self.TravelImpulse.Magnitude/3 do
+		for i = 1, self.TravelImpulse.Magnitude * 0.3 do
 			if self.Mass > 5 then
 				local particle = CreateMOPixel("Sandbag Particle ".. math.random(5));
 				local vector = Vector(self.width * RangeRand(-0.4, 0.4), self.height * RangeRand(-0.4, 0.4)):RadRotate(self.RotAngle);

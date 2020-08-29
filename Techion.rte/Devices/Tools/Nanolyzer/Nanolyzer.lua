@@ -28,13 +28,13 @@ function Update(self)
             aimAngle = aimAngle + math.pi;
         end
         local aimVec = Vector(self.range, 0):RadRotate(aimAngle);
-        local aimUp = Vector(aimVec.X, aimVec.Y):RadRotate(math.pi/2):Normalize();
+        local aimUp = Vector(aimVec.X, aimVec.Y):RadRotate(math.pi * 0.5):Normalize();
         local hitPos = Vector();
         
         --Cast rays in front of the gun
-        for i = -self.beamRadius/2, self.beamRadius/2, self.resolution do
+        for i = -self.beamRadius * 0.5, self.beamRadius * 0.5, self.resolution do
             if math.random() < self.deconstructChance then
-                if SceneMan:CastStrengthRay(self.MuzzlePos, Vector(aimVec.X, aimVec.Y):RadRotate(i), 1, hitPos, 0, 166, true) then
+                if SceneMan:CastStrengthRay(self.MuzzlePos, Vector(aimVec.X, aimVec.Y):RadRotate(i), 1, hitPos, rte.airID, 166, true) then
                     local remover = CreateMOSRotating("Techion.rte/Pixel Remover");
                     remover.Pos = hitPos;
                     MovableMan:AddParticle(remover);
@@ -83,7 +83,7 @@ function Update(self)
 									for i = 1, dots do
 										local piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(self.gooCount));
 										piece.Pos = actor.Pos;
-										piece.Vel = actor.Vel/2 + Vector(dots, 0):RadRotate(6.28 * math.random()) + Vector(0, -1);
+										piece.Vel = actor.Vel * 0.5 + Vector(dots, 0):RadRotate(6.28 * math.random()) + Vector(0, -1);
 										piece.Lifetime = math.random(300, 900);
 										piece.GlobalAccScalar = RangeRand(0.2, 0.4);
 										piece.AirResistance = RangeRand(0.1, 0.2);
@@ -133,7 +133,7 @@ function Update(self)
 									for px = 1, skip do
 										local piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(1, self.gooCount));
 										piece.Pos = checkPos + Vector(px - 1, 0);
-										piece.Vel = dustTarget.Vel/3 + Vector(0, -1) + SceneMan:ShortestDistance(dustTarget.Pos, piece.Pos, SceneMan.SceneWrapsX):SetMagnitude(math.random());
+										piece.Vel = dustTarget.Vel * 0.3 + Vector(0, -1) + SceneMan:ShortestDistance(dustTarget.Pos, piece.Pos, SceneMan.SceneWrapsX):SetMagnitude(math.random());
 										piece.Lifetime = math.random(500, 1500);
 										piece.GlobalAccScalar = RangeRand(0.2, 0.4);
 										piece.AirResistance = RangeRand(0.1, 0.2);
@@ -144,7 +144,7 @@ function Update(self)
 						end
 					end
 					for _, mo in pairs(parts) do
-						local glowDiameter = math.min(math.floor(1 + (mo.Diameter * mo.Scale)/10) * 10, 50);
+						local glowDiameter = math.min(math.floor(1 + (mo.Diameter * mo.Scale) * 0.1) * 10, 50);
 						local glow = CreateMOPixel("Techion.rte/Disintegration Glow ".. glowDiameter);
 						glow.Pos = mo.Pos;
 						glow.Vel = mo.Vel;

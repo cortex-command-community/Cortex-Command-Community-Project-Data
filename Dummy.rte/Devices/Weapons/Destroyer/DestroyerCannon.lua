@@ -30,12 +30,12 @@ function Update(self)
 				if self.Frame == 1 then
 					local effect = CreateMOPixel("Destroyer Muzzle Glow");
 					effect.Pos = self.MuzzlePos;
-					effect.Vel = self.Vel/2;
+					effect.Vel = self.Vel * 0.5;
 					MovableMan:AddParticle(effect);
 					
 					local damagePar = CreateMOPixel("Dummy.rte/Destroyer Emission Particle 2");
 					damagePar.Pos = self.MuzzlePos;
-					damagePar.Vel = self.Vel/2 + Vector(math.random(5) * (1 + self.charge), 0):RadRotate(6.28 * math.random());
+					damagePar.Vel = self.Vel * 0.5 + Vector(math.random(5) * (1 + self.charge), 0):RadRotate(6.28 * math.random());
 					damagePar.Team = self.Team;
 					damagePar.IgnoresTeamHits = true;
 					damagePar.Lifetime = 100 * (1 + self.charge);

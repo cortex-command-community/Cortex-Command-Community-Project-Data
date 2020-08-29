@@ -6,7 +6,7 @@ function Create(self)
 	
 	self.trailPar = CreateMOPixel("Techion Pulse Shot Trail Glow");
 	self.trailPar.Pos = self.Pos - (self.Vel * rte.PxTravelledPerFrame);
-	self.trailPar.Vel = self.Vel/10;
+	self.trailPar.Vel = self.Vel * 0.1;
 	self.trailPar.Lifetime = 60;
 	MovableMan:AddParticle(self.trailPar);
 end
@@ -18,7 +18,7 @@ function Update(self)
 		PulsarDissipate(self, false);
 		if self.trailPar and MovableMan:IsParticle(self.trailPar) then
 			self.trailPar.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(6);
-			self.trailPar.Vel = self.Vel/2;
+			self.trailPar.Vel = self.Vel * 0.5;
 			self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
 		end
 	end
@@ -27,7 +27,7 @@ end
 function PulsarDissipate(self, inverted)
 
 	local trace = inverted and Vector(-self.Vel.X, -self.Vel.Y):SetMagnitude(GetPPM()) or Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + 1);
-	local hit, hitPos, skipPx = nil, Vector(), math.sqrt(self.Vel.Magnitude)/2;
+	local hit, hitPos, skipPx = nil, Vector(), math.sqrt(self.Vel.Magnitude) * 0.5;
 
 	local ray = SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx);
 	if ray >= 0 then

@@ -12,13 +12,13 @@ function Update(self)
 	if self.FiredFrame then
 		local parent = self:GetParent() and self:GetParent() or self;
 
-		self.setAngle = self.setAngle + RangeRand(1.0, 1.3)/math.sqrt(1 + parent.Mass + parent.Material.StructuralIntegrity/10);
+		self.setAngle = self.setAngle + RangeRand(1.0, 1.3)/math.sqrt(1 + parent.Mass + parent.Material.StructuralIntegrity * 0.1);
 		self.RateOfFire = math.max(self.RateOfFire - self.fireRatePenaltyPerShot, 1);
 
 		self.fireRateRevertTimer:Reset();
 	elseif self.RateOfFire < self.origRateOfFire then
 
-		self.RateOfFire = math.min(self.RateOfFire * (1 + self.fireRateRevertIncrement/100) + self.fireRateRevertIncrement, self.origRateOfFire);
+		self.RateOfFire = math.min(self.RateOfFire * (1 + self.fireRateRevertIncrement * 0.01) + self.fireRateRevertIncrement, self.origRateOfFire);
 		self.fireRateRevertTimer:Reset();
 	end
 

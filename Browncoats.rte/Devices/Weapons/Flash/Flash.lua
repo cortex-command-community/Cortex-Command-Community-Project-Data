@@ -3,7 +3,7 @@ function Create(self)
 	
 	self.rocketCount = 4;
 	
-	self.searchRange = FrameMan.PlayerScreenWidth/3;
+	self.searchRange = FrameMan.PlayerScreenWidth * 0.3;
 	self.searchTimer = Timer();
 	self.searchTimer:SetSimTimeLimitMS(250);
 	self.lockThreshold = 1;
@@ -123,8 +123,8 @@ function Update(self)
 				rocket:SetNumberValue("TargetID", self.targets[math.random(#self.targets)].actor.ID);
 			end
 		end
-		rocket.Pos = self.MuzzlePos + Vector(0, (rocketNumber - self.rocketCount/2)):RadRotate(self.RotAngle);
-		rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((spread/2) - (rocketNumber/self.rocketCount) * spread) * self.FlipFactor);
+		rocket.Pos = self.MuzzlePos + Vector(0, (rocketNumber - self.rocketCount * 0.5)):RadRotate(self.RotAngle);
+		rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((spread * 0.5) - (rocketNumber/self.rocketCount) * spread) * self.FlipFactor);
 		rocket.RotAngle = rocket.Vel.AbsRadAngle;
 		rocket.AngularVel = math.cos(rocket.Vel.AbsRadAngle) * 5;
 		rocket.Team = self.Team;

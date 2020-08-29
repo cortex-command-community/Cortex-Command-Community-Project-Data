@@ -15,10 +15,10 @@ function Create(self)
     self.speed = self.Vel.Magnitude * 10;
 	
     --Speed of damage particles.
-    self.damageSpeed = 50 + self.Vel.Magnitude/10;
+    self.damageSpeed = 50 + self.Vel.Magnitude * 0.1;
 
     --Maximum strength for material penetration (both MOs and terrain).
-    self.strengthThreshold = 50 + self.Vel.Magnitude/3;
+    self.strengthThreshold = 50 + self.Vel.Magnitude * 0.3;
     
     --Direction of the wave.
     self.direction = Vector(self.Vel.X, self.Vel.Y);
@@ -39,7 +39,7 @@ function Create(self)
     self.hits = 0;
 
     --Amount of damage pixels.
-    self.damageStrength = math.floor(math.sqrt(self.Vel.Magnitude/10));
+    self.damageStrength = math.floor(math.sqrt(self.Vel.Magnitude * 0.1));
 	
 	--Disintegration strength.
 	self.disintegrationStrength = 50;
@@ -69,7 +69,7 @@ function Update(self)
         local linePos = self.Pos + Vector(self.direction.X, self.direction.Y):SetMagnitude(i * 2);
         local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
         local upPos = linePos + waveOffset;
-        local downPos = linePos - waveOffset/5;
+        local downPos = linePos - waveOffset * 0.2;
         
         --Cancel the beam if there's a terrain collision.
         local trace = Vector(fireVector.X, fireVector.Y):SetMagnitude(self.damageSpeed * 0.1);
@@ -81,18 +81,18 @@ function Update(self)
 			--Add the blue wave effect.
 			local partA = CreateMOPixel("Techion.rte/Dihelical Cannon Effect Particle");
 			partA.Pos = upPos;
-			partA.Vel = (fireVector/2 - waveOffset)/5;
+			partA.Vel = (fireVector * 0.5 - waveOffset) * 0.2;
 			MovableMan:AddParticle(partA);
 			
 			--Add the wave front effect.
 			local frontA = CreateMOPixel("Techion.rte/Dihelical Cannon Front Effect Particle");
 			frontA.Pos = upPos;
-			frontA.Vel = (fireVector/2 - waveOffset)/5;
+			frontA.Vel = (fireVector * 0.5 - waveOffset) * 0.2;
 			MovableMan:AddParticle(frontA);
 		end
 		if i % self.damageInterval == 0 then
 			--Check for a target.
-			local moRay = SceneMan:CastMORay(upPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, 0, true, 3);
+			local moRay = SceneMan:CastMORay(upPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 3);
 			if moRay ~= rte.NoMOID then
 				--Add the damage particle.
 				for i = 1, self.damageStrength do
@@ -115,19 +115,19 @@ function Update(self)
 		--Add the blue wave effect.
 		local partB = CreateMOPixel("Techion.rte/Dihelical Cannon Effect Particle");
 		partB.Pos = downPos;
-		partB.Vel = (fireVector + waveOffset)/25;
+		partB.Vel = (fireVector + waveOffset) * 0.04;
 		MovableMan:AddParticle(partB);
 		
 		--Add the wave front effect.
 		local frontB = CreateMOPixel("Techion.rte/Dihelical Cannon Front Effect Particle");
 		frontB.Pos = downPos;
-		frontB.Vel = (fireVector + waveOffset)/25;
+		frontB.Vel = (fireVector + waveOffset) * 0.04;
 		MovableMan:AddParticle(frontB);
 		
 		if i % self.damageInterval == 0 then
 			local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
 			--Check for a target.
-			local moRay = SceneMan:CastMORay(downPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, 0, true, 3);
+			local moRay = SceneMan:CastMORay(downPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 3);
 			if moRay ~= rte.NoMOID then
 				--Add the damage particles.
 				local mo = MovableMan:GetMOFromID(moRay);
@@ -161,7 +161,7 @@ function Update(self)
 
 			local part = CreateMOPixel("Techion.rte/Dihelical Cannon Large Effect Particle");
 			part.Pos = linePos - Vector(self.direction.X, self.direction.Y):SetMagnitude(2);
-			part.Vel = fireVector/10;
+			part.Vel = fireVector * 0.1;
 			MovableMan:AddParticle(part);
 		end
 		self.lastAmplitude = amplitude;
@@ -179,7 +179,7 @@ function Update(self)
 			self.hits = self.hits * 0.9;
 		end
 		self.waveLength = self.waveLength * (1 + 0.05/self.waveLength);
-		self.maxAmplitude = self.waveLength/2;
+		self.maxAmplitude = self.waveLength * 0.5;
     end
     self.lastI = endPoint;
 end

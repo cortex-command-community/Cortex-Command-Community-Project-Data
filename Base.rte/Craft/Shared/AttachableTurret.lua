@@ -41,15 +41,15 @@ function Update(self)
 			self.verticalFactor = 0;
 		end
 		--Aim directly away from parent
-		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange/2);
+		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);
 		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0))/(1 + self.verticalFactor) - self.rotation;
 		if self.areaMode then	--Area Mode
-			local aimPos = self.Pos + Vector((self.searchRange/2), 0):RadRotate(self.RotAngle);
+			local aimPos = self.Pos + Vector((self.searchRange * 0.5), 0):RadRotate(self.RotAngle);
 			--Debug: visualize aim area
 			if self.showAim then
-				PrimitiveMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange/2), 13);
+				PrimitiveMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange * 0.5), 13);
 			end
-			local aimTarget = MovableMan:GetClosestEnemyActor(self.Team, aimPos, (self.searchRange/2), Vector());
+			local aimTarget = MovableMan:GetClosestEnemyActor(self.Team, aimPos, (self.searchRange * 0.5), Vector());
 			if aimTarget then
 				--Debug: visualize search trace
 				if self.showAim then

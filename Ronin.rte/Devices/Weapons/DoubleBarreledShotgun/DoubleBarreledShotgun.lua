@@ -23,7 +23,7 @@ function Update(self)
 		self.Frame = 0;
 		self.shellsToEject = self.Magazine.Capacity - self.RoundInMagCount;
 	elseif self:IsReloading() then
-		if self.loadTimer:IsPastSimMS(self.ReloadTime/3) then
+		if self.loadTimer:IsPastSimMS(self.ReloadTime * 0.3) then
 			if self.Frame ~= 1 then
 				AudioMan:PlaySound("Ronin.rte/Devices/Weapons/DoubleBarreledShotgun/Sounds/Eject.wav", self.Pos);
 				self.Frame = 1;

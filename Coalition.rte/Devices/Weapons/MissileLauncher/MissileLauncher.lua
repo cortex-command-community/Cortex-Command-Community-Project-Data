@@ -6,7 +6,7 @@ function Create(self)
 	self.targetLostTimer = Timer();
 	self.targetLostTimer:SetSimTimeLimitMS(3000);
 
-	self.laserLength = self.SharpLength + math.sqrt(FrameMan.PlayerScreenWidth ^ 2 + FrameMan.PlayerScreenHeight ^ 2)/2;
+	self.laserLength = self.SharpLength + math.sqrt(FrameMan.PlayerScreenWidth ^ 2 + FrameMan.PlayerScreenHeight ^ 2) * 0.5;
 	self.laserPointerOffset = Vector(0, -3);
 
 	self.markerRotAngle = math.random() * math.pi;

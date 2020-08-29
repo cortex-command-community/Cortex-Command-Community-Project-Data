@@ -16,7 +16,7 @@ function Create(self)
 		MovableMan:AddParticle(self.partList[i]);
 		self.partList[i].queue = math.abs(self.partList[i].Vel.X - self.Vel.X) * TimerMan.DeltaTimeMS;
 
-		if i < self.numOfParticles/2 then
+		if i < self.numOfParticles * 0.5 then
 			local part = CreateMOSParticle("Oil Spray Particle");
 			part.Pos = self.Pos;
 			part.Lifetime = part.Lifetime*RangeRand(0.5, 1.5);
@@ -50,14 +50,14 @@ function Update(self)
 					if self.partList[i].target then
 						fire.Pos = self.partList[i].target.Pos + self.partList[i].stickPos;
 						fire.Vel = Vector(-self.partList[i].stickPos.X, -self.partList[i].stickPos.Y);
-						fire.Sharpness = self.partList[i].target.ID/1000;
+						fire.Sharpness = self.partList[i].target.ID * 0.001;
 					else
 						fire.Lifetime = math.random(1500, 3000);
 					end
 					MovableMan:AddParticle(fire);
 					for j = 1, self.particlesPerOil do
 						local firePar;
-						if j > self.particlesPerOil/2 then
+						if j > self.particlesPerOil * 0.5 then
 							firePar = CreateMOPixel("Ground Fire Burn Particle");
 							firePar.Vel = self.Vel + Vector(RangeRand(-20, 20), -math.random(-10, 30));
 						else

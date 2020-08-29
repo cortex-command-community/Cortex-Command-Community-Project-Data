@@ -1,7 +1,7 @@
 function Create(self)
 	self.updateTimer = Timer();
 	if not self:NumberValueExists("Identity") then
-		self.face = math.random(0, (self.Head.FrameCount/2) - 1);
+		self.face = math.random(0, (self.Head.FrameCount * 0.5) - 1);
 		if self.Head then
 			self.Head.Frame = self.face;
 		end
@@ -51,11 +51,11 @@ end
 function Update(self)
 	if self.updateTimer:IsPastSimMS(1000) then
 		self.updateTimer:Reset();
-		self.aggressive = self.Health < (self.MaxHealth/2);
+		self.aggressive = self.Health < (self.MaxHealth * 0.5);
 		if self.Head then
 			self.Head.Frame = self.face;
 			if self.controller and self.controller:IsState(Controller.WEAPON_FIRE) or self.aggressive then
-				self.Head.Frame = self.face + (self.Head.FrameCount/2);
+				self.Head.Frame = self.face + (self.Head.FrameCount * 0.5);
 			end
 		end
 	end

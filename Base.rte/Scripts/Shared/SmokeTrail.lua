@@ -1,6 +1,6 @@
 function Create(self)
 	self.smokeTrailLifeTime = self:NumberValueExists("SmokeTrailLifeTime") and self:GetNumberValue("SmokeTrailLifeTime") or 150;
-	self.spread = self.Radius/3;
+	self.spread = self.Radius * 0.3;
 end
 function Update(self)
 	local effect;

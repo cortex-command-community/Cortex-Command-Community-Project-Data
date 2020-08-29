@@ -5,7 +5,7 @@ function Create(self)
 	self.minScale = 0.1;
 	
 	local target;
-	local strength = math.random(self.PinStrength/2, self.PinStrength);
+	local strength = math.random(self.PinStrength * 0.5, self.PinStrength);
 	--Get assigned target from Sharpness because MOPixels cannot carry NumberValues
 	if self.Sharpness ~= rte.NoMOID and self.Sharpness >= 0 then
 		target = MovableMan:GetMOFromID(self.Sharpness);
@@ -35,7 +35,7 @@ function Create(self)
 			end
 		end
 		--Elaborate effect resistance strength calculations based on various Actor values
-		local resistance = ((actor.Mass + size + actor.Material.StructuralIntegrity)/3 + (actor.TotalWoundLimit - actor.TotalWoundCount) + actor.Health)/2;
+		local resistance = ((actor.Mass + size + actor.Material.StructuralIntegrity) * 0.3 + (actor.TotalWoundLimit - actor.TotalWoundCount) + actor.Health) * 0.5;
 		if resistance - strength < 0 then
 			--Leave this Actor alone if it already has a disintegrator particle assigned to it
 			if ToActor(target):NumberValueExists("ToDisintegrate") then
@@ -51,7 +51,7 @@ function Create(self)
 				self.target:RemoveAnyRandomWounds(self.target.TotalWoundCount + 1);
 				self.target.MissionCritical = true;	--This ensures that the target Actor doesn't settle during the effect
 				self.target.HitsMOs = false;
-				self.target.AngularVel = self.target.AngularVel/2 - self.target.Vel.X + self.target.FlipFactor;
+				self.target.AngularVel = self.target.AngularVel * 0.5 - self.target.Vel.X + self.target.FlipFactor;
 				
 				AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/Disintegrate".. math.random(3) ..".wav", self.target.Pos);
 			end
@@ -59,7 +59,7 @@ function Create(self)
 			ToActor(target):SetNumberValue("ToDisintegrate", ToActor(target):GetNumberValue("ToDisintegrate") + 1);
 			--Additional glow effects
 			for _, mo in pairs(parts) do
-				local glowDiameter = math.min(math.floor(1 + (mo.Diameter * mo.Scale)/10) * 10, 50);
+				local glowDiameter = math.min(math.floor(1 + (mo.Diameter * mo.Scale) * 0.1) * 10, 50);
 				local glow = CreateMOPixel("Techion.rte/Disintegration Glow ".. glowDiameter);
 				glow.Pos = mo.Pos;
 				glow.Vel = mo.Vel;
@@ -73,7 +73,7 @@ function Update(self)
 	
 		self.target.ToSettle = false;
 		self.target.Vel = (self.target.Vel * 0.9) - (SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs);
-		self.target.AngularVel = self.target.AngularVel/2;
+		self.target.AngularVel = self.target.AngularVel * 0.5;
 		
 		self.target.GlobalAccScalar = self.target.GlobalAccScalar * (1 - 1/(math.abs(self.target.Mass) + 1));
 		self.target:FlashWhite(10);
@@ -115,7 +115,7 @@ function Update(self)
 			mo.ParentOffset = Vector(mo.ParentOffset.X + RangeRand(-0.3, 0.3), mo.ParentOffset.Y + RangeRand(-0.3, 0.3)):SetMagnitude(mo.ParentOffset.Magnitude + RangeRand(0, 0.3) * inverseScale);
 			mo.Pos = mo.Pos - Vector(0, 100/mo.Radius * inverseScale);
 			if totalAttSize == mo.Radius then
-				mo.RotAngle = mo.RotAngle + (mo.FlipFactor * inverseScale)/2;
+				mo.RotAngle = mo.RotAngle + (mo.FlipFactor * inverseScale) * 0.5;
 			end
 			--Induce randomized deletion
 			if (totalAttSize * self.setScale) < math.random(3) then

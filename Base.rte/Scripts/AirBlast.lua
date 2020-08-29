@@ -23,7 +23,7 @@ function Update(self)
 						local impulse = (forceVector.Magnitude * self.strength/massFactor) - actor.ImpulseDamageThreshold;
 						local damage = impulse/(actor.GibImpulseLimit * 0.1 + actor.Material.StructuralIntegrity * 10);
 						actor.Health = damage > 0 and actor.Health - damage or actor.Health;
-						actor.Status = (actor.Status == Actor.STABLE and damage > (actor.Health/2)) and Actor.UNSTABLE or actor.Status;
+						actor.Status = (actor.Status == Actor.STABLE and damage > (actor.Health * 0.5)) and Actor.UNSTABLE or actor.Status;
 					end
 				end
 			end

@@ -1,7 +1,7 @@
 function Create(self)
 	self.origStanceOffset = Vector(0, 8);
 	self.rotNum = 0;
-	self.minimumRoF = self.RateOfFire/2;
+	self.minimumRoF = self.RateOfFire * 0.5;
 
 	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble"};
 	
@@ -12,7 +12,7 @@ function Create(self)
 end
 function Update(self)
 	self.RotAngle = self.RotAngle + (self.rotNum) * self.FlipFactor;
-	self.StanceOffset = Vector(self.origStanceOffset.X + self.rotNum * 5, self.origStanceOffset.Y):RadRotate(self.angleSize/2 * self.rotNum);
+	self.StanceOffset = Vector(self.origStanceOffset.X + self.rotNum * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.rotNum);
 	--Revert rotation
 	if self.rotNum > 0 then
 		self.rotNum = self.rotNum - (0.0003 * self.RateOfFire);
@@ -57,13 +57,13 @@ function Update(self)
 				local hits = 0;
 				for i = 1, rayCount do
 					local hitPos = self.MuzzlePos;
-					local terrRay = SceneMan:CastStrengthRay(self.MuzzlePos, Vector(trace.X, trace.Y):DegRotate(self.ParticleSpreadRange/2 - self.ParticleSpreadRange * (i/rayCount)), 30, hitPos, 3, rte.grassID, SceneMan.SceneWrapsX);
+					local terrRay = SceneMan:CastStrengthRay(self.MuzzlePos, Vector(trace.X, trace.Y):DegRotate(self.ParticleSpreadRange * 0.5 - self.ParticleSpreadRange * (i/rayCount)), 30, hitPos, 3, rte.grassID, SceneMan.SceneWrapsX);
 					if terrRay then
 						local material = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)).PresetName;
 						for _, terrainMaterial in pairs(self.suitableMaterials) do
 							if material == terrainMaterial then
 								hits = hits + 1;
-								if hits > rayCount/2 then
+								if hits > rayCount * 0.5 then
 									actor:SetNumberValue("RoninShovelResource", resource + 1);
 									AudioMan:PlaySound("Base.rte/Sounds/Devices/DeviceSwitch".. math.random(3) ..".wav", self.Pos);
 									break;

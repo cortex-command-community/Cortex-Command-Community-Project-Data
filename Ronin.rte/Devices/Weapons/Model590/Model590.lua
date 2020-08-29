@@ -31,7 +31,7 @@ function Update(self)
 			end
 			self.Frame = 1;
 			self.SupportOffset = Vector(-2, 4);
-			local rotTotal = math.sin(self.rotFactor)/5;
+			local rotTotal = math.sin(self.rotFactor) * 0.2;
 			self.RotAngle = self.RotAngle + self.FlipFactor * rotTotal;
 			local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 			self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-rotTotal * self.FlipFactor);

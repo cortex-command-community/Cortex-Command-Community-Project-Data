@@ -13,5 +13,5 @@ function Update(self)
 		self.thrown = false;
 		self.Mass = self.origMass;
 	end
-	self.lastVel = (self.Vel.Magnitude + self.lastVel)/2;
+	self.lastVel = (self.Vel.Magnitude + self.lastVel) * 0.5;
 end
