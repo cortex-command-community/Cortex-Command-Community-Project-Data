@@ -19,6 +19,7 @@ function Create(self)
 	self.disintegrationStrength = 75;
 
 	self.linkRange = 100 + (FrameMan.PlayerScreenWidth + FrameMan.PlayerScreenHeight)/4;
+	self.linkPullRatio = 0.005;
 	--Table of colors being used in primitive effects
 	self.colors = {5, 186, 198, 196};
 end
@@ -55,8 +56,8 @@ function Update(self)
 				
 					local dist = SceneMan:ShortestDistance(self.Pos, g_nucleocommunicationtable[self.Sharpness][i][2].Pos, SceneMan.SceneWrapsX);
 					PrimitiveMan:DrawLinePrimitive(self.Pos + Vector(math.random(-1, 1), math.random(-1, 1)), self.Pos + dist + Vector(math.random(-1, 1), math.random(-1, 1)), self.colors[math.random(#self.colors)]);
-					-- The projectiles are drawn towards each other
-					self.Vel = self.Vel + dist/1000;
+					--The projectiles are drawn towards each other
+					self.Vel = self.Vel + dist * rte.PxTravelledPerFrame * self.linkPullRatio;
 
 					local moid = SceneMan:CastMORay(self.Pos, raydirection, rte.NoMOID, self.Team, rte.airID, true, 1);
 					if moid ~= rte.NoMOID then
@@ -90,7 +91,7 @@ function Update(self)
 	if self.boom or self:NumberValueExists("GOBOOM") then
 		local particleCount = 13;
 		for i = 1, particleCount do
-			local blastpar = i < particleCount/2 and CreateMOPixel("Nucleo Damage Particle") or CreateMOPixel("Nucleo Air Blast");
+			local blastpar = i < particleCount * 0.5 and CreateMOPixel("Nucleo Damage Particle") or CreateMOPixel("Nucleo Air Blast");
 
 			local randomDir = Vector(40, 0):RadRotate(math.random() * math.pi * 2);
 			blastpar.Pos = self.Pos - Vector(randomDir.X, randomDir.Y);

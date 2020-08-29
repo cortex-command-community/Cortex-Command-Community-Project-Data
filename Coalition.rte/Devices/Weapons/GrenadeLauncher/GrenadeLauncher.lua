@@ -31,11 +31,11 @@ function Update(self)
 				if self.Magazine.PresetName == "Magazine Grenade Launcher Remote Grenade" then				
 					local bullet = CreateActor("Grenade Launcher Shot Remote");
 					bullet.Pos = self.MuzzlePos;
-					bullet.Vel = self.Vel + Vector(30 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.ShakeRange/2) - (self.ShakeRange * math.random()));
+					bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.ShakeRange * 0.5) - (self.ShakeRange * math.random()));
 					local actor = MovableMan:GetMOFromID(self.RootID);
 					if MovableMan:IsActor(actor) then
 						if ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
-							bullet.Vel = self.Vel + Vector(30 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.SharpShakeRange/2) - (self.SharpShakeRange * math.random()));
+							bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.SharpShakeRange * 0.5) - (self.SharpShakeRange * math.random()));
 						end
 						if ToActor(actor):IsPlayerControlled() then
 							if self.grenadeTableA[self.maxActiveGrenades] ~= nil then

@@ -83,7 +83,7 @@ function Update(self)
 		if self:IsActivated() and self.Magazine.RoundCount ~= 0 then
 			self.Scale = 0;
 			self.fired = true;
-			-- Dismemberment
+			--Dismemberment: detach limbs via MO detection
 			if self.dismemberTimer:IsPastSimMS(200) then
 				self.dismemberTimer:Reset();
 				local moCheck = SceneMan:CastMORay(self.Pos, Vector(self.length * 0.8 * self.FlipFactor, 0):RadRotate(self.RotAngle), self.ID, self.Team, rte.airID, true, 2);

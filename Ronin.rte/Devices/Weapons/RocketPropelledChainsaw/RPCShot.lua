@@ -3,7 +3,7 @@ function Create(self)
 	self.lastAngle = self.RotAngle;
 	self.firstAngle = self.RotAngle;
 	self.AngularVel = 0;
-	self.angleCorrectionRatio = 0.8;	-- from old script, idk if this means anything anymore
+	self.angleCorrectionRatio = 0.8;
 	self.toGib = false;
 	self.toGibCounter = 0;
 	
@@ -78,7 +78,7 @@ function Update(self)
 			self.RotAngle = (self.RotAngle + self.Vel.AbsRadAngle + self.firstAngle)/3;
 		end
 	end
-	if self.toGibCounter == 60 then	-- 60 frames still (or 90 inside a mo)
+	if self.toGibCounter == 60 then	--60 frames have passed while still (or 90 inside a MO)
 		self.toGib = true;
 	end
 	if self.toGib == true then

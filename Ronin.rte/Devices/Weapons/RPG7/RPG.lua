@@ -1,5 +1,5 @@
 function Create(self)
-	self.shake = 0.5;
+	self.shake = 0.4;
 end
 function Update(self)
 	if self.Age > self.Lifetime then

@@ -2,46 +2,14 @@ function Create(self)
 	self.rofBoost = 3;
 	self.drawGunSpeed = 1;
 
-	self.rotNum = 0;
-	self.shellsToEject = 0;
-
 	self.prevAngle = self.RotAngle;
 	self.drawGunAngle = 0;
 	self.drawGun = false;
-	
-	self.shellsToEject = self.RoundInMagCount;
 end
-
 function Update(self)
 	--Read RateOfFire on Update() to take Global Scripts to account
 	if self.rof == nil then
 		self.rof = self.RateOfFire;
-	end
-	--Recoil rotation script
-	if self.FiredFrame then
-		self.rotNum = self.rotNum + RangeRand(0.3, 0.4);
-	end
-
-	self.RotAngle = self.RotAngle + self.rotNum * self.FlipFactor;
-	self.Pos = self.Pos + Vector(-self.rotNum * self.FlipFactor * 4, -self.rotNum * 4):RadRotate(self.RotAngle);
-
-	if self.rotNum > 0 then
-		self.rotNum = self.rotNum - 0.0001 * self.RateOfFire;
-		if self.rotNum < 0 then
-			self.rotNum = 0;
-		end
-	end
-	--Revolver casing dump script
-	if self.Magazine then
-		self.shellsToEject = self.Magazine.Capacity - self.Magazine.RoundCount;
-	elseif self.shellsToEject > 0 then
-		for i = 1, self.shellsToEject do
-			local shell = CreateMOSParticle("Casing");
-			shell.Pos = self.Pos;
-			shell.Vel = Vector(math.random() * (-3) * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(math.random(-16, 16));
-			MovableMan:AddParticle(shell);
-		end
-		self.shellsToEject = 0;
 	end
 	-- Special high-RoF revolver fanning mode
 	if self:NumberValueExists("CowboyMode") then

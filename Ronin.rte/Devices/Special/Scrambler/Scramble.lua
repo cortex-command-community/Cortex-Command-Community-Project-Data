@@ -1,13 +1,13 @@
 function Create(self)
-	self.radius = 200;					-- Range of effective area in px
-	self.strength = self.PinStrength;	-- Duration variable
+	self.effectRadius = 175;
+	self.strength = self.PinStrength;	--Affects the duration of the effect
 	
 	self.actorTable = {};
-	local actorCount = 0;	-- This diminishes the effect when multiple actors are affected
+	local actorCount = 0;	--Diminishes the effect the more actors are affected
 	
 	for actor in MovableMan.Actors do
 		local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-		if dist.Magnitude < self.radius then
+		if dist.Magnitude < self.effectRadius then
 			local skipPx = 1 + (dist.Magnitude * 0.01);
 			local strCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, skipPx, rte.airID);
 			if strCheck < (100/skipPx) then
@@ -27,13 +27,13 @@ function Create(self)
 	end
 	for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 		if SceneMan:AnythingUnseen(team) then
-			local size = self.radius/2;
+			local size = self.effectRadius * 0.6;
 			local dots = 10;
-			SceneMan:RestoreUnseenBox(self.Pos.X - (size/2), self.Pos.Y - (size/2), size, size, team);
+			SceneMan:RestoreUnseenBox(self.Pos.X - (size * 0.5), self.Pos.Y - (size * 0.5), size, size, team);
 			for i = 1, dots do
 				local vector = Vector(size, 0):RadRotate(6.28 * i/dots);
 				local startPos = self.Pos + vector;
-				SceneMan:RestoreUnseenBox(startPos.X - (size/2), startPos.Y - (size/2), size, size, team);
+				SceneMan:RestoreUnseenBox(startPos.X - (size * 0.5), startPos.Y - (size * 0.5), size, size, team);
 			end
 		end
 	end

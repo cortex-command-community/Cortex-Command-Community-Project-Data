@@ -4,7 +4,7 @@ function Create(self)
 
 	self.delayTime = 100;
 
-	self.pointCount = 50;
+	self.pointCount = 40;
 	self.spiralScale = 10;
 	self.skipPoints = 10;
 end
