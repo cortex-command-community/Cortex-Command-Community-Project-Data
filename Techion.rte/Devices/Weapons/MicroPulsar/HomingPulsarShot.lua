@@ -43,7 +43,7 @@ function Create(self)
 	
 	self.trailPar = CreateMOPixel("Techion Pulse Shot Trail Glow Small");
 	self.trailPar.Pos = self.Pos - (self.Vel * rte.PxTravelledPerFrame);
-	self.trailPar.Vel = self.Vel/10;
+	self.trailPar.Vel = self.Vel * 0.1;
 	self.trailPar.Lifetime = 60;
 	MovableMan:AddParticle(self.trailPar);
 end
@@ -63,7 +63,7 @@ function Update(self)
 		PulsarDissipate(self, false);
 		if self.trailPar and MovableMan:IsParticle(self.trailPar) then
 			self.trailPar.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(3);
-			self.trailPar.Vel = self.Vel/2;
+			self.trailPar.Vel = self.Vel * 0.5;
 			self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
 		end
 	end

@@ -97,7 +97,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 					local moCheck = SceneMan:GetMOIDPixel(arm.HandPos.X, arm.HandPos.Y)
 					if moCheck ~= rte.NoMOID then
 						local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-						if mo and mo.Team ~= actor.Team and IsActor(mo) and actor.Mass > (mo.Mass/2) then
+						if mo and mo.Team ~= actor.Team and IsActor(mo) and actor.Mass > (mo.Mass * 0.5) then
 							mo:AddForce(handVector * (actor.Mass * 0.5), Vector());
 							ToActor(mo).Status = Actor.UNSTABLE;
 						end
@@ -119,27 +119,24 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 				if item.ClassName == "TDExplosive" then
 					thrownCount = thrownCount + 1;
 				elseif item.ClassName == "HDFirearm" or item.ClassName == "HeldDevice" then
-					if showAll or (not showAll and item.Radius > largestItem) then
+					if showAll or item.Radius > largestItem then
 						largestItem = item.Radius;
 						heldCount = heldCount + 1;
 
-						local isFirearm = item.ClassName == "HeldDevice" and 0 or 1;
-						local actorSize, itemSize = math.sqrt(actor.Radius), math.sqrt(item.Radius + math.abs(item.Mass));
-
-						local fixNum = item.Radius * 0.2 + math.sqrt(heldCount);
-
+						local actorBack = Vector(ToMOSprite(actor):GetSpriteWidth() + actor.SpriteOffset.X, ToMOSprite(actor):GetSpriteHeight() + actor.SpriteOffset.Y);
+						local stackX = item.Radius * 0.2 + math.sqrt(heldCount) - 0.5;
 						--Bigger actors carry weapons higher up, smaller weapons are carried lower down
-						local drawPos = actor.Pos + Vector((-actorSize - fixNum) * actor.FlipFactor, -actorSize - itemSize + 1 + isFirearm * 3):RadRotate(actor.RotAngle);
+						local drawPos = actor.Pos + Vector((-actorBack.X * 0.5 - stackX) * actor.FlipFactor, -actorBack.Y * 0.75):RadRotate(actor.RotAngle);
 
-						local itemCount = math.sqrt(math.abs(actor.InventorySize - thrownCount));
+						local itemCount = math.sqrt(math.abs(heldCount - thrownCount));
 						--Display tall objects upright
-						local tallAng = ToMOSprite(item):GetSpriteWidth() > ToMOSprite(item):GetSpriteHeight() and 1.57 or 0;
+						local widthToHeightRatio = ToMOSprite(item):GetSpriteWidth()/ToMOSprite(item):GetSpriteHeight();
+						local tallAng = widthToHeightRatio > 1 and 1.57 or 0;
 
-						local tilt = 0.3;
-						local rotAng = actor.RotAngle + tallAng + (heldCount * tilt - itemCount * tilt + isFirearm/itemSize)/itemCount * actor.FlipFactor;
+						local tilt = (1/item.Radius) * widthToHeightRatio * actor.FlipFactor;
+						local rotAng = actor.RotAngle + tallAng - (itemCount - 1) * tilt + (actor.InventorySize - heldCount) * tilt * 0.5;
 
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-
 							local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
 							if screen ~= -1 and not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
 								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0);

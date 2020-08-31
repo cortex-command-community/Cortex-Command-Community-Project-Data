@@ -18,7 +18,7 @@ function Create(self)
 	self.acceleration = 0.1;
 	self.disintegrationStrength = 75;
 
-	self.linkRange = 100 + (FrameMan.PlayerScreenWidth + FrameMan.PlayerScreenHeight)/4;
+	self.linkRange = 100 + (FrameMan.PlayerScreenWidth + FrameMan.PlayerScreenHeight) * 0.25;
 	self.linkPullRatio = 0.005;
 	--Table of colors being used in primitive effects
 	self.colors = {5, 186, 198, 196};

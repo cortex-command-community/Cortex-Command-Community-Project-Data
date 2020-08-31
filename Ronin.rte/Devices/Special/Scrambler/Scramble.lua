@@ -1,5 +1,5 @@
 function Create(self)
-	self.effectRadius = 175;
+	self.effectRadius = 125;
 	self.strength = self.PinStrength;	--Affects the duration of the effect
 	
 	self.actorTable = {};
@@ -13,7 +13,7 @@ function Create(self)
 			if strCheck < (100/skipPx) then
 				-- The effect is diminished by target actor mass, material strength and distance
 				local resistance = math.sqrt(math.abs(actor.Mass) + actor.Material.StructuralIntegrity + dist.Magnitude + 1) + actorCount;
-				actor:SetNumberValue("Ronin Scrambler", math.floor(actor:GetNumberValue("Ronin Scrambler") + self.strength/resistance));
+				actor:SetNumberValue("RoninScrambler", math.floor(actor:GetNumberValue("RoninScrambler") + self.strength/resistance));
 				actor:FlashWhite(20);
 				if actor:IsPlayerControlled() then
 					local screen = ActivityMan:GetActivity():ScreenOfPlayer(actor:GetController().Player);
@@ -44,9 +44,9 @@ function Update(self)
 	for i = 1, #self.actorTable do
 		if IsActor(self.actorTable[i]) then
 			local actor = ToActor(self.actorTable[i]);
-			if actor:NumberValueExists("Ronin Scrambler") and actor.Status < Actor.DYING then
+			if actor:NumberValueExists("RoninScrambler") and actor.Status < Actor.DYING then
 				actorCount = actorCount + 1;
-				local numberValue = actor:GetNumberValue("Ronin Scrambler");
+				local numberValue = actor:GetNumberValue("RoninScrambler");
 				if numberValue > 0 then
 					actor.Status = Actor.UNSTABLE;
 					local ctrl = actor:GetController();
@@ -62,9 +62,9 @@ function Update(self)
 							AudioMan:PlaySound("Ronin.rte/Devices/Special/Scrambler/Sounds/Buzz0".. math.random(6) ..".wav", actor.Pos);
 						end
 					end
-					actor:SetNumberValue("Ronin Scrambler", numberValue - 1);
+					actor:SetNumberValue("RoninScrambler", numberValue - 1);
 				else
-					actor:RemoveNumberValue("Ronin Scrambler");
+					actor:RemoveNumberValue("RoninScrambler");
 				end
 			end
 		end
