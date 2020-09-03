@@ -59,13 +59,13 @@ function Update(self)
 			local terrainRaycastB = SceneMan:CastStrengthRay(self.Pos + Vector(0, -3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosB, 0, rte.airID, SceneMan.SceneWrapsX);
 
 			if terrainRaycastA == true and terrainRaycastB == true then
-				self.faceDirection = SceneMan:ShortestDistance(rayHitPosA, rayHitPosB, SceneMan.SceneWrapsX).AbsRadAngle + (math.pi/2);
+				self.faceDirection = SceneMan:ShortestDistance(rayHitPosA, rayHitPosB, SceneMan.SceneWrapsX).AbsRadAngle + (math.pi * 0.5);
 			else
 				self.faceDirection = (self.Vel * -1).AbsRadAngle;
 			end
 
 			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(2);
-			self.RotAngle = self.faceDirection - (math.pi/2);
+			self.RotAngle = self.faceDirection - (math.pi * 0.5);
 			self.PinStrength = self.GibImpulseLimit;
 			self.actionPhase = 1;
 			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", self.Pos);
@@ -93,7 +93,7 @@ function Update(self)
 			self.checkDelay = self.checkDelay + self.checkDelayExtension;
 			
 			self.detectionAngleTurn = self.detectionAngleTurn + math.rad(self.detectionTurnSpeed);
-			local detectionAngle = self.faceDirection + (math.sin(self.detectionAngleTurn) * math.rad(self.detectionAngleDegrees/2));
+			local detectionAngle = self.faceDirection + (math.sin(self.detectionAngleTurn) * math.rad(self.detectionAngleDegrees * 0.5));
 			
 			self.delayTimer:Reset();
 
@@ -115,7 +115,7 @@ function Update(self)
 					self.faceDirection = detectionAngle;
 				end
 			end
-			local effectpar = CreateMOPixel("Mine Laser Beam ".. math.random(3));
+			local effectpar = CreateMOPixel("Mine Laser Beam ".. math.random(3), "Base.rte");
 			effectpar.Pos = startPos + Vector(math.random() * self.tempLaserLength, 0):RadRotate(detectionAngle);
 			effectpar.EffectRotAngle = detectionAngle;
 			MovableMan:AddParticle(effectpar);
