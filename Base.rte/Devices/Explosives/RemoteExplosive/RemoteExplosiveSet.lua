@@ -54,12 +54,12 @@ function RemoteExplosiveStick(self)
 	if self.actionPhase == 0 then
 		local rayHitPos = Vector();
 		local rayHit = false;
-		local checkVec = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.max(self.Vel.Magnitude * rte.PxTravelledPerFrame, ToMOSprite(self):GetSpriteWidth()));
+		local checkVec = Vector(self.Vel.X, self.Vel.Y + 1):SetMagnitude(math.max(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.Radius));
 		for i = 1, 2 do
 			local checkPos = self.Pos + (checkVec/i);
 			local checkPix = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 			if checkPix ~= rte.NoMOID then
-				checkPos = checkPos + SceneMan:ShortestDistance(checkPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(3);
+				checkPos = checkPos + SceneMan:ShortestDistance(checkPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(ToMOSprite(self):GetSpriteWidth() * 0.5 - 1);
 				self.target = ToMOSRotating(MovableMan:GetMOFromID(checkPix));
 				self.stickPosition = SceneMan:ShortestDistance(self.target.Pos, checkPos, SceneMan.SceneWrapsX);
 				self.stickRotation = self.target.RotAngle;
@@ -74,7 +74,7 @@ function RemoteExplosiveStick(self)
 		if rayHit then
 			self.actionPhase = 1;
 		elseif SceneMan:CastStrengthRay(self.Pos, checkVec, 0, rayHitPos, 1, rte.airID, SceneMan.SceneWrapsX) then
-			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(3);
+			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(ToMOSprite(self):GetSpriteWidth() * 0.5 - 1);
 			self.PinStrength = 1000;
 			self.AngularVel = 0;
 			self.stuck = true;
