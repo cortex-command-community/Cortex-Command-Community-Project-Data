@@ -1,9 +1,9 @@
-function BetterJetpacksScript:StartScript()
-	self.multiplier = 1.5;
+function StrongerJetpacksScript:StartScript()
+	self.multiplier = 1.3;
 end
-function BetterJetpacksScript:UpdateScript()
+function StrongerJetpacksScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
-		if not actor:NumberValueExists("BetterJetpacksScript") then
+		if not actor:NumberValueExists("StrongerJetpacksScript") then
 			self:BuffJetpack(actor);
 			for i = 1, actor.InventorySize do
 				local item = actor:Inventory();
@@ -13,15 +13,14 @@ function BetterJetpacksScript:UpdateScript()
 		end
 	end
 end
-function BetterJetpacksScript:BuffJetpack(actor)
+function StrongerJetpacksScript:BuffJetpack(actor)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor);
 	elseif IsACrab(actor) then
 		actor = ToACrab(actor);
 	end
 	if actor.Jetpack then
-		actor:SetNumberValue("BetterJetpacksScript", 1);
-		actor.JetTimeTotal = actor.JetTimeTotal * self.multiplier;
+		actor:SetNumberValue("StrongerJetpacksScript", 1);
 		for em in actor.Jetpack.Emissions do
 			em.ParticlesPerMinute = em.ParticlesPerMinute * self.multiplier;
 			em.BurstSize = em.BurstSize * self.multiplier;
