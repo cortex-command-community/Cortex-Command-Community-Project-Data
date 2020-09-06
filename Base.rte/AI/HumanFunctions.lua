@@ -45,7 +45,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 	actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel) * 0.1 + 1);
 	actor.lastAngle = aimAngle;
 	--Shove when unarmed
-	if actor.controller:IsState(Controller.WEAPON_FIRE) and (actor.FGArm or actor.BGArm) and not (actor.EquippedItem or actor.EquippedBGItem) and actor.Status == Actor.STABLE then
+	if actor:IsInventoryEmpty() and actor.controller:IsState(Controller.WEAPON_FIRE) and (actor.FGArm or actor.BGArm) and not (actor.EquippedItem or actor.EquippedBGItem) and actor.Status == Actor.STABLE then
 		actor.AngularVel = actor.AngularVel/(actor.shoved and 1.3 or 3) + (aimAngle - actor.RotAngle * actor.FlipFactor - 1.57) * (actor.shoved and 0.3 or 3) * actor.FlipFactor/(1 + math.abs(actor.RotAngle));
 		if not actor.shoved then
 			actor.Vel = actor.Vel + Vector(2/(1 + actor.Vel.Magnitude), 0):RadRotate(actor:GetAimAngle(true)) * math.abs(math.cos(actor:GetAimAngle(true)));
@@ -119,8 +119,8 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 				if item.ClassName == "TDExplosive" then
 					thrownCount = thrownCount + 1;
 				elseif item.ClassName == "HDFirearm" or item.ClassName == "HeldDevice" then
-					if showAll or item.Radius > largestItem then
-						largestItem = item.Radius;
+					if showAll or item.Radius + item.Mass > largestItem then
+						largestItem = item.Radius + item.Mass;
 						heldCount = heldCount + 1;
 						local itemCount = math.sqrt(heldCount);
 
