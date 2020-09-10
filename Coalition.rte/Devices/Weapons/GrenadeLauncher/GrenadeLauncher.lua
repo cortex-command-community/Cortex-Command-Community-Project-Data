@@ -11,6 +11,10 @@ function OnPieMenu(item)
 				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Remote Mode", "GrenadeLauncherRemote");
 			end
 		end
+		if item:GetNumberValue("CoalitionRemoteGrenades") == 0 then
+			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Detonate Grenades", "GrenadeLauncherRemoteDetonate");
+			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Remove Grenades", "GrenadeLauncherRemoteDelete");
+		end
 	end
 end
 function Create(self)
@@ -31,14 +35,14 @@ function Update(self)
 				if self.Magazine.PresetName == "Magazine Grenade Launcher Remote Grenade" then				
 					local bullet = CreateActor("Grenade Launcher Shot Remote");
 					bullet.Pos = self.MuzzlePos;
-					bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.ShakeRange * 0.5) - (self.ShakeRange * math.random()));
+					bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.ShakeRange * 0.5 - (self.ShakeRange * math.random()));
 					local actor = MovableMan:GetMOFromID(self.RootID);
 					if MovableMan:IsActor(actor) then
 						if ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
-							bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate((self.SharpShakeRange * 0.5) - (self.SharpShakeRange * math.random()));
+							bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.SharpShakeRange * 0.5 - (self.SharpShakeRange * math.random()));
 						end
 						if ToActor(actor):IsPlayerControlled() then
-							if self.grenadeTableA[self.maxActiveGrenades] ~= nil then
+							if self.grenadeTableA[self.maxActiveGrenades] then
 								self.grenadeTableA[self.maxActiveGrenades].Sharpness = 2;
 							end
 							for i = 1, self.maxActiveGrenades do
@@ -51,6 +55,7 @@ function Update(self)
 							self.grenadeTableB = {};
 							self.grenadeTableA[1] = bullet;
 							bullet.Sharpness = 0;
+							self:SetNumberValue("CoalitionRemoteGrenades", #self.grenadeTableA);
 						else
 							bullet.Sharpness = 3;
 						end
@@ -73,6 +78,7 @@ function Update(self)
 			end
 		end
 		self.grenadeTableA = {};
+		self:RemoveNumberValue("CoalitionRemoteGrenades");
 	elseif self.Sharpness == 2 then
 		self.Sharpness = 0;
 		for i = 1, #self.grenadeTableA do
@@ -81,6 +87,7 @@ function Update(self)
 			end
 		end
 		self.grenadeTableA = {};
+		self:RemoveNumberValue("CoalitionRemoteGrenades");
 	end
 end
 

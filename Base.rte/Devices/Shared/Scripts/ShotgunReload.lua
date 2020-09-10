@@ -15,6 +15,9 @@ function Update(self)
 		else
 			self.ammoCounter = self.Magazine.RoundCount;
 		end
+		if self.Magazine.RoundCount == self.Magazine.Capacity then
+			self.reloadCycle = false;
+		end
 	else
 		self.reloadTimer:Reset();
 		self.reloadCycle = true;

@@ -2,7 +2,7 @@ function Create(self)
 
 	self.laserTimer = Timer();
 	self.laserCheckDelay = 50;
-	self.laserLength = self.SharpLength + FrameMan.PlayerScreenWidth/3;
+	self.laserLength = self.SharpLength + FrameMan.PlayerScreenWidth * 0.3;
 	self.laserSpaceCheck = 8; --For optimization purposes. Smaller value means a more accurate but slower check.
 
 	self.laserDensity = math.ceil(self.laserLength/self.laserSpaceCheck);
@@ -61,7 +61,7 @@ function Update(self)
 					roughLandPos = checkPos;
 				end
 
-				local laserPar = CreateMOPixel("Nanorifle Laser Sight Glow");
+				local laserPar = CreateMOPixel("Nano Rifle Laser Sight Glow");
 				laserPar.Pos = roughLandPos;
 				laserPar.Lifetime = self.laserCheckDelay * 2;
 				MovableMan:AddParticle(laserPar);

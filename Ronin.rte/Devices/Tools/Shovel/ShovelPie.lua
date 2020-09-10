@@ -1,9 +1,10 @@
 function RoninCreateSandbag(actor)
 	if actor and IsAHuman(actor) then
 		actor = ToAHuman(actor);
-		actor:AddInventoryItem(CreateThrownDevice("Ronin.rte/Sandbag"));
+		if actor:GetNumberValue("RoninShovelResource") >= 10 then
+			actor:AddInventoryItem(CreateThrownDevice("Ronin.rte/Sandbag"));
+			actor:EquipNamedDevice("Sandbag", true);
+		end
 		actor:RemoveNumberValue("RoninShovelResource");
-
-		actor:EquipNamedDevice("Sandbag", true);
 	end
 end

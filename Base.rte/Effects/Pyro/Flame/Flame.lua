@@ -34,7 +34,7 @@ function Update(self)
 				local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 				if moCheck ~= rte.NoMOID then
 					local mo = MovableMan:GetMOFromID(moCheck);
-					if mo then
+					if mo and (self.Team == Activity.NOTEAM or mo.Team ~= self.Team) then
 						self.target = ToMOSRotating(mo);
 
 						self.isShort = true;
@@ -59,6 +59,10 @@ function Update(self)
 		particle = CreateMOPixel("Ground Fire Burn Particle");
 		particle.Vel = self.Vel + Vector(RangeRand(-15, 15), -math.random(-10, 20));
 		particle.Sharpness = particle.Sharpness * RangeRand(0.5, 1.0);
+		if self.Team ~= Activity.NOTEAM then
+			particle.Team = self.Team;
+			particle.IgnoresTeamHits = true;
+		end
 	elseif chance < (0.4/age) then
 		--Spawn another, shorter flame particle occasionally
 		if not self.isShort and math.random() < 0.05 then

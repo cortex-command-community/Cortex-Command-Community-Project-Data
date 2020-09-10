@@ -1,6 +1,7 @@
 function Create(self)
 	self.effectRadius = 125;
 	self.strength = self.PinStrength;	--Affects the duration of the effect
+	self.flashScreen = false;	--Do not turn on if you are prone to seizures
 	
 	self.actorTable = {};
 	local actorCount = 0;	--Diminishes the effect the more actors are affected
@@ -11,11 +12,11 @@ function Create(self)
 			local skipPx = 1 + (dist.Magnitude * 0.01);
 			local strCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, skipPx, rte.airID);
 			if strCheck < (100/skipPx) then
-				-- The effect is diminished by target actor mass, material strength and distance
+				--The effect is diminished by target actor mass, material strength and distance
 				local resistance = math.sqrt(math.abs(actor.Mass) + actor.Material.StructuralIntegrity + dist.Magnitude + 1) + actorCount;
 				actor:SetNumberValue("RoninScrambler", math.floor(actor:GetNumberValue("RoninScrambler") + self.strength/resistance));
 				actor:FlashWhite(20);
-				if actor:IsPlayerControlled() then
+				if self.flashScreen and actor:IsPlayerControlled() then
 					local screen = ActivityMan:GetActivity():ScreenOfPlayer(actor:GetController().Player);
 					local white, black = 254, 245;
 					FrameMan:FlashScreen(screen, white, 1000);

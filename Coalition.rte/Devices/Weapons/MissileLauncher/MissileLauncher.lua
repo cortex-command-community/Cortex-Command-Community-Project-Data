@@ -6,7 +6,7 @@ function Create(self)
 	self.targetLostTimer = Timer();
 	self.targetLostTimer:SetSimTimeLimitMS(3000);
 
-	self.laserLength = self.SharpLength + math.sqrt(FrameMan.PlayerScreenWidth ^ 2 + FrameMan.PlayerScreenHeight ^ 2) * 0.5;
+	self.laserLength = self.SharpLength + math.sqrt(FrameMan.PlayerScreenWidth^2 + FrameMan.PlayerScreenHeight^2) * 0.5;
 	self.laserPointerOffset = Vector(0, -3);
 
 	self.markerRotAngle = math.random() * math.pi;
@@ -56,7 +56,7 @@ function Update(self)
 								if not self.target or (self.target and self.target.ID ~= mo.ID) then
 									AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", self.Pos);
 								end
-								self.target = mo;
+								self.target = IsACrab(mo) and ToACrab(mo) or mo;
 								self.markerSize = size;
 							end
 						end
@@ -71,16 +71,20 @@ function Update(self)
 		end
 		if self.target and self.target.ID ~= rte.NoMOID and not self.targetLostTimer:IsPastSimTimeLimit() and self.markerSize > 0 then
 			if playerControlled then
+				local crosshairPos = self.target.Pos;
+				if self.target.Turret then
+					crosshairPos = self.target.Pos + SceneMan:ShortestDistance(self.target.Pos, self.target.Turret.Pos, SceneMan.SceneWrapsX) * 0.5;
+				end
 				local crossVecX = Vector(markerSize, 0):DegRotate(self.markerRotAngle);
 				local crossVecY = Vector(0, markerSize):DegRotate(self.markerRotAngle);
 				
 				local frame = self.markerSize > 50 and 1 or 0;
 				
-				PrimitiveMan:DrawBitmapPrimitive(screen, self.target.Pos - crossVecX, self.arrow, crossVecX.AbsRadAngle, frame);
-				PrimitiveMan:DrawBitmapPrimitive(screen, self.target.Pos + crossVecX, self.arrow, crossVecX.AbsRadAngle + math.pi, frame);
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos - crossVecX, self.arrow, crossVecX.AbsRadAngle, frame);
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos + crossVecX, self.arrow, crossVecX.AbsRadAngle + math.pi, frame);
 				
-				PrimitiveMan:DrawBitmapPrimitive(screen, self.target.Pos - crossVecY, self.arrow, crossVecY.AbsRadAngle, frame);
-				PrimitiveMan:DrawBitmapPrimitive(screen, self.target.Pos + crossVecY, self.arrow, crossVecY.AbsRadAngle + math.pi, frame);
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos - crossVecY, self.arrow, crossVecY.AbsRadAngle, frame);
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos + crossVecY, self.arrow, crossVecY.AbsRadAngle + math.pi, frame);
 
 				self.markerRotAngle = self.markerRotAngle + (self.markerTurnSpeed/math.sqrt(self.markerSize) * self.FlipFactor);
 			end

@@ -18,6 +18,7 @@ function Update(self)
 		self:Deactivate();
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
+				parent:GetController():SetState(Controller.AIM_SHARP, false);
 				AudioMan:PlaySound("Ronin.rte/Devices/Weapons/K98K/Sounds/Chamber.wav", self.Pos);
 				self.playedSound = true;
 			end

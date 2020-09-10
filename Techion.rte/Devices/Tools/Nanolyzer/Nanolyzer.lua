@@ -34,7 +34,7 @@ function Update(self)
         --Cast rays in front of the gun
         for i = -self.beamRadius * 0.5, self.beamRadius * 0.5, self.resolution do
             if math.random() < self.deconstructChance then
-                if SceneMan:CastStrengthRay(self.MuzzlePos, Vector(aimVec.X, aimVec.Y):RadRotate(i), 1, hitPos, rte.airID, 166, true) then
+                if SceneMan:CastStrengthRay(self.MuzzlePos, Vector(aimVec.X, aimVec.Y):RadRotate(i), 1, hitPos, 0, 166, true) then
                     local remover = CreateMOSRotating("Techion.rte/Pixel Remover");
                     remover.Pos = hitPos;
                     MovableMan:AddParticle(remover);
@@ -57,7 +57,7 @@ function Update(self)
         end
 
 		--Find MOs to disintegrate
-		local moCheck = SceneMan:CastMORay(self.MuzzlePos, aimVec/2, self.RootID, self.Team, rte.airID, true, 2);
+		local moCheck = SceneMan:CastMORay(self.MuzzlePos, aimVec * 0.5, self.RootID, self.Team, rte.airID, true, 2);
 		if moCheck ~= rte.NoMOID then
 		
 			local initMO = MovableMan:GetMOFromID(moCheck);
@@ -66,7 +66,7 @@ function Update(self)
 				local targetMO = MovableMan:GetMOFromID(ToMOSRotating(initMO).RootID);
 				local dustTarget;
 
-				if targetMO then
+				if targetMO and targetMO.ClassName ~= "ADoor" then
 					local resistance = math.sqrt(targetMO.Radius + math.abs(targetMO.Mass) + targetMO.Material.StructuralIntegrity + 1);
 					if IsActor(targetMO) then
 						local actor = ToActor(targetMO);

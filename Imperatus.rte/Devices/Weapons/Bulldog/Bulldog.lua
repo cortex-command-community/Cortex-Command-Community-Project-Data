@@ -11,7 +11,7 @@ end
 function Update(self)
 	if self.FiredFrame then
 		self.RateOfFire = math.min(self.RateOfFire * self.increasePerShot, self.maxRateOfFire);
-		self.ActivationDelay = 0;
+		self.ActivationDelay = 20;
 		self.DeactivationDelay = self.origDeactivationDelay * 9;
 		self.spinTimer:Reset();
 	else

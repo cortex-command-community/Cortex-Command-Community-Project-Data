@@ -1,5 +1,6 @@
 function Create(self)
-	self.fuzeDelay = 3500;
+	self.fuzeDelay = 4000;
+	self.fuzeDecreaseIncrement = 50;
 end
 function Update(self)
 	if self.fuze then
@@ -9,7 +10,10 @@ function Update(self)
 		part.Vel = self.Vel;
 		part.Lifetime = 10;
 		MovableMan:AddParticle(part);
-		
+		--Diminish fuze length on impact
+		if self.TravelImpulse.Magnitude > 1 then
+			self.fuzeDelay = self.fuzeDelay - self.TravelImpulse.Magnitude * self.fuzeDecreaseIncrement;
+		end
 		if self.fuze:IsPastSimMS(self.fuzeDelay) then
 
 			local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
@@ -30,10 +34,12 @@ function Update(self)
 				for actor in MovableMan.Actors do
 					if actor.Team ~= self.holder.Team then
 						local dist = SceneMan:ShortestDistance(self.holder.Pos, actor.Pos, SceneMan.SceneWrapsX);
-						if dist.Magnitude < 5 + (self.holder.Radius/2) then
+						if dist.Magnitude < 5 + (self.holder.Radius * 0.5) then
 							if (self.holder.Mass * 2) > actor.Mass then
 								self.holder.Vel = self.holder.Vel + Vector(dist.X, dist.Y):SetMagnitude(1) + Vector(0, -1);
 								actor:GibThis();
+							else
+								self.holder:GibThis();
 							end
 						end
 					end
