@@ -17,7 +17,7 @@ function Update(self)
 	end
 	if parent and not self.loaded and self.RoundInMagCount > 0 and not self.reloadCycle then
 		self:Deactivate();
-		if self.pullTimer:IsPastSimMS(15000 / self.RateOfFire) then
+		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
 				AudioMan:PlaySound("Coalition.rte/Devices/Weapons/Shotgun/Sounds/Chamber.wav", self.Pos);
 				self.playedSound = true;
@@ -31,7 +31,7 @@ function Update(self)
 			end
 			self.Frame = 1;
 			self.SupportOffset = Vector(-2, 5);
-			local rotTotal = math.sin(self.rotFactor) / 5;
+			local rotTotal = math.sin(self.rotFactor) * 0.2;
 			self.RotAngle = self.RotAngle + self.FlipFactor * rotTotal;
 			local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 			self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-rotTotal * self.FlipFactor);

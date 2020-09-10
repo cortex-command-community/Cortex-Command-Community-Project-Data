@@ -21,7 +21,6 @@ function BiggerJetpacksScript:BuffJetpack(actor)
 	end
 	if actor.Jetpack then
 		actor:SetNumberValue("BiggerJetpacksScript", 1);
-		print(actor.JetTimeTotal);
 		actor.JetTimeTotal = actor.JetTimeTotal * self.multiplier + 100;
 	end
 end

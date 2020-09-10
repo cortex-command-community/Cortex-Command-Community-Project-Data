@@ -11,14 +11,11 @@ function Create(self)
 	self.angleSize = 1.0;
 end
 function Update(self)
-	self.RotAngle = self.RotAngle + (self.rotNum) * self.FlipFactor;
+	self.RotAngle = self.RotAngle + self.rotNum * self.FlipFactor;
 	self.StanceOffset = Vector(self.origStanceOffset.X + self.rotNum * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.rotNum);
 	--Revert rotation
 	if self.rotNum > 0 then
-		self.rotNum = self.rotNum - (0.0003 * self.RateOfFire);
-		if self.rotNum < 0 then
-			self.rotNum = 0;
-		end
+		self.rotNum = math.max(self.rotNum - (0.0003 * self.RateOfFire), 0);
 	end
 	local actor = MovableMan:GetMOFromID(self.RootID);
 	if actor and IsActor(actor) then
@@ -31,14 +28,14 @@ function Update(self)
 			local particleCount = 3;
 			local fireVec = Vector(60 * self.FlipFactor, 0):RadRotate(self.RotAngle):RadRotate(0.2 * self.FlipFactor);
 			for i = 1, particleCount do
-				-- Lua-generated particles that can chip stone
+				--Lua-generated particles that can chip stone
 				local dig = CreateMOPixel("Particle Ronin Shovel 2");
 				dig.Pos = self.MuzzlePos;
 				dig.Vel = Vector(55 * self.FlipFactor, 0):RadRotate(self.RotAngle + (-0.3 + i * 0.2) * self.FlipFactor);
 				MovableMan:AddParticle(dig);
 			end
 			local trace = fireVec * rte.PxTravelledPerFrame;
-			-- Play a radical sound if a MO is met
+			--Play a radical sound if a MO is met
 			local moCheck = SceneMan:CastMORay(self.MuzzlePos, trace, self.ID, self.Team, 0, false, 1);
 			if moCheck ~= rte.NoMOID then
 				AudioMan:PlaySound("Ronin.rte/Devices/Tools/Shovel/Sounds/Melee".. math.random(3) ..".wav", self.MuzzlePos);

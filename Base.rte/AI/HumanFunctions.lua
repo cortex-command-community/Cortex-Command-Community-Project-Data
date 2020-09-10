@@ -2,16 +2,15 @@ HumanFunctions = {};
 
 function HumanFunctions.DoAlternativeGib(actor)
 	--Detach limbs instead of regular gibbing
-	if actor.detachLimit then
-		if actor.WoundCount > actor.detachLimit then
-			actor.detachLimit = actor.WoundCount + 1;
+	if actor.detachWoundLimit or actor.detachImpulseLimit then
+		if actor.detachWoundLimit and actor.WoundCount > actor.detachWoundLimit then
+			actor.detachWoundLimit = actor.WoundCount + 1;
+
 			local parts = {actor.BGArm, actor.BGLeg, actor.FGArm, actor.FGLeg, actor.Head};	--Priority order
-			local mostWounds = -1;
-			local detachLimb;
+			local mostWounds, detachLimb;
 			--Pick the limb with most wounds and detach it
-			for i = 1, #parts do
-				local limb = parts[i];
-				if limb and limb.WoundCount > mostWounds then
+			for _, limb in pairs(parts) do
+				if limb and (not mostWounds or limb.WoundCount > mostWounds) then
 					detachLimb = limb;
 					mostWounds = limb.WoundCount;
 				end
@@ -20,9 +19,34 @@ function HumanFunctions.DoAlternativeGib(actor)
 				detachLimb.JointStrength = -1;
 			end
 		end
-	elseif actor.GibWoundLimit > 0 then
-		actor.detachLimit = actor.GibWoundLimit;
-		actor.GibWoundLimit = actor.GibWoundLimit * 1.5;
+		if actor.detachImpulseLimit and actor.TravelImpulse.Magnitude > actor.detachImpulseLimit then
+			local parts = {actor.BGLeg, actor.BGArm, actor.FGLeg, actor.FGArm, actor.Head};	--Priority order
+			local impulsePoint = actor.Pos - actor.TravelImpulse/actor.Mass;
+			local closestDist, detachLimb;
+			--Pick the limb closest to the direction of impulse
+			for _, limb in pairs(parts) do
+				if limb then
+					local jointPos = actor.Pos + Vector(limb.ParentOffset.X * actor.FlipFactor, limb.ParentOffset.Y):RadRotate(actor.RotAngle);
+					local dist = SceneMan:ShortestDistance(impulsePoint, jointPos, SceneMan.SceneWrapsX);
+					if not closestDist or (dist.Magnitude < closestDist) then
+						detachLimb = limb;
+						closestDist = dist.Magnitude;
+					end
+				end
+			end
+			if detachLimb and actor.TravelImpulse.Magnitude/detachLimb.Mass > detachLimb.JointStrength then
+				detachLimb.JointStrength = -1;
+			end
+		end
+	else
+		if actor.GibWoundLimit > 0 then
+			actor.detachWoundLimit = actor.GibWoundLimit;
+			actor.GibWoundLimit = actor.GibWoundLimit * 1.5;
+		end
+		if actor.GibImpulseLimit > 0 and actor.Mass > 0 then
+			actor.detachImpulseLimit = actor.GibImpulseLimit;
+			actor.GibImpulseLimit = actor.GibImpulseLimit * 1.25;
+		end
 	end
 end
 	
@@ -125,7 +149,7 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						local itemCount = math.sqrt(heldCount);
 
 						local actorBack = Vector(ToMOSprite(actor):GetSpriteWidth() + actor.SpriteOffset.X, ToMOSprite(actor):GetSpriteHeight() + actor.SpriteOffset.Y);
-						local stackX = item.Radius * 0.2 + itemCount - 0.5;
+						local stackX = item.Radius * 0.2 + itemCount;
 						--Bigger actors carry weapons higher up, smaller weapons are carried lower down
 						local drawPos = actor.Pos + Vector((-actorBack.X * 0.5 - stackX) * actor.FlipFactor, -actorBack.Y * 0.75):RadRotate(actor.RotAngle);
 						--Display tall objects upright
@@ -138,7 +162,7 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 							local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
 							if screen ~= -1 and not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
-								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0);
+								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0, false, not actor.HFlipped);
 							end
 						end
 					end

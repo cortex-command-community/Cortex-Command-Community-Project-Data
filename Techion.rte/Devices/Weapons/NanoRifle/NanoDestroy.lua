@@ -28,7 +28,7 @@ function Create(self)
 		self.damageTimer = Timer();
 		
 		--Offset information.
-		self.Pos = self.Pos + self.Vel * TimerMan.DeltaTimeSecs * 20;
+		self.Pos = self.Pos + self.Vel * rte.PxTravelledPerFrame;
 		
 		if self.target then
 			self.targetOffset = SceneMan:ShortestDistance(self.target.Pos, self.Pos, true);
