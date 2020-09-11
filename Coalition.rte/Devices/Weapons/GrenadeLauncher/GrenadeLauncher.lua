@@ -17,58 +17,48 @@ function OnPieMenu(item)
 		end
 	end
 end
+
 function Create(self)
-	self.reloaded = false;
-	self.ammoCounter = 0;
 	self.grenadeTableA = {};
 	self.grenadeTableB = {};
 	self.maxActiveGrenades = 12;
 end
 
 function Update(self)
-	if self.Magazine then
-		if self.reloaded == false then
-			self.reloaded = true;
-			self.ammoCounter = self.Magazine.RoundCount;
-		else
-			if self.ammoCounter ~= self.Magazine.RoundCount then
-				if self.Magazine.PresetName == "Magazine Grenade Launcher Remote Grenade" then				
-					local bullet = CreateActor("Grenade Launcher Shot Remote");
-					bullet.Pos = self.MuzzlePos;
-					bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.ShakeRange * 0.5 - (self.ShakeRange * math.random()));
-					local actor = MovableMan:GetMOFromID(self.RootID);
-					if MovableMan:IsActor(actor) then
-						if ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
-							bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.SharpShakeRange * 0.5 - (self.SharpShakeRange * math.random()));
-						end
-						if ToActor(actor):IsPlayerControlled() then
-							if self.grenadeTableA[self.maxActiveGrenades] then
-								self.grenadeTableA[self.maxActiveGrenades].Sharpness = 2;
-							end
-							for i = 1, self.maxActiveGrenades do
-								self.grenadeTableB[i + 1] = self.grenadeTableA[i];
-							end
-							self.grenadeTableA = {};
-							for i = 1, self.maxActiveGrenades do
-								self.grenadeTableA[i] = self.grenadeTableB[i];
-							end
-							self.grenadeTableB = {};
-							self.grenadeTableA[1] = bullet;
-							bullet.Sharpness = 0;
-							self:SetNumberValue("CoalitionRemoteGrenades", #self.grenadeTableA);
-						else
-							bullet.Sharpness = 3;
-						end
-						bullet.Team = ToActor(actor).Team;
-						bullet.IgnoresTeamHits = true;
-					end
-					MovableMan:AddParticle(bullet);
+	if self.FiredFrame and self.Magazine then
+		self.Magazine.Frame = (self.Magazine.Frame + 1) % self.Magazine.FrameCount;	--To-do: add animation frames for the Magazine
+		if self.Magazine.PresetName == "Magazine Grenade Launcher Remote Grenade" then				
+			local bullet = CreateActor("Grenade Launcher Shot Remote");
+			bullet.Pos = self.MuzzlePos;
+			bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.ShakeRange * 0.5 - (self.ShakeRange * math.random()));
+			local actor = MovableMan:GetMOFromID(self.RootID);
+			if MovableMan:IsActor(actor) then
+				if ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
+					bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.SharpShakeRange * 0.5 - (self.SharpShakeRange * math.random()));
 				end
+				if ToActor(actor):IsPlayerControlled() then
+					if self.grenadeTableA[self.maxActiveGrenades] then
+						self.grenadeTableA[self.maxActiveGrenades].Sharpness = 2;
+					end
+					for i = 1, self.maxActiveGrenades do
+						self.grenadeTableB[i + 1] = self.grenadeTableA[i];
+					end
+					self.grenadeTableA = {};
+					for i = 1, self.maxActiveGrenades do
+						self.grenadeTableA[i] = self.grenadeTableB[i];
+					end
+					self.grenadeTableB = {};
+					self.grenadeTableA[1] = bullet;
+					bullet.Sharpness = 0;
+					self:SetNumberValue("CoalitionRemoteGrenades", #self.grenadeTableA);
+				else
+					bullet.Sharpness = 3;
+				end
+				bullet.Team = ToActor(actor).Team;
+				bullet.IgnoresTeamHits = true;
 			end
-			self.ammoCounter = self.Magazine.RoundCount;
+			MovableMan:AddParticle(bullet);
 		end
-	else
-		self.reloaded = false;
 	end
 	if self.Sharpness == 1 then
 		self.Sharpness = 0;
