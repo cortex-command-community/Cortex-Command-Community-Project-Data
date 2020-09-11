@@ -1,7 +1,7 @@
 function Create(self)
 
 	self.laserTimer = Timer();
-	self.laserTimer:SetSimTimeLimitMS(25);
+	self.laserTimer:SetSimTimeLimitMS(10);
 	self.guideTable = {};
 
 	self.projectileVel = 30;
@@ -43,14 +43,13 @@ function Update(self)
 		end
 		if controller:IsState(Controller.AIM_SHARP) or self.isThrownDevice and controller:IsState(Controller.WEAPON_FIRE) then
 			if self.laserTimer:IsPastSimTimeLimit() then
-				self.laserTimer:Reset();
 
 				local guideParPos, gudeParVel;
 
 				if self.isThrownDevice and IsAHuman(actor) then
 					--Display detonation point if a scripted fuze is active
 					if self.fuze and self.fuzeDelay then
-						self.maxTrajectoryPars = (self.fuzeDelay - self.fuze.ElapsedSimTimeMS)/TimerMan.DeltaTimeMS * rte.PxTravelledPerFrame;
+						self.maxTrajectoryPars = (self.fuzeDelay - self.fuze.ElapsedSimTimeMS - self.laserTimer.ElapsedSimTimeMS)/TimerMan.DeltaTimeMS * rte.PxTravelledPerFrame;
 					end
 					actor = ToAHuman(actor);
 					--The following offset is as found in the source code (To-do: expose and utilize EndThrowOffset properly instead)
@@ -80,14 +79,17 @@ function Update(self)
 						break;
 					end
 				end
+				self.laserTimer:Reset();
 			end
 		else
 			self.guideTable = {};
 		end
 		if #self.guideTable > 1 then
-			for i = 1, #self.guideTable - 1 do
-				if self.skipLines == 0 or i % (self.skipLines + 1) == 0 then
-					PrimitiveMan:DrawLinePrimitive(controller.Player, self.guideTable[i], self.guideTable[i + 1], self.guideColor);
+			if self.skipLines > 0 then
+				for i = 1, #self.guideTable - 1 do
+					if self.skipLines == 0 or i % (self.skipLines + 1) == 0 then
+						PrimitiveMan:DrawLinePrimitive(controller.Player, self.guideTable[i], self.guideTable[i + 1], self.guideColor);
+					end
 				end
 			end
 			PrimitiveMan:DrawCirclePrimitive(controller.Player, self.guideTable[#self.guideTable], self.guideRadius, self.guideColor);
