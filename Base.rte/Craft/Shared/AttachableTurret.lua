@@ -50,7 +50,7 @@ function Update(self)
 				PrimitiveMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange * 0.5), 13);
 			end
 			local aimTarget = MovableMan:GetClosestEnemyActor(self.Team, aimPos, (self.searchRange * 0.5), Vector());
-			if aimTarget then
+			if aimTarget and aimTarget.Status < Actor.INACTIVE then
 				--Debug: visualize search trace
 				if self.showAim then
 					PrimitiveMan:DrawLinePrimitive(self.Team, aimPos, aimTarget.Pos, 13);
@@ -83,7 +83,7 @@ function Update(self)
 				end
 			end
 			local color = 13;	--Debug trace color: red
-			if target and IsActor(target) then
+			if target and IsActor(target) and ToActor(target).Status < Actor.INACTIVE then
 				self:EnableEmission(true);
 				self:TriggerBurst();
 				self.fireTimer:Reset();

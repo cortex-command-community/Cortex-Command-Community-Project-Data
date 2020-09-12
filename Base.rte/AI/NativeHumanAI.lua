@@ -287,7 +287,7 @@ function NativeHumanAI:Update(Owner)
 					FoundMO = nil
 				end
 				
-				if FoundMO then
+				if FoundMO and FoundMO.Status < Actor.INACTIVE then
 					if self.Target then
 						-- check if this MO should be targeted instead
 						if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > 
