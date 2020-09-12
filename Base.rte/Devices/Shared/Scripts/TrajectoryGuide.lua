@@ -29,7 +29,7 @@ end
 
 function Update(self)
 
-	local actor = MovableMan:GetMOFromID(self.RootID);
+	local actor = self:GetRootParent();
 	if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() then
 		local actor = ToActor(actor);
 		local controller = actor:GetController();
@@ -37,7 +37,7 @@ function Update(self)
 			if not self.throwTimer and controller:IsState(Controller.WEAPON_FIRE) then
 				self.throwTimer = Timer();
 			end
-		elseif self:DoneReloading() and self.Magazine and self.Magazine.RoundCount ~= 0 then
+		elseif (self:DoneReloading() or self.FiredFrame) and self.Magazine and self.Magazine.RoundCount ~= 0 then
 			self.projectileVel = self.Magazine.NextRound.FireVel;
 			self.projectileGravity = self.Magazine.NextRound.NextParticle.GlobalAccScalar;
 		end
