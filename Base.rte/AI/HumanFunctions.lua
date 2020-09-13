@@ -34,8 +34,14 @@ function HumanFunctions.DoAlternativeGib(actor)
 					end
 				end
 			end
-			if detachLimb and actor.TravelImpulse.Magnitude/detachLimb.Mass > detachLimb.JointStrength then
-				detachLimb.JointStrength = -1;
+			if detachLimb then
+				local limbImpulse = actor.TravelImpulse.Magnitude/detachLimb.Mass;
+				if limbImpulse > detachLimb.JointStrength then
+					detachLimb.JointStrength = -1;
+					if math.random() * limbImpulse > detachLimb.GibImpulseLimit then
+						detachLimb:GibThis();
+					end
+				end
 			end
 		end
 	else
