@@ -25,6 +25,7 @@ function Create(self)
 	self.maxTrajectoryPars = self:NumberValueExists("TrajectoryGuideLength") and self:GetNumberValue("TrajectoryGuideLength") or 60;
 	self.guideColor = self:NumberValueExists("TrajectoryGuideColorIndex") and self:GetNumberValue("TrajectoryGuideColorIndex") or 120;
 	self.skipLines = self:NumberValueExists("TrajectoryGuideSkipLines") and self:GetNumberValue("TrajectoryGuideSkipLines") or 1;
+	self.drawHitsOnly = self:GetNumberValue("TrajectoryGuideDrawHitsOnly") == 1;
 end
 
 function Update(self)
@@ -41,6 +42,7 @@ function Update(self)
 			self.projectileVel = self.Magazine.NextRound.FireVel;
 			self.projectileGravity = self.Magazine.NextRound.NextParticle.GlobalAccScalar;
 		end
+		local hitPos;
 		if controller:IsState(Controller.AIM_SHARP) or self.isThrownDevice and controller:IsState(Controller.WEAPON_FIRE) then
 			if self.laserTimer:IsPastSimTimeLimit() then
 
@@ -73,7 +75,7 @@ function Update(self)
 					if SceneMan:GetTerrMatter(guideParPos.X, guideParPos.Y) == rte.airID then
 						self.guideTable[#self.guideTable + 1] = guideParPos;
 					else
-						local hitPos = Vector(self.guideTable[#self.guideTable].X, self.guideTable[#self.guideTable].Y);
+						hitPos = Vector(self.guideTable[#self.guideTable].X, self.guideTable[#self.guideTable].Y);
 						SceneMan:CastStrengthRay(self.guideTable[#self.guideTable], SceneMan:ShortestDistance(self.guideTable[#self.guideTable], guideParPos, false), 0, hitPos, 3, rte.airID, false);
 						self.guideTable[#self.guideTable + 1] = hitPos;
 						break;
@@ -84,7 +86,7 @@ function Update(self)
 		else
 			self.guideTable = {};
 		end
-		if #self.guideTable > 1 then
+		if #self.guideTable > 1 and (not self.drawHitsOnly or hitPos) then
 			if self.skipLines > 0 then
 				for i = 1, #self.guideTable - 1 do
 					if self.skipLines == 0 or i % (self.skipLines + 1) == 0 then

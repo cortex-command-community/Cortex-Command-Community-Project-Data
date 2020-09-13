@@ -45,7 +45,7 @@ function Update(self)
 
 	if self.actionPhase == 0 then
 
-		local trace = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Radius + self.Vel.Magnitude);
+		local trace = Vector(self.Vel.X, self.Vel.Y + 1):SetMagnitude(math.max(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.Radius));
 		local rayHitPos = Vector();
 		local terrainRaycast = SceneMan:CastStrengthRay(self.Pos, trace, 5, rayHitPos, 0, rte.airID, SceneMan.SceneWrapsX);
 
@@ -53,10 +53,10 @@ function Update(self)
 
 			trace = Vector(trace.X, trace.Y):SetMagnitude(trace.Magnitude + 5);
 			local rayHitPosA = Vector();
-			local terrainRaycastA = SceneMan:CastStrengthRay(self.Pos + Vector(0, 3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosA, 0, rte.airID, SceneMan.SceneWrapsX);
+			local terrainRaycastA = SceneMan:CastStrengthRay(self.Pos + Vector(0, 3):RadRotate(Vector(self.Vel.X, self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosA, 0, rte.airID, SceneMan.SceneWrapsX);
 
 			local rayHitPosB = Vector();
-			local terrainRaycastB = SceneMan:CastStrengthRay(self.Pos + Vector(0, -3):RadRotate(Vector(self.Vel.X,self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosB, 0, rte.airID, SceneMan.SceneWrapsX);
+			local terrainRaycastB = SceneMan:CastStrengthRay(self.Pos + Vector(0, -3):RadRotate(Vector(self.Vel.X, self.Vel.Y).AbsRadAngle), trace, 5, rayHitPosB, 0, rte.airID, SceneMan.SceneWrapsX);
 
 			if terrainRaycastA == true and terrainRaycastB == true then
 				self.faceDirection = SceneMan:ShortestDistance(rayHitPosA, rayHitPosB, SceneMan.SceneWrapsX).AbsRadAngle + (math.pi * 0.5);
@@ -64,7 +64,7 @@ function Update(self)
 				self.faceDirection = (self.Vel * -1).AbsRadAngle;
 			end
 
-			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(2);
+			self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(2);
 			self.RotAngle = self.faceDirection - (math.pi * 0.5);
 			self.PinStrength = self.GibImpulseLimit;
 			self.actionPhase = 1;
@@ -102,11 +102,11 @@ function Update(self)
 			local terrainRaycast = SceneMan:CastStrengthRay(startPos, Vector(self.laserLength, 0):RadRotate(detectionAngle), 10, rayHitPos, 1, rte.airID, SceneMan.SceneWrapsX);
 
 			if terrainRaycast == true then
-				self.tempLaserLength = SceneMan:ShortestDistance(startPos,rayHitPos,SceneMan.SceneWrapsX).Magnitude;
+				self.tempLaserLength = SceneMan:ShortestDistance(startPos, rayHitPos, SceneMan.SceneWrapsX).Magnitude;
 			else
 				self.tempLaserLength = self.laserLength;
 			end
-			local raycast = SceneMan:CastMORay(startPos,Vector(self.tempLaserLength, 0):RadRotate(detectionAngle), self.ID, self.alliedTeam, rte.airID, true, 4);
+			local raycast = SceneMan:CastMORay(startPos, Vector(self.tempLaserLength, 0):RadRotate(detectionAngle), self.ID, self.alliedTeam, rte.airID, true, 4);
 			if raycast ~= rte.NoMOID then
 				local target = ToMOSRotating(MovableMan:GetMOFromID(raycast)):GetRootParent();
 				if not (target.Team == self.alliedTeam and IsActor(target)) and (target.Vel.Magnitude * (1 + math.abs(target.AngularVel) + math.sqrt(target.Radius))) > self.detonateThreshold then
