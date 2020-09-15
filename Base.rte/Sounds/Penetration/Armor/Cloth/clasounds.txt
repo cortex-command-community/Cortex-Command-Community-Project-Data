@@ -1,4 +1,0 @@
-ClothArmorImpact:
-
-kevlar_bullet_impact	(Insurgency: Sandstorm)
-carpet_bullet_impact	-

@@ -1,3 +1,0 @@
-HelmetImpact:
-
-helmet_headshot		(Insurgency: Sandstorm)

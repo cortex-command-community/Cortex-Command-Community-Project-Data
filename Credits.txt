@@ -854,3 +854,259 @@ New World Interactive: Day of Infamy
 MG34 Reload Sounds
 
 *******************************************************************************
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Weapon\gunsounds.txt
+-------------------------------------------------------------------------------
+GunImpact:
+
+computer_bullet_impact		(Insurgency: Sandstorm)
+BulletImpactGenericMetal	(Warframe)
+
+GunGib:
+
+phys_weapon_drop_rifle		(Insurgency: Sandstorm)
+computer_bullet_impact		-
+BulletImpactGenericMetal	(Warframe)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\SpaceAge\spasounds.txt
+-------------------------------------------------------------------------------
+Torso, HeadSweetener:
+
+ElectricityHitEffect		(Warframe)
+
+LimbSweetener:
+
+AmbulasStepDefault		(Warframe)
+
+HeadGibSweetener:
+
+CrpArachnoidHungerLeapWhoosh	(Warframe)
+CrpArachnoidHungerAdhesiveFire	-
+
+TorsoGibSweetener:
+
+ElectricityHitEffect		(Warframe)
+GrineerStorageContainerSmash	-
+
+LimbGibSweetener:
+
+Electrocuted			(Warframe)
+
+ExitSweetener:
+
+
+STSparks			(Warframe)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\SilverMan\silsounds.txt
+-------------------------------------------------------------------------------
+Torso, LimbImpact:
+
+concrete_bullet_impact		(Insurgency)
+cardboard_bullet_impact		-
+
+HeadImpact:
+
+pl_heavyarmor_damagebullet	(Insurgency)
+concrete_bullet_impact		-
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\Industrial\indsounds.txt
+-------------------------------------------------------------------------------
+LimbSweetener:
+
+CrpArachnoidMicroLand 			(Warframe)
+pl_heavyarmor_damagebullet		(Insurgency)
+
+HeadSweetener:
+
+sodacan_bullet_impact			(Insurgency)
+computer_bullet_impact			-
+
+LimbGibSweetener:
+
+computer_bullet_impact			(Insurgency: Battlesound Mod)
+
+TorsoGibSweetener:
+
+GlassUnbreakableImpact			(Warframe)
+StorageContainerCylinderSmash	-
+
+HeadGibSweetener:
+
+ContainerSalvageOpen			(Warframe)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\Generic\gensounds.txt
+-------------------------------------------------------------------------------
+LimbImpact:
+
+metalpanel_bullet_impact		(Insurgency)
+
+TorsoImpact:
+
+vehicle_bullet_impact			(Insurgency)
+
+HeadImpact:
+
+metalbarrel_bullet_impact		(Insurgency)
+
+LimbGib:
+
+BulletImpactMetalNoWhizz		(Warframe)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\Dummy\dumsounds.txt
+-------------------------------------------------------------------------------
+TorsoImpact:
+
+BulletImpactGeneric		(Warframe)
+plasticbox_bullet_impact	(Insurgency)
+
+LimbImpact:
+
+BulletImpactGeneric		(Warframe)
+
+HeadImpact:
+
+BulletImpactGeneric		(Warframe)
+plasticbarrel_bullet_impact	(Insurgency)
+
+TorsoGib:
+
+plasticbarrel_impact_hard	(Insurgency)
+plasticbarrel_scrape_rough	-
+plasticbarrel_bullet_impact	-
+plasticbox_impact_hard		-
+
+LimbGib:
+
+plasticbox_impact_hard		(Insurgency)
+plasticbox_scrape_smooth	-
+plasticbox_bullet_impact	-
+
+HeadGib:
+	
+plasticbarrel_impact_hard	(Insurgency)
+plasticbarrel_scrape_rough	-
+plasticbarrel_bullet_impact	-
+
+ExitSweetener:
+
+small_box_breakable_prop	(Insurgency: Sandstorm)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\MetalShield\mtssounds.txt
+-------------------------------------------------------------------------------
+ShieldImpact:
+
+BulletImpactGenericEnemyShield	(Warframe)
+
+ShieldGib:
+
+solidmetal_impact_hard		(Insurgency: Sandstorm)
+BulletImpactMetalNoWhizz	(Warframe)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\MetalDoor\mtdsounds.txt
+-------------------------------------------------------------------------------
+MetalDoorImpact:
+
+BulletImpactGenericMetal	(Warframe)
+
+MetalDoorGib:
+
+GrnLootCrateOpen		(Warframe)
+StorageContainerCylinderSmash	-
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Flesh\ClothedFlesh\clfsounds.txt
+-------------------------------------------------------------------------------
+TorsoImpact:
+
+3p_bulletbodyimpact		(Insurgency)
+
+LimbImpact:
+
+pl_damagebullet			(Insurgency)
+
+HeadImpact:
+
+headshot_tp			(Insurgency)
+
+HeadGib:
+
+headshot_tp_pumpkin		(Insurgency)
+
+TorsoGib:
+
+ImpactGoreLarge			(Warframe)
+
+LimbGib:
+
+InfestedCrawlerDeathFall	(Warframe)
+
+ExitSweetener:
+
+HeadshotImpactFlesh		(Warframe)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Flesh\ArmoredFlesh\arfsounds.txt
+-------------------------------------------------------------------------------
+TorsoImpact:
+
+pl_heavyarmor_damagebullet		(Insurgency)
+
+LimbImpact:
+
+PlayerBulletImpactFlesh			(Warframe)
+
+HeadImpact:
+
+PlayerBulletImpactFlesh			(Warframe)
+PlayerArrowImpactFlesh			-
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Craft\Generic\gcrsounds.txt
+-------------------------------------------------------------------------------
+BodyImpact:
+
+vehicle_body_bullet_impact	(Insurgency: Sandstorm)
+
+BodyGib:
+
+RocketLauncherExplosion		(Warframe)
+exp_debris_metal		(Insurgency: Sandstorm)
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Craft\Engine\engsounds.txt
+-------------------------------------------------------------------------------
+EngineGib:
+
+ArchWingMovementBurnLoop	(Warframe)
+ExplosionShortBurst		(Warframe)
+
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Armor\MetalHelmet\SteelHelm\sthsounds.txt
+-------------------------------------------------------------------------------
+HelmetImpact:
+
+helmet_headshot		(Insurgency: Sandstorm)
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Armor\MetalChestPlate\mcpsounds.txt
+-------------------------------------------------------------------------------
+ChestplateImpact:
+
+BulletImpactGenericMetal	(Warframe)
+metal_box_bullet_impact		(Insurgency: Sandstorm)
+
+*******************************************************************************
+C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Armor\Cloth\clasounds.txt
+-------------------------------------------------------------------------------
+ClothArmorImpact:
+
+kevlar_bullet_impact	(Insurgency: Sandstorm)
+carpet_bullet_impact	-
+
+*******************************************************************************

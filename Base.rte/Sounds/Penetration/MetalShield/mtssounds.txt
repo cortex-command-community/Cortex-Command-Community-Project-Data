@@ -1,8 +1,0 @@
-ShieldImpact:
-
-BulletImpactGenericEnemyShield	(Warframe)
-
-ShieldGib:
-
-solidmetal_impact_hard		(Insurgency: Sandstorm)
-BulletImpactMetalNoWhizz	(Warframe)

@@ -1,4 +1,0 @@
-ChestplateImpact:
-
-BulletImpactGenericMetal	(Warframe)
-metal_box_bullet_impact		(Insurgency: Sandstorm)

@@ -1,5 +1,0 @@
-EngineGib:
-
-ArchWingMovementBurnLoop	(Warframe)
-ExplosionShortBurst		(Warframe)
-
