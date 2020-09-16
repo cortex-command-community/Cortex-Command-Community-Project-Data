@@ -7,7 +7,7 @@ function Create(self)
 	self.blink = false;
 	self.fireOn = false;
 
-	self.disarmRange = FrameMan.PPM * 5;
+	self.disarmRange = GetPPM() * 5;
 	self.targetTable = {};
 end
 
@@ -16,7 +16,7 @@ function Update(self)
 	if self.Magazine then
 		if self:IsActivated() then
 			if self.fireOn == false then
-				self.Magazine.RoundCount = 4000-self.overallTimer.ElapsedSimTimeMS;
+				self.Magazine.RoundCount = 4000 - self.overallTimer.ElapsedSimTimeMS;
 				if self.delayTimer:IsPastSimMS(1000) then
 					self.delayTimer:Reset();
 					self.blink = false;
@@ -77,29 +77,29 @@ function Update(self)
 					self.scanTimer:Reset();
 					local alarm = false;
 					local alarmType = "Safe";
-					if coalitionMineTable ~= nil then
-						for i = 1, #coalitionMineTable do
-							if MovableMan:IsParticle(coalitionMineTable[i]) and SceneMan:ShortestDistance(self.Pos,coalitionMineTable[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
+					if AntiPersonnelMineTable then
+						for i = 1, #AntiPersonnelMineTable do
+							if MovableMan:IsParticle(AntiPersonnelMineTable[i]) and SceneMan:ShortestDistance(self.Pos,AntiPersonnelMineTable[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
 								alarm = true;
-								local isFriendly = coalitionMineTable[i].Team == self.Team;
+								local isFriendly = AntiPersonnelMineTable[i].Team == self.Team;
 								alarmType = isFriendly and alarmType or "Danger";
 								local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
-								detectPar.Pos = coalitionMineTable[i].Pos;
+								detectPar.Pos = AntiPersonnelMineTable[i].Pos;
 								MovableMan:AddParticle(detectPar);
-								table.insert(self.targetTable, coalitionMineTable[i]);
+								table.insert(self.targetTable, AntiPersonnelMineTable[i]);
 							end
 						end
 					end
-					if coalitionC4TableA ~= nil and coalitionC4TableB ~= nil then
-						for i = 1, #coalitionC4TableA do
-							if MovableMan:IsParticle(coalitionC4TableA[i]) and SceneMan:ShortestDistance(self.Pos,coalitionC4TableA[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
+					if RemoteExplosiveTableA and RemoteExplosiveTableB then
+						for i = 1, #RemoteExplosiveTableA do
+							if MovableMan:IsParticle(RemoteExplosiveTableA[i]) and SceneMan:ShortestDistance(self.Pos,RemoteExplosiveTableA[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
 								alarm = true;
-								local isFriendly = coalitionC4TableA[i].Team == self.Team;
+								local isFriendly = RemoteExplosiveTableA[i].Team == self.Team;
 								alarmType = isFriendly and alarmType or "Danger";
 								local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
-								detectPar.Pos = coalitionC4TableA[i].Pos;
+								detectPar.Pos = RemoteExplosiveTableA[i].Pos;
 								MovableMan:AddParticle(detectPar);
-								table.insert(self.targetTable, coalitionC4TableA[i]);
+								table.insert(self.targetTable, RemoteExplosiveTableA[i]);
 							end
 						end
 					end

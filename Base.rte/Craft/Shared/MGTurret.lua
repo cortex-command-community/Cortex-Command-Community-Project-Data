@@ -28,25 +28,25 @@ function Update(self)
 			end
 		end
 		if math.abs(self.rotation) > 0.001 then
-			self.rotation = self.rotation / (1 + self.turnSpeed * 2);
+			self.rotation = self.rotation/(1 + self.turnSpeed * 2);
 		else
 			self.rotation = 0;
 		end
 		if math.abs(self.verticalFactor) > 0.001 then
-			self.verticalFactor = self.verticalFactor / (1 + self.turnSpeed * 4);
+			self.verticalFactor = self.verticalFactor/(1 + self.turnSpeed * 4);
 		else
 			self.verticalFactor = 0;
 		end
 		-- Aim directly away from parent
-		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange / 2);
-		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0)) / (1 + self.verticalFactor) - self.rotation;
+		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange/2);
+		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0))/(1 + self.verticalFactor) - self.rotation;
 		if self.areaMode then	-- Area Mode
-			local aimPos = self.Pos + Vector((self.searchRange / 2), 0):RadRotate(self.RotAngle);
+			local aimPos = self.Pos + Vector((self.searchRange/2), 0):RadRotate(self.RotAngle);
 			-- Debug: visualize aim area
 			if self.showAim then
-				PrimitiveMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange / 2), 13);
+				PrimitiveMan:DrawCirclePrimitive(self.Team, aimPos, (self.searchRange/2), 13);
 			end
-			local aimTarget = MovableMan:GetClosestEnemyActor(self.Team, aimPos, (self.searchRange / 2), Vector());
+			local aimTarget = MovableMan:GetClosestEnemyActor(self.Team, aimPos, (self.searchRange/2), Vector());
 			if aimTarget then
 				-- Debug: visualize search trace
 				if self.showAim then
@@ -69,11 +69,11 @@ function Update(self)
 			local target;
 			local aimTrace = Vector(self.searchRange, 0):RadRotate(self.RotAngle);
 			-- Search for MOs directly in line of sight of two rays
-			local moCheck1 = SceneMan:CastMORay(self.Pos, aimTrace:RadRotate(1 / math.sqrt(self.searchRange)), parent.ID, self.Team, 0, false, 5);
+			local moCheck1 = SceneMan:CastMORay(self.Pos, aimTrace:RadRotate(1/math.sqrt(self.searchRange)), parent.ID, self.Team, 0, false, 5);
 			if moCheck1 ~= rte.NoMOID then
 				target = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck1).RootID);
 			else
-				local moCheck2 = SceneMan:CastMORay(self.Pos, aimTrace:RadRotate(-1 / math.sqrt(self.searchRange)), parent.ID, self.Team, 0, false, 5);
+				local moCheck2 = SceneMan:CastMORay(self.Pos, aimTrace:RadRotate(-1/math.sqrt(self.searchRange)), parent.ID, self.Team, 0, false, 5);
 				if moCheck2 ~= rte.NoMOID then
 					target = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck2).RootID);
 				end
@@ -89,8 +89,8 @@ function Update(self)
 			end
 			-- Debug: visualize aim traces
 			if self.showAim then
-				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(1 / math.sqrt(self.searchRange)), color);
-				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(-1 / math.sqrt(self.searchRange)), color);
+				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(1/math.sqrt(self.searchRange)), color);
+				PrimitiveMan:DrawLinePrimitive(self.Team, self.Pos, self.Pos + aimTrace:RadRotate(-1/math.sqrt(self.searchRange)), color);
 			end
 		end
 	end

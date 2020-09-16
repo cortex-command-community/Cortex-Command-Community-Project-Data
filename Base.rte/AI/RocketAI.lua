@@ -53,7 +53,7 @@ function Create(self)
 	
 	-- Check if this team is controlled by a human
 	if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() and
-		ActivityMan:GetActivity():IsPlayerTeam(self.Team)
+		ActivityMan:GetActivity():IsHumanTeam(self.Team)
 	then
 		self.AIMode = Actor.AIMODE_STAY;	-- Stop the craft from returning to orbit immediately
 	end

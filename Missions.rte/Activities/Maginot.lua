@@ -244,9 +244,9 @@ function MaginotMission:UpdateActivity()
 				if math.random() > 0.4 then
 					dummya:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.EnemyTech))
 				else
-					local digger = RandomHDFirearm("Diggers", self.EnemyTech)
+					local digger = RandomHDFirearm("Tools - Diggers", self.EnemyTech)
 					if not digger then
-						digger = RandomHDFirearm("Diggers", "Base.rte")
+						digger = RandomHDFirearm("Tools - Diggers", "Base.rte")
 					end
 					if digger then
 						dummya:AddInventoryItem(digger)
@@ -269,9 +269,9 @@ function MaginotMission:UpdateActivity()
 					if math.random() > 0.4 then
 						dummyb:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.EnemyTech))
 					else
-						local digger = RandomHDFirearm("Diggers", self.EnemyTech)
+						local digger = RandomHDFirearm("Tools - Diggers", self.EnemyTech)
 						if not digger then
-							digger = RandomHDFirearm("Diggers", "Base.rte")
+							digger = RandomHDFirearm("Tools - Diggers", "Base.rte")
 						end
 						if digger then
 							dummyb:AddInventoryItem(digger)
@@ -302,14 +302,14 @@ function MaginotMission:UpdateActivity()
 			if MovableMan:GetTeamMOIDCount(Activity.TEAM_2) <= rte.DefenderMOIDMax then
 				local actor
 				local y = math.random()
-				if y > 0.05 then
+				if y > self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.EnemyTech)) then
 					actor = RandomAHuman("Actors - Light", self.EnemyTech)
 					if actor then
 						actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.EnemyTech))
 						if math.random() > 0.1 then
 							actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.EnemyTech))
 						else
-							actor:AddInventoryItem(RandomHDFirearm("Diggers", self.EnemyTech))
+							actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.EnemyTech))
 						end
 					end
 				else
@@ -377,9 +377,9 @@ end
 -- Craft Entered Orbit
 -----------------------------------------------------------------------------------------
 
-function MaginotMission:CraftEnteredOrbit()
+function MaginotMission:CraftEnteredOrbit(orbitedCraft)
 	--If a craft leaves with the brain robot...
-	if self.OrbitedCraft:HasObjectInGroup("Brains") then
+	if orbitedCraft:HasObjectInGroup("Brains") then
 		--Team 1 wins!
 		self.WinnerTeam = Activity.TEAM_1
 		ActivityMan:EndActivity()

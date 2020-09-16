@@ -3,40 +3,31 @@ function Create(self)
 	self.loadedShell = false;
 	self.reloadCycle = false;
 
-	self.reloadDelay = 100;
+	self.reloadDelay = 75;
 
-	if self.Magazine then
-		self.ammoCounter = self.Magazine.RoundCount;
-	else
-		self.ammoCounter = 0;
-	end
+	self.ammoCounter = self.RoundInMagCount;
 end
-
 function Update(self)
-
-	if self.Magazine ~= nil then
-		if self.loadedShell == false then
-			self.ammoCounter = self.Magazine.RoundCount;
-		else
+	if self.Magazine then
+		if self.loadedShell then
 			self.loadedShell = false;
 			self.Magazine.RoundCount = self.ammoCounter + 1;
+		else
+			self.ammoCounter = self.Magazine.RoundCount;
 		end
 	else
 		self.reloadTimer:Reset();
 		self.reloadCycle = true;
 		self.loadedShell = true;
 	end
-
 	if self:IsActivated() then
 		self.reloadCycle = false;
 	end
-
-	if self.reloadCycle == true and self.reloadTimer:IsPastSimMS(self.reloadDelay) and self:IsFull() == false then
+	if self.reloadCycle and self.reloadTimer:IsPastSimMS(self.reloadDelay) and self:IsFull() == false then
 		local actor = MovableMan:GetMOFromID(self.RootID);
 		if MovableMan:IsActor(actor) then
-			ToActor(actor):GetController():SetState(Controller.WEAPON_RELOAD,true);
+			self:Reload();
 		end
 		self.reloadCycle = false;
 	end
-
 end

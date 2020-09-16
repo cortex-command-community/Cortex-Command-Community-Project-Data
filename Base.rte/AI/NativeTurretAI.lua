@@ -21,7 +21,7 @@ function NativeTurretAI:Create(Owner)
 	Members.AlarmTimer:SetSimTimeLimitMS(500)
 	
 	-- check if this team is controlled by a human
-	if ActivityMan:GetActivity():IsPlayerTeam(Owner.Team) then
+	if ActivityMan:GetActivity():IsHumanTeam(Owner.Team) then
 		Members.isPlayerOwned = true
 		Members.PlayerInterferedTimer = Timer()
 		Members.PlayerInterferedTimer:SetSimTimeLimitMS(500)

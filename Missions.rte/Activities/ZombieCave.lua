@@ -143,7 +143,7 @@ function ZombieCaveMission:MakeEnemy(whichMode)
 		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
 		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 		if PosRand() < 0.25 then
-			passenger:AddInventoryItem(RandomHDFirearm("Diggers", self.CPUTechName));
+			passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
 		end
 	end
 	
@@ -445,11 +445,11 @@ end
 -- Craft Entered Orbit
 -----------------------------------------------------------------------------------------
 
-function ZombieCaveMission:CraftEnteredOrbit()
+function ZombieCaveMission:CraftEnteredOrbit(orbitedCraft)
 	-- The intiial rocket has delivered the brain
 	self.BrainHasLanded = true;
 	-- This is set to the ACraft that just entered orbit
-	if self.OrbitedCraft:HasObject("Control Chip") then
+	if orbitedCraft:HasObject("Control Chip") then
 		-- WINRAR!
 		self.WinnerTeam = Activity.TEAM_1;
 		ActivityMan:EndActivity();

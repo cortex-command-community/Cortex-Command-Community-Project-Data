@@ -66,7 +66,19 @@ Cortex Command is TM and © 2019 Data Realms, LLC
 S O U N D   E F F E C T S   C R E D I T S :
 
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Magmaul\Sounds\Credits.txt
+ Base.rte\Sounds
+-------------------------------------------------------------------------------
+
+Digital Extremes: Warframe
+
+Door Sounds:
+GrnCannoPodLiftLoop
+GrnElevatorStart
+GrnElevatorStop
+
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Magmaul\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Day of Infamy
 
@@ -86,8 +98,9 @@ FlameThrowerLoop3D
 FlamethrowerFire
 RocketLauncherExplosionA
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\AutoCannon\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\AutoCannon\Sounds
 -------------------------------------------------------------------------------
 Base Autocannon Fire Sound
 
@@ -107,8 +120,9 @@ Digital Extremes: Warframe
 GarudaCrossbow Firing Sounds
 GrnFlakCannonProjHit
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\UberCannon\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\UberCannon\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -127,8 +141,9 @@ GrnFlakCannonProjHit
 
 GrineerEmplacementShot2D
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Devastator\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Devastator\Sounds
 -------------------------------------------------------------------------------
 Smoko Haram: Realsound mod for Day of Infamy
 
@@ -143,13 +158,17 @@ New World Interactive: Insurgency: Sandstorm
 exp_30mm_core_close
 exp_30mm_tail_close
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\Chainsaw\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\Chainsaw\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
-Sounds\Enemies\GrineerGhouls\GhoulSawman\Attacks*******************************************************************************
- Dummy.rte\Devices\Weapons\ScoutingRifle\Sounds\Credits.txt
+Sounds\Enemies\GrineerGhouls\GhoulSawman\Attacks
+
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\ScoutingRifle\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -159,8 +178,9 @@ GrnUzi Reload Sounds
 
 GrineerM16RifleShot
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Firestorm\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Firestorm\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -177,8 +197,9 @@ explosion:
 exp_small_core_close
 exp_mortar_tail_close
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\ImpulseGrenadeLauncher\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\ImpulseGrenadeLauncher\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -189,8 +210,9 @@ CrpFreezeRay Reload Sounds
 explosions:
 GrnFlakCannonProjHitA
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Flash\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Flash\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -210,8 +232,9 @@ explosions:
 exp_small_tail_close
 exp_small_core_close
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\RPG7\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\RPG7\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -221,8 +244,9 @@ exp_rpg_core_close
 exp_rpg_ambience_close
 exp_large_tail_close
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\MissileLauncher\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\MissileLauncher\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -241,8 +265,9 @@ Gorgon Firing Sounds
 GrnCannon Firing Sounds
 GrnOgris Reload Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\GrenadeLauncher\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\GrenadeLauncher\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -256,8 +281,9 @@ GrnUziPistol Firing Sounds
 WeaponPunchLayersCannon Sounds
 GrnBowProjectileExplosion Sounds
 
+
 *******************************************************************************
- Base.rte\Sounds\Explosions\Credits.txt
+ Base.rte\Sounds\Explosions
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -269,8 +295,9 @@ New World Interactive: Insurgency
 
 ShipExplosion1-3 - vehicle_explode
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\M60\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\M60\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -278,8 +305,9 @@ M60 Firing Sounds
 M240 Firing Sounds?
 M249 Reload Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\Destroyer\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\Destroyer\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -287,16 +315,20 @@ CrpElectroMag Firing Sound
 CorpusPolearm Sounds
 CorpusWhip Sounds
 Harlequin Sounds
-CrpSentExperimentalPistol Firing Sounds*******************************************************************************
- Techion.rte\Devices\Weapons\PulseRifle\Sounds\Credits.txt
+CrpSentExperimentalPistol Firing Sounds
+
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\PulseRifle\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
 CrpChainLightningRifle Reload Sounds
 RiotMoaLaser Firing Sounds
 
+
 *******************************************************************************
- Techion.rte\Devices\Weapons\NucleoSwarm\Sounds\Credits.txt
+ Techion.rte\Devices\Weapons\NucleoSwarm\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -304,8 +336,9 @@ Multron Sounds
 CrpShotgun Reload Sounds
 CrpSentExperimentalPistol Firing Sounds
 
+
 *******************************************************************************
- Techion.rte\Devices\Weapons\Nucleo\Sounds\Credits.txt
+ Techion.rte\Devices\Weapons\Nucleo\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -313,8 +346,9 @@ EnergyRifle Firing Sounds
 LibrarianTrap Firing Sounds
 CephPrimary Reload Sounds
 
+
 *******************************************************************************
- Techion.rte\Devices\Weapons\NanoRifle\Sounds\Credits.txt
+ Techion.rte\Devices\Weapons\NanoRifle\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -323,8 +357,9 @@ CrpElectroMag Sounds
 CrpHandRocketLauncher Reload Sounds
 CrpShockRifle Sounds
 
+
 *******************************************************************************
- Techion.rte\Devices\Weapons\MicroPulsar\Sounds\Credits.txt
+ Techion.rte\Devices\Weapons\MicroPulsar\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -332,8 +367,9 @@ CrpMinigun Firing Sounds
 MoaLaser Firing Sounds
 CrpScopeGun Reload Sounds
 
+
 *******************************************************************************
- Techion.rte\Devices\Weapons\GigaPulsar\Sounds\Credits.txt
+ Techion.rte\Devices\Weapons\GigaPulsar\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -341,8 +377,9 @@ MoaLaser Firing Sounds
 CrpDualMinigun Reload Sounds
 CrpSplitLaser Reload Sounds
 
+
 *******************************************************************************
- Techion.rte\Devices\Weapons\DihelicalCannon\Sounds\Credits.txt
+ Techion.rte\Devices\Weapons\DihelicalCannon\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -350,24 +387,27 @@ CrpElectroMag Firing Sounds
 CrpElectroMag Reload Sounds
 CrpChargeGun Firing Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\UZI\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\UZI\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
 UZI Firing Sounds
 UZI Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\SPAS12\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\SPAS12\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
 M870 Firing Sounds
 M870 Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\RocketPropelledChainsaw\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\RocketPropelledChainsaw\Sounds
 -------------------------------------------------------------------------------
 MNTL: Fallout: New Vegas Mod: Improved Chainsaw Sound
 
@@ -382,24 +422,27 @@ New World Interactive: Insurgency: Sandstorm
 Panzerfaust Firing Sounds
 M3 MAAWS Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\Model590\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\Model590\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
 TOZ Firing Sounds
 TOZ Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\MP5K\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\MP5K\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
 MP5 Firing Sounds
 MP5 Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\M79\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\M79\Sounds
 -------------------------------------------------------------------------------
 Tripwire Interactive: Rising Storm 2: Vietnam
 
@@ -409,8 +452,9 @@ New World Interactive: Insurgency: Sandstorm
 
 M203 Firing Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\M1Garand\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\M1Garand\Sounds
 -------------------------------------------------------------------------------
 CarterG4Y: Day Of Infamy Mod: New M1 Garand Sounds
 
@@ -425,16 +469,18 @@ New World Interactive: Insurgency
 
 M1A1 Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\M16A2\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\M16A2\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
 M16A2 Firing Sounds
 M16A2 Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\LugerP08\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\LugerP08\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -442,24 +488,27 @@ P226 Firing Sounds
 P226 Reload Sounds
 PF940 Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\K98K\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\K98K\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
 Mosin Nagant Firing Sounds
 Mosin Nagant Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\AK47\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\AK47\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
 AK74 Firing Sounds
 AK74 Reload Sounds
 
+
 *******************************************************************************
- Ronin.rte\Devices\Weapons\357Magnum\Sounds\Credits.txt
+ Ronin.rte\Devices\Weapons\357Magnum\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -475,8 +524,9 @@ Digital Extremes: Warframe
 TennoLeverActionRifle Firing Sounds
 WeaponPunchLayer
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Slugger\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Slugger\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -488,8 +538,9 @@ GrnFourBarrelRifle Reload Sounds
 GrnQueenGaurdDualPistols Reload Sounds
 GrineerLeverActionPistol Firing Sounds
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Mauler\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Mauler\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -507,8 +558,9 @@ Digital Extremes: Warframe
 
 GrnQueenGaurdDualPistols Firing Sounds
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Marauder\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Marauder\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -520,8 +572,9 @@ Bar Reload Sounds
 
 MG42 Reload Sounds
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Chunker\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Chunker\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -532,8 +585,9 @@ Digital Extremes: Warframe
 
 Strun Firing Sounds
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Bullpup\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Bullpup\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -544,8 +598,9 @@ Digital Extremes: Warframe
 
 Gorgon Firing Sounds
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Bulldog\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Bulldog\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -572,8 +627,9 @@ Colesy_: Battlesound mod for Day of Infamy
 
 MG42 Firing Sounds
 
+
 *******************************************************************************
- Imperatus.rte\Devices\Weapons\Banshee\Sounds\Credits.txt
+ Imperatus.rte\Devices\Weapons\Banshee\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency: Sandstorm
 
@@ -583,16 +639,18 @@ Digital Extremes: Warframe
 
 TennoSniperRifle Firing Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\Repeater\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\Repeater\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
 LatronPrime Firing Sounds
 LatronPrime Reload Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\RailPistol\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\RailPistol\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -601,8 +659,9 @@ TennoMagnum Firing Sounds
 TennoMagnum Reload Sounds
 WeaponPunchRifleCommonFour Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\Nailgun\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\Nailgun\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -610,32 +669,36 @@ BlasterRifle Sounds
 AssaultRifle Firing Sounds
 AssaultRifle Reload Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\NailerMachinegun\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\NailerMachinegun\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
 Furis Firing Sounds
 DualViper Reload Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\Lancer\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\Lancer\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
 CrpSpearGun Firing Sounds
 LatoVandal Firing Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\FragNailer\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\FragNailer\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
 CrpGrenadeLauncher Firing Sounds
 CrpGrenadeLauncher Reload Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\BlasterRifle\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\BlasterRifle\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
@@ -643,16 +706,18 @@ Burston Firing Sounds
 Boar Reload Sounds
 Boar Firing Sounds
 
+
 *******************************************************************************
- Dummy.rte\Devices\Weapons\Annihilator\Sounds\Credits.txt
+ Dummy.rte\Devices\Weapons\Annihilator\Sounds
 -------------------------------------------------------------------------------
 Digital Extremes: Warframe
 
 CrpBow Firing Sounds
 CrpChainLightningRifle Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\SniperRifle\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\SniperRifle\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -663,8 +728,9 @@ Digital Extremes: Warframe
 
 TennoMiter Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\Shotgun\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\Shotgun\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -675,8 +741,9 @@ Digital Extremes: Warframe
 
 Lever Action Rifle Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\Pistol\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\Pistol\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -687,8 +754,9 @@ Digital Extremes: Warframe
 
 SundialSMG Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\HeavyPistol\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\HeavyPistol\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -699,8 +767,9 @@ Digital Extremes: Warframe
 
 Latron Prime Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\GatlingGun\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\GatlingGun\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -712,8 +781,9 @@ SawbladeLauncher Loop
 Supra Reload Sounds
 TennoGunbladeAutomatic Firing Sounds (perfect!)
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\CompactAssaultRifle\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\CompactAssaultRifle\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -724,8 +794,9 @@ Digital Extremes: Warframe
 
 Lato Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\AutoShotgun\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\AutoShotgun\Sounds
 -------------------------------------------------------------------------------
 Base Auto Shotgun Firing Sounds
 
@@ -739,8 +810,9 @@ Digital Extremes: Warframe
 
 TnHeavyShotgun Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\AutoPistol\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\AutoPistol\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -751,8 +823,9 @@ Digital Extremes: Warframe
 
 Firing Sounds
 
+
 *******************************************************************************
- Coalition.rte\Devices\Weapons\AssaultRifle\Sounds\Credits.txt
+ Coalition.rte\Devices\Weapons\AssaultRifle\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
 
@@ -763,8 +836,9 @@ Digital Extremes: Warframe
 TnoSundialSMG Firing Sounds
 TennoDrakeRifle Firing Sounds
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Trailblazer\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Trailblazer\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Day of Infamy
 
@@ -780,8 +854,9 @@ Digital Extremes: Warframe
 
 GrineerLeverActionPistol Firing Sounds
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Stinger\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Stinger\Sounds
 -------------------------------------------------------------------------------
 Smoko Haram: Realsound mod for Day of Infamy
 
@@ -791,8 +866,9 @@ Digital Extremes: Warframe
 
 GrineerAkimboPistol Firing Sounds
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Longshot\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Longshot\Sounds
 -------------------------------------------------------------------------------
 Smoko Haram: Realsound mod for Day of Infamy
 
@@ -807,8 +883,9 @@ Digital Extremes: Warframe
 TennoDrakeRifle Firing Sounds
 TennoSundialRifle Firing Sounds
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Heatlance\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Heatlance\Sounds
 -------------------------------------------------------------------------------
 Colesy_: Battlesound mod for Day of Infamy
 
@@ -823,8 +900,9 @@ Digital Extremes: Warframe
 GrnSparkRifle Firing Sounds
 GrnMicroWavePistol Firing Sounds
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Hammerfist\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Hammerfist\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Day of Infamy
 
@@ -838,8 +916,9 @@ Digital Extremes: Warframe
 
 Burston Firing Sounds
 
+
 *******************************************************************************
- Browncoats.rte\Devices\Weapons\Backblast\Sounds\Credits.txt
+ Browncoats.rte\Devices\Weapons\Backblast\Sounds
 -------------------------------------------------------------------------------
 Colesy_: Battlesound mod for Day of Infamy
 
@@ -850,9 +929,9 @@ New World Interactive: Day of Infamy
 
 MG34 Reload Sounds
 
+
 *******************************************************************************
-*******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Weapon\gunsounds.txt
+Base.rte\Sounds\Penetration\Weapon
 -------------------------------------------------------------------------------
 GunImpact:
 
@@ -865,8 +944,9 @@ phys_weapon_drop_rifle		(Insurgency: Sandstorm)
 computer_bullet_impact		-
 BulletImpactGenericMetal	(Warframe)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\SpaceAge\spasounds.txt
+Base.rte\Sounds\Penetration\Robot\SpaceAge
 -------------------------------------------------------------------------------
 Torso, HeadSweetener:
 
@@ -895,8 +975,9 @@ ExitSweetener:
 
 STSparks			(Warframe)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\SilverMan\silsounds.txt
+C:\Users\Max\Desktop\CCCP Data\Techion.rte\Actors\Infantry\SilverMan\Sounds
 -------------------------------------------------------------------------------
 Torso, LimbImpact:
 
@@ -908,8 +989,9 @@ HeadImpact:
 pl_heavyarmor_damagebullet	(Insurgency)
 concrete_bullet_impact		-
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\Industrial\indsounds.txt
+Base.rte\Sounds\Penetration\Robot\Industrial
 -------------------------------------------------------------------------------
 LimbSweetener:
 
@@ -934,8 +1016,9 @@ HeadGibSweetener:
 
 ContainerSalvageOpen			(Warframe)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\Generic\gensounds.txt
+Base.rte\Sounds\Penetration\Robot\Generic
 -------------------------------------------------------------------------------
 LimbImpact:
 
@@ -953,8 +1036,9 @@ LimbGib:
 
 BulletImpactMetalNoWhizz		(Warframe)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Robot\Dummy\dumsounds.txt
+Base.rte\Sounds\Penetration\Robot\Plastic
 -------------------------------------------------------------------------------
 TorsoImpact:
 
@@ -993,8 +1077,9 @@ ExitSweetener:
 
 small_box_breakable_prop	(Insurgency: Sandstorm)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\MetalShield\mtssounds.txt
+Base.rte\Sounds\Penetration\MetalShield
 -------------------------------------------------------------------------------
 ShieldImpact:
 
@@ -1005,8 +1090,9 @@ ShieldGib:
 solidmetal_impact_hard		(Insurgency: Sandstorm)
 BulletImpactMetalNoWhizz	(Warframe)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\MetalDoor\mtdsounds.txt
+Base.rte\Sounds\Penetration\MetalDoor
 -------------------------------------------------------------------------------
 MetalDoorImpact:
 
@@ -1017,8 +1103,9 @@ MetalDoorGib:
 GrnLootCrateOpen		(Warframe)
 StorageContainerCylinderSmash	-
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Flesh\ClothedFlesh\clfsounds.txt
+Base.rte\Sounds\Penetration\Flesh\ClothedFlesh
 -------------------------------------------------------------------------------
 TorsoImpact:
 
@@ -1048,8 +1135,9 @@ ExitSweetener:
 
 HeadshotImpactFlesh		(Warframe)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Flesh\ArmoredFlesh\arfsounds.txt
+Base.rte\Sounds\Penetration\Flesh\ArmoredFlesh
 -------------------------------------------------------------------------------
 TorsoImpact:
 
@@ -1064,8 +1152,9 @@ HeadImpact:
 PlayerBulletImpactFlesh			(Warframe)
 PlayerArrowImpactFlesh			-
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Craft\Generic\gcrsounds.txt
+Base.rte\Sounds\Penetration\Craft\Generic
 -------------------------------------------------------------------------------
 BodyImpact:
 
@@ -1075,8 +1164,10 @@ BodyGib:
 
 RocketLauncherExplosion		(Warframe)
 exp_debris_metal		(Insurgency: Sandstorm)
+
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Craft\Engine\engsounds.txt
+Base.rte\Sounds\Penetration\Craft\Engine
 -------------------------------------------------------------------------------
 EngineGib:
 
@@ -1085,21 +1176,24 @@ ExplosionShortBurst		(Warframe)
 
 
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Armor\MetalHelmet\SteelHelm\sthsounds.txt
+Base.rte\Sounds\Penetration\Armor\MetalHelmet\SteelHelm
 -------------------------------------------------------------------------------
 HelmetImpact:
 
 helmet_headshot		(Insurgency: Sandstorm)
+
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Armor\MetalChestPlate\mcpsounds.txt
+Base.rte\Sounds\Penetration\Armor\MetalChestPlate
 -------------------------------------------------------------------------------
 ChestplateImpact:
 
 BulletImpactGenericMetal	(Warframe)
 metal_box_bullet_impact		(Insurgency: Sandstorm)
 
+
 *******************************************************************************
-C:\Users\Greattech\Documents\GitHub\Cortex-Command-Community-Project-Data\Base.rte\Sounds\Penetration\Armor\Cloth\clasounds.txt
+Base.rte\Sounds\Penetration\Armor\Cloth
 -------------------------------------------------------------------------------
 ClothArmorImpact:
 

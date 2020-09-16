@@ -50,7 +50,7 @@ function BunkerBreach:StartActivity()
 	-- Add player brains
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			local Brain = CreateAHuman("Brain Robot", "Base.rte")
+			local Brain = RandomAHuman("Brains", self:GetTeamTech(self:GetTeamOfPlayer(player)))
 			if Brain then
 				local Weapon = RandomHDFirearm("Weapons - Light", self:GetTeamTech(self:GetTeamOfPlayer(player)))
 				if Weapon then
@@ -488,7 +488,7 @@ function BunkerBreach:CreateHeavyDrop(xPosLZ)
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
 		
 		for i = 1, Craft.MaxPassengers do
-			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTechName)) + self.Difficulty / 800 then
+			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTechName)) then
 				Passenger = self:CreateCrab()
 			elseif RangeRand(0, 105) < self.Difficulty then
 				Passenger = self:CreateHeavyInfantry()
@@ -841,7 +841,7 @@ function BunkerBreach:CreateBrainBot(mode)
 		Act:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName))
 		Act:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
 
-		if PosRand() < 0.5 then
+		if math.random() < 0.5 then
 			Act:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName))
 		end
 
