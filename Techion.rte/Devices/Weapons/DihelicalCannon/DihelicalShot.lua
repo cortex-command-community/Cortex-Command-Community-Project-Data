@@ -39,7 +39,7 @@ function Create(self)
     self.hits = 0;
 
     --Amount of damage pixels.
-    self.damageStrength = math.floor(math.sqrt(self.Vel.Magnitude * 0.1));
+    self.damageStrength = math.floor(math.sqrt(self.Vel.Magnitude * 0.1) + 0.5);
 	
 	--Disintegration strength.
 	self.disintegrationStrength = 50;

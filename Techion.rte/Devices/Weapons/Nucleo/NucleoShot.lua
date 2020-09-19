@@ -13,7 +13,7 @@ function Create(self)
 	self.detTimer = Timer();
 	self.boom = false;
 
-	self.detDelay = 5000/math.sqrt(#g_nucleocommunicationtable[self.Sharpness]);
+	self.detDelay = 4000/math.sqrt(#g_nucleocommunicationtable[self.Sharpness]);
 	self.speed = 15;
 	self.acceleration = 0.1;
 	self.disintegrationStrength = 75;

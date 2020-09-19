@@ -4,9 +4,9 @@
 --speed     The speed to move at.
 function SwarmTo(object, target, speed)
 	local baseVector = SceneMan:ShortestDistance(object.Pos, target, true);
-	local dirVector = baseVector / baseVector.Largest;
+	local dirVector = baseVector/baseVector.Largest;
 	local dist = baseVector.Magnitude;
-	local modifier = dist / 5;
+	local modifier = dist * 0.2;
 	if modifier < 1 then
 		modifier = 1;
 	end
@@ -67,7 +67,7 @@ function Create(self)
 	self.maxDist = 75;
 	
 	--The maximum distance to target at.
-	self.targetDist = 500;
+	self.targetDist = 250;
 	
 	--The maximum distance to attack at.
 	self.attackDist = 75;
@@ -92,8 +92,8 @@ function Create(self)
 	
 	--Fill the list.
 	for i = 1, self.waspNum do
-		local wasp = CreateMOPixel("Techion.rte/Nanowasp " .. math.random(1,3));
-		wasp.Vel = Vector(math.random(-10, 10),math.random(-10, 10));
+		local wasp = CreateMOPixel("Techion.rte/Nanowasp " .. math.random(3));
+		wasp.Vel = Vector(math.random(-10, 10), math.random(-10, 10));
 		self.offsets[i] = Vector(math.random(-self.swarmRad, self.swarmRad), math.random(-self.swarmRad, self.swarmRad));
 		wasp.Pos = self.Pos + self.offsets[i];
 		MovableMan:AddParticle(wasp);
@@ -108,30 +108,33 @@ function Update(self)
 
     if not MovableMan:IsActor(self.target) or self.target.Team == self.Team then
         --Find a target.
+		local shortestDist;
         for actor in MovableMan.Actors do
             if actor.Team ~= self.Team then
-                if SceneMan:ShortestDistance(self.Pos, actor.Pos, true).Magnitude < self.targetDist then
+				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, true).Magnitude;
+                if dist < self.targetDist and (not shortestDist or dist < shortestDist) then
                     self.target = actor;
+					shortestDist = dist;
                 end
             end
         end
         
         if not MovableMan:IsActor(self.target) then
             --If all else fails, move randomly.
-            self.Vel = self.Vel + Vector(math.random() * 1 - 0.5,math.random() * 1 - 0.5);
+            self.Vel = self.Vel + Vector(math.random() * 1 - 0.5, math.random() * 1 - 0.5);
             
             --Keep the wasps at the desired altitude.
             local alt = self:GetAltitude(0, 10);
             if alt > self.maxIdleAlt then
-                self.Vel = Vector(self.Vel.X, math.abs(self.Vel.Y) / 2);
+                self.Vel = Vector(self.Vel.X, math.abs(self.Vel.Y) * 0.5);
             elseif alt < self.minIdleAlt then
-                self.Vel = Vector(self.Vel.X, -math.abs(self.Vel.Y) / 2);
+                self.Vel = Vector(self.Vel.X, -math.abs(self.Vel.Y) * 0.5);
             end
             
             moving = true;
         else
             --Attack if this is stuck in something.
-            if SceneMan:CastStrengthRay(self.Pos, Vector(0, -5) , 0, Vector(), 0, 0, true) then
+            if SceneMan:CastStrengthRay(self.Pos, Vector(0, -5), 0, Vector(), 0, rte.airID, true) then
                 attacking = true;
             end
         end
@@ -139,9 +142,9 @@ function Update(self)
     
     if MovableMan:IsActor(self.target) then
         --Go after the target.       
-        if not SceneMan:CastStrengthRay(self.Pos, SceneMan:ShortestDistance(self.Pos, self.target.Pos, true), self.maxMoveStrength, Vector(), 5, 0, true) then
+        if not SceneMan:CastStrengthRay(self.Pos, SceneMan:ShortestDistance(self.Pos, self.target.Pos, true), self.maxMoveStrength, Vector(), 5, rte.airID, true) then
             local dirVec = SceneMan:ShortestDistance(self.Pos, self.target.Pos, true);
-            local movement = (dirVec / dirVec.Largest) * self.maxBaseSpeed;
+            local movement = (dirVec/dirVec.Largest) * self.maxBaseSpeed;
             
             self.Vel = self.Vel + movement;
             
@@ -163,16 +166,16 @@ function Update(self)
     end
 
 	if not moving then
-		self.Vel = self.Vel / self.airResistance;
+		self.Vel = self.Vel/self.airResistance;
 	end
 	
 	if self.Vel.Largest > self.maxBaseSpeed then
-		self.Vel = (self.Vel / self.Vel.Largest) * self.maxBaseSpeed;
+		self.Vel = (self.Vel/self.Vel.Largest) * self.maxBaseSpeed;
 	end
 	
 	--Check if the swarm is about to run into a wall, and if it is, stop it.
-	if SceneMan:CastStrengthRay(self.Pos, self.Vel, self.maxMoveStrength, Vector(), 0, 0, true) then
-		self.Vel = Vector(0,0);
+	if SceneMan:CastStrengthRay(self.Pos, self.Vel, self.maxMoveStrength, Vector(), 0, rte.airID, true) then
+		self.Vel = Vector();
 	end
 	
 	--Attack.
@@ -200,7 +203,7 @@ function Update(self)
 			SwarmTo(wasp,target,math.random() * self.baseAcc * attackAcc);
 			
 			--Keep the wasp from going too fast.
-			local speedMod = SceneMan:ShortestDistance(wasp.Pos, target, true).Magnitude / 5;
+			local speedMod = SceneMan:ShortestDistance(wasp.Pos, target, true).Magnitude * 0.2;
 			if speedMod < 1 then
 				speedMod = 1;
 			end
@@ -209,7 +212,7 @@ function Update(self)
             wasp.Vel = Vector(wasp.Vel.X, wasp.Vel.Y - SceneMan.Scene.GlocalAcc.Y * TimerMan.DeltaTimeSecs);
 			
 			if wasp.Vel.Largest > self.maxSpeed * speedMod * attackMax then
-				wasp.Vel = (wasp.Vel / wasp.Vel.Largest) * self.maxSpeed * speedMod * attackMax;
+				wasp.Vel = (wasp.Vel/wasp.Vel.Largest) * self.maxSpeed * speedMod * attackMax;
 			end
 			
 			--Keep the wasp within decent bounds of the swarm.
@@ -230,7 +233,7 @@ function Update(self)
 			if attacking == true and math.random() <= self.stingChance then
 				local sting = CreateMOPixel("Techion.rte/Nanowasp Sting");
 				sting.Pos = self.Pos + Vector(math.random(-self.swarmRad, self.swarmRad), math.random(-self.swarmRad, self.swarmRad));
-				sting.Vel = (wasp.Vel / wasp.Vel.Largest) * self.stingSpeed;
+				sting.Vel = (wasp.Vel/wasp.Vel.Largest) * self.stingSpeed;
 				MovableMan:AddParticle(sting);
                 
                 if math.random() < self.stingDieChance then
@@ -241,7 +244,7 @@ function Update(self)
 		else
 			if #self.roster < self.waspNum then
 				--Replace the wasp.
-				local wasp = CreateMOPixel("Techion.rte/Nanowasp " .. math.random(1,3));
+				local wasp = CreateMOPixel("Techion.rte/Nanowasp " .. math.random(3));
 				wasp.Pos = self.Pos + self.offsets[i];
 				wasp.Vel = Vector(math.random(-10, 10), math.random(-10, 10));
 				MovableMan:AddParticle(wasp);
@@ -276,7 +279,7 @@ end
 
 function Destroy(self)
 	--Remove all wasps.
-	for i=1,#self.roster do
+	for i = 1, #self.roster do
 		if MovableMan:IsParticle(self.roster[i]) then
 			self.roster[i].ToDelete = true;
 		end
