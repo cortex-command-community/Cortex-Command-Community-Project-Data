@@ -16,10 +16,10 @@ function Update(self)
 		if self.target and self.target.ID ~= rte.NoMOID and not self.target.ToDelete then
 			self.Vel = self.target.Vel;
 			self.Pos = self.target.Pos + Vector(self.stickPos.X, self.stickPos.Y):RadRotate(self.target.RotAngle - self.targetStickAngle);
-			local actor = MovableMan:GetMOFromID(self.target.RootID);
+			local actor = self.target:GetRootParent();
 			if MovableMan:IsActor(actor) then
 				actor = ToActor(actor);
-				if math.random() < (self.strength * self.target.DamageMultiplier)/(actor.Mass + self.target.Material.StructuralIntegrity) then
+				if math.random() < (self.strength * self.target.DamageMultiplier)/(actor.Mass * 0.5 + self.target.Material.StructuralIntegrity * 0.75) then
 					actor.Health = actor.Health - 1;
 				end
 				--Stop, drop and roll!

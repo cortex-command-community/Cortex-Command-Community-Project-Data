@@ -12,9 +12,9 @@ function Update(self)
 	for i = 1, velFactor do
 		local particle = i == 1 and CreateMOPixel("Ground Fire Burn Particle") or CreateMOSParticle("Flame Smoke 1 Micro");
 		particle.Pos = Vector(self.Pos.X, self.Pos.Y) - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame * (i/velFactor);
-		particle.Vel = self.Vel * RangeRand(0.5, 1.0) + Vector(math.random(5, 15)/velFactor, 0):RadRotate(math.random() * 6.28);
+		particle.Vel = self.Vel * 0.5 + Vector(math.random(5, 10)/velFactor, 0):RadRotate(math.random() * 6.28);
 		particle.Lifetime = particle.Lifetime * RangeRand(0.7, math.sqrt(velFactor));
-		particle.Sharpness = particle.Sharpness * RangeRand(0.3, 1.0);
+		particle.Sharpness = particle.Sharpness/i;
 		particle.GlobalAccScalar = -math.random();
 		particle.Team = self.Team;
 		particle.IgnoresTeamHits = true;
