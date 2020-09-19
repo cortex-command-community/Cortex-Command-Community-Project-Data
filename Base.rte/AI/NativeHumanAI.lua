@@ -278,7 +278,7 @@ function NativeHumanAI:Update(Owner)
 					FoundMO = ToACRocket(FoundMO)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
-				elseif FoundMO.ClassName == "ADoor" and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached()
+				elseif FoundMO.ClassName == "ADoor" and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached()
 				and (Owner:EquipNamedDevice("Heavy Digger", true) or (Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity)) then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then

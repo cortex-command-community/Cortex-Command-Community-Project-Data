@@ -2624,7 +2624,7 @@ end
 -- throw a grenade at the selected target
 function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 	local ThrowTimer = Timer()
-	local aimTime = 1000
+	local aimTime = Owner.ThrowPrepTime
 	local scan = 0
 	local miss = 0	-- stop scanning after a few missed attempts
 	local AimPoint, Dist, MO, ID, rootID, LOS, aim
@@ -2742,13 +2742,13 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, Grenade.MaxThrowVel)
 							if aim then
 								ThrowTimer:Reset()
-								aimTime = RangeRand(900, 1100)
+								aimTime = Owner.ThrowPrepTime * RangeRand(0.9, 1.1)
 								local maxAim = aim
 								
 								-- try again with an average throw vel
 								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (Grenade.MaxThrowVel+Grenade.MinThrowVel)/2)
 								if aim then
-									aimTime = RangeRand(450, 550)
+									aimTime = Owner.ThrowPrepTime * RangeRand(0.45, 0.55)
 								else
 									aim = maxAim
 								end
