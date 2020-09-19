@@ -1,4 +1,9 @@
 function Create(self)
+	self.maxLength = 2;
+	self.maxForce = 6;
+	self.maxDistance = 4;
+	self.forceMultiplier = 10;
+	self.dampMultiplier = 0.2;
 	--Get the link connection ID from Sharpness
 	--TODO: replace it with NumberValue once MOPixels and MOSParticles are supported?
 	self.linkID = self.Sharpness;
@@ -22,29 +27,23 @@ function Update(self)
 		if linkMO then
 			local dist = SceneMan:ShortestDistance(self.Pos, linkMO.Pos, SceneMan.SceneWrapsX);
 			--Spring joint: apply a force proportional to the distance between the two MOs
-			local maxLength = 2;
-			local maxForce = 6;
-			local forceMultiplier = 10;
-			local str = math.min(math.max((dist.Magnitude/maxLength) - 1, 0), maxForce) * TimerMan.DeltaTimeSecs * forceMultiplier;
+			local str = math.min(math.max((dist.Magnitude/self.maxLength) - 1, 0), self.maxForce) * TimerMan.DeltaTimeSecs * self.forceMultiplier;
 			self.Vel = self.Vel + dist * str;
 			linkMO.Vel = linkMO.Vel - dist * str;
 
 			--Distance joint: limit distance between two MOs
-			local maxDistance = 4;
-			if dist.Magnitude > (maxDistance * 4) then
+			if dist.Magnitude > (self.maxDistance * 4) then
 				self.linkID = nil;
 			else
-				self.Pos = linkMO.Pos - dist:SetMagnitude(math.min(dist.Magnitude, maxDistance));
-				--Distance damp joint: apply a force proportional to the velocity difference between MOs
-				local dampMultiplier = 0.2;
-				local damp = 1 - (self.Vel - linkMO.Vel).Magnitude * TimerMan.DeltaTimeSecs * dampMultiplier;
-				self.Vel = self.Vel * damp;
-				linkMO.Vel = linkMO.Vel * damp;
+				self.Pos = linkMO.Pos - dist:SetMagnitude(math.min(dist.Magnitude, self.maxDistance));
+				--Distance dampening joint: apply a force proportional to the velocity difference between MOs
+				local dampeningFactor = 1 - (self.Vel - linkMO.Vel).Magnitude * TimerMan.DeltaTimeSecs * self.dampMultiplier;
+				self.Vel = self.Vel * dampeningFactor;
+				linkMO.Vel = linkMO.Vel * dampeningFactor;
 				
 				self.linked = true;
 			end
 		elseif self.linked then	--Joint has been broken
-
 			self.linkID = nil;
 			self.linked = false;
 

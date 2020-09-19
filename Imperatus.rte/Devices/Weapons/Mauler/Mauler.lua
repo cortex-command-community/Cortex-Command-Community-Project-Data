@@ -9,7 +9,6 @@ function Update(self)
 			local chain = CreateMOSParticle("Particle Mauler Chainshot ".. i % 2 + 1);
 			chain.Pos = self.MuzzlePos;
 			chain.Vel = self.Vel + Vector(math.random(50, 70) * self.FlipFactor, 0):RadRotate(self.RotAngle + self.spread * 0.5 - self.spread * i/self.chainCount);
-			chain.PinStrength = 5000;	--Prevent any movement in the first frame
 
 			chain.AirResistance = chain.AirResistance * RangeRand(0.5, 1);
 			chain.AirThreshold = chain.AirThreshold * RangeRand(0.5, 1);
