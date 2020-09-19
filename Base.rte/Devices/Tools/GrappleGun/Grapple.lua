@@ -14,6 +14,7 @@ function Create(self)
 	self.fireVel = 40;	-- This immediately overwrites the .ini FireVel
 	self.maxLineLength = 500;
 	self.setLineLength = 0;
+	self.lineStrength = 40;	-- How much "force" the rope can take before breaking
 	
 	self.limitReached = false;
 	self.stretchMode = false;	-- Alternative elastic pull mode a là Liero
@@ -356,7 +357,11 @@ function Update(self)
 					self.parent.Pos = moveToPos;
 					
 					local pullAmountNumber = math.abs(self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle)/6.28;
-					self.parent.Vel = self.parent.Vel + self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber);
+					-- Break the rope if the forces are too high
+					if (self.parent.Vel - self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber)).Magnitude > self.lineStrength then
+						self.ToDelete = true;
+					end
+					self.parent.Vel = self.parent.Vel + self.lineVec;
 				end
 				
 			elseif self.actionMode == 3 then	-- Stuck MO
