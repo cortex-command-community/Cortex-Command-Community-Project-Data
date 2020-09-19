@@ -541,9 +541,9 @@ function NativeHumanAI:Update(Owner)
 					self:CreateFaceAlarmBehavior(Owner)
 				end
 			end
-		elseif not self.Target and not self.UnseenTarget then
+		elseif not (self.Target or self.UnseenTarget) then
 			-- use medikit if not engaging enemy
-			if Owner.Health < (Owner.MaxHealth/2) then
+			if Owner.Health < (Owner.MaxHealth * 0.5) then
 				if Owner:HasObject("Medikit") then
 
 					self.useMedikit = Owner:EquipNamedDevice("Medikit", true)
@@ -637,7 +637,6 @@ function NativeHumanAI:Destroy(Owner)
 	end
 end
 
-
 -- functions that create behaviors. the default behaviors are stored in the HumanBehaviors table. store your custom behaviors in a table to avoid name conflicts between mods.
 function NativeHumanAI:CreateSentryBehavior(Owner)
 	if self.Target then
@@ -724,7 +723,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		self.NextBehaviorName = "AttackTarget"
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
-	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * 20 and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
+	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner:EquipFirearm(true) then
@@ -735,7 +734,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
 		end
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem).MaxThrowVel * 10) then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM()) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 150 then
