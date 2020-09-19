@@ -5,7 +5,7 @@ function Create(self)
 end
 function Update(self)
 	if self.FiredFrame then
-		self.ActivationDelay = 20;
+		self.ActivationDelay = 0;
 		self.DeactivationDelay = self.origDeactivationDelay * 9;
 		self.spinTimer:Reset();
 	elseif self.RoundInMagCount == 0 or self.spinTimer:IsPastSimMS(self.DeactivationDelay * 0.9) then
