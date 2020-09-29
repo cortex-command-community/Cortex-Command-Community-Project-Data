@@ -13,7 +13,7 @@ function Create(self)
 	self.medBlipDelay = 250;
 	self.maxBlipDelay = 500;
 	
-	self.detonateDelay = 11000;
+	self.detonateDelay = self:NumberValueExists("DetonationDelay") and self:GetNumberValue("DetonationDelay") or 11000;
 	self.Frame = 1;
 
 	if TimedExplosiveTable == nil then

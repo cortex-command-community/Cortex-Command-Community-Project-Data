@@ -49,7 +49,7 @@ function Update(self)
 
 			local part = CreateMOPixel("Drop Oil", "Base.rte");
 			part.Pos = self.Pos;
-			part.Vel = self.Vel + Vector(math.random(5), 0):RadRotate(6.28 * math.random());
+			part.Vel = self.Vel + Vector(math.random(5), 0):RadRotate(math.pi * 2 * math.random());
 			MovableMan:AddParticle(part);
 		end
 	end
