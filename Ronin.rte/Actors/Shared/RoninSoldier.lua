@@ -6,7 +6,14 @@ function Create(self)
 			self.Head.Frame = self.face;
 		end
 		self:SetNumberValue("Identity", self.face);
-		--Equip loadout actors with random weapons
+	else
+		self.face = self:GetNumberValue("Identity");
+		if self.Head then
+			self.Head.Frame = self.face;
+		end
+	end
+	--Equip loadout actors with random weapons
+	if not self:NumberValueExists("Equipped") then
 		if string.find(self.PresetName, "Infantry") then
 			local loadoutName = string.gsub(self.PresetName, "Ronin Infantry ", "");
 			if RoninLoadouts[loadoutName] then
@@ -44,8 +51,7 @@ function Create(self)
 				self.Head:AddAttachable(CreateAttachable("Ronin Blonde Hair"));
 			end
 		end
-	else
-		self.face = self:GetNumberValue("Identity");
+		self:SetNumberValue("Equipped", 1);
 	end
 end
 function Update(self)
