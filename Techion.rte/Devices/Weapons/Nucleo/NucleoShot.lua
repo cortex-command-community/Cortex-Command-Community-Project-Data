@@ -1,19 +1,19 @@
 function Create(self)
 
-	if g_nucleocommunicationtable == nil then
-		g_nucleocommunicationtable = {};
+	if NucleoCommunicationTable == nil then
+		NucleoCommunicationTable = {};
 	end
-
-	if g_nucleocommunicationtable[self.Sharpness] == nil then
-		g_nucleocommunicationtable[self.Sharpness] = {};
+	if NucleoCommunicationTable[self.Sharpness] == nil then
+		NucleoCommunicationTable[self.Sharpness] = {};
 	end
+	NucleoCommunicationTable[self.Sharpness][#NucleoCommunicationTable[self.Sharpness] + 1] = {self.UniqueID, self};
 
-	g_nucleocommunicationtable[self.Sharpness][#g_nucleocommunicationtable[self.Sharpness] + 1] = {self.UniqueID, self};
+	self.Vel = Vector(self.Vel.X, self.Vel.Y):DegRotate(#NucleoCommunicationTable[self.Sharpness] * RangeRand(-1, 1));
 
 	self.detTimer = Timer();
 	self.boom = false;
 
-	self.detDelay = 4000/math.sqrt(#g_nucleocommunicationtable[self.Sharpness]);
+	self.detDelay = 4000/math.sqrt(#NucleoCommunicationTable[self.Sharpness]);
 	self.speed = 15;
 	self.acceleration = 0.1;
 	self.disintegrationStrength = 75;
@@ -44,25 +44,25 @@ function Update(self)
 	
 	PrimitiveMan:DrawCirclePrimitive(self.Pos, self.Radius, self.colors[math.random(#self.colors)]);
 
-	if g_nucleocommunicationtable[self.Sharpness] ~= nil then
-		for i = 1, #g_nucleocommunicationtable[self.Sharpness] do
-			if g_nucleocommunicationtable[self.Sharpness][i][1] == self.UniqueID then
-				if g_nucleocommunicationtable[self.Sharpness][i][2].UniqueID ~= self.UniqueID then
-					g_nucleocommunicationtable[self.Sharpness][i][2] = self;
+	if NucleoCommunicationTable[self.Sharpness] ~= nil then
+		for i = 1, #NucleoCommunicationTable[self.Sharpness] do
+			if NucleoCommunicationTable[self.Sharpness][i][1] == self.UniqueID then
+				if NucleoCommunicationTable[self.Sharpness][i][2].UniqueID ~= self.UniqueID then
+					NucleoCommunicationTable[self.Sharpness][i][2] = self;
 				end
 			else
-				local raydirection = SceneMan:ShortestDistance(self.Pos,g_nucleocommunicationtable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX)
-				if MovableMan:IsParticle(g_nucleocommunicationtable[self.Sharpness][i][2]) and raydirection.Magnitude < self.linkRange then
+				local rayDirection = SceneMan:ShortestDistance(self.Pos,NucleoCommunicationTable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX)
+				if MovableMan:IsParticle(NucleoCommunicationTable[self.Sharpness][i][2]) and rayDirection.Magnitude < self.linkRange then
 				
-					local dist = SceneMan:ShortestDistance(self.Pos, g_nucleocommunicationtable[self.Sharpness][i][2].Pos, SceneMan.SceneWrapsX);
+					local dist = SceneMan:ShortestDistance(self.Pos, NucleoCommunicationTable[self.Sharpness][i][2].Pos, SceneMan.SceneWrapsX);
 					PrimitiveMan:DrawLinePrimitive(self.Pos + Vector(math.random(-1, 1), math.random(-1, 1)), self.Pos + dist + Vector(math.random(-1, 1), math.random(-1, 1)), self.colors[math.random(#self.colors)]);
 					--The projectiles are drawn towards each other
-					self.Vel = self.Vel + dist * rte.PxTravelledPerFrame * self.linkPullRatio;
+					self.Vel = self.Vel + dist:RadRotate(RangeRand(-0.1, 0.1)) * rte.PxTravelledPerFrame * self.linkPullRatio;
 
-					local moid = SceneMan:CastMORay(self.Pos, raydirection, rte.NoMOID, self.Team, rte.airID, true, 1);
+					local moid = SceneMan:CastMORay(self.Pos, rayDirection, rte.NoMOID, self.Team, rte.airID, true, 1);
 					if moid ~= rte.NoMOID then
 						local hitPos = Vector();
-						SceneMan:CastFindMORay(self.Pos, raydirection, moid, hitPos, rte.airID, true, 1);
+						SceneMan:CastFindMORay(self.Pos, rayDirection, moid, hitPos, rte.airID, true, 1);
 						self.Pos = hitPos;
 						self.boom = true;
 						self.hitTarget = true;
@@ -72,18 +72,18 @@ function Update(self)
 			end
 		end
 	else
-		g_nucleocommunicationtable[self.Sharpness] = {};
-		g_nucleocommunicationtable[self.Sharpness][#g_nucleocommunicationtable[self.Sharpness] + 1] = {self.UniqueID,self};
+		NucleoCommunicationTable[self.Sharpness] = {};
+		NucleoCommunicationTable[self.Sharpness][#NucleoCommunicationTable[self.Sharpness] + 1] = {self.UniqueID,self};
 	end
 	self.Vel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.min(self.Vel.Magnitude + self.acceleration, self.speed));
 	self.AngularVel = self.AngularVel * 0.9;
 	self.RotAngle = 0;
 
 	if self.hitTarget then
-		for i = 1, #g_nucleocommunicationtable[self.Sharpness] do
-			if g_nucleocommunicationtable[self.Sharpness][i][1] ~= self.UniqueID and MovableMan:IsParticle(g_nucleocommunicationtable[self.Sharpness][i][2]) then
-				g_nucleocommunicationtable[self.Sharpness][i][2].Pos = self.Pos + Vector(math.random() * 5, 0):RadRotate(math.random() * math.pi * 2);
-				g_nucleocommunicationtable[self.Sharpness][i][2]:SetNumberValue("GOBOOM", 1);
+		for i = 1, #NucleoCommunicationTable[self.Sharpness] do
+			if NucleoCommunicationTable[self.Sharpness][i][1] ~= self.UniqueID and MovableMan:IsParticle(NucleoCommunicationTable[self.Sharpness][i][2]) then
+				NucleoCommunicationTable[self.Sharpness][i][2].Pos = self.Pos + Vector(math.random() * 5, 0):RadRotate(math.random() * math.pi * 2);
+				NucleoCommunicationTable[self.Sharpness][i][2]:SetNumberValue("GOBOOM", 1);
 			end
 		end
 	end
@@ -108,7 +108,7 @@ function Update(self)
 				melt.Pos = self.Pos;
 				melt.Team = self.Team;
 				melt.Sharpness = ToActor(parent).ID;
-				melt.PinStrength = self.disintegrationStrength * math.sqrt(#g_nucleocommunicationtable[self.Sharpness]);
+				melt.PinStrength = self.disintegrationStrength * math.sqrt(#NucleoCommunicationTable[self.Sharpness]);
 				MovableMan:AddMO(melt);
 			end
 		end
@@ -123,23 +123,23 @@ function Update(self)
 end
 
 function Destroy(self)
-	if g_nucleocommunicationtable and self.Sharpness and g_nucleocommunicationtable[self.Sharpness] then
-		for i = 1, #g_nucleocommunicationtable[self.Sharpness] do
-			if g_nucleocommunicationtable[self.Sharpness][i][1] == self.UniqueID then
-				g_nucleocommunicationtable[self.Sharpness][i] = nil;
+	if NucleoCommunicationTable and self.Sharpness and NucleoCommunicationTable[self.Sharpness] then
+		for i = 1, #NucleoCommunicationTable[self.Sharpness] do
+			if NucleoCommunicationTable[self.Sharpness][i][1] == self.UniqueID then
+				NucleoCommunicationTable[self.Sharpness][i] = nil;
 			end
 		end
 
 		local temptable = {};
-		for i = 1, #g_nucleocommunicationtable[self.Sharpness] do
-			if g_nucleocommunicationtable[self.Sharpness][i] ~= nil then
-				temptable[#temptable + 1] = g_nucleocommunicationtable[self.Sharpness][i];
+		for i = 1, #NucleoCommunicationTable[self.Sharpness] do
+			if NucleoCommunicationTable[self.Sharpness][i] ~= nil then
+				temptable[#temptable + 1] = NucleoCommunicationTable[self.Sharpness][i];
 			end
 		end
-		g_nucleocommunicationtable[self.Sharpness] = temptable;
+		NucleoCommunicationTable[self.Sharpness] = temptable;
 
-		if #g_nucleocommunicationtable[self.Sharpness] == 0 then
-			g_nucleocommunicationtable[self.Sharpness] = nil;
+		if #NucleoCommunicationTable[self.Sharpness] == 0 then
+			NucleoCommunicationTable[self.Sharpness] = nil;
 		end
 	end
 end

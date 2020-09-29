@@ -19,10 +19,7 @@ function Create(self)
 		self.flickerChance = 0.9;
 		
 		--Length of time between pulses of damage.
-		self.damageTime = 250;
-		
-		--Maximum StructuralIntegrity the nanobots can damage.
-		self.maxStrengthThreshold = 200;
+		self.damageTime = 300;
 		
 		--Timer for damage.
 		self.damageTimer = Timer();
@@ -56,7 +53,7 @@ function Update(self)
 		end
 		
 		--Cause damage.
-		if self.damageTimer:IsPastSimMS(self.damageTime + self.target.Material.StructuralIntegrity) then
+		if self.damageTimer:IsPastSimMS(self.damageTime + self.target.Material.StructuralIntegrity * 2) then
 
 			if IsAttachable(self.target) then
 				self.nextTarget = ToAttachable(self.target):GetParent();
