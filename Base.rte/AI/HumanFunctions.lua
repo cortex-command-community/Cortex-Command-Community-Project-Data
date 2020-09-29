@@ -160,15 +160,15 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						local drawPos = actor.Pos + Vector((-actorBack.X * 0.5 - stackX) * actor.FlipFactor, -actorBack.Y * 0.75):RadRotate(actor.RotAngle);
 						--Display tall objects upright
 						local widthToHeightRatio = ToMOSprite(item):GetSpriteWidth()/ToMOSprite(item):GetSpriteHeight();
-						local tallAng = widthToHeightRatio > 1 and 1.57 or 0;
+						local orientation = widthToHeightRatio > 1 and 1.57 * actor.FlipFactor or 0;
 
 						local tilt = (itemCount/item.Radius) * widthToHeightRatio * actor.FlipFactor;
-						local rotAng = actor.RotAngle + tallAng + (tilt * 2) - tilt * (itemCount - 1);
+						local rotAng = actor.RotAngle + orientation + (tilt * 2) - tilt * (itemCount - 1);
 
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 							local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
 							if screen ~= -1 and not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
-								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0, false, not actor.HFlipped);
+								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0, actor.HFlipped, true);
 							end
 						end
 					end
