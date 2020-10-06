@@ -581,7 +581,7 @@ function MetaFight:StartActivity()
 					end
 					
 					-- Further reduce value if actors are badly damaged in terms of wounds
-					if Act.TotalWoundCount / Act.TotalWoundLimit > 0.5 then
+					if Act.WoundCount / Act.TotalWoundLimit > 0.5 then
 						value = value * 0.5
 					end
 					

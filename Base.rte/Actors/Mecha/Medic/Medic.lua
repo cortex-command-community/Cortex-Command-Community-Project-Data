@@ -33,7 +33,7 @@ function Update(self)
 			for i = 1, #self.healTargets do
 				local targetFound = false;
 				local healTarget = self.healTargets[i];
-				if healTarget and IsActor(healTarget) and (healTarget.Health < healTarget.MaxHealth or healTarget.TotalWoundCount > 0) and healTarget.Vel.Largest < 10 then
+				if healTarget and IsActor(healTarget) and (healTarget.Health < healTarget.MaxHealth or healTarget.WoundCount > 0) and healTarget.Vel.Largest < 10 then
 					local trace = SceneMan:ShortestDistance(self.Pos, healTarget.Pos, false);
 					if (trace.Magnitude - healTarget.Radius) < healRange then
 						if SceneMan:CastObstacleRay(self.Pos, trace, Vector(), Vector(), parent.ID, parent.IgnoresWhichTeam, rte.grassID, 5) < 0 then
@@ -50,7 +50,7 @@ function Update(self)
 							MovableMan:AddParticle(cross);
 						end
 						if healTarget.Health >= healTarget.MaxHealth then
-							healTarget:RemoveAnyRandomWounds(self.healStrength);
+							healTarget:RemoveWounds(self.healStrength);
 						end
 					end
 				end
@@ -60,7 +60,7 @@ function Update(self)
 			end
 			self.healTargets = {};
 			for act in MovableMan.Actors do
-				if act.Team == parent.Team and act.ID ~= parent.ID and (act.Health < act.MaxHealth or act.TotalWoundCount > 0) and act.Vel.Largest < 5 then
+				if act.Team == parent.Team and act.ID ~= parent.ID and (act.Health < act.MaxHealth or act.WoundCount > 0) and act.Vel.Largest < 5 then
 					local trace = SceneMan:ShortestDistance(self.Pos, act.Pos, false);
 					if (trace.Magnitude - act.Radius) < (healRange * 0.9) then
 						if SceneMan:CastObstacleRay(self.Pos, trace, Vector(), Vector(), parent.ID, parent.IgnoresWhichTeam, rte.airID, 3) < 0 then

@@ -23,8 +23,8 @@ function Update(self)
 		--Heal the craft
 		if self.healTimer:IsPastSimMS(self.craft.Mass) then
 			self.healTimer:Reset();
-			if self.craft.TotalWoundCount > 0 then
-				self.craft.Health = math.min(self.craft.Health + self.craft:RemoveAnyRandomWounds(1), self.craft.MaxHealth);
+			if self.craft.WoundCount > 0 then
+				self.craft.Health = math.min(self.craft.Health + self.craft:RemoveWounds(1), self.craft.MaxHealth);
 			elseif self.craft.Health < self.craft.MaxHealth then
 				self.craft.Health = math.min(self.craft.Health + 1, self.craft.MaxHealth);
 			end
