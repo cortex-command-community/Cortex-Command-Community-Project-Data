@@ -62,9 +62,6 @@ function Update(self)
         local amplitude = math.sin((i/self.waveLength) * 2 * math.pi) * self.maxAmplitude;
         local waveOffset = Vector(self.up.X, self.up.Y);
         waveOffset:SetMagnitude(amplitude);
-        if amplitude < 0 then
-            waveOffset = waveOffset:RadRotate(math.pi);
-        end
         
         local linePos = self.Pos + Vector(self.direction.X, self.direction.Y):SetMagnitude(i * 2);
         local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
