@@ -52,13 +52,24 @@ end
 function RemoteExplosiveStick(self)
 
 	if self.actionPhase == 0 then
+		local checkVec = Vector(self.Vel.X, self.Vel.Y + 1):SetMagnitude(math.max(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.Radius));
+		--Find a user to ignore hits with
+		if not self.userID then
+			self.userID = rte.NoMOID;
+			local moCheck = SceneMan:CastMORay(self.Pos, checkVec * (-2), self.ID, -1, rte.airID, true, 1);
+			if moCheck ~= rte.NoMOID then
+				local rootID = MovableMan:GetMOFromID(moCheck).RootID;
+				if rootID ~= rte.NoMOID then
+					self.userID = rootID;
+				end
+			end
+		end
 		local rayHitPos = Vector();
 		local rayHit = false;
-		local checkVec = Vector(self.Vel.X, self.Vel.Y + 1):SetMagnitude(math.max(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.Radius));
 		for i = 1, 2 do
 			local checkPos = self.Pos + (checkVec/i);
 			local checkPix = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
-			if checkPix ~= rte.NoMOID then
+			if checkPix ~= rte.NoMOID and MovableMan:GetMOFromID(checkPix).RootID ~= self.userID then
 				checkPos = checkPos + SceneMan:ShortestDistance(checkPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(ToMOSprite(self):GetSpriteWidth() * 0.5 - 1);
 				self.target = ToMOSRotating(MovableMan:GetMOFromID(checkPix));
 				self.stickPosition = SceneMan:ShortestDistance(self.target.Pos, checkPos, SceneMan.SceneWrapsX);
