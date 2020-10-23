@@ -2644,8 +2644,11 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 				else
 					AI.fire = false
 				end
-			else
-				break	-- no grenades left
+			else	-- no grenades left, continue attack
+				if not (Owner.AIMode == Actor.AIMODE_SENTRY or Owner.AIMode == Actor.AIMODE_SQUAD) then
+					AI:CreateAttackBehavior(Owner)
+				end
+				break
 			end
 		else
 			if scan < 1 then

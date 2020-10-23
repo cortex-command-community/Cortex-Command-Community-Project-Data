@@ -5,7 +5,7 @@ function Create(self)
 	trail.EffectRotAngle = self.Vel.AbsRadAngle;
 	MovableMan:AddParticle(trail);
 	
-	self.fire = CreateMOSParticle("Flame Hurt Short");
+	self.fire = CreatePEmitter("Flame Hurt Short");
 end
 function Update(self)
 	local velFactor = math.floor(1 + math.sqrt(self.Vel.Magnitude)/(1 + self.Age * 0.01));

@@ -149,8 +149,9 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 				if item.ClassName == "TDExplosive" then
 					thrownCount = thrownCount + 1;
 				elseif item.ClassName == "HDFirearm" or item.ClassName == "HeldDevice" then
-					if showAll or item.Radius + item.Mass > largestItem then
-						largestItem = item.Radius + item.Mass;
+					if showAll or item.Diameter + item.Mass > largestItem then
+						item = ToMOSprite(item);
+						largestItem = item.Diameter + item.Mass;
 						heldCount = heldCount + 1;
 						local itemCount = math.sqrt(heldCount);
 
@@ -159,7 +160,7 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						--Bigger actors carry weapons higher up, smaller weapons are carried lower down
 						local drawPos = actor.Pos + Vector((-actorBack.X * 0.5 - stackX) * actor.FlipFactor, -actorBack.Y * 0.75):RadRotate(actor.RotAngle);
 						--Display tall objects upright
-						local widthToHeightRatio = ToMOSprite(item):GetSpriteWidth()/ToMOSprite(item):GetSpriteHeight();
+						local widthToHeightRatio = item:GetSpriteWidth()/item:GetSpriteHeight();
 						local orientation = widthToHeightRatio > 1 and 1.57 * actor.FlipFactor or 0;
 
 						local tilt = (itemCount/item.Radius) * widthToHeightRatio * actor.FlipFactor;
@@ -168,7 +169,7 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 							local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
 							if screen ~= -1 and not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
-								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, 0, actor.HFlipped, true);
+								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, item.Frame, actor.HFlipped, true);
 							end
 						end
 					end

@@ -1,10 +1,6 @@
 function Update(self)
 	self.HFlipped = false;
-	local gravity = self.Vel - SceneMan.GlobalAcc/3;
+	local gravity = self.Vel - SceneMan.GlobalAcc * rte.PxTravelledPerFrame;
 	self.RotAngle = gravity.AbsRadAngle;
-	if gravity.Magnitude > 5 then
-		self.Frame = 0;
-	else
-		self.Frame = 1;
-	end
+	self.Frame = gravity.Magnitude > 5 and 0 or 1;
 end

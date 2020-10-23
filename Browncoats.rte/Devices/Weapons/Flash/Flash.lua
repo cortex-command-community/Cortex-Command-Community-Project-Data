@@ -1,12 +1,13 @@
 function Create(self)
 	self.fireVel = 30;
+	self.spread = math.rad(self.ParticleSpreadRange);
 	
 	self.rocketCount = 4;
 	
-	self.searchRange = FrameMan.PlayerScreenWidth * 0.3;
+	self.searchRange = 100 + FrameMan.PlayerScreenWidth * 0.3;
 	self.searchTimer = Timer();
 	self.searchTimer:SetSimTimeLimitMS(250);
-	self.lockThreshold = 1;
+	self.lockThreshold = 2;
 
 	--The following timer prevents a glitch where you can fire twice by putting the gun inside the inventory while charging
 	self.inventorySwapTimer = Timer();
@@ -40,7 +41,7 @@ function Update(self)
 				if self.searchTimer:IsPastSimTimeLimit() then
 					self.searchTimer:Reset();
 					
-					local searchPos = self.Pos + Vector(self.searchRange * 0.8 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+					local searchPos = self.Pos + Vector(self.searchRange * 0.75 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 					local lastTargetCount = #self.targets;
 					self.targets = {};
 
@@ -110,7 +111,6 @@ function Update(self)
 		self.targets = {};
 	end
 	if self.FiredFrame then
-		local spread = math.rad(self.ParticleSpreadRange);
 		local rocketNumber = self.RoundInMagCount + 1;
 	
 		local rocket = CreateAEmitter("Particle Browncoat Rocket");
@@ -124,7 +124,7 @@ function Update(self)
 			end
 		end
 		rocket.Pos = self.MuzzlePos + Vector(0, (rocketNumber - self.rocketCount * 0.5)):RadRotate(self.RotAngle);
-		rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((spread * 0.5) - (rocketNumber/self.rocketCount) * spread) * self.FlipFactor);
+		rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((self.spread * 0.5) - (rocketNumber/self.rocketCount) * self.spread) * self.FlipFactor);
 		rocket.RotAngle = rocket.Vel.AbsRadAngle;
 		rocket.AngularVel = math.cos(rocket.Vel.AbsRadAngle) * 5;
 		rocket.Team = self.Team;

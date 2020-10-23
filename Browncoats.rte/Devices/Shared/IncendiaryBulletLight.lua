@@ -5,7 +5,7 @@ function Create(self)
 	self.trailGlow.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame * 0.5;
 	MovableMan:AddParticle(self.trailGlow);
 	
-	self.fire = CreateMOSParticle("Flame Hurt Short");
+	self.fire = CreatePEmitter("Flame Hurt Short");
 end
 function Update(self)
 	if self.trailGlow and MovableMan:IsParticle(self.trailGlow) then

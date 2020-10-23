@@ -44,7 +44,7 @@ function Update(self)
 		for i = 1, #self.partList do
 			if MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
 				if self.explodeTimer:IsPastSimMS(self.explodeTime + self.partList[i].queue) then
-					local fire = CreateMOSParticle("Flame ".. math.random(2) .." Hurt");
+					local fire = CreatePEmitter("Flame ".. math.random(2) .." Hurt");
 					fire.Pos = Vector(self.partList[i].Pos.X, self.partList[i].Pos.Y);
 					fire.Vel = self.Vel;
 					if self.partList[i].target then
