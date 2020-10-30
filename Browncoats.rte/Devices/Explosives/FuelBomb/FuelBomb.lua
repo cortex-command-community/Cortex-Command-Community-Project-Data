@@ -12,7 +12,7 @@ function Create(self)
 	for i = 1, self.numOfParticles do
 		self.partList[i] = CreateMOPixel("Browncoat Fuel Bomb Fuel");
 		self.partList[i].Pos = self.Pos;
-		self.partList[i].Vel = Vector(math.random(20), 0):RadRotate(6.283 * math.random()) + self.Vel;
+		self.partList[i].Vel = Vector(math.random(20), 0):RadRotate(math.pi * 2 * math.random()) + self.Vel;
 		MovableMan:AddParticle(self.partList[i]);
 		self.partList[i].queue = math.abs(self.partList[i].Vel.X - self.Vel.X) * TimerMan.DeltaTimeMS;
 
@@ -62,7 +62,7 @@ function Update(self)
 							firePar.Vel = self.Vel + Vector(RangeRand(-20, 20), -math.random(-10, 30));
 						else
 							firePar = CreateMOSParticle("Flame Smoke 2");
-							firePar.Vel = self.Vel + Vector(math.random() * j, 0):RadRotate(math.random() * 6.28);
+							firePar.Vel = self.Vel + Vector(math.random() * j, 0):RadRotate(math.random() * math.pi * 2);
 							firePar.Lifetime = math.random(500, 1000);
 							firePar.GlobalAccScalar = RangeRand(-0.6, -0.1);
 						end
