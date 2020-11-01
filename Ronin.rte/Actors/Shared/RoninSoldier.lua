@@ -22,11 +22,11 @@ function Create(self)
 				local firearms = {unit["Primary"], unit["Secondary"], unit["Tertiary"]};
 				for class = 1, #firearms do
 					if firearms[class] then
-						self:AddInventoryItem(CreateHDFirearm(firearms[class][math.random(#firearms[class])]));
+						self:AddInventoryItem(CreateHDFirearm(firearms[class][math.random(#firearms[class])], "Ronin.rte"));
 					end
 				end
 				if unit["Throwable"] then
-					self:AddInventoryItem(CreateTDExplosive(unit["Throwable"][math.random(#unit["Throwable"])]));
+					self:AddInventoryItem(CreateTDExplosive(unit["Throwable"][math.random(#unit["Throwable"])], "Ronin.rte"));
 				end
 				if unit["Headgear"] and self.Head then
 					self.Head:AddAttachable(CreateAttachable("Ronin ".. unit["Headgear"][math.random(#unit["Headgear"])]));
@@ -60,7 +60,7 @@ function Update(self)
 		self.aggressive = self.Health < (self.MaxHealth * 0.5);
 		if self.Head then
 			self.Head.Frame = self.face;
-			if self.controller and self.controller:IsState(Controller.WEAPON_FIRE) or self.aggressive then
+			if self.aggressive or (self.controller and self.controller:IsState(Controller.WEAPON_FIRE)) then
 				self.Head.Frame = self.face + (self.Head.FrameCount * 0.5);
 			end
 		end

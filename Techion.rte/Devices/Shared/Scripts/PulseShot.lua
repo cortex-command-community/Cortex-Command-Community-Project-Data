@@ -27,7 +27,9 @@ end
 function PulsarDissipate(self, inverted)
 
 	local trace = inverted and Vector(-self.Vel.X, -self.Vel.Y):SetMagnitude(GetPPM()) or Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + 1);
-	local hit, hitPos, skipPx = nil, Vector(), math.sqrt(self.Vel.Magnitude) * 0.5;
+	local hit;
+	local hitPos = Vector();
+	local skipPx = math.sqrt(self.Vel.Magnitude) * 0.5;
 
 	local ray = SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx);
 	if ray >= 0 then
