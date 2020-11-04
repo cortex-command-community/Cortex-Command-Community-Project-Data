@@ -35,7 +35,7 @@ function Create(self)
 			end
 		end
 		--Elaborate effect resistance strength calculations based on various Actor values
-		local resistance = ((actor.Mass + size + actor.Material.StructuralIntegrity) * 0.3 + (actor.TotalWoundLimit - actor.WoundCount) + actor.Health) * 0.5;
+		local resistance = ((actor.Mass + size + actor.Material.StructuralIntegrity) * 0.3 + (actor.GibWoundLimit - actor.WoundCount) + actor.Health) * 0.5;
 		if resistance - strength < 0 then
 			--Leave this Actor alone if it already has a disintegrator particle assigned to it
 			if ToActor(target):NumberValueExists("ToDisintegrate") then

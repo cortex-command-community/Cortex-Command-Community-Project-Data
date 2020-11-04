@@ -10,7 +10,7 @@ function Update(self)
 	if self.regenTimer:IsPastSimMS(self.regenDelay) then
 		self.regenTimer:Reset();
 		if self.Health > 0 then
-			local damageRatio = (self.WoundCount - self.lastWoundCount)/self.TotalWoundLimit + (self.lastHealth - self.Health)/self.MaxHealth;
+			local damageRatio = (self.WoundCount - self.lastWoundCount)/self.GibWoundLimit + (self.lastHealth - self.Health)/self.MaxHealth;
 			if damageRatio > 0 then
 				self.regenDelay = self.regenDelay * (1 + damageRatio);
 			else
