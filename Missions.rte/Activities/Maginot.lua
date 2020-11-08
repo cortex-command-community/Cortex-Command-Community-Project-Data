@@ -61,6 +61,10 @@ function MaginotMission:StartActivity()
 			local brain = CreateAHuman("Brain Robot", "Base.rte")
 			--Move the brain to the right spot.
 			brain.Pos = Vector(2328 + player * 24,1240)
+			--If the brain area is provided, use that instead.
+			if SceneMan.Scene:HasArea("Brain") then
+				brain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint()
+			end
 			--Store this position.
 			self.spawnPos[player] = brain.Pos
 			--Equip the brain with a pistol.
