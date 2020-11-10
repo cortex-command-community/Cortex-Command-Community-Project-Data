@@ -62,3 +62,830 @@ Portions Copyright © 2001, Xiphophorus
 
 
 Cortex Command is TM and © 2019 Data Realms, LLC
+
+
+
+
+
+S O U N D   E F F E C T S   C R E D I T S :
+
+*******************************************************************************
+ Base.rte\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+
+Digital Extremes: Warframe
+
+Door Sounds:
+GrnCannoPodLiftLoop
+GrnElevatorStart
+GrnElevatorStop
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Magmaul\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Day of Infamy
+
+Lewis Reload Sounds
+Enfield Reload Sounds
+
+Smoko Haram: Realsound mod for Day of Infamy
+
+Garand Grenade Launcher Firing Sounds
+
+Digital Extremes: Warframe
+
+Hek Firing Sounds
+
+projectile:
+FlameThrowerLoop3D
+FlamethrowerFire
+RocketLauncherExplosionA
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\AutoCannon\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Base Autocannon Fire Sound
+
+New World Interactive: Insurgency
+
+GP30 Firing Sounds
+RPG7 Reload Sounds
+MK18 Reload Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+exp_30mm_core_close
+exp_30mm_tail_close
+
+Digital Extremes: Warframe
+
+GarudaCrossbow Firing Sounds
+GrnFlakCannonProjHit
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\UberCannon\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+Mini14 Reload Sounds
+Mini14 Firing Sounds
+M67 Grenade Physics Sounds
+GP30 Firing Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+exp_small_core_close
+
+exp_30mm_core_close
+exp_30mm_tail_close
+
+Digital Extremes: Warframe
+
+GrnCannon Reload Sounds
+WeaponPunchLayersCannon Sounds
+GrnFourBarrelRifle Firing Sounds
+
+GrineerEmplacementShot2D
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Devastator\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Smoko Haram: Realsound mod for Day of Infamy
+
+Ithaca Firing Sounds
+
+Digital Extremes: Warframe
+
+Strun Firing Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+exp_30mm_core_close
+exp_30mm_tail_close
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\Chainsaw\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+Sounds\Enemies\GrineerGhouls\GhoulSawman\Attacks
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\ScoutingRifle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+GrineerLAR Firing Sounds
+GrineerLAR Reload Sounds
+GrnUzi Reload Sounds
+
+GrineerM16RifleShot
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Firestorm\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+GrnFlakCannon Firing Sounds
+GrnFourBarrelRifle Sounds
+
+explosion:
+SargasRukFlameThrowerLoop
+GrineerJetPackIdleExplosion
+
+New World Interactive: Insurgency: Sandstorm
+
+explosion:
+exp_small_core_close
+exp_mortar_tail_close
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\ImpulseGrenadeLauncher\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpGrenadeLauncher Firing Sounds
+CrpGrenadeLauncher Reload Sounds
+CrpFreezeRay Reload Sounds
+
+explosions:
+CrpGrenadelauncherShotB
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Flash\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+GrnQueenGuardDualPistolShot2D
+GrineerJetPolearm Sounds
+FlameThrower Firing Sounds
+DoubleBarrelShotgun Sounds
+Gorgon Reload Sounds
+
+
+explosions:
+GrnHellionEliteRPGExplosionA
+
+New World Interactive: Insurgency: Sandstorm
+
+explosions:
+exp_small_tail_close
+exp_small_core_close
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\RPG7\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+RPG7 Firing Sounds
+RPG7 Reload Sounds
+exp_rpg_core_close
+exp_rpg_ambience_close
+exp_large_tail_close
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\MissileLauncher\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+RPG7 Firing Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+exp_rpg_core_close
+exp_rpg_ambience_close
+exp_large_tail_close
+
+Digital Extremes: Warframe
+
+GrnOgris Firing Sounds
+Gorgon Firing Sounds
+GrnCannon Firing Sounds
+GrnOgris Reload Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\GrenadeLauncher\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+M203 Firing Sounds
+Galil Reload Sounds
+M67 Sounds
+
+Digital Extremes: Warframe
+
+GrnUziPistol Firing Sounds
+WeaponPunchLayersCannon Sounds
+GrnBowProjectileExplosion Sounds
+
+*******************************************************************************
+ Base.rte\Sounds\Explosions\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+Explode1-3 - GrnBowProjectileExplosion
+CrashWoosh1-3 - GrnGalleonBarrelDrop
+CrashRubble - GrnFortressAsteroidExplosion
+
+New World Interactive: Insurgency
+
+ShipExplosion1-3 - vehicle_explode
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\M60\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+M60 Firing Sounds
+M240 Firing Sounds?
+M249 Reload Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\Destroyer\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpElectroMag Firing Sound
+CorpusPolearm Sounds
+CorpusWhip Sounds
+Harlequin Sounds
+CrpSentExperimentalPistol Firing Sounds
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\PulseRifle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpChainLightningRifle Reload Sounds
+RiotMoaLaser Firing Sounds
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\NucleoSwarm\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+Multron Sounds
+CrpShotgun Reload Sounds
+CrpSentExperimentalPistol Firing Sounds
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\Nucleo\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+EnergyRifle Firing Sounds
+LibrarianTrap Firing Sounds
+CephPrimary Reload Sounds
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\NanoRifle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+Snipetron Firing Sounds
+CrpElectroMag Sounds
+CrpHandRocketLauncher Reload Sounds
+CrpShockRifle Sounds
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\MicroPulsar\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpMinigun Firing Sounds
+MoaLaser Firing Sounds
+CrpScopeGun Reload Sounds
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\GigaPulsar\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+MoaLaser Firing Sounds
+CrpDualMinigun Reload Sounds
+CrpSplitLaser Reload Sounds
+
+*******************************************************************************
+ Techion.rte\Devices\Weapons\DihelicalCannon\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpElectroMag Firing Sounds
+CrpElectroMag Reload Sounds
+CrpChargeGun Firing Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\UZI\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+UZI Firing Sounds
+UZI Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\SPAS12\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+M870 Firing Sounds
+M870 Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\RocketPropelledChainsaw\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+MNTL: Fallout: New Vegas Mod: Improved Chainsaw Sound
+
+Chainsaw Sound
+
+Digital Extremes: Warframe
+
+GrineerFlakCannon Firing Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+Panzerfaust Firing Sounds
+M3 MAAWS Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\Model590\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+TOZ Firing Sounds
+TOZ Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\MP5K\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+MP5 Firing Sounds
+MP5 Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\M79\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Tripwire Interactive: Rising Storm 2: Vietnam
+
+M79 Reload Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+M203 Firing Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\M1Garand\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+CarterG4Y: Day Of Infamy Mod: New M1 Garand Sounds
+
+M1 Garand Reload Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+G3 Firing Sounds
+SVD Firing Sounds
+
+New World Interactive: Insurgency
+
+M1A1 Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\M16A2\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+M16A2 Firing Sounds
+M16A2 Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\LugerP08\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+P226 Firing Sounds
+P226 Reload Sounds
+PF940 Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\K98K\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+Mosin Nagant Firing Sounds
+Mosin Nagant Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\AK47\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+AK74 Firing Sounds
+AK74 Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\DesertEagle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+m45a1_mech_01
+M45 Reload Sounds
+
+Toz194_Trigger_
+r870_core_
+
+Digital Extremes: Warframe
+
+GrnKuvaLichRifleShot
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\357Magnum\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+Revolver Reload Sounds
+
+New World Interactive: Insurgency: Sandstorm
+
+BrowningHP Firing Sounds
+G3A3 Firing Sounds (?)
+
+Digital Extremes: Warframe
+
+TennoLeverActionRifle Firing Sounds
+WeaponPunchLayer
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Slugger\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+M203 Firing Sounds
+
+Digital Extremes: Warframe
+
+GrnFourBarrelRifle Reload Sounds
+GrnQueenGaurdDualPistols Reload Sounds
+GrineerLeverActionPistol Firing Sounds
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Mauler\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+M82 Reload Sounds
+
+New World Interactive: Insurgency
+
+MG42 Reload Sounds
+
+Colesy_: Battlesound mod for Day of Infamy
+
+Kar98 Firing Sounds
+
+Digital Extremes: Warframe
+
+GrnQueenGaurdDualPistols Firing Sounds
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Marauder\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+GrineerGrenadeLauncher Firing Sounds
+
+New World Interactive: Day of Infamy
+
+Bar Reload Sounds
+
+MG42 Reload Sounds
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Chunker\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+Toz Firing Sounds
+Toz Reload Sounds
+
+Digital Extremes: Warframe
+
+Strun Firing Sounds
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Bullpup\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+FN Fal Reload Sounds
+DshK Firing Sounds
+
+Digital Extremes: Warframe
+
+Gorgon Firing Sounds
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Bulldog\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+PKM Reload Sounds
+M99 Firing Sounds
+
+New World Interactive: Insurgency
+
+M249 Reload Sounds
+
+Crytek: Crysis 1
+
+Minigun Spin Sound
+
+Infinity Ward: Modern Warfare 2
+
+Minigun Spin Sound
+
+MagmaCow:
+
+Misc. Mixing
+
+Colesy_: Battlesound mod for Day of Infamy
+
+MG42 Firing Sounds
+
+*******************************************************************************
+ Imperatus.rte\Devices\Weapons\Banshee\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+M99 Reload Sounds
+
+Digital Extremes: Warframe
+
+TennoSniperRifle Firing Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\Repeater\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+LatronPrime Firing Sounds
+LatronPrime Reload Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\RailPistol\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+RevolverPistol Firing Sounds
+TennoMagnum Firing Sounds
+TennoMagnum Reload Sounds
+WeaponPunchRifleCommonFour Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\Nailgun\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+BlasterRifle Sounds
+AssaultRifle Firing Sounds
+AssaultRifle Reload Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\NailerMachinegun\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+Furis Firing Sounds
+DualViper Reload Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\Lancer\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpSpearGun Firing Sounds
+LatoVandal Firing Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\FragNailer\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpGrenadeLauncher Firing Sounds
+CrpGrenadeLauncher Reload Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\BlasterRifle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+Burston Firing Sounds
+Boar Reload Sounds
+Boar Firing Sounds
+
+*******************************************************************************
+ Dummy.rte\Devices\Weapons\Annihilator\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+CrpBow Firing Sounds
+CrpChainLightningRifle Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\SniperRifle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+M40A1 Firing Sounds
+M14 Reload Sounds
+
+Digital Extremes: Warframe
+
+TennoMiter Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\Shotgun\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+M590 Firing Sounds
+M590 Reload Sounds
+
+Digital Extremes: Warframe
+
+Lever Action Rifle Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\Pistol\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+Makarov Firing Sounds
+M9 Reload Sounds
+
+Digital Extremes: Warframe
+
+SundialSMG Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\HeavyPistol\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+M1911 Firing Sounds
+M1911 Reload Sounds
+
+Digital Extremes: Warframe
+
+Latron Prime Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\GatlingGun\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+M249 Reload Sounds
+
+Digital Extremes: Warframe
+
+SawbladeLauncher Loop
+Supra Reload Sounds
+TennoGunbladeAutomatic Firing Sounds (perfect!)
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\CompactAssaultRifle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+MP40 Reload Sounds
+MP40 Firing Sounds
+
+Digital Extremes: Warframe
+
+Lato Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\AutoShotgun\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Base Auto Shotgun Firing Sounds
+
+New World Interactive: Insurgency
+
+Mosin Firing Sounds
+Galil Reload Sounds
+FNFal Reload Sounds
+
+Digital Extremes: Warframe
+
+TnHeavyShotgun Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\AutoPistol\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+Sterling Firing Sounds
+Makarov Reload Sounds
+
+Digital Extremes: Warframe
+
+Firing Sounds
+
+*******************************************************************************
+ Coalition.rte\Devices\Weapons\AssaultRifle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency
+
+M4A1 Reload
+
+Digital Extremes: Warframe
+
+TnoSundialSMG Firing Sounds
+TennoDrakeRifle Firing Sounds
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Trailblazer\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Day of Infamy
+
+M1 Carbine Reload Sounds
+Enfield Reload Sounds
+
+Smoko Haram: Realsound mod for Day of Infamy
+
+Sten Firing Sounds
+Fire Loop Sounds
+
+Digital Extremes: Warframe
+
+GrineerLeverActionPistol Firing Sounds
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Stinger\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Smoko Haram: Realsound mod for Day of Infamy
+
+M1911 Firing Sounds
+
+Digital Extremes: Warframe
+
+GrineerAkimboPistol Firing Sounds
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Longshot\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Smoko Haram: Realsound mod for Day of Infamy
+
+Springfield Firing Sounds
+
+Colesy_: Battlesound mod for Day of Infamy
+
+G43 Reload Sounds
+
+Digital Extremes: Warframe
+
+TennoDrakeRifle Firing Sounds
+TennoSundialRifle Firing Sounds
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Heatlance\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Colesy_: Battlesound mod for Day of Infamy
+
+Flamethrowerno2 Firing Sounds
+
+New World Interactive: Day of Infamy
+
+M1Carbine Reload Sounds
+
+Digital Extremes: Warframe
+
+GrnSparkRifle Firing Sounds
+GrnMicroWavePistol Firing Sounds
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Hammerfist\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Day of Infamy
+
+Bar Reload Sounds
+
+Smoko Haram: Realsound mod for Day of Infamy
+
+G43 Firing Sounds
+
+Digital Extremes: Warframe
+
+Burston Firing Sounds
+
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Backblast\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+Colesy_: Battlesound mod for Day of Infamy
+
+Ithaca Firing Sounds
+Ambient Fire Sounds
+
+New World Interactive: Day of Infamy
+
+MG34 Reload Sounds
+>>>>>>> 79d373c8a15ef9a28ab6704ac7cf78a4d097cc90

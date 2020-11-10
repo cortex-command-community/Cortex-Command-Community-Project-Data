@@ -77,29 +77,19 @@ function Update(self)
 					self.scanTimer:Reset();
 					local alarm = false;
 					local alarmType = "Safe";
-					if AntiPersonnelMineTable then
-						for i = 1, #AntiPersonnelMineTable do
-							if MovableMan:IsParticle(AntiPersonnelMineTable[i]) and SceneMan:ShortestDistance(self.Pos,AntiPersonnelMineTable[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
-								alarm = true;
-								local isFriendly = AntiPersonnelMineTable[i].Team == self.Team;
-								alarmType = isFriendly and alarmType or "Danger";
-								local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
-								detectPar.Pos = AntiPersonnelMineTable[i].Pos;
-								MovableMan:AddParticle(detectPar);
-								table.insert(self.targetTable, AntiPersonnelMineTable[i]);
-							end
-						end
-					end
-					if RemoteExplosiveTableA and RemoteExplosiveTableB then
-						for i = 1, #RemoteExplosiveTableA do
-							if MovableMan:IsParticle(RemoteExplosiveTableA[i]) and SceneMan:ShortestDistance(self.Pos,RemoteExplosiveTableA[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
-								alarm = true;
-								local isFriendly = RemoteExplosiveTableA[i].Team == self.Team;
-								alarmType = isFriendly and alarmType or "Danger";
-								local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
-								detectPar.Pos = RemoteExplosiveTableA[i].Pos;
-								MovableMan:AddParticle(detectPar);
-								table.insert(self.targetTable, RemoteExplosiveTableA[i]);
+					local disarmTables = {AntiPersonnelMineTable, RemoteExplosiveTableA, TimedExplosiveTable};
+					for _, bombTable in pairs(disarmTables) do
+						if bombTable then
+							for _, explosive in pairs(bombTable) do
+								if MovableMan:IsParticle(explosive) and SceneMan:ShortestDistance(self.Pos, explosive.Pos, SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
+									alarm = true;
+									local isFriendly = explosive.Team == self.Team;
+									alarmType = isFriendly and alarmType or "Danger";
+									local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
+									detectPar.Pos = explosive.Pos;
+									MovableMan:AddParticle(detectPar);
+									table.insert(self.targetTable, explosive);
+								end
 							end
 						end
 					end

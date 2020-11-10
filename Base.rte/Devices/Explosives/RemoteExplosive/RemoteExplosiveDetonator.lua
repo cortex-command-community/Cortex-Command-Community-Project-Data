@@ -1,11 +1,11 @@
 function Create(self)
 
 	self.delayTimer = Timer();
-	self.overallTimer = Timer();
 	self.actionPhase = 0;
 	self.fireOn = false;
 	self.alliedTeam = -1;
-
+	
+	self.detonateDelay = 60000/self.RateOfFire;
 end
 
 function Update(self)
@@ -19,11 +19,12 @@ function Update(self)
 	if self.Magazine then
 		if self:IsActivated() then
 			if self.fireOn == false then
-				self.Magazine.RoundCount = 500 - self.overallTimer.ElapsedSimTimeMS;
-				if self.delayTimer:IsPastSimMS(500) then
+				if self.delayTimer:IsPastSimMS(self.detonateDelay) then
 					self.delayTimer:Reset();
 					self.actionPhase = self.actionPhase + 1;
 					self.blink = false;
+				else
+					self.Magazine.RoundCount = math.ceil(100 * (1 - 1 * self.delayTimer.ElapsedSimTimeMS/self.detonateDelay));
 				end
 				if self.actionPhase >= 1 then
 
@@ -41,8 +42,7 @@ function Update(self)
 			end
 		else
 			self.delayTimer:Reset();
-			self.overallTimer:Reset();
-			self.Magazine.RoundCount = 500;
+			self.Magazine.RoundCount = 100;
 			self.fireOn = false;
 			self.actionPhase = 0;
 		end

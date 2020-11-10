@@ -3,14 +3,14 @@ dofile("Base.rte/Constants.lua")
 function OneManArmy:StartActivity()
 
 	self.BuyMenuEnabled = false;
-	-- Brain strength multiplier
-	self.multiplier = math.ceil(11 - (self.Difficulty * 0.1));	-- Med = 6, Max = 11, Min = 1
+	--Brain strength multiplier
+	self.multiplier = math.ceil(11 - (self.Difficulty * 0.1));	--Med = 6, Max = 11, Min = 1
 
 	local primaryGroup = "Weapons - Heavy";
 	local secondaryGroup = "Weapons - Light";
-	-- Tertiary weapon is always a grenade
+	--Tertiary weapon is always a grenade
 	local actorGroup = "Actors - Heavy";
-	-- Default actors if no tech is chosen
+	--Default actors if no tech is chosen
 	local defaultActor = ("Soldier Heavy");
 	local defaultPrimary = ("Coalition/Assault Rifle");
 	local defaultSecondary = ("Coalition/Auto Pistol");
@@ -55,7 +55,7 @@ function OneManArmy:StartActivity()
 		secondaryGroup = "Weapons - Secondary";
 		actorGroup = "Actors - Light";
 	end
-	-- Destroy all doors for this Activity
+	--Destroy all doors for this Activity - the enemy is not equipped to deal with them
 	MovableMan:OpenAllDoors(true, -1);
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "ADoor" then
@@ -63,22 +63,22 @@ function OneManArmy:StartActivity()
 			actor:GibThis();
 		end
 	end
-	-- Check if we already have a brain assigned
+	--Check if we already have a brain assigned
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			if not self:GetPlayerBrain(player) then
 				local team = self:GetTeamOfPlayer(player);
 				local foundBrain = MovableMan:GetUnassignedBrain(team);
-				-- If we can't find an unassigned brain in the scene to give the player, create one
+				--If we can't find an unassigned brain in the scene to give the player, create one
 				if not foundBrain then
 					local tech = PresetMan:GetModuleID(self:GetTeamTech(team));
 					foundBrain = CreateAHuman(defaultActor);
-					-- If a faction was chosen, pick the first item from faction listing
+					--If a faction was chosen, pick the first item from faction listing
 					if tech ~= -1 then
 						local module = PresetMan:GetDataModule(tech);
 						local primaryWeapon, secondaryWeapon, throwable, actor;
 						for entity in module.Presets do
-							local picked;	-- Prevent duplicates
+							local picked;	--Prevent duplicates
 							if not primaryWeapon and entity.ClassName == "HDFirearm" then
 								if ToMOSRotating(entity):HasObjectInGroup(primaryGroup) then
 									primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
@@ -115,7 +115,7 @@ function OneManArmy:StartActivity()
 								foundBrain:AddInventoryItem(weapons[i]);
 							end
 						end
-					else	-- If no tech selected, use default items
+					else	--If no tech selected, use default items
 						local weapons = {defaultPrimary, defaultSecondary};
 						for i = 1, #weapons do
 							local item = CreateHDFirearm(weapons[i]);
@@ -130,13 +130,13 @@ function OneManArmy:StartActivity()
 							foundBrain:AddInventoryItem(item);
 						end
 					end
-					-- Reinforce the brain actor
+					--Reinforce the brain actor
 					local parts = {foundBrain, foundBrain.Head, foundBrain.FGArm, foundBrain.BGArm, foundBrain.FGLeg, foundBrain.BGLeg};
 					for i = 1, #parts do
 						local part = parts[i];
 						if part then
 							part.GibWoundLimit = math.ceil(part.GibWoundLimit * self.multiplier);
-							part.DamageMultiplier = part.DamageMultiplier / self.multiplier;
+							part.DamageMultiplier = part.DamageMultiplier/self.multiplier;
 							if IsAttachable(part) then
 								ToAttachable(part).JointStrength = ToAttachable(part).JointStrength * self.multiplier;
 							else
@@ -153,61 +153,61 @@ function OneManArmy:StartActivity()
 					if medikit then
 						foundBrain:AddInventoryItem(medikit);
 					end
-					-- Reinforce FGArm so that we don't lose it
-					-- No FGArm = no weapons = no gameplay
+					--Reinforce FGArm so that we don't lose it
+					--No FGArm = no weapons = no gameplay
 					foundBrain.FGArm.GibWoundLimit = 999999;
 					foundBrain.FGArm.JointStrength = 999999;
 
 					foundBrain.Pos = SceneMan:MovePointToGround(Vector(math.random(0, SceneMan.SceneWidth), 0), 0, 0) + Vector(0, -foundBrain.Radius);
-					foundBrain.Team = self:GetTeamOfPlayer(player)
-					MovableMan:AddActor(foundBrain)
-					-- Set the found brain to be the selected actor at start
-					self:SetPlayerBrain(foundBrain, player)
-					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player))
-					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player)
-					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+					foundBrain.Team = self:GetTeamOfPlayer(player);
+					MovableMan:AddActor(foundBrain);
+					--Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
+					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				else
-					-- Set the found brain to be the selected actor at start
-					self:SetPlayerBrain(foundBrain, player)
-					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player))
-					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player)
-					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+					--Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
+					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end
 	end
 	
-	-- Select a tech for the CPU player
+	--Select a tech for the CPU player
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 	self.ESpawnTimer = Timer();
-	self.LZ = SceneMan.Scene:GetArea("LZ Team 1")
-	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All")
-	self.SurvivalTimer = Timer()
+	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
+	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
+	self.SurvivalTimer = Timer();
 
-	self.StartTimer = Timer()
-	ActivityMan:GetActivity():SetTeamFunds(0,Activity.TEAM_1)
-	ActivityMan:GetActivity():SetTeamFunds(0,Activity.TEAM_2)
-	ActivityMan:GetActivity():SetTeamFunds(0,Activity.TEAM_3)
-	ActivityMan:GetActivity():SetTeamFunds(0,Activity.TEAM_4)
+	self.StartTimer = Timer();
+	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_1);
+	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_2);
+	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_3);
+	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_4);
 	
-	-- CPU Funds are unlimited
+	--CPU Funds are "unlimited"
 	self:SetTeamFunds(1000000, self.CPUTeam);
 	
-	self.TimeLeft = 500
+	self.TimeLeft = 500;
 end
 
 
 function OneManArmy:EndActivity()
-	-- Play sad music if no humans are left
+	--Play sad music if no humans are left
 	if self:HumanBrainCount() == 0 then
 		AudioMan:ClearMusicQueue();
 		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
 		AudioMan:QueueSilence(10);
 		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
 	else
-		-- But if humans are left, then play happy music!
+		--But if humans are left, play happy music!
 		AudioMan:ClearMusicQueue();
 		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
 		AudioMan:QueueSilence(10);
@@ -218,62 +218,59 @@ end
 
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
-		ActivityMan:GetActivity():SetTeamFunds(0,0)
+		ActivityMan:GetActivity():SetTeamFunds(0, 0)
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				--Display messages.
+				--Display messages
 				if self.StartTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) / 1000) .. " seconds left", player, 0, 1000, false)
+					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) * 0.001) .. " seconds left", player, 0, 1000, false)
 				else
 					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true)
 				end
-			
-				-- The current player's team
-				local team = self:GetTeamOfPlayer(player)
-				-- Check if any player's brain is dead
+
+				local team = self:GetTeamOfPlayer(player);
+				--Check if any player's brain is dead
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
-					self:SetPlayerBrain(nil, player)
-					self:ResetMessageTimer(player)
-					FrameMan:ClearScreenText(player)
-					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false)
-					-- Now see if all brains of self player's team are dead, and if so, end the game
+					self:SetPlayerBrain(nil, player);
+					self:ResetMessageTimer(player);
+					FrameMan:ClearScreenText(player);
+					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false);
+					--Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
-						self.WinnerTeam = self:OtherTeam(team)
-						ActivityMan:EndActivity()
+						self.WinnerTeam = self:OtherTeam(team);
+						ActivityMan:EndActivity();
 					end
-				else
-					self.HuntPlayer = player
 				end
 				
-				--Check if the player has won.
+				--Check if the player has won
 				if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
-					self:ResetMessageTimer(player)
-					FrameMan:ClearScreenText(player)
-					FrameMan:SetScreenText("You survived!", player, 333, -1, false)
+					self:ResetMessageTimer(player);
+					FrameMan:ClearScreenText(player);
+					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
 					
-					self.WinnerTeam = player
+					self.WinnerTeam = player;
 					
-					--Kill all enemies.
+					--Kill all enemies
 					for actor in MovableMan.Actors do
 						if actor.Team ~= self.WinnerTeam then
-							actor.Health = 0
+							actor.Health = 0;
 						end
 					end
 
-					ActivityMan:EndActivity()
+					ActivityMan:EndActivity();
 				end
 			end
 		end
-
-		--Spawn the AI.
-		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-			local ship, actorsInCargo
+		local enemyMOIDCount = MovableMan:GetTeamMOIDCount(self.CPUTeam);
+		--Spawn the AI
+		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and enemyMOIDCount < rte.AIMOIDMax then
+			local ship, actorsInCargo;
 			
 			if math.random() < 0.5 then
-				-- Set up the ship to deliver this stuff
+				--Set up the ship to deliver this stuff
 				ship = RandomACDropShip("Any", self.CPUTechName);
-				-- If we can't afford this dropship, then try a rocket instead
-				if ship:GetTotalValue(0,3) > self:GetTeamFunds(self.CPUTeam) then
+				--If we can't afford this dropship, then try a rocket instead
+				if ship:GetTotalValue(0, 3) > self:GetTeamFunds(self.CPUTeam) then
 					DeleteEntity(ship);
 					ship = RandomACRocket("Any", self.CPUTechName);
 				end
@@ -285,24 +282,24 @@ function OneManArmy:UpdateActivity()
 			
 			ship.Team = self.CPUTeam;
 			
-			-- The max allowed weight of this craft plus cargo
-			local craftMaxMass = ship.MaxMass
+			--The max allowed weight of this craft plus cargo
+			local craftMaxMass = ship.MaxMass;
 			if craftMaxMass < 0 then
-				craftMaxMass = math.huge
+				craftMaxMass = math.huge;
 			elseif craftMaxMass < 1 then
-				craftMaxMass = ship.Mass + 400	-- MaxMass not defined
+				craftMaxMass = ship.Mass + 400;	--MaxMass not defined
 			end
 			
-			-- Set the ship up with a cargo of a few armed and equipped actors
+			--Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
-				-- Get any Actor from the CPU's native tech
+				--Get any Actor from the CPU's native tech
 				local passenger = nil;
 				if math.random() >= self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTechName)) then
 					passenger = RandomAHuman("Any", self.CPUTechName);
 				else
 					passenger = RandomACrab("Any", self.CPUTechName);
 				end
-				-- Equip it with tools and guns if it's a humanoid
+				--Equip it with tools and guns if it's a humanoid
 				if IsAHuman(passenger) then
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName));
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
@@ -310,19 +307,19 @@ function OneManArmy:UpdateActivity()
 						passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
 					end
 				end
-				-- Set AI mode and team so it knows who and what to fight for!
+				--Set AI mode and team so it knows who and what to fight for!
 				passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 				passenger.Team = self.CPUTeam;
 
-				-- Check that we can afford to buy and to carry the weight of this passenger
-				if (ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3)) <= self:GetTeamFunds(self.CPUTeam) and (ship.Mass + passenger.Mass) <= craftMaxMass then
-					-- Yes we can; so add it to the cargo hold
+				--Check that we can afford to buy and to carry the weight of this passenger
+				if (ship:GetTotalValue(0, 3) + passenger:GetTotalValue(0, 3)) <= self:GetTeamFunds(self.CPUTeam) and (ship.Mass + passenger.Mass) <= craftMaxMass then
+					--Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
 					passenger = nil;
 				else
-					-- Nope; just delete the nixed passenger and stop adding new ones
-					-- This doesn't need to be explicitly deleted here, teh garbage collection would do it eventually..
-					-- but since we're so sure we don't need it, might as well go ahead and do it here right away
+					--Nope; just delete the nixed passenger and stop adding new ones
+					--This doesn't need to be explicitly deleted here, the garbage collection would do it eventually,
+					--but since we're so sure we don't need it, might as well go ahead and do it right away
 					DeleteEntity(passenger);
 					passenger = nil;
 					
@@ -336,18 +333,18 @@ function OneManArmy:UpdateActivity()
 			end
 			
 			if ship then
-				-- Set the spawn point of the ship from orbit
+				--Set the spawn point of the ship from orbit
 				if self.playertally == 1 then
 					for i = 1, #self.playerlist do
 						if self.playerlist[i] == true then
-							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local sceneChunk = SceneMan.SceneWidth * 0.3;
+							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth * 0.5) + ((sceneChunk * 0.5) - (math.random() * sceneChunk));
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then
 								checkPos = SceneMan.SceneWidth + checkPos;
 							end
-							ship.Pos = Vector(checkPos,-50);
+							ship.Pos = Vector(checkPos, -50);
 							break;
 						end
 					end
@@ -355,28 +352,26 @@ function OneManArmy:UpdateActivity()
 					if SceneMan.SceneWrapsX then
 						ship.Pos = Vector(math.random() * SceneMan.SceneWidth, -50);
 					else
-						ship.Pos = Vector(RangeRand(100, SceneMan.SceneWidth-100), -50);
+						ship.Pos = Vector(RangeRand(100, SceneMan.SceneWidth - 100), -50);
 					end
 				end
 
-				-- Double-check if the computer can afford this ship and cargo, then subtract the total value from the team's funds
-				local shipValue = ship:GetTotalValue(0,3);
+				--Double-check if the computer can afford this ship and cargo, then subtract the total value from the team's funds
+				local shipValue = ship:GetTotalValue(0, 3);
 				if shipValue <= self:GetTeamFunds(self.CPUTeam) then
-					-- Subtract the total value of the ship+cargo from the CPU team's funds
+					--Subtract the total value of the ship+cargo from the CPU team's funds
 					self:ChangeTeamFunds(-shipValue, self.CPUTeam);
-					-- Spawn the ship onto the scene
+					--Spawn the ship onto the scene
 					MovableMan:AddActor(ship);
 				else
-					-- The ship and its contents is deleted if it can't be afforded
-					-- This doesn't need to be explicitly deleted here, teh garbage collection would do it eventually..
-					-- but since we're so sure we don't need it, might as well go ahead and do it here right away
+					--The ship and its contents is deleted if it can't be afforded
 					DeleteEntity(ship);
 					ship = nil;
 				end
 			end
 
 			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime + math.random(self.BaseSpawnTime) * rte.SpawnIntervalScale);
+			self.TimeLeft = (self.BaseSpawnTime * (1 + enemyMOIDCount * 0.1) + math.random(self.BaseSpawnTime)) * rte.SpawnIntervalScale;
 		end
 	end
 end

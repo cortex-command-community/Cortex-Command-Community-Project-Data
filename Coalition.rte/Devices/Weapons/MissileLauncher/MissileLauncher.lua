@@ -1,115 +1,110 @@
-
 function Create(self)
-	self.checkTimer = Timer()
-	self.homingTimer = Timer()
+
+	self.fireVel = 50;
+	self.checkTimer = Timer();
+
+	self.targetLostTimer = Timer();
+	self.targetLostTimer:SetSimTimeLimitMS(3000);
+
+	self.laserLength = self.SharpLength + math.sqrt(FrameMan.PlayerScreenWidth^2 + FrameMan.PlayerScreenHeight^2) * 0.5;
+	self.laserPointerOffset = Vector(0, -3);
+
+	self.markerRotAngle = math.random() * math.pi;
+	self.markerTurnSpeed = 10;
+	self.markerColor = 13;
+	self.markerSize = 0;
+
+	self.lockThreshold = 12;
+
+	self.arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
 end
-
 function Update(self)
-	if self.ID == self.RootID then
-		return
-	end
-	
-	if self.missile then
-		if MovableMan:ValidMO(self.missile) and MovableMan:ValidMO(self.parent) then
-			if self.checkTimer:IsPastRealMS(83) then
-				self.checkTimer:Reset()
-				
-				self.lastTarget = self.targetPos
-				self.targetPos = self.MuzzlePos + Vector(SceneMan:ShortestDistance(self.missile.Pos,self.MuzzlePos,SceneMan.SceneWrapsX).Magnitude+200,0):RadRotate(self.parent:GetAimAngle(true))
-				if SceneMan.SceneWrapsX == true then
-					if self.targetPos.X > SceneMan.SceneWidth then
-						self.targetPos = Vector(self.targetPos.X - SceneMan.SceneWidth,self.targetPos.Y)
-					elseif self.targetPos.X < 0 then
-						self.targetPos = Vector(SceneMan.SceneWidth + self.targetPos.X,self.targetPos.Y)
-					end
-				end
+	local parent = self:GetRootParent();
+	if parent and IsActor(parent) then
+		parent = ToActor(parent);
+		local controller = parent:GetController();
+		local screen = ActivityMan:GetActivity():ScreenOfPlayer(controller.Player);
+		local playerControlled = parent:IsPlayerControlled();
+		local markerSize = (self.markerSize * 0.95) + (self.markerSize * 0.1) * math.sin(self.markerRotAngle/(self.markerTurnSpeed + math.sqrt(self.markerSize)));
+		if not self:IsReloading() then
+			if controller:IsState(Controller.AIM_SHARP) then
+				local startPos = self.Pos + Vector(self.laserPointerOffset.X * self.FlipFactor, self.laserPointerOffset.Y):RadRotate(self.RotAngle);
+				local hitPos = Vector();
+				local skipPx = 10;
+				local trace = Vector(self.laserLength * self.FlipFactor, 0):RadRotate(self.RotAngle);
+				local obstRay = SceneMan:CastObstacleRay(startPos, trace, hitPos, Vector(), parent.ID, self.Team, rte.airID, skipPx);
+				if obstRay >= 0 then
+					obstRay = obstRay - skipPx + SceneMan:CastObstacleRay(hitPos - trace:SetMagnitude(skipPx), trace, hitPos, Vector(), parent.ID, parent.Team, rte.airID, 1);
+					local endPos = startPos + trace:SetMagnitude(obstRay);
+					local moCheck = SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y);
+					if moCheck ~= rte.NoMOID then
+						local mo = ToMOSRotating(MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID));
+						if mo and mo.ClassName ~= "ADoor" and mo.Team ~= parent.Team then
+							local size = mo.Radius;
+							for att in mo.Attachables do
+								if IsAttachable(att) then
+									local tempRadius = SceneMan:ShortestDistance(mo.Pos, att.Pos, SceneMan.SceneWrapsX).Magnitude + att.Radius;
+									if tempRadius > size then
+										size = tempRadius;
+									end
+								end
+							end
+							local movement = (mo.Vel.Magnitude + math.abs(mo.AngularVel) + 0.1) * math.sqrt(size);
+							if movement > self.lockThreshold then
 
-				-- Search our LOS both for terrain and actors
-				for i = 1, 100 do
-					local checkPos = self.MuzzlePos + Vector((i/100)*1000,0):RadRotate(self.parent:GetAimAngle(true))
-					if SceneMan.SceneWrapsX == true then
-						if checkPos.X > SceneMan.SceneWidth then
-							checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y)
-						elseif checkPos.X < 0 then
-							checkPos = Vector(SceneMan.SceneWidth + checkPos.X,checkPos.Y)
+								self.targetLostTimer:Reset();
+								if not self.target or (self.target and self.target.ID ~= mo.ID) then
+									AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", self.Pos);
+								end
+								self.target = IsACrab(mo) and ToACrab(mo) or mo;
+								self.markerSize = size;
+							end
 						end
 					end
-					local terrCheck = SceneMan:GetTerrMatter(checkPos.X,checkPos.Y)
-					if terrCheck == 0 then
-						local moCheck = SceneMan:GetMOIDPixel(checkPos.X,checkPos.Y)
-						if moCheck ~= rte.NoMOID then
-							self.targetPos = checkPos
-							break
-						end
-					else
-						self.targetPos = checkPos
-						break
+					if playerControlled then
+						PrimitiveMan:DrawLinePrimitive(screen, startPos, endPos, self.markerColor);
 					end
 				end
-
-				local laserPar = CreateMOPixel("Coalition RPG Laser Particle", "Coalition.rte")
-				laserPar.Pos = self.targetPos
-				MovableMan:AddParticle(laserPar)
-
-				local drawVector = SceneMan:ShortestDistance(self.lastTarget,self.targetPos,false)
-				local drawLine = math.ceil(drawVector.Magnitude/5)
-				for i = 1, drawLine do
-					local laserPar = CreateMOPixel("Coalition RPG Laser Particle 2", "Coalition.rte")
-					laserPar.Pos = self.lastTarget + Vector(i*5,0):RadRotate(drawVector.AbsRadAngle)
-					MovableMan:AddParticle(laserPar)
-				end
 			end
-			
-			-- Find the velocity vector that will take the missile to the target
-			if self.homingTimer:IsPastSimMS(250) then
-				local FutureVel = self.missile.Vel + (self.missile.Vel-self.missileLastVel) * 4
-				local OptimalVel = SceneMan:ShortestDistance(self.missile.Pos, self.targetPos, false).Normalized
-				local angError = math.asin(OptimalVel:Cross(FutureVel.Normalized))	-- The angle between FutureVel and OptimalVel
+		elseif self.markerSize > 0 then
+			self.markerSize = (self.markerSize * 0.9) - 1;
+		end
+		if self.target and self.target.ID ~= rte.NoMOID and not self.targetLostTimer:IsPastSimTimeLimit() and self.markerSize > 0 then
+			if playerControlled then
+				local crosshairPos = self.target.Pos;
+				if self.target.Turret then
+					crosshairPos = self.target.Pos + SceneMan:ShortestDistance(self.target.Pos, self.target.Turret.Pos, SceneMan.SceneWrapsX) * 0.5;
+				end
+				local crossVecX = Vector(markerSize, 0):DegRotate(self.markerRotAngle);
+				local crossVecY = Vector(0, markerSize):DegRotate(self.markerRotAngle);
 				
-				self.missile.RotAngle = self.missile.RotAngle + math.min(math.max(angError, -0.14), 0.14)	-- Gradually turn towards the optimal velocity vector
-				if not self.Magazine or (self.Magazine and self.Magazine.RoundCount < 1) then
-					self.parent:GetController():SetState(Controller.WEAPON_RELOAD, true)
-				else
-					self:Deactivate()	-- Stop the user from shooting again
-				end
+				local frame = self.markerSize > 50 and 1 or 0;
+				
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos - crossVecX, self.arrow, crossVecX.AbsRadAngle, frame);
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos + crossVecX, self.arrow, crossVecX.AbsRadAngle + math.pi, frame);
+				
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos - crossVecY, self.arrow, crossVecY.AbsRadAngle, frame);
+				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos + crossVecY, self.arrow, crossVecY.AbsRadAngle + math.pi, frame);
+
+				self.markerRotAngle = self.markerRotAngle + (self.markerTurnSpeed/math.sqrt(self.markerSize) * self.FlipFactor);
 			end
-			
-			self.missileLastVel = self.missileLastVel * 0.3 + self.missile.Vel * 0.7	-- Filter the velocity to reduce noise
 		else
-			self.missile = nil
+			self.target = nil;
 		end
 	end
-	
-	if not self.missile and self:IsActivated() and self.Magazine then
-		if self.Magazine.RoundCount > 0 and self.Magazine.PresetName == "Magazine Coalition Missile Launcher" then
-			self.missile = CreateAEmitter("Particle Coalition Missile Launcher", "Coalition.rte")
-			if self.missile then
-				self.parent = MovableMan:GetMOFromID(self.RootID)
-				if MovableMan:IsActor(self.parent) then
-					self.parent = ToActor(self.parent)
-					self.missile.Team = self.parent.Team
-					self.missile.IgnoresTeamHits = true
-					self.targetPos = self.parent.ViewPoint
-					
-					-- Launch the missile slightly upwards, but a bit more for the AI
-					self.missile.Vel = self:RotateOffset(Vector(15, 0))
-					if self.parent:IsPlayerControlled() then
-						self.missile.Vel = Vector(self.missile.Vel.X, self.missile.Vel.Y - 4);
-					else
-						self.missile.Vel = Vector(self.missile.Vel.X, self.missile.Vel.Y - 6);
-					end
-					
-					self.missile.Vel = self.missile.Vel + self.Vel
-				else
-					self.parent = nil
-				end
-				
-				self.missile.RotAngle = self.missile.Vel.AbsRadAngle
-				self.missile.Pos = self.MuzzlePos
-				MovableMan:AddParticle(self.missile)
-				
-				self.missileLastVel = Vector(self.missile.Vel.X, self.missile.Vel.Y)
-			end
+	if self.FiredFrame then
+		self.missile = CreateAEmitter("Particle Coalition Missile Launcher", "Coalition.rte");
+		self.missile.Pos = self.MuzzlePos;
+		local fireVector = Vector(self.fireVel * self.FlipFactor, 0):RadRotate(self.RotAngle);
+		self.missile.Vel = self.Vel + fireVector + Vector(0, -math.abs(math.cos(fireVector.AbsRadAngle)));
+		self.missile.RotAngle = self.missile.Vel.AbsRadAngle;
+		self.missile.AngularVel = math.cos(self.missile.Vel.AbsRadAngle) * 10;
+		self.missile.Team = self.Team;
+		self.missile.IgnoresTeamHits = true;
+		
+		if self.target and IsMOSRotating(self.target) then
+			self.missile:SetNumberValue("TargetID", self.target.ID);
 		end
+		MovableMan:AddParticle(self.missile);
 	end
 end

@@ -77,6 +77,7 @@ function Siege:StartActivity()
 		for actor in MovableMan.AddedActors do
 			if actor.Team == self.PlayerTeam and actor:IsInGroup("Brains") then
 				playerBrainsLocation = actor.Pos
+				break
 			end
 		end
 	end
@@ -108,10 +109,9 @@ function Siege:StartActivity()
 		-- Set all useless actors, i.e. those who should guard brain in the brain chamber but their brain is in another castle
 		-- to delete themselves, because otherwise they are most likely to stand there for the whole battle and waste MOs
 		for actor in MovableMan.AddedActors do
-			if actor.Team == self.PlayerTeam and self.BrainChamber:IsInside(actor.Pos) and
-				SceneMan:ShortestDistance(actor.Pos, playerBrainsLocation, false).Magnitude > 200 and 
-				actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-				-- actor.AIMode = Actor.AIMODE_BRAINHUNT;
+			if actor.Team == self.PlayerTeam and self.BrainChamber:IsInside(actor.Pos)
+			and SceneMan:ShortestDistance(actor.Pos, playerBrainsLocation, false).Magnitude > 200
+			and not actor:HasObjectInGroup("Brains") and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				actor.ToDelete = true
 			end
 		end

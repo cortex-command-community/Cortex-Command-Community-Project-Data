@@ -14,6 +14,7 @@ function Create(self)
 	self.fireVel = 40;	-- This immediately overwrites the .ini FireVel
 	self.maxLineLength = 500;
 	self.setLineLength = 0;
+	self.lineStrength = 40;	-- How much "force" the rope can take before breaking
 	
 	self.limitReached = false;
 	self.stretchMode = false;	-- Alternative elastic pull mode a là Liero
@@ -40,7 +41,7 @@ function Create(self)
 				elseif IsACrab(self.parent) then
 					self.parent = ToACrab(self.parent);
 				end
-				self.Vel = (self.parent.Vel/2) + Vector(self.fireVel, 0):RadRotate(self.parent:GetAimAngle(true));
+				self.Vel = (self.parent.Vel * 0.5) + Vector(self.fireVel, 0):RadRotate(self.parent:GetAimAngle(true));
 				self.parentGun:RemoveNumberValue("GrappleMode");
 				for part in self.parent.Attachables do
 					local radcheck = SceneMan:ShortestDistance(self.parent.Pos, part.Pos, self.mapWrapsX).Magnitude + part.Radius;
@@ -120,7 +121,7 @@ function Update(self)
 				end
 			end
 			-- Prevent the user from spinning like crazy
-			if self.parent.Status > 0 then
+			if self.parent.Status > Actor.STABLE then
 				self.parent.AngularVel = self.parent.AngularVel/(1 + math.abs(self.parent.AngularVel) * 0.01);
 			end
 		else	-- If the gun is by itself, hide the HUD
@@ -343,9 +344,9 @@ function Update(self)
 						pullAmountNumber = pullAmountNumber * -1;
 					end
 					pullAmountNumber = pullAmountNumber/6.28;
-					self.parent:AddAbsForce(self.lineVec:SetMagnitude(((self.lineLength - self.setLineLength) ^3 ) * pullAmountNumber)	+	hookVel:SetMagnitude(math.pow(self.lineLength - self.setLineLength,2)*0.8), self.parent.Pos);
+					self.parent:AddAbsForce(self.lineVec:SetMagnitude(((self.lineLength - self.setLineLength)^3) * pullAmountNumber) + hookVel:SetMagnitude(math.pow(self.lineLength - self.setLineLength, 2) * 0.8), self.parent.Pos);
 
-					local moveToPos = self.Pos + (self.lineVec*-1):SetMagnitude(self.setLineLength);
+					local moveToPos = self.Pos + (self.lineVec * -1):SetMagnitude(self.setLineLength);
 					if self.mapWrapsX == true then
 						if moveToPos.X > SceneMan.SceneWidth then
 							moveToPos = Vector(moveToPos.X - SceneMan.SceneWidth, moveToPos.Y);
@@ -356,7 +357,11 @@ function Update(self)
 					self.parent.Pos = moveToPos;
 					
 					local pullAmountNumber = math.abs(self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle)/6.28;
-					self.parent.Vel = self.parent.Vel + self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber);
+					-- Break the rope if the forces are too high
+					if (self.parent.Vel - self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber)).Magnitude > self.lineStrength then
+						self.ToDelete = true;
+					end
+					self.parent.Vel = self.parent.Vel + self.lineVec;
 				end
 				
 			elseif self.actionMode == 3 then	-- Stuck MO
@@ -393,14 +398,14 @@ function Update(self)
 							pullAmountNumber = pullAmountNumber * -1;
 						end
 						pullAmountNumber = pullAmountNumber/6.28;
-						self.parent:AddAbsForce(self.lineVec:SetMagnitude(((self.lineLength - self.setLineLength) ^3 ) * pullAmountNumber)	+	hookVel:SetMagnitude(math.pow(self.lineLength - self.setLineLength,2)*0.8), self.parent.Pos);
+						self.parent:AddAbsForce(self.lineVec:SetMagnitude(((self.lineLength - self.setLineLength)^3) * pullAmountNumber) + hookVel:SetMagnitude(math.pow(self.lineLength - self.setLineLength, 2) * 0.8), self.parent.Pos);
 
-						pullAmountNumber = (self.lineVec*-1).AbsRadAngle - (hookVel).AbsRadAngle;
+						pullAmountNumber = (self.lineVec * -1).AbsRadAngle - (hookVel).AbsRadAngle;
 						if pullAmountNumber < 0 then
 							pullAmountNumber = pullAmountNumber * -1;
 						end
 						pullAmountNumber = pullAmountNumber/6.28;
-						local targetforce = ((self.lineVec*-1):SetMagnitude(((self.lineLength - self.setLineLength) ^3 ) * pullAmountNumber)	+	(self.lineVec*-1):SetMagnitude(math.pow(self.lineLength - self.setLineLength,2)*0.8));
+						local targetforce = ((self.lineVec * -1):SetMagnitude(((self.lineLength - self.setLineLength)^3) * pullAmountNumber) + (self.lineVec * -1):SetMagnitude(math.pow(self.lineLength - self.setLineLength, 2) * 0.8));
 
 						target:AddAbsForce(targetforce, self.Pos);--target.Pos + SceneMan:ShortestDistance(target.Pos, self.Pos, self.mapWrapsX));
 						target.AngularVel = target.AngularVel * 0.99;
