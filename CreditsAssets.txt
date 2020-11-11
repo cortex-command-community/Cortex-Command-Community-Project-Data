@@ -66,13 +66,18 @@ Mini14 Firing Sounds
 M67 Grenade Physics Sounds
 GP30 Firing Sounds
 
+New World Interactive: Insurgency: Sandstorm
+
+exp_small_core_close
+
+exp_30mm_core_close
+exp_30mm_tail_close
+
 Digital Extremes: Warframe
 
 GrnCannon Reload Sounds
 WeaponPunchLayersCannon Sounds
 GrnFourBarrelRifle Firing Sounds
-
-GrnFlakCannonProjHit
 
 GrineerEmplacementShot2D
 
@@ -440,6 +445,22 @@ New World Interactive: Insurgency: Sandstorm
 
 AK74 Firing Sounds
 AK74 Reload Sounds
+
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\DesertEagle\Sounds\Credits.txt
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+m45a1_mech_01
+M45 Reload Sounds
+
+Toz194_Trigger_
+r870_core_
+
+Digital Extremes: Warframe
+
+GrnKuvaLichRifleShot
 
 
 *******************************************************************************
