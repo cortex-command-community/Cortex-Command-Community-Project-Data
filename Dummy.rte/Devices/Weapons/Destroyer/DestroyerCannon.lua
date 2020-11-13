@@ -52,7 +52,7 @@ function Update(self)
 					AudioMan:SetSoundPosition(self.activeSound, self.Pos);
 					AudioMan:SetSoundPitch(self.activeSound, self.charge);
 				else
-					self.activeSound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Destroyer/Sounds/ProjectileLoop1.wav", self.Pos, -1, -1, 100, 0, 100, false);
+					self.activeSound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Destroyer/Sounds/ProjectileLoop1.flac", self.Pos, -1, -1, 100, 0, 100, false);
 				end
 				if not self.chargeTimer:IsPastSimTimeLimit() then
 					self.charge = self.chargeTimer.ElapsedSimTimeMS/self.chargeDelay;

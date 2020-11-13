@@ -60,7 +60,7 @@ function Update(self)
 					if (numberValue/framesPerFlash) - math.floor(numberValue/framesPerFlash) == 0 then
 						actor:FlashWhite(1);
 						if math.random() < 0.5 then
-							AudioMan:PlaySound("Ronin.rte/Devices/Special/Scrambler/Sounds/Buzz0".. math.random(6) ..".wav", actor.Pos);
+							AudioMan:PlaySound("Ronin.rte/Devices/Special/Scrambler/Sounds/Buzz0".. math.random(6) ..".flac", actor.Pos);
 						end
 					end
 					actor:SetNumberValue("RoninScrambler", numberValue - 1);

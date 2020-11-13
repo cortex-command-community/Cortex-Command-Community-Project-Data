@@ -38,7 +38,7 @@ function Update(self)
 			--Play a radical sound if a MO is met
 			local moCheck = SceneMan:CastMORay(self.MuzzlePos, trace, self.ID, self.Team, 0, false, 1);
 			if moCheck ~= rte.NoMOID then
-				AudioMan:PlaySound("Ronin.rte/Devices/Tools/Shovel/Sounds/Melee".. math.random(3) ..".wav", self.MuzzlePos);
+				AudioMan:PlaySound("Ronin.rte/Devices/Tools/Shovel/Sounds/Melee".. math.random(3) ..".flac", self.MuzzlePos);
 				for i = 1, particleCount do
 					local damagePar = CreateMOPixel("Smack Particle");
 					damagePar.Pos = self.MuzzlePos;
@@ -62,7 +62,7 @@ function Update(self)
 								hits = hits + 1;
 								if hits > rayCount * 0.5 then
 									actor:SetNumberValue("RoninShovelResource", resource + 1);
-									AudioMan:PlaySound("Base.rte/Sounds/Devices/DeviceSwitch".. math.random(3) ..".wav", self.Pos);
+									AudioMan:PlaySound("Base.rte/Sounds/Devices/DeviceSwitch".. math.random(3) ..".flac", self.Pos);
 									break;
 								end
 								break;

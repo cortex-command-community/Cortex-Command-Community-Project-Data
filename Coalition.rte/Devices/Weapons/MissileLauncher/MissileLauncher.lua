@@ -54,7 +54,7 @@ function Update(self)
 
 								self.targetLostTimer:Reset();
 								if not self.target or (self.target and self.target.ID ~= mo.ID) then
-									AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", self.Pos);
+									AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.flac", self.Pos);
 								end
 								self.target = IsACrab(mo) and ToACrab(mo) or mo;
 								self.markerSize = size;

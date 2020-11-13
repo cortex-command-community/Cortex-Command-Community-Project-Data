@@ -52,7 +52,7 @@ function Update(self)
 					if self.frontFlip.inputCounter == #self.frontFlip.input then
 						Lunge(self, 8);
 						self.frontFlip.inputCounter = 0;
-						--AudioMan:PlaySound("Ronin.rte/Actors/Brains/Commander/Sounds/Jump.wav", self.Pos);
+						--AudioMan:PlaySound("Ronin.rte/Actors/Brains/Commander/Sounds/Jump.flac", self.Pos);
 					end
 					self.tapTimer:Reset();
 				else

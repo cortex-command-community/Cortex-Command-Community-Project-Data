@@ -25,7 +25,7 @@ function Update(self)
 	elseif self:IsReloading() then
 		if self.loadTimer:IsPastSimMS(self.ReloadTime * 0.3) then
 			if self.Frame ~= 1 then
-				AudioMan:PlaySound("Ronin.rte/Devices/Weapons/DoubleBarreledShotgun/Sounds/Eject.wav", self.Pos);
+				AudioMan:PlaySound("Ronin.rte/Devices/Weapons/DoubleBarreledShotgun/Sounds/Eject.flac", self.Pos);
 				self.Frame = 1;
 			end
 			if self.shellsToEject > 0 then

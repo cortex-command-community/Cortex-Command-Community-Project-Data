@@ -53,7 +53,7 @@ function Create(self)
 				self.target.HitsMOs = false;
 				self.target.AngularVel = self.target.AngularVel * 0.5 - self.target.Vel.X + self.target.FlipFactor;
 				
-				AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/Disintegrate".. math.random(3) ..".wav", self.target.Pos);
+				AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/Disintegrate".. math.random(3) ..".flac", self.target.Pos);
 			end
 			--Flag this actor as being hit by a disintegrator particle
 			ToActor(target):SetNumberValue("ToDisintegrate", ToActor(target):GetNumberValue("ToDisintegrate") + 1);

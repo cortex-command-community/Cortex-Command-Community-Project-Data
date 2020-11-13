@@ -4,7 +4,7 @@ function Update(self)
 		self:Reload();
 		if MovableMan:IsParticle(self.lastMag) then
 			self.lastMag.Vel = self.lastMag.Vel + Vector(-4 * self.FlipFactor, -7):RadRotate(self.RotAngle);
-			AudioMan:PlaySound("Ronin.rte/Devices/Weapons/M1Garand/Sounds/Ping.wav", self.Pos);
+			AudioMan:PlaySound("Ronin.rte/Devices/Weapons/M1Garand/Sounds/Ping.flac", self.Pos);
 		end
 	end
 end

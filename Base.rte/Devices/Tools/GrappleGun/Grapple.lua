@@ -178,7 +178,7 @@ function Update(self)
 				end
 			end
 			if self.actionMode > 1 then
-				AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/ClawStick.wav", self.Pos);
+				AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/ClawStick.flac", self.Pos);
 				self.setLineLength = math.floor(self.lineLength);
 				self.Vel = Vector();
 				self.PinStrength = 1000;
@@ -188,7 +188,7 @@ function Update(self)
 			if self.lineLength > self.maxLineLength then
 				if self.limitReached == false then
 					self.limitReached = true;
-					AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/Click.wav", startPos);
+					AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/Click.flac", startPos);
 				end
 				local movetopos = self.parent.Pos + (self.lineVec):SetMagnitude(self.maxLineLength);
 				if self.mapWrapsX == true then
@@ -451,7 +451,7 @@ function Update(self)
 				self.parentGun.Magazine.Scale = 1;
 				self.parentGun.Magazine.Frame = 0;
 			end
-			AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/Return.wav", drawPos);
+			AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/Return.flac", drawPos);
 		end
 		PrimitiveMan:DrawLinePrimitive(startPos, drawPos, 249);
 	elseif self.parentGun and IsHDFirearm(self.parentGun) then

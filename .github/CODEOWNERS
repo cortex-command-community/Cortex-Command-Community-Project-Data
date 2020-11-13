@@ -18,4 +18,5 @@
 #Audio Owners
 *.wav @audio-makers
 *.ogg @audio-makers
+*.flac @audio-makers
 *.mp3 @audio-makers

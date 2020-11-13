@@ -44,7 +44,7 @@ function Update(self)
 					if targetCount == 0 then
 						self.actionPhase = 0;
 						self.overallTimer:Reset();
-						AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.wav", self.Pos);
+						AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.flac", self.Pos);
 					elseif self.actionPhase == 4 then
 						self.ReloadTime = 1000 + (1000 * targetCount);
 						self:Reload();
@@ -94,7 +94,7 @@ function Update(self)
 						end
 					end
 					if alarm and not self:IsActivated() then
-						AudioMan:PlaySound("Base.rte/Devices/Tools/Disarmer/Sounds/".. alarmType .."Blip.wav", self.Pos);
+						AudioMan:PlaySound("Base.rte/Devices/Tools/Disarmer/Sounds/".. alarmType .."Blip.flac", self.Pos);
 					end
 				end
 			end

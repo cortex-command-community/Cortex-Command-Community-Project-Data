@@ -141,7 +141,7 @@ function NetworkTest:UpdateActivity()
 	end--]]--
 	
 	if self.SoundTimer:IsPastSimMS(1000) then
-		local snd = AudioMan:PlaySound("Dummy.rte/Effects/Sounds/BlasterFire.wav", Vector(math.random(), math.random()));
+		local snd = AudioMan:PlaySound("Dummy.rte/Effects/Sounds/BlasterFire.flac", Vector(math.random(), math.random()));
 		self.SoundTimer:Reset();
 	end
 	

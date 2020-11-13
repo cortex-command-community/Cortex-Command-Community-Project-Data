@@ -103,7 +103,7 @@ function Update(self)
 			self.Scale = 1;
 			self.fired = false;
 			
-			AudioMan:PlaySound("Ronin.rte/Devices/Weapons/Chainsaw/Sounds/ChainsawEnd.wav", self.Pos);
+			AudioMan:PlaySound("Ronin.rte/Devices/Weapons/Chainsaw/Sounds/ChainsawEnd.flac", self.Pos);
 
 			if self.Magazine.RoundCount == 0 then
 				self:Reload();
