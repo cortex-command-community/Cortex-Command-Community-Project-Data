@@ -13,6 +13,7 @@
 
 #Sprite Owners
 *.bmp @spriters
+*.png @spriters
 
 #Audio Owners
 *.wav @audio-makers
