@@ -1,6 +1,6 @@
 function Create(self)
 	self.shotsPerBurst = 3;
-	self.coolDownDelay = (60000/self.RateOfFire) + 60;
+	self.coolDownDelay = (60000/self.RateOfFire) + 100;
 end
 function Update(self)
 	if self.Magazine then

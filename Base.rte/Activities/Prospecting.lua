@@ -35,7 +35,7 @@ function Prospecting:StartActivity()
 	
 	-- Set up the unseen layers
 	SceneMan:MakeAllUnseen(Vector(25, 25), Activity.TEAM_1);
-	SceneMan:LoadUnseenLayer("Base.rte/Scenes/UnseenTest.bmp", Activity.TEAM_2);
+	SceneMan:LoadUnseenLayer("Base.rte/Scenes/UnseenTest.png", Activity.TEAM_2);
 end
 
 -----------------------------------------------------------------------------------------

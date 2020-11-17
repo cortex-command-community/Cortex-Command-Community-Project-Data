@@ -1,7 +1,6 @@
 function Create(self)
 
 	self.alliedTeam = -1;
-
 end
 
 function Update(self)
@@ -11,10 +10,10 @@ function Update(self)
 		self.user = ToAHuman(parent);
 	elseif self:IsActivated() then
 
-		local explosive = CreateMOSRotating("Remote Explosive Active");
+		local explosive = CreateMOSRotating(self.PresetName .. " Active");
 		explosive.Pos = self.Pos;
 		explosive.Vel = self.Vel;
-		explosive.RotAngle = self.RotAngle;
+		explosive.RotAngle = self.Vel.AbsRadAngle;
 		explosive.Sharpness = self.alliedTeam;
 		MovableMan:AddParticle(explosive);
 		

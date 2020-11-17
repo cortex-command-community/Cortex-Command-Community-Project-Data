@@ -19,7 +19,7 @@ function Update(self)
 		self:Deactivate();
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
-				AudioMan:PlaySound("Base.rte/Sounds/Devices/ChamberRound.wav", self.Pos);
+				AudioMan:PlaySound("Base.rte/Sounds/Devices/ChamberRound.flac", self.Pos);
 				self.playedSound = true;
 			end
 			if self.shell then

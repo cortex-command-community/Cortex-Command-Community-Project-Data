@@ -520,7 +520,7 @@ function Update(self)
 										terrainpar.ToSettle = true;
 									end
 								end
-								AudioMan:PlaySound("Base.rte/Sounds/Geiger".. math.random(3) ..".wav", bpos);
+								AudioMan:PlaySound("Base.rte/Sounds/Geiger".. math.random(3) ..".flac", bpos);
 								self.buildlist[1][3] = self.buildlist[1][3] + 1;
 							else
 								self.buildlist[1] = nil;

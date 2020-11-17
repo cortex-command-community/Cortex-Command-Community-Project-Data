@@ -32,7 +32,7 @@ function Update(self)
 						local velFactor = 1 + actor.Vel.Magnitude * 0.3;
 						local aimAngle = actor:GetAimAngle(false);
 						local climb = false;
-						-- Climb by looking up/down or moving
+						--Climb by looking up/down or moving
 						if (aimAngle > 1.5 and controller:IsState(Controller.MOVE_UP)) or (aimAngle < -1.5 and controller:IsState(Controller.MOVE_DOWN)) then
 							climb = true;
 						end
@@ -41,15 +41,15 @@ function Update(self)
 							local speed = actor:GetLimbPathSpeed(1)/velFactor;
 							actor.Vel = actor.Vel * (1 - 1/velFactor) + Vector(speed, 0):RadRotate(actor:GetAimAngle(true)) - gravity * (0.4 + self.skipFrames/velFactor);
 						elseif actor.Vel.Magnitude < 5 then
-							-- Counter gravity to keep actor still
-							actor.Vel = Vector() - gravity * (0.4 + self.skipFrames/velFactor);
+							--Counter gravity to keep actor still
+							actor.Vel = Vector() - gravity * (0.2 + self.skipFrames/velFactor);
 						end
 					end
 				end
 			else
 				self.checkPos = self.Pos + Vector(math.random(-self.width, self.width), math.random(-self.height, self.height));
 			end
-			-- Go into a less frequent "idle" mode after enough empty checks
+			--Go into a less frequent "idle" mode after enough empty checks
 			if actor then
 				self.checkCounter = self.idleCheckLimit;
 				self.checkTimer:SetSimTimeLimitMS(self.checkDelay);
@@ -66,7 +66,7 @@ function Update(self)
 	end
 end
 function Destroy(self)
-	-- If this MO is somehow deleted, a new background sprite will indicate the destruction of the ladder
+	--If this MO is somehow deleted, a new background sprite will indicate the destruction of the ladder
 	if self.gib then
 		SceneMan:AddTerrainObject(self.gib);
 	end

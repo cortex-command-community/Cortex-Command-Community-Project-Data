@@ -487,7 +487,6 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				aimTime = RangeRand(6000, 12000) * angDiff
 				AI.deviceState = AHuman.AIMING
 			end
-			
 			if Owner.AIMode ~= Actor.AIMODE_SQUAD then
 				if SceneMan:ShortestDistance(Owner.Pos, AI.SentryPos, false).Magnitude > Owner.Height*0.7 then
 					AI.SentryPos = SceneMan:MovePointToGround(AI.SentryPos, Owner.Height*0.25, 3)
@@ -498,7 +497,7 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				elseif AI.SentryFacing and Owner.HFlipped ~= AI.SentryFacing then
 					Owner.HFlipped = AI.SentryFacing	-- turn to the direction we have been order to guard
 					break	-- restart this behavior
-				elseif AI.Target == nil and math.random() < Owner.Perceptiveness then
+				elseif AI.TargetLostTimer:IsPastSimTimeLimit() and math.random() < Owner.Perceptiveness then
 					-- turn around occasionally if there is open space behind our back
 					local backAreaRay = Vector(-math.random(FrameMan.PlayerScreenWidth/4, FrameMan.PlayerScreenWidth/2) * Owner.FlipFactor, 0):DegRotate(math.random(-25, 25) * Owner.Perceptiveness)
 					if not SceneMan:CastStrengthRay(Owner.EyePos, backAreaRay, 10, Vector(), 10, rte.grassID, SceneMan.SceneWrapsX) then
@@ -2625,7 +2624,7 @@ end
 -- throw a grenade at the selected target
 function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 	local ThrowTimer = Timer()
-	local aimTime = 1000
+	local aimTime = Owner.ThrowPrepTime
 	local scan = 0
 	local miss = 0	-- stop scanning after a few missed attempts
 	local AimPoint, Dist, MO, ID, rootID, LOS, aim
@@ -2645,8 +2644,11 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 				else
 					AI.fire = false
 				end
-			else
-				break	-- no grenades left
+			else	-- no grenades left, continue attack
+				if not (Owner.AIMode == Actor.AIMODE_SENTRY or Owner.AIMode == Actor.AIMODE_SQUAD) then
+					AI:CreateAttackBehavior(Owner)
+				end
+				break
 			end
 		else
 			if scan < 1 then
@@ -2743,13 +2745,13 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, Grenade.MaxThrowVel)
 							if aim then
 								ThrowTimer:Reset()
-								aimTime = RangeRand(900, 1100)
+								aimTime = Owner.ThrowPrepTime * RangeRand(0.9, 1.1)
 								local maxAim = aim
 								
 								-- try again with an average throw vel
 								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (Grenade.MaxThrowVel+Grenade.MinThrowVel)/2)
 								if aim then
-									aimTime = RangeRand(450, 550)
+									aimTime = Owner.ThrowPrepTime * RangeRand(0.45, 0.55)
 								else
 									aim = maxAim
 								end

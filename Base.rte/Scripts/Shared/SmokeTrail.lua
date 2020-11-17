@@ -1,6 +1,6 @@
 function Create(self)
 	self.smokeTrailLifeTime = self:NumberValueExists("SmokeTrailLifeTime") and self:GetNumberValue("SmokeTrailLifeTime") or 150;
-	self.spread = self.Radius/3;
+	self.smokeTrailRadius = self:NumberValueExists("SmokeTrailRadius") and self:GetNumberValue("SmokeTrailRadius") or ToMOSprite(self):GetSpriteHeight() * 0.5;
 end
 function Update(self)
 	local effect;
@@ -10,7 +10,7 @@ function Update(self)
 	for i = 1, trailLength, 6 do
 		effect = CreateMOSParticle("Tiny Smoke Trail 1", "Base.rte");
 		if effect then
-			effect.Pos = self.Pos - offset * (i/trailLength) + Vector(RangeRand(-1, 1), RangeRand(-1, 1)) * self.spread;
+			effect.Pos = self.Pos - offset * (i/trailLength) + Vector(RangeRand(-1, 1), RangeRand(-1, 1)) * self.smokeTrailRadius;
 			effect.Vel = self.Vel * RangeRand(0.75, 1.0);
 			effect.Lifetime = self.smokeTrailLifeTime * RangeRand(1.0, 1.5);
 			MovableMan:AddParticle(effect);
