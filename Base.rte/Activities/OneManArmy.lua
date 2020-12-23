@@ -295,9 +295,9 @@ function OneManArmy:UpdateActivity()
 				--Get any Actor from the CPU's native tech
 				local passenger = nil;
 				if math.random() >= self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTechName)) then
-					passenger = RandomAHuman("Any", self.CPUTechName);
+					passenger = RandomAHuman("Actors - Light", self.CPUTechName);
 				else
-					passenger = RandomACrab("Any", self.CPUTechName);
+					passenger = RandomACrab("Actors - Mecha", self.CPUTechName);
 				end
 				--Equip it with tools and guns if it's a humanoid
 				if IsAHuman(passenger) then
