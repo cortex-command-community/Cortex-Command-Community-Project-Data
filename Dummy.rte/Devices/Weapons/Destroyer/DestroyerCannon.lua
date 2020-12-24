@@ -17,10 +17,7 @@ end
 function Update(self)
 	if self.Magazine then
 		if self.inventorySwapTimer:IsPastSimTimeLimit() then
-			if self.activeSound then
-				self.activeSound:Stop();
-				self.activeSound = nil;
-			end
+			self.activeSound:Stop();
 			self.charge = 0;
 		end
 		self.inventorySwapTimer:Reset();
@@ -89,13 +86,9 @@ function Update(self)
 		MovableMan:AddParticle(par);
 		
 		self.charge = 0;
-		self.activeSound.stop();
-		self.activeSound = nil;
+		self.activeSound:Stop();
 	end
 end
 function Destroy(self)
-	if self.activeSound then
-		self.activeSound:Stop();
-		self.activeSound = nil;
-	end
+	self.activeSound:Stop();
 end
