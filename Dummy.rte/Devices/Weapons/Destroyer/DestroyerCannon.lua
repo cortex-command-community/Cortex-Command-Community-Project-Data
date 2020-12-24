@@ -18,7 +18,7 @@ function Update(self)
 	if self.Magazine then
 		if self.inventorySwapTimer:IsPastSimTimeLimit() then
 			if self.activeSound then
-				AudioMan:StopSound(self.activeSound);
+				self.activeSound:Stop();
 				self.activeSound = nil;
 			end
 			self.charge = 0;
@@ -50,8 +50,8 @@ function Update(self)
 				self:Deactivate();
 				
 				if self.activeSound:IsBeingPlayed() then
-					AudioMan:SetSoundPosition(self.activeSound, self.Pos);
-					AudioMan:SetSoundPitch(self.activeSound, self.charge);
+					self.activeSound.Pos = self.Pos;
+					self.activeSound.Pitch = self.charge;
 				else
 					self.activeSound:Play(self.Pos);
 				end
@@ -89,13 +89,13 @@ function Update(self)
 		MovableMan:AddParticle(par);
 		
 		self.charge = 0;
-		AudioMan:StopSound(self.activeSound);
+		self.activeSound.stop();
 		self.activeSound = nil;
 	end
 end
 function Destroy(self)
 	if self.activeSound then
-		AudioMan:StopSound(self.activeSound);
+		self.activeSound:Stop();
 		self.activeSound = nil;
 	end
 end
