@@ -12,7 +12,7 @@ function Update(self)
 	for i = 1, trailLength do
 		local effect = CreateMOSParticle("Tiny Smoke Trail 1", "Base.rte");
 		if effect then
-			effect.Pos = self.Pos - offset * (i/trailLength) + Vector(RangeRand(-1, 1), RangeRand(-1, 1)) * self.smokeTrailRadius;
+			effect.Pos = self.Pos - (offset * i/trailLength) + Vector(RangeRand(-1, 1), RangeRand(-1, 1)) * self.smokeTrailRadius;
 			effect.Vel = self.Vel * RangeRand(0.75, 1);
 			effect.Lifetime = self.smokeTrailLifeTime * RangeRand(0.5, 1);
 		
@@ -20,7 +20,7 @@ function Update(self)
 				effect.AirResistance = effect.AirResistance * RangeRand(0.9, 1);
 				effect.GlobalAccScalar = effect.GlobalAccScalar * math.random();
 
-				effect.Pos = self.Pos - offset + offset * i/trailLength;
+				effect.Pos = self.Pos - offset + (offset * i/trailLength);
 				effect.Vel = self.Vel + Vector(0, math.sin(self.smokeTwirlCounter) * self.smokeTrailTwirl + RangeRand(-0.1, 0.1)):RadRotate(self.Vel.AbsRadAngle);
 				
 				self.smokeTwirlCounter = self.smokeTwirlCounter + RangeRand(-0.2, 0.4);
