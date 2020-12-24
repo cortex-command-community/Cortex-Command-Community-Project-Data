@@ -42,12 +42,12 @@ function Update(self)
 		end
 		local partsLeft = 0;
 		for i = 1, #self.partList do
-			if MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
+			if self.partList[i] and MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
 				if self.explodeTimer:IsPastSimMS(self.explodeTime + self.partList[i].queue) then
 					local fire = CreatePEmitter("Flame ".. math.random(2) .." Hurt");
 					fire.Pos = Vector(self.partList[i].Pos.X, self.partList[i].Pos.Y);
 					fire.Vel = self.Vel;
-					if self.partList[i].target then
+					if self.partList[i].target and self.partList[i].target.ID ~= rte.NoMOID and not self.partList[i].target.ToDelete then
 						fire.Pos = self.partList[i].target.Pos + self.partList[i].stickPos;
 						fire.Vel = Vector(-self.partList[i].stickPos.X, -self.partList[i].stickPos.Y);
 						fire.Sharpness = self.partList[i].target.ID * 0.001;
@@ -81,9 +81,9 @@ function Update(self)
 	else
 		--Look for targets to douse with fuel
 		for i = 1, #self.partList do
-			if MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
+			if self.partList[i] and MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
 		
-				if self.partList[i].target and IsMOSRotating(self.partList[i].target) and self.partList[i].target.ID ~= rte.NoMOID then
+				if self.partList[i].target and self.partList[i].target.ID ~= rte.NoMOID and not self.partList[i].target.ToDelete then
 
 					if math.random() < 0.01 then
 						self.partList[i].Vel = self.partList[i].target.Vel;
@@ -106,6 +106,8 @@ function Update(self)
 						end
 					end
 				end
+			else
+				self.partList[i] = nil;
 			end
 		end
 	end

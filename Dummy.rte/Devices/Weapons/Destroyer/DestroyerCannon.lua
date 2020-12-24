@@ -84,7 +84,7 @@ function Update(self)
 		par.Team = self.Team;
 		par.IgnoresTeamHits = true;
 		par.Pos = self.MuzzlePos;
-		par.Vel = Vector(math.max(self.maxFireVel * self.charge, self.minFireVel) * self.FlipFactor, 0):RadRotate(self.RotAngle);
+		par.Vel = Vector((self.minFireVel + (self.maxFireVel - self.minFireVel) * self.charge) * self.FlipFactor, 0):RadRotate(self.RotAngle);
 		MovableMan:AddParticle(par);
 		
 		self.charge = 0;

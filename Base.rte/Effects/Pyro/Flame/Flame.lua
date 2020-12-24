@@ -42,7 +42,6 @@ function Update(self)
 						
 						self.targetStickAngle = mo.RotAngle;	
 						self.stickPos = SceneMan:ShortestDistance(mo.Pos, self.Pos, SceneMan.SceneWrapsX) * 0.8;
-						self.Pos = mo.Pos + Vector(self.stickPos.X, self.stickPos.Y);
 					end
 				elseif not self.isShort and math.random() < 0.1 then
 					--Spawn another, shorter flame particle occasionally
