@@ -12,6 +12,7 @@ function Create(self)
 	--The following timer prevents a glitch where you can fire twice by putting the gun inside the inventory while charging
 	self.inventorySwapTimer = Timer();
 	self.inventorySwapTimer:SetSimTimeLimitMS(math.ceil(TimerMan.DeltaTimeMS));
+	self.activeSound = CreateSoundContainer("Destroyer Emission Sound", "Dummy.rte");
 end
 function Update(self)
 	if self.Magazine then
@@ -48,11 +49,11 @@ function Update(self)
 			if self:IsActivated() then
 				self:Deactivate();
 				
-				if self.activeSound then
+				if self.activeSound:IsBeingPlayed() then
 					AudioMan:SetSoundPosition(self.activeSound, self.Pos);
 					AudioMan:SetSoundPitch(self.activeSound, self.charge);
 				else
-					self.activeSound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Destroyer/Sounds/ProjectileLoop1.flac", self.Pos, -1, -1, 100, 0, 100, false);
+					self.activeSound:Play(self.Pos);
 				end
 				if not self.chargeTimer:IsPastSimTimeLimit() then
 					self.charge = self.chargeTimer.ElapsedSimTimeMS/self.chargeDelay;
