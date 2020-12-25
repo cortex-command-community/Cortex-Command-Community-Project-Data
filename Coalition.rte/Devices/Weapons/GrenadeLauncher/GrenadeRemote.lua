@@ -29,18 +29,19 @@ function Update(self)
 		end
 	end
 	if self.actionPhase == 0 then
-		local rayHitPos = Vector(0,0);
+		local rayHitPos = Vector();
 		local rayHit = false;
-		for i = 1, 15 do
-			local checkPos = self.Pos + Vector(self.Vel.X,self.Vel.Y):SetMagnitude(i);
+		local trace = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + self.Radius);
+		local dots = trace.Magnitude/2;
+		for i = 1, dots do
+			local checkPos = self.Pos + Vector(trace.X, trace.Y) * (i/dots);
 			local checkPix = SceneMan:GetMOIDPixel(checkPos.X,checkPos.Y);
 			if checkPix ~= rte.NoMOID and (self.ID == rte.NoMOID or (self.ID ~= rte.NoMOID and checkPix ~= self.ID)) and MovableMan:GetMOFromID(checkPix).Team ~= self.Team then
-				checkPos = checkPos + SceneMan:ShortestDistance(checkPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(3);
+				checkPos = checkPos + SceneMan:ShortestDistance(checkPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(3);
 				self.target = MovableMan:GetMOFromID(checkPix);
-				self.stickpositionX = checkPos.X-self.target.Pos.X;
-				self.stickpositionY = checkPos.Y-self.target.Pos.Y;
-				self.stickrotation = self.target.RotAngle;
-				self.stickdirection = self.RotAngle;
+				self.stickPosition = SceneMan:ShortestDistance(self.target.Pos, checkPos, SceneMan.SceneWrapsX);
+				self.stickRotation = self.target.RotAngle;
+				self.stickDirection = self.RotAngle;
 				self.stuck = true;
 				rayHit = true;
 				break;
@@ -49,9 +50,10 @@ function Update(self)
 		if rayHit == true then
 			self.actionPhase = 1;
 		else
-			if SceneMan:CastStrengthRay(self.Pos,Vector(self.Vel.X,self.Vel.Y):SetMagnitude(15),0,rayHitPos,0,0,SceneMan.SceneWrapsX) == true then
-				self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(3);
+			if SceneMan:CastStrengthRay(self.Pos, trace, 0, rayHitPos, 0, rte.airID, SceneMan.SceneWrapsX) == true then
+				self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(3);
 				self.PinStrength = 1000;
+				self.Vel = Vector();
 				self.AngularVel = 0;
 				self.stuck = true;
 				self.actionPhase = 2;
@@ -59,11 +61,12 @@ function Update(self)
 			end
 		end
 	elseif self.actionPhase == 1 then
-		if self.target ~= nil and self.target.ID ~= 255 then
-			self.Pos = self.target.Pos + Vector(self.stickpositionX,self.stickpositionY):RadRotate(self.target.RotAngle-self.stickrotation);
-			self.RotAngle = self.stickdirection+(self.target.RotAngle-self.stickrotation);
+		if self.target ~= nil and self.target.ID ~= rte.NoMOID then
+			self.Pos = self.target.Pos + Vector(self.stickPosition.X, self.stickPosition.Y):RadRotate(self.target.RotAngle - self.stickRotation);
+			self.RotAngle = self.stickDirection + (self.target.RotAngle - self.stickRotation);
 			self.PinStrength = 1000;
-			self.Vel = Vector(0,0);
+			self.Vel = Vector();
+			self.AngularVel = 0;
 			self.HitsMOs = false;
 		else
 			self.PinStrength = 0;

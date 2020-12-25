@@ -9,18 +9,14 @@ function HumanBehaviors.GetTeamShootingSkill(team)
 	end
 	
 	local aimSpeed, aimSkill
-	if skill < Activity.AVERAGESKILL then	-- the AI shoot later and tracks the target slower
-		aimSpeed = -0.025 * skill + 3.3 -- affects the delay before the shooting starts [3.30 .. 1.55]
-		aimSkill = -0.011 * skill + 2.2 -- affects the precision of the shots [2.20 .. 1.43]
-	elseif skill >= Activity.UNFAIRSKILL then
-		aimSpeed = 0.05
-		aimSkill = 0.05
+	if skill >= Activity.UNFAIRSKILL then
+		aimSpeed = 0.04
+		aimSkill = 0.04
 	else
 		-- the AI shoot sooner and with slightly better precision
-		aimSpeed = 1/(0.55/(2.9-math.exp(skill*0.01))) -- [1.42 .. 0.38]
-		aimSkill = 1/(0.65/(3.0-math.exp(skill*0.01))) -- [1.36 .. 0.48]
+		aimSpeed = 1/(0.65/(2.9-math.exp(skill*0.01)))
+		aimSkill = 1/(0.75/(3.0-math.exp(skill*0.01)))
 	end
-	
 	return aimSpeed, aimSkill, skill
 end
 
@@ -36,10 +32,10 @@ end
 
 -- spot targets by casting a ray in a random direction
 function HumanBehaviors.LookForTargets(AI, Owner, Skill)
-	local viewAngDeg = RangeRand(50, 120) * Owner.Perceptiveness * (0.5 + Skill / 200)
+	local viewAngDeg = RangeRand(50, 120) * Owner.Perceptiveness * (0.5 + Skill/200)
 	if AI.deviceState == AHuman.AIMING then
 		AI.Ctrl:SetState(Controller.AIM_SHARP, true)	-- reinforce sharp aim controller state to enable SharpLength in LookForMOs
-		viewAngDeg = 15 * Owner.Perceptiveness + (Skill / 10)
+		viewAngDeg = 15 * Owner.Perceptiveness + (Skill/10)
 	end
 	
 	local FoundMO = Owner:LookForMOs(viewAngDeg, rte.grassID, false)
@@ -84,6 +80,8 @@ function HumanBehaviors.CheckEnemyLOS(AI, Owner, Skill)
 				
 				local LookTarget
 				if Enemy.ClassName == "ADoor" then
+					-- TO-DO: use explosive weapons on doors?
+					
 					local Door = ToADoor(Enemy).Door
 					if Door and Door:IsAttached() then
 						LookTarget = Door.Pos
@@ -257,7 +255,7 @@ function HumanBehaviors.GetGrenadeAngle(AimPoint, TargetVel, StartPos, muzVel)
 			Dist = SceneMan:ShortestDistance(StartPos, AimPoint, false)
 		end
 		
-		Dist = Dist / FrameMan.PPM	-- convert from pixels to meters
+		Dist = Dist / GetPPM()	-- convert from pixels to meters
 		local velSqr = math.pow(muzVel, 2)
 		local gravity = SceneMan.GlobalAcc.Y * 0.67	-- underestimate gravity
 		local root = math.sqrt(velSqr*velSqr - gravity*(gravity*Dist.X*Dist.X+2*-Dist.Y*velSqr))
@@ -489,7 +487,6 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				aimTime = RangeRand(6000, 12000) * angDiff
 				AI.deviceState = AHuman.AIMING
 			end
-			
 			if Owner.AIMode ~= Actor.AIMODE_SQUAD then
 				if SceneMan:ShortestDistance(Owner.Pos, AI.SentryPos, false).Magnitude > Owner.Height*0.7 then
 					AI.SentryPos = SceneMan:MovePointToGround(AI.SentryPos, Owner.Height*0.25, 3)
@@ -500,8 +497,7 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				elseif AI.SentryFacing and Owner.HFlipped ~= AI.SentryFacing then
 					Owner.HFlipped = AI.SentryFacing	-- turn to the direction we have been order to guard
 					break	-- restart this behavior
-				elseif math.random() < Owner.Perceptiveness then
-				
+				elseif AI.TargetLostTimer:IsPastSimTimeLimit() and math.random() < Owner.Perceptiveness then
 					-- turn around occasionally if there is open space behind our back
 					local backAreaRay = Vector(-math.random(FrameMan.PlayerScreenWidth/4, FrameMan.PlayerScreenWidth/2) * Owner.FlipFactor, 0):DegRotate(math.random(-25, 25) * Owner.Perceptiveness)
 					if not SceneMan:CastStrengthRay(Owner.EyePos, backAreaRay, 10, Vector(), 10, rte.grassID, SceneMan.SceneWrapsX) then
@@ -1682,13 +1678,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										else
 											nextLatMove = Actor.LAT_STILL
 										end
-										if not (Owner.FGLeg and Owner.BGLeg) and not AI.jump then
-											Owner:GetController():SetState(Controller.BODY_CROUCH,true)	-- crawl if no legs
-										end
 									end
 								elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
 									-- no legs, jump forward
 									AI.jump = true
+								elseif not AI.jump then
+									AI.proneState = AHuman.GOPRONE
 								end
 								
 								if Waypoint.Type == "right" then
@@ -1715,8 +1710,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												-- predict jetpack movement when jumping and there is a target (check one direction)
 												local jetStrength = AI.jetImpulseFactor / Owner.Mass
 												local t = math.min(0.4, Owner.JetTimeLeft*0.001)
-												local PixelVel = Owner.Vel * (FrameMan.PPM * t)
-												local Accel = SceneMan.GlobalAcc * FrameMan.PPM
+												local PixelVel = Owner.Vel * (GetPPM() * t)
+												local Accel = SceneMan.GlobalAcc * GetPPM()
 												
 												-- a burst use 10x more fuel
 												if Owner.Jetpack:CanTriggerBurst() then
@@ -1779,8 +1774,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											-- predict jetpack movement...
 											local jetStrength = AI.jetImpulseFactor / Owner.Mass
 											local t = math.min(0.4, Owner.JetTimeLeft*0.001)
-											local PixelVel = Owner.Vel * (FrameMan.PPM * t)
-											local Accel = SceneMan.GlobalAcc * FrameMan.PPM
+											local PixelVel = Owner.Vel * (GetPPM() * t)
+											local Accel = SceneMan.GlobalAcc * GetPPM()
 											
 											-- a burst use 10x more fuel
 											if Owner.Jetpack:CanTriggerBurst() then
@@ -1821,7 +1816,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range
 											if delta < 1 then
 												AI.jump = false
-											elseif AI.flying or delta > 15 then
+											elseif AI.flying or delta > 25 then
 												AI.jump = true
 												nextAimAngle = Owner:GetAimAngle(false) * 0.5 + Facings[1].aim * 0.5	-- adjust jetpack nozzle direction
 												nextLatMove = Actor.LAT_STILL
@@ -2146,15 +2141,14 @@ function HumanBehaviors.GetProjectileData(Owner)
 		
 		-- find muzzle velocity
 		PrjDat.vel = Weapon:GetAIFireVel()
-		
 		-- half of the theoretical upper limit for the total amount of material strength this weapon can destroy in 250ms
-		PrjDat.pen = Weapon:GetAIPenetration() * math.max((Weapon.RateOfFire / 240), 1)
 		
 		PrjDat.g = SceneMan.GlobalAcc.Y * 0.67 * Weapon:GetBulletAccScalar()	-- underestimate gravity
 		PrjDat.vsq = PrjDat.vel^2	-- muzzle velocity squared
 		PrjDat.vqu = PrjDat.vsq^2	-- muzzle velocity quad
 		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs	-- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel)
+		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg
 		
 		-- estimate theoretical max range with ...
 		local lifeTime = Weapon:GetAIBulletLifeTime()
@@ -2162,8 +2156,9 @@ function HumanBehaviors.GetProjectileData(Owner)
 			PrjDat.rng = math.huge
 		elseif PrjDat.drg < 1 then	-- AirResistance
 			PrjDat.rng = 0
-			local threshold = PrjDat.thr * FrameMan.PPM * TimerMan.DeltaTimeSecs	-- AirThreshold in pixels/frame
-			local vel = PrjDat.vel * FrameMan.PPM * TimerMan.DeltaTimeSecs	-- muzzle velocity in pixels/frame
+			local threshold = PrjDat.thr * rte.PxTravelledPerFrame	-- AirThreshold in pixels/frame
+			local vel = PrjDat.vel * rte.PxTravelledPerFrame	-- muzzle velocity in pixels/frame
+
 			for _ = 0, math.ceil(lifeTime/TimerMan.DeltaTimeMS) do
 				PrjDat.rng = PrjDat.rng + vel
 				if vel > threshold then
@@ -2171,7 +2166,7 @@ function HumanBehaviors.GetProjectileData(Owner)
 				end
 			end
 		else	-- no AirResistance
-			PrjDat.rng = PrjDat.vel * FrameMan.PPM * TimerMan.DeltaTimeSecs * (lifeTime / TimerMan.DeltaTimeMS)
+			PrjDat.rng = PrjDat.vel * rte.PxTravelledPerFrame * (lifeTime / TimerMan.DeltaTimeMS)
 		end
 		
 		-- Artificially decrease reported range to make sure AI 
@@ -2629,13 +2624,13 @@ end
 -- throw a grenade at the selected target
 function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 	local ThrowTimer = Timer()
-	local aimTime = 1000
+	local aimTime = Owner.ThrowPrepTime
 	local scan = 0
 	local miss = 0	-- stop scanning after a few missed attempts
 	local AimPoint, Dist, MO, ID, rootID, LOS, aim
-	
+
 	AI.TargetLostTimer:SetSimTimeLimitMS(1500)
-	
+
 	while true do
 		if not MovableMan:ValidMO(AI.Target) then
 			break
@@ -2649,8 +2644,11 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 				else
 					AI.fire = false
 				end
-			else
-				break	-- no grenades left
+			else	-- no grenades left, continue attack
+				if not (Owner.AIMode == Actor.AIMODE_SENTRY or Owner.AIMode == Actor.AIMODE_SQUAD) then
+					AI:CreateAttackBehavior(Owner)
+				end
+				break
 			end
 		else
 			if scan < 1 then
@@ -2747,13 +2745,13 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, Grenade.MaxThrowVel)
 							if aim then
 								ThrowTimer:Reset()
-								aimTime = RangeRand(1000, 1200)
+								aimTime = Owner.ThrowPrepTime * RangeRand(0.9, 1.1)
 								local maxAim = aim
 								
 								-- try again with an average throw vel
 								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (Grenade.MaxThrowVel+Grenade.MinThrowVel)/2)
 								if aim then
-									aimTime = RangeRand(450, 550)
+									aimTime = Owner.ThrowPrepTime * RangeRand(0.45, 0.55)
 								else
 									aim = maxAim
 								end
@@ -2829,24 +2827,22 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		local meleeDist = 0
 		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y)
 		
-		if Owner.EquippedItem then
-			if Owner.EquippedItem:HasObjectInGroup("Tools - Diggers") or Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then
-				meleeDist = Owner.Radius + 25
-				startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
-			end
+		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) then
+			meleeDist = Owner.Radius + 25
+			startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 		elseif Owner.armSway then
-			if Owner.FGArm then
-				meleeDist = Owner.Radius + Owner.FGArm.Radius
-				startPos = Owner.FGArm.Pos
-			elseif Owner.BGArm then
-				meleeDist = Owner.Radius + Owner.BGArm.Radius
-				startPos = Owner.BGArm.Pos
+			local arm = Owner.FGArm or Owner.BGArm
+			if arm then
+				meleeDist = arm.Radius + arm.Radius
+				startPos = arm.Pos
 			end
 		end
 		if meleeDist > 0 then
-			local dist = SceneMan:ShortestDistance(startPos, AI.Target.Pos, false)
+			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos
+			local dist = SceneMan:ShortestDistance(startPos, attackPos, false)
 			if dist.Magnitude < meleeDist then
-				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, AI.Target.Pos, false).Normalized
+				AI.lateralMoveState = Actor.LAT_STILL
+				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized
 				AI.fire = true
 			else
 				AI.fire = false
@@ -2931,7 +2927,7 @@ function HumanBehaviors.GetAngleToHit(PrjDat, Dist)
 		return Dist.AbsRadAngle
 	else	-- compensate for gravity
 		local rootSq, muzVelSq
-		local D = Dist / FrameMan.PPM	-- convert from pixels to meters
+		local D = Dist / GetPPM()	-- convert from pixels to meters
 		if PrjDat.drg < 1 then	-- compensate for air resistance
 			local rng = D.Magnitude
 			local timeToTarget = math.floor((rng / math.max(PrjDat.vel*PrjDat.drg^math.floor(rng/(PrjDat.vel+1)+0.5), PrjDat.thr)) / TimerMan.DeltaTimeSecs)	-- estimate time of flight in frames

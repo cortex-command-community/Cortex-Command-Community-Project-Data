@@ -7,7 +7,7 @@ function Create(self)
 	self.blink = false;
 	self.fireOn = false;
 
-	self.disarmRange = FrameMan.PPM * 5;
+	self.disarmRange = GetPPM() * 5;
 	self.targetTable = {};
 end
 
@@ -16,7 +16,7 @@ function Update(self)
 	if self.Magazine then
 		if self:IsActivated() then
 			if self.fireOn == false then
-				self.Magazine.RoundCount = 4000-self.overallTimer.ElapsedSimTimeMS;
+				self.Magazine.RoundCount = 4000 - self.overallTimer.ElapsedSimTimeMS;
 				if self.delayTimer:IsPastSimMS(1000) then
 					self.delayTimer:Reset();
 					self.blink = false;
@@ -44,7 +44,7 @@ function Update(self)
 					if targetCount == 0 then
 						self.actionPhase = 0;
 						self.overallTimer:Reset();
-						AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.wav", self.Pos);
+						AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.flac", self.Pos);
 					elseif self.actionPhase == 4 then
 						self.ReloadTime = 1000 + (1000 * targetCount);
 						self:Reload();
@@ -77,34 +77,24 @@ function Update(self)
 					self.scanTimer:Reset();
 					local alarm = false;
 					local alarmType = "Safe";
-					if coalitionMineTable ~= nil then
-						for i = 1, #coalitionMineTable do
-							if MovableMan:IsParticle(coalitionMineTable[i]) and SceneMan:ShortestDistance(self.Pos,coalitionMineTable[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
-								alarm = true;
-								local isFriendly = coalitionMineTable[i].Team == self.Team;
-								alarmType = isFriendly and alarmType or "Danger";
-								local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
-								detectPar.Pos = coalitionMineTable[i].Pos;
-								MovableMan:AddParticle(detectPar);
-								table.insert(self.targetTable, coalitionMineTable[i]);
-							end
-						end
-					end
-					if coalitionC4TableA ~= nil and coalitionC4TableB ~= nil then
-						for i = 1, #coalitionC4TableA do
-							if MovableMan:IsParticle(coalitionC4TableA[i]) and SceneMan:ShortestDistance(self.Pos,coalitionC4TableA[i].Pos,SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
-								alarm = true;
-								local isFriendly = coalitionC4TableA[i].Team == self.Team;
-								alarmType = isFriendly and alarmType or "Danger";
-								local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
-								detectPar.Pos = coalitionC4TableA[i].Pos;
-								MovableMan:AddParticle(detectPar);
-								table.insert(self.targetTable, coalitionC4TableA[i]);
+					local disarmTables = {AntiPersonnelMineTable, RemoteExplosiveTableA, TimedExplosiveTable};
+					for _, bombTable in pairs(disarmTables) do
+						if bombTable then
+							for _, explosive in pairs(bombTable) do
+								if MovableMan:IsParticle(explosive) and SceneMan:ShortestDistance(self.Pos, explosive.Pos, SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
+									alarm = true;
+									local isFriendly = explosive.Team == self.Team;
+									alarmType = isFriendly and alarmType or "Danger";
+									local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (isFriendly and "Safe" or "Danger"));
+									detectPar.Pos = explosive.Pos;
+									MovableMan:AddParticle(detectPar);
+									table.insert(self.targetTable, explosive);
+								end
 							end
 						end
 					end
 					if alarm and not self:IsActivated() then
-						AudioMan:PlaySound("Base.rte/Devices/Tools/Disarmer/Sounds/".. alarmType .."Blip.wav", self.Pos);
+						AudioMan:PlaySound("Base.rte/Devices/Tools/Disarmer/Sounds/".. alarmType .."Blip.flac", self.Pos);
 					end
 				end
 			end

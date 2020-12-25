@@ -1,29 +1,27 @@
 function ConstructorModeCancel(actor)
 	local gun = ToAHuman(actor).EquippedItem;
-	if gun ~= nil then
-		gun.Sharpness = 1;
+	if gun then
+		ToMOSRotating(gun):SetNumberValue("BuildMode", 1);
 	end
 end
 
 function ConstructorModeBuild(actor)
 	local gun = ToAHuman(actor).EquippedItem;
-	if gun ~= nil then
-		gun.Sharpness = 2;
+	if gun then
+		ToMOSRotating(gun):SetNumberValue("BuildMode", 2);
 	end
 end
 
 function ConstructorDigMode(actor)
 	local gun = ToAHuman(actor).EquippedItem;
-	if gun ~= nil then
-		gun = ToMOSRotating(gun);
-		gun:SetNumberValue("Constructor Mode", 0);
+	if gun then
+		ToMOSRotating(gun):SetStringValue("ConstructorMode", "Dig");
 	end
 end
 
 function ConstructorSprayMode(actor)
 	local gun = ToAHuman(actor).EquippedItem;
-	if gun ~= nil then
-		gun = ToMOSRotating(gun);
-		gun:SetNumberValue("Constructor Mode", 1);
+	if gun then
+		ToMOSRotating(gun):SetStringValue("ConstructorMode", "Spray");
 	end
 end

@@ -57,7 +57,14 @@ function OneManArmy:StartActivity()
 		primaryGroup = "Weapons - Secondary";
 		secondaryGroup = "Tools";
 	end
-
+	-- Destroy all doors for this Activity
+	MovableMan:OpenAllDoors(true, -1);
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.ToSettle = true;
+			actor:GibThis();
+		end
+	end
 	-- Check if we already have a brain assigned
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -226,21 +233,10 @@ function OneManArmy:UpdateActivity()
 
 		--Spawn the AI.
 		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-			local ship, actorsInCargo
-			
-			if PosRand() < 0.5 then
-				-- Set up the ship to deliver this stuff
-				ship = RandomACDropShip("Any", self.CPUTechName);
-				-- If we can't afford this dropship, then try a rocket instead
-				if ship:GetTotalValue(0,3) > self:GetTeamFunds(self.CPUTeam) then
-					DeleteEntity(ship);
-					ship = RandomACRocket("Any", self.CPUTechName);
-				end
-				actorsInCargo = ship.MaxPassengers
-			else
-				ship = RandomACRocket("Any", self.CPUTechName);
-				actorsInCargo = math.min(ship.MaxPassengers, 2)
-			end
+
+			-- Set up the ship to deliver this stuff
+			local ship = RandomACRocket("Any", self.CPUTechName);
+			local actorsInCargo = math.min(ship.MaxPassengers, 2)
 			
 			ship.Team = self.CPUTeam;
 			
@@ -255,7 +251,7 @@ function OneManArmy:UpdateActivity()
 			-- Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
 				-- Get any Actor from the CPU's native tech
-				local passenger = RandomAHuman("Any", self.CPUTechName);
+				local passenger = RandomAHuman("Actors - " .. (self.Difficulty > 75 and "Heavy" or "Light"), self.CPUTechName);
 				passenger:AddInventoryItem(CreateHDFirearm("Light Digger", "Base.rte"));
 				
 				-- Set AI mode and team so it knows who and what to fight for!

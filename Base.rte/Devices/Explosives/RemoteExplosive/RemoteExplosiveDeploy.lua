@@ -1,29 +1,32 @@
 function Create(self)
 
 	self.alliedTeam = -1;
-
 end
 
 function Update(self)
+	local parent = self:GetRootParent();
+	if parent and IsAHuman(parent) then
+		self.alliedTeam = ToAHuman(parent).Team;
+		self.user = ToAHuman(parent);
+	elseif self:IsActivated() then
 
-	if self.ID ~= self.RootID then
-		local actor = MovableMan:GetMOFromID(self.RootID);
-		if MovableMan:IsActor(actor) then
-			self.alliedTeam = ToActor(actor).Team;
-		end
-	end
-
-	if self:IsActivated() and self.ID == self.RootID then
-
-		local explosive = CreateMOSRotating("Remote Explosive Active");
+		local explosive = CreateMOSRotating(self.PresetName .. " Active");
 		explosive.Pos = self.Pos;
 		explosive.Vel = self.Vel;
-		explosive.RotAngle = self.RotAngle;
+		explosive.RotAngle = self.Vel.AbsRadAngle;
 		explosive.Sharpness = self.alliedTeam;
 		MovableMan:AddParticle(explosive);
-
+		
+		if self.user and IsAHuman(self.user) then
+			if not self.user:HasObject("Detonator") then
+				self.user:AddInventoryItem(CreateHDFirearm("Base.rte/Detonator"));
+			end
+			if not self.user:EquipNamedDevice(self.PresetName, true) then
+				self.user:EquipNamedDevice("Detonator", true);
+			end
+		end
 		self.ToDelete = true;
-
+	else
+		self.user = nil;
 	end
-
 end

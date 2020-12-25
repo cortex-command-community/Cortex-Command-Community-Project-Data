@@ -1,26 +1,19 @@
 function Create(self)
-
-	self.lifeTimer = Timer();
-
+	self.detonationDelay = 3000;
+	self.startPos = Vector(self.Pos.X, self.Pos.Y);
+	self.safetyRadius = 180;
 end
-
 function Update(self)
-
-	if self.lifeTimer:IsPastSimMS(3000) then
-		local explosion = CreateMOSRotating("Ronin M79 Grenade Explosion");
-		explosion.Pos = self.Pos;
-		explosion:GibThis();
-		MovableMan:AddParticle(explosion);
-		self.ToDelete = true;
-	else
-		self.ToDelete = false;
-		self.ToSettle = false;
+	if not self.safetyTriggered then
+		if self.Age > self.detonationDelay or self.TravelImpulse.Magnitude > self.Mass then
+			if SceneMan:ShortestDistance(self.startPos, self.Pos, SceneMan.SceneWrapsX).Magnitude > self.safetyRadius then
+				self:GibThis();
+			else
+				self.safetyTriggered = true;
+			end
+		else
+			self.ToDelete = false;
+			self.ToSettle = false;
+		end
 	end
-
-end
-
-function Destroy(self)
-
-	ActivityMan:GetActivity():ReportDeath(self.Team,-1);
-
 end
