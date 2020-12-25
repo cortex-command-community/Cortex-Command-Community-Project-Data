@@ -12,14 +12,12 @@ function Create(self)
 	--The following timer prevents a glitch where you can fire twice by putting the gun inside the inventory while charging
 	self.inventorySwapTimer = Timer();
 	self.inventorySwapTimer:SetSimTimeLimitMS(math.ceil(TimerMan.DeltaTimeMS));
+	self.activeSound = CreateSoundContainer("Destroyer Emission Sound", "Dummy.rte");
 end
 function Update(self)
 	if self.Magazine then
 		if self.inventorySwapTimer:IsPastSimTimeLimit() then
-			if self.activeSound then
-				AudioMan:StopSound(self.activeSound);
-				self.activeSound = nil;
-			end
+			self.activeSound:Stop();
 			self.charge = 0;
 		end
 		self.inventorySwapTimer:Reset();
@@ -48,11 +46,11 @@ function Update(self)
 			if self:IsActivated() then
 				self:Deactivate();
 				
-				if self.activeSound then
-					AudioMan:SetSoundPosition(self.activeSound, self.Pos);
-					AudioMan:SetSoundPitch(self.activeSound, self.charge);
+				if self.activeSound:IsBeingPlayed() then
+					self.activeSound.Pos = self.Pos;
+					self.activeSound.Pitch = self.charge;
 				else
-					self.activeSound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Destroyer/Sounds/ProjectileLoop1.flac", self.Pos, -1, -1, 100, 0, 100, false);
+					self.activeSound:Play(self.Pos);
 				end
 				if not self.chargeTimer:IsPastSimTimeLimit() then
 					self.charge = self.chargeTimer.ElapsedSimTimeMS/self.chargeDelay;
@@ -88,13 +86,9 @@ function Update(self)
 		MovableMan:AddParticle(par);
 		
 		self.charge = 0;
-		AudioMan:StopSound(self.activeSound);
-		self.activeSound = nil;
+		self.activeSound:Stop();
 	end
 end
 function Destroy(self)
-	if self.activeSound then
-		AudioMan:StopSound(self.activeSound);
-		self.activeSound = nil;
-	end
+	self.activeSound:Stop();
 end
