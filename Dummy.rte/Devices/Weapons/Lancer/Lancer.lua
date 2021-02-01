@@ -41,7 +41,7 @@ function Update(self)
 			MovableMan:AddParticle(smokePar);
 		end
 		local sound = self.chargeCounter > highCharge and "High" or (self.chargeCounter < lowCharge and "Low" or "Medium");
-		AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/Fire".. sound ..".wav", self.MuzzlePos);
+		AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/Fire".. sound ..".flac", self.MuzzlePos);
 
 		self.chargeCounter = 1;
 	else
@@ -50,7 +50,7 @@ function Update(self)
 			self.chargeTimer:Reset();
 
 			if self.chargeCounter == self.maxCharge and not self.sound then
-				self.sound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/FullChargeBleep.wav", self.Pos);
+				self.sound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/FullChargeBleep.flac", self.Pos);
 			end
 		end
 	end

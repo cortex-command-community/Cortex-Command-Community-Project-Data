@@ -7,7 +7,7 @@ function Create(self)
 		local mo = MovableMan:GetMOFromID(self:GetNumberValue("TargetID"));
 		if mo and IsMOSRotating(mo) then
 			self.target = ToMOSRotating(mo);
-			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", self.Pos);
+			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.flac", self.Pos);
 		end
 	end
 	self.lifeTimer:SetSimTimeLimitMS(self.Lifetime - math.ceil(TimerMan.DeltaTimeMS));

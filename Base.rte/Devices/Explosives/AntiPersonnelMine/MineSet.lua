@@ -68,7 +68,7 @@ function Update(self)
 			self.RotAngle = self.faceDirection - (math.pi * 0.5);
 			self.PinStrength = self.GibImpulseLimit;
 			self.actionPhase = 1;
-			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", self.Pos);
+			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.flac", self.Pos);
 			self.delayTimer:Reset();
 		end
 
@@ -127,7 +127,7 @@ function Update(self)
 			self.blink = true;
 			self.Frame = ((self.alliedTeam + 1) * 2) + 1;
 			self.delayTimer:Reset();
-			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", self.Pos);
+			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.flac", self.Pos);
 		end
 		if self.delayTimer:IsPastSimMS(self.detonateDelay) then
 			self.Vel = Vector(25, 0):RadRotate(self.faceDirection);

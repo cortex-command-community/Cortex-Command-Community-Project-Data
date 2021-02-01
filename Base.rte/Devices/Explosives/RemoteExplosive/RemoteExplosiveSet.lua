@@ -76,7 +76,7 @@ function RemoteExplosiveStick(self)
 				self.stickRotation = self.target.RotAngle;
 				self.stickDirection = self.RotAngle;
 
-				AudioMan:PlaySound("Base.rte/Devices/Explosives/RemoteExplosive/Sounds/RemoteExplosiveActivate.wav", self.Pos);
+				AudioMan:PlaySound("Base.rte/Devices/Explosives/RemoteExplosive/Sounds/RemoteExplosiveActivate.flac", self.Pos);
 				self.stuck = true;
 				rayHit = true;
 				break;
@@ -91,7 +91,7 @@ function RemoteExplosiveStick(self)
 			self.stuck = true;
 			self.actionPhase = 2;
 
-			AudioMan:PlaySound("Base.rte/Devices/Explosives/RemoteExplosive/Sounds/RemoteExplosiveActivate.wav", self.Pos);
+			AudioMan:PlaySound("Base.rte/Devices/Explosives/RemoteExplosive/Sounds/RemoteExplosiveActivate.flac", self.Pos);
 		end
 	else
 		self.Vel = Vector();

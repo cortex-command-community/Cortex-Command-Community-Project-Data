@@ -76,7 +76,7 @@ function Update(self)
 						end
 					end
 					if lastTargetCount < #self.targets then
-						AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.wav", self.Pos);
+						AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.flac", self.Pos);
 					end
 					if not playerControlled then
 						parent:GetController():SetState(Controller.WEAPON_FIRE, false);

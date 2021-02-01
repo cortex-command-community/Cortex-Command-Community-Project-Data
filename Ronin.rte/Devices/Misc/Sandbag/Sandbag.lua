@@ -30,7 +30,7 @@ function Update(self)
 			end
 		end
 		if self.TravelImpulse.Magnitude > self.impulseSoundThreshold then
-			AudioMan:PlaySound("Base.rte/Sounds/Physics/".. self.impulseSounds[math.random(#self.impulseSounds)] ..".wav", self.Pos);
+			AudioMan:PlaySound("Base.rte/Sounds/Physics/".. self.impulseSounds[math.random(#self.impulseSounds)] ..".flac", self.Pos);
 		end
 		self.GibWoundLimit = self.Mass * 3;
 		self.GibImpulseLimit = self.Mass * 30;

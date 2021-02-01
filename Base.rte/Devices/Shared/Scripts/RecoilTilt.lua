@@ -21,8 +21,9 @@ function Update(self)
 	local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 	self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-self.setRecoilAngle * self.FlipFactor);
 	if self.recoilStanceFactor ~= 0 then
-		local setStanceAngle = self.setRecoilAngle * self.recoilStanceFactor;
-		self.StanceOffset = Vector(self.origStanceOffset.X, self.origStanceOffset.Y):RadRotate(setStanceAngle);
-		self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X, self.origSharpStanceOffset.Y):RadRotate(setStanceAngle);
+		local setStanceAngle = self.setRecoilAngle * self.recoilStanceFactor * 0.5;
+		local xFactor = 1 + setStanceAngle * 0.5;
+		self.StanceOffset = Vector(self.origStanceOffset.X/xFactor, self.origStanceOffset.Y):RadRotate(setStanceAngle);
+		self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X/xFactor, self.origSharpStanceOffset.Y):RadRotate(setStanceAngle);
 	end
 end

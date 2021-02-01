@@ -35,7 +35,7 @@ function Update(self)
 							end
 						end
 					end
-					AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.wav", self.Pos);
+					AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.flac", self.Pos);
 					self.fireOn = true;
 					self:Reload();
 				end

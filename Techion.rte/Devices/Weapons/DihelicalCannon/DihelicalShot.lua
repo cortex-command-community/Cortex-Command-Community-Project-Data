@@ -6,7 +6,7 @@ function Create(self)
     self.maxAmplitude = math.floor(1 + math.sqrt(self.Vel.Magnitude) + 0.5);
     
     --Wavelength of the wave.
-    self.waveLength = math.floor(5 + math.sqrt(self.Vel.Magnitude) + 0.5);
+    self.flaceLength = math.floor(5 + math.sqrt(self.Vel.Magnitude) + 0.5);
 	
 	--Track intersecting beams
 	self.lastAmplitude = 1;
@@ -59,7 +59,7 @@ function Update(self)
 	
     --Draw out the path.
     for i = self.lastI, endPoint, 1 do
-        local amplitude = math.sin((i/self.waveLength) * 2 * math.pi) * self.maxAmplitude;
+        local amplitude = math.sin((i/self.flaceLength) * 2 * math.pi) * self.maxAmplitude;
         local waveOffset = Vector(self.up.X, self.up.Y);
         waveOffset:SetMagnitude(amplitude);
         
@@ -175,8 +175,8 @@ function Update(self)
 		else
 			self.hits = self.hits * 0.9;
 		end
-		self.waveLength = self.waveLength * (1 + 0.05/self.waveLength);
-		self.maxAmplitude = self.waveLength * 0.5;
+		self.flaceLength = self.flaceLength * (1 + 0.05/self.flaceLength);
+		self.maxAmplitude = self.flaceLength * 0.5;
     end
     self.lastI = endPoint;
 end

@@ -26,7 +26,7 @@ function Update(self)
 					target:RemoveWounds(math.ceil(strength * 0.15));
 				end
 				target:FlashWhite(50);
-				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.wav", self.Pos);
+				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.flac", self.Pos);
 
 				local targetSize = math.ceil(5 + target.Radius * 0.5);
 				for i = 1, targetSize do
@@ -43,7 +43,7 @@ function Update(self)
 				self:Reload();
 				self.uses = self.uses - 1;
 			else
-				AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.wav", self.Pos);
+				AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.flac", self.Pos);
 			end
 		end
 	end

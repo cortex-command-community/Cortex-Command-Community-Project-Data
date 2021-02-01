@@ -50,7 +50,7 @@ function Update(self)
                     MovableMan:AddParticle(glow);
 
 					if not self.sound or not self.sound:IsBeingPlayed() then
-						self.sound = AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/LaserDissipate".. math.random(3) ..".wav", hitPos, -1, 0, 128, RangeRand(0.7, 1.3), math.random(100), false);
+						self.sound = AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/LaserDissipate".. math.random(3) ..".flac", hitPos, -1, 0, 128, RangeRand(0.7, 1.3), math.random(100), false);
 					end
                 end
             end
@@ -90,7 +90,7 @@ function Update(self)
 										MovableMan:AddParticle(piece);
 									end
 									if not self.sound or not self.sound:IsBeingPlayed() then
-										self.sound = AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/LaserDissipate".. math.random(3) ..".wav", actor.Pos, -1, 0, 128, RangeRand(0.7, 1.3), math.random(100), false);
+										self.sound = AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/LaserDissipate".. math.random(3) ..".flac", actor.Pos, -1, 0, 128, RangeRand(0.7, 1.3), math.random(100), false);
 									end
 								end
 							end
@@ -150,7 +150,7 @@ function Update(self)
 						glow.Vel = mo.Vel;
 						MovableMan:AddParticle(glow);
 					end
-					AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/DisintegrateAlt".. math.random(3) ..".wav", dustTarget.Pos);
+					AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/DisintegrateAlt".. math.random(3) ..".flac", dustTarget.Pos);
 					dustTarget.ToDelete = true;
 				end
 			end
