@@ -537,11 +537,12 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 	local Craft = RandomACDropShip("Craft", self.TechName[self.CPUTeam])	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -565,8 +566,11 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end				-- Stop adding actors when exceeding the weight limit
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -593,11 +597,16 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -621,8 +630,11 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end				-- Stop adding actors when exceeding the weight limit
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -649,11 +661,16 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -675,8 +692,11 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end				-- Stop adding actors when exceeding the weight limit
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -703,11 +723,16 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -729,8 +754,11 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end				-- Stop adding actors when exceeding the weight limit
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -749,11 +777,12 @@ function BrainvsBrain:CreateBombDrop(bombPosX)
 	local Craft = RandomACDropShip("Craft", self.CPUTechID)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
@@ -763,8 +792,11 @@ function BrainvsBrain:CreateBombDrop(bombPosX)
 		for _ = 1, math.random(3, 6) do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.CPUTechID))
 			
-			-- Stop adding bombs when exceeding the weight limit
-			if Craft.Mass > craftMaxMass then 
+			local inventoryMass = 0;
+			for item in Craft.Inventory do
+				inventoryMass = inventoryMass + item.Mass;
+			end				-- Stop adding actors when exceeding the weight limit
+			if inventoryMass > craftMaxMass then 
 				break
 			end
 		end

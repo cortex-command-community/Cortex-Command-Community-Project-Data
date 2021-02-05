@@ -1535,14 +1535,19 @@ function MetaFight:OrderHeavyLoadout(player, team)
 		self:AddOverridePurchase(Craft, player)
 		
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if math.random() < 0.5 then
+				Craft = RandomACDropShip("Craft", "Base.rte")
+			else
+				Craft = RandomACRocket("Craft", "Base.rte")
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
-		local totalMass = Craft.Mass
+		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
 			if math.random() < 0.8 then
@@ -1591,14 +1596,19 @@ function MetaFight:OrderMediumLoadout(player, team)
 		self:AddOverridePurchase(Craft, player)
 		
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if math.random() < 0.5 then
+				Craft = RandomACDropShip("Craft", "Base.rte")
+			else
+				Craft = RandomACRocket("Craft", "Base.rte")
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
-		local totalMass = Craft.Mass
+		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
 			if math.random() < 0.8 then
@@ -1647,14 +1657,19 @@ function MetaFight:OrderLightLoadout(player, team)
 		self:AddOverridePurchase(Craft, player)
 		
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if math.random() < 0.5 then
+				Craft = RandomACDropShip("Craft", "Base.rte")
+			else
+				Craft = RandomACRocket("Craft", "Base.rte")
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
-		local totalMass = Craft.Mass
+		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
 			local d, m = self:PurchaseLightInfantry(player, MetaPlayer.NativeTechModule)
@@ -1697,14 +1712,19 @@ function MetaFight:OrderScoutLoadout(player, team)
 		self:AddOverridePurchase(Craft, player)
 		
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if math.random() < 0.5 then
+				Craft = RandomACDropShip("Craft", "Base.rte")
+			else
+				Craft = RandomACRocket("Craft", "Base.rte")
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
-		local totalMass = Craft.Mass
+		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
 			if math.random() < 0.8 then
