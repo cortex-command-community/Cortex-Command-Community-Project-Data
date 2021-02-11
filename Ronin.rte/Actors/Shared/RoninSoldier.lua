@@ -6,6 +6,7 @@ function Create(self)
 			self.Head.Frame = self.face;
 		end
 		self:SetNumberValue("Identity", self.face);
+		self:SetGoldValue(self:GetGoldValue(0, 1, 1) * 0.3);
 	else
 		self.face = self:GetNumberValue("Identity");
 		if self.Head then
@@ -22,7 +23,9 @@ function Create(self)
 				local firearms = {unit["Primary"], unit["Secondary"], unit["Tertiary"]};
 				for class = 1, #firearms do
 					if firearms[class] then
-						self:AddInventoryItem(CreateHDFirearm(firearms[class][math.random(#firearms[class])], "Ronin.rte"));
+						local firearm = CreateHDFirearm(firearms[class][math.random(#firearms[class])], "Ronin.rte");
+						firearm:SetGoldValue(firearm:GetGoldValue(0, 1, 1) * 0.6);
+						self:AddInventoryItem(firearm);
 					end
 				end
 				if unit["Throwable"] then
@@ -31,18 +34,11 @@ function Create(self)
 				if unit["Headgear"] and self.Head then
 					self.Head:AddAttachable(CreateAttachable("Ronin ".. unit["Headgear"][math.random(#unit["Headgear"])]));
 				end
-				if unit["Armor"] then
-					self:AddAttachable(CreateAttachable("Ronin ".. unit["Armor"][math.random(#unit["Armor"])]));
-				end
 			end
 		elseif self.PresetName == "Ronin Heavy" then
 			local headgear = CreateAttachable("Ronin ".. RoninLoadouts["Heavy"]["Headgear"][math.random(#RoninLoadouts["Heavy"]["Headgear"])]);
 			if headgear and self.Head then
 				self.Head:AddAttachable(headgear);
-			end
-			local armor = CreateAttachable("Ronin ".. RoninLoadouts["Heavy"]["Armor"][math.random(#RoninLoadouts["Heavy"]["Armor"])]);
-			if armor then
-				self:AddAttachable(armor);
 			end
 		elseif self.Head then
 			if self.face == 1 then	--"Mia"
