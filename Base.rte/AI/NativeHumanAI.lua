@@ -737,7 +737,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM()) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 150 then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 250 then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 		self.NextBehaviorName = "AttackTarget"
 	else	-- unarmed or far away

@@ -154,6 +154,8 @@ function HumanBehaviors.CalculateThreatLevel(MO, Owner)
 		else
 			priority = priority + 0.3
 		end
+	elseif MO.ClassName == "ADoor" then
+		priority = priority * 0.5
 	end
 	
 	return priority - MO.Health / 500	-- prioritize damaged targets
@@ -2125,11 +2127,13 @@ end
 -- get the projectile properties from the magazine
 function HumanBehaviors.GetProjectileData(Owner)
 	local Weapon = ToHDFirearm(Owner.EquippedItem)
-	local Round = Weapon.Magazine.NextRound
-	local Projectile = Round.NextParticle
-	local PrjDat = {MagazineName=Weapon.Magazine.PresetName}
-	
-	if Round.IsEmpty then	-- set default values if there is no particle
+	local Round, Projectile, PrjDat
+	if Weapon.Magazine then
+		Round = Weapon.Magazine.NextRound
+		Projectile = Round.NextParticle
+		PrjDat = {MagazineName=Weapon.Magazine.PresetName}
+	end
+	if Round == nil or Round.IsEmpty then	-- set default values if there is no particle
 		PrjDat.g = 0
 		PrjDat.vel = 100
 		PrjDat.rng = math.huge
@@ -2533,6 +2537,10 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 			if Owner.EquippedItem and ToHeldDevice(Owner.EquippedItem):IsReloading() then
 				ShootTimer:Reset()
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).Normalized
+				if AI.lateralMoveState == Actor.LAT_STILL then
+					AI.proneState = AHuman.PRONE
+					--AI.Ctrl:SetState(Controller.BODY_CROUCH, true)
+				end
 			elseif Owner:EquipFirearm(true) then
 				local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame, just in case the magazine is replenished by another script
 				if _abrt then return true end
