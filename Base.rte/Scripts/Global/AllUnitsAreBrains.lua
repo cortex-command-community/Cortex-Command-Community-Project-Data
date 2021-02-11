@@ -3,12 +3,10 @@ function AllUnitsAreBrainsScript:UpdateScript()
 		if (IsAHuman(actor) or IsACrab(actor)) and not actor:IsInGroup("Brains") then
 			actor:AddToGroup("Brains");
 		else
-			for i = 1, actor.InventorySize do
-				local item = actor:Inventory();
+			for item in actor.Inventory do
 				if (IsAHuman(item) or IsACrab(item)) and not item:IsInGroup("Brains") then
 					ToActor(item):AddToGroup("Brains");
 				end
-				actor:SwapNextInventory(item, true);
 			end
 		end
 	end

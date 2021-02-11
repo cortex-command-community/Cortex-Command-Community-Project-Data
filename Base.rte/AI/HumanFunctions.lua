@@ -141,40 +141,36 @@ end
 
 function HumanFunctions.DoVisibleInventory(actor, showAll)
 	--Visualize inventory with primitive bitmaps
-	if actor.Status < Actor.DYING and not actor:IsInventoryEmpty() then
+	if actor.Status < Actor.DYING then
 		local heldCount, thrownCount, largestItem = 0, 0, 0;
-		for i = 1, actor.InventorySize do
-			local item = actor:Inventory();
-			if item then
-				if item.ClassName == "TDExplosive" then
-					thrownCount = thrownCount + 1;
-				elseif item.ClassName == "HDFirearm" or item.ClassName == "HeldDevice" then
-					if showAll or item.Diameter + item.Mass > largestItem then
-						item = ToMOSprite(item);
-						largestItem = item.Diameter + item.Mass;
-						heldCount = heldCount + 1;
-						local itemCount = math.sqrt(heldCount);
+		for item in actor.Inventory do
+			if item.ClassName == "TDExplosive" then
+				thrownCount = thrownCount + 1;
+			elseif item.ClassName == "HDFirearm" or item.ClassName == "HeldDevice" then
+				if showAll or item.Diameter + item.Mass > largestItem then
+					item = ToMOSprite(item);
+					largestItem = item.Diameter + item.Mass;
+					heldCount = heldCount + 1;
+					local itemCount = math.sqrt(heldCount);
 
-						local actorBack = Vector(ToMOSprite(actor):GetSpriteWidth() + actor.SpriteOffset.X, ToMOSprite(actor):GetSpriteHeight() + actor.SpriteOffset.Y);
-						local stackX = item.Radius * 0.2 + itemCount;
-						--Bigger actors carry weapons higher up, smaller weapons are carried lower down
-						local drawPos = actor.Pos + Vector((-actorBack.X * 0.5 - stackX) * actor.FlipFactor, -actorBack.Y * 0.75):RadRotate(actor.RotAngle);
-						--Display tall objects upright
-						local widthToHeightRatio = item:GetSpriteWidth()/item:GetSpriteHeight();
-						local orientation = widthToHeightRatio > 1 and 1.57 * actor.FlipFactor or 0;
+					local actorBack = Vector(ToMOSprite(actor):GetSpriteWidth() + actor.SpriteOffset.X, ToMOSprite(actor):GetSpriteHeight() + actor.SpriteOffset.Y);
+					local stackX = item.Radius * 0.2 + itemCount;
+					--Bigger actors carry weapons higher up, smaller weapons are carried lower down
+					local drawPos = actor.Pos + Vector((-actorBack.X * 0.5 - stackX) * actor.FlipFactor, -actorBack.Y * 0.75):RadRotate(actor.RotAngle);
+					--Display tall objects upright
+					local widthToHeightRatio = item:GetSpriteWidth()/item:GetSpriteHeight();
+					local orientation = widthToHeightRatio > 1 and 1.57 * actor.FlipFactor or 0;
 
-						local tilt = (itemCount/item.Radius) * widthToHeightRatio * actor.FlipFactor;
-						local rotAng = actor.RotAngle + orientation + (tilt * 2) - tilt * (itemCount - 1);
+					local tilt = (itemCount/item.Radius) * widthToHeightRatio * actor.FlipFactor;
+					local rotAng = actor.RotAngle + orientation + (tilt * 2) - tilt * (itemCount - 1);
 
-						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-							local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
-							if screen ~= -1 and not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
-								PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, item.Frame, actor.HFlipped, true);
-							end
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
+						if screen ~= -1 and not SceneMan:IsUnseen(drawPos.X, drawPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
+							PrimitiveMan:DrawBitmapPrimitive(screen, drawPos, item, rotAng, item.Frame, actor.HFlipped, true);
 						end
 					end
 				end
-				actor:SwapNextInventory(item, true);
 			end
 		end
 	end
