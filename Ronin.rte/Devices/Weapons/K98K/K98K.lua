@@ -1,6 +1,8 @@
 function Create(self)
 	self.pullTimer = Timer();
 	self.rotFactor = math.pi;
+	
+	self.boltPullSound = CreateSoundContainer("Ronin Kar98 Bolt Pull Sound");
 end
 function Update(self)
 	local parent;
@@ -19,7 +21,7 @@ function Update(self)
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
 				parent:GetController():SetState(Controller.AIM_SHARP, false);
-				AudioMan:PlaySound("Ronin.rte/Devices/Weapons/K98K/Sounds/Chamber.flac", self.Pos);
+				self.boltPullSound:Play(self.Pos);
 				self.playedSound = true;
 			end
 			if self.shell then
