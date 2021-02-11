@@ -6,7 +6,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 		if actor.detachWoundLimit and actor.WoundCount > actor.detachWoundLimit then
 			actor.detachWoundLimit = actor.WoundCount + 1;
 
-			local parts = {actor.BGArm, actor.BGLeg, actor.FGArm, actor.FGLeg, actor.Head};	--Priority order
+			local parts = {actor.BGArm, actor.BGLeg, actor.FGLeg, actor.Head};	--Priority order (Never detach FG Arm)
 			local mostWounds, detachLimb;
 			--Pick the limb with most wounds and detach it
 			for _, limb in pairs(parts) do
@@ -20,7 +20,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 			end
 		end
 		if actor.detachImpulseLimit and actor.TravelImpulse.Magnitude > actor.detachImpulseLimit then
-			local parts = {actor.BGLeg, actor.BGArm, actor.FGLeg, actor.FGArm, actor.Head};	--Priority order
+			local parts = {actor.BGLeg, actor.BGArm, actor.FGLeg, actor.Head};	--Priority order (Never detach FG Arm)
 			local impulsePoint = actor.Pos - actor.TravelImpulse/actor.Mass;
 			local closestDist, detachLimb;
 			--Pick the limb closest to the direction of impulse

@@ -11,7 +11,7 @@ rte.EngineerLoadouts = {"Infantry Engineer"};
 rte.MOIDCountMax = SettingsMan.RecommendedMOIDCount;--210;
 -- Don't let the user set too low number as this will stop the AI from spawning any units at all
 if rte.MOIDCountMax < 140 then
-	rte.MOIDCountMax = 140
+	rte.MOIDCountMax = 140;
 end
 rte.DefenderMOIDMax = rte.MOIDCountMax - 80; --140
 rte.AIMOIDMax = math.ceil(rte.MOIDCountMax / 4);--50; -- Per every AI team
@@ -20,7 +20,7 @@ rte.SpawnIntervalScale = 1.0;
 rte.StartingFundsScale = 1.0;
 rte.PassengerMax = 3; -- Deprecated. Use 'Craft.MaxPassengers' instead
 rte.DiggersRate = 0.4
-rte.MetabaseArea = "MetabaseServiceArea"
+rte.MetabaseArea = "MetabaseServiceArea";
 rte.PxTravelledPerFrame = GetPPM() * TimerMan.DeltaTimeSecs;
 
 -- Materials

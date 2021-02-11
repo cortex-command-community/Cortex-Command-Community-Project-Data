@@ -6,7 +6,7 @@ function Update(self)
 	self.Mass = 1 + self.RoundCount/(self.maxresource * 0.005);	--Full mag is 51kg
 	self.Scale = 0.5 + (self.RoundCount/self.maxresource) * 0.5;
 
-	local parent = MovableMan:GetMOFromID(self:GetParent().RootID);
+	local parent = self:GetRootParent();
 	if parent and IsActor(parent) then
 		local parentWidth = ToMOSprite(parent):GetSpriteWidth();
 		local parentHeight = ToMOSprite(parent):GetSpriteHeight();

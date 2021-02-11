@@ -35,7 +35,7 @@ function Update(self)
 		if self.Status == Actor.UNSTABLE then
 			if not crouching then
 				local motion = self.Vel.Magnitude * 0.5 + math.abs(self.AngularVel);
-				if self.AngularVel ~= 0 then
+				if motion > 1 then
 					self.AngularVel = self.AngularVel * (1 - 0.1/motion);
 				end
 				if self.tapTimer:IsPastSimMS(500) and math.cos(self.RotAngle) > 0.9 and motion < 20  then

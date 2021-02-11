@@ -3,10 +3,8 @@ function Create(self)
 	self.rotNum = 0;
 	self.minimumRoF = self.RateOfFire * 0.5;
 
-	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble"};
-	
-	self.resource = 0;
-	self.resourcePerBag = 10;
+	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag"};
+
 	--How much the shovel tilts when firing
 	self.angleSize = 1.0;
 end
@@ -48,7 +46,7 @@ function Update(self)
 					damagePar.Mass = damagePar.Mass * RangeRand(0.5, 1.0);
 					MovableMan:AddParticle(damagePar);
 				end
-			elseif resource < self.resourcePerBag then
+			elseif resource < 10 then
 				--Gather materials and turn them into sandbags
 				local rayCount = 3;
 				local hits = 0;
