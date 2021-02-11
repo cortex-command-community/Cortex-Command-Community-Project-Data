@@ -64,78 +64,97 @@ function HumanFunctions.DoAutomaticEquip(actor)
 end
 
 function HumanFunctions.DoArmSway(actor, pushStrength)
-	--Control arm movements
 	local aimAngle = actor:GetAimAngle(false);
-	if not actor.lastHandPos then	--Initialize
-		actor.lastAngle = aimAngle;
-		actor.lastHandPos = {actor.Pos, actor.Pos};
+	if actor.weight then
+		actor:RemoveAttachable(actor.weight);
+		actor.weight = nil;
 	end
-	--Flail around if aiming around too fast
-	local angleMovement = actor.lastAngle - aimAngle;
-	actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel) * 0.1 + 1);
-	actor.lastAngle = aimAngle;
-	--Shove when unarmed
-	if actor:IsInventoryEmpty() and actor.controller:IsState(Controller.WEAPON_FIRE) and (actor.FGArm or actor.BGArm) and not (actor.EquippedItem or actor.EquippedBGItem) and actor.Status == Actor.STABLE then
-		actor.AngularVel = actor.AngularVel/(actor.shoved and 1.3 or 3) + (aimAngle - actor.RotAngle * actor.FlipFactor - 1.57) * (actor.shoved and 0.3 or 3) * actor.FlipFactor/(1 + math.abs(actor.RotAngle));
-		if not actor.shoved then
-			actor.Vel = actor.Vel + Vector(2/(1 + actor.Vel.Magnitude), 0):RadRotate(actor:GetAimAngle(true)) * math.abs(math.cos(actor:GetAimAngle(true)));
-			actor.shoved = true;
+	if actor.Status == Actor.STABLE and actor.lastHandPos then
+		--Unequip weapons by pressing both weapon switch keys at once
+		if actor.controller:IsState(Controller.WEAPON_CHANGE_NEXT) and actor.controller:IsState(Controller.WEAPON_CHANGE_PREV) then
+			local item = CreateHeldDevice("Null Item");
+			actor:AddInventoryItem(item);
+			actor:EquipNamedDevice("Null Item", true);
+			item.ToDelete = true;
 		end
-	else
-		actor.shoved = false;
-	end
-	local armPairs = {{actor.FGArm, actor.FGLeg, actor.BGLeg}, {actor.BGArm, actor.BGLeg, actor.FGLeg}};
-	for i = 1, #armPairs do
-		local arm = armPairs[i][1];
-		if arm then
-			arm = ToArm(arm);
-			
-			local armLength = ToMOSprite(arm):GetSpriteWidth();
-			local rotAng = actor.RotAngle - (1.57 * actor.FlipFactor);
-			local legMain = armPairs[i][2];
-			local legAlt = armPairs[i][3];
-			
-			if actor.controller:IsState(Controller.MOVE_LEFT) or actor.controller:IsState(Controller.MOVE_RIGHT) then
-				rotAng = (legAlt and legAlt.RotAngle) or (legMain and (-legMain.RotAngle + math.pi) or rotAng);
-			elseif legMain then
-				rotAng = legMain.RotAngle;
+		--Control arm movements
+		--Flail around if aiming around too fast
+		local angleMovement = actor.lastAngle - aimAngle;
+		actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel) * 0.1 + 1);
+		--Shove when unarmed
+		if actor.controller:IsState(Controller.WEAPON_FIRE) and (actor.FGArm or actor.BGArm) and not (actor.EquippedItem or actor.EquippedBGItem) then
+			actor.AngularVel = actor.AngularVel/(actor.shoved and 1.3 or 3) + (aimAngle - actor.RotAngle * actor.FlipFactor - 1.57) * (actor.shoved and 0.3 or 3) * actor.FlipFactor/(1 + math.abs(actor.RotAngle));
+			if not actor.shoved then
+				actor.Vel = actor.Vel + Vector(2/(1 + actor.Vel.Magnitude), 0):RadRotate(actor:GetAimAngle(true)) * math.abs(math.cos(actor:GetAimAngle(true)));
+				actor.shoved = true;
 			end
-			--Flail arms in tandem with leg movement or raise them them up for a push if aiming
-			if actor.controller:IsState(Controller.AIM_SHARP) then
-				arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
-			else
-				arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
-			end
-			if actor.shoved or (actor.EquippedItem and IsTDExplosive(actor.EquippedItem) and actor.controller:IsState(Controller.WEAPON_FIRE)) then
-				arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
-				local handVector = SceneMan:ShortestDistance(actor.lastHandPos[i], arm.HandPos, SceneMan.SceneWrapsX);
-				--Diminish hand relocation vector to potentially prevent post-superhuman pushing powers
-				handVector:SetMagnitude(handVector.Magnitude/(1 + handVector.Magnitude * 0.01));
-				--Emphasize the first frames that signify contracted arm = highest potential energy
-				local dots = math.sqrt(arm.Radius)/(1 + arm.Frame/arm.FrameCount);
-				local armStrength = (arm.Mass + arm.Material.StructuralIntegrity) * pushStrength;
-				for i = 1, dots do
-					local part = CreateMOPixel("Smack Particle Light");
-					part.Pos = arm.HandPos - Vector(handVector.X * 0.5, handVector.Y * 0.5);
-					part.Vel = Vector(handVector.X, handVector.Y):RadRotate(RangeRand(-0.1, 0.1)) + Vector(0, -0.5);
-					part.Mass = armStrength;	part.Sharpness = math.random() * 0.1;
-					part.Team = actor.Team;	part.IgnoresTeamHits = true;
-					MovableMan:AddParticle(part);
+		else
+			actor.shoved = false;
+		end
+		local shove = {};
+		local armPairs = {{actor.FGArm, actor.FGLeg, actor.BGLeg}, {actor.BGArm, actor.BGLeg, actor.FGLeg}};
+		for i = 1, #armPairs do
+			local arm = armPairs[i][1];
+			if arm then
+				arm = ToArm(arm);
+				
+				local armLength = ToMOSprite(arm):GetSpriteWidth();
+				local rotAng = actor.RotAngle - (1.57 * actor.FlipFactor);
+				local legMain = armPairs[i][2];
+				local legAlt = armPairs[i][3];
+				
+				if actor.controller:IsState(Controller.MOVE_LEFT) or actor.controller:IsState(Controller.MOVE_RIGHT) then
+					rotAng = (legAlt and legAlt.RotAngle) or (legMain and (-legMain.RotAngle + math.pi) or rotAng);
+				elseif legMain then
+					rotAng = legMain.RotAngle;
 				end
-				--Apply some additional forces if the travel vector of the moving hand is half an arms length
-				if handVector.Magnitude > (armLength * 0.5) then
-					local moCheck = SceneMan:GetMOIDPixel(arm.HandPos.X, arm.HandPos.Y)
-					if moCheck ~= rte.NoMOID then
-						local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-						if mo and mo.Team ~= actor.Team and IsActor(mo) and actor.Mass > (mo.Mass * 0.5) then
-							mo:AddForce(handVector * (actor.Mass * 0.5), Vector());
-							ToActor(mo).Status = Actor.UNSTABLE;
+				--Flail arms in tandem with leg movement or raise them them up for a push if aiming
+				if actor.controller:IsState(Controller.AIM_SHARP) then
+					arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
+				else
+					arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
+				end
+				if actor.shoved or (actor.EquippedItem and IsTDExplosive(actor.EquippedItem) and actor.controller:IsState(Controller.WEAPON_FIRE)) then
+					arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
+					local handVector = SceneMan:ShortestDistance(actor.lastHandPos[i], arm.HandPos, SceneMan.SceneWrapsX);
+					--Diminish hand relocation vector to prevent superhuman pushing powers
+					handVector:SetMagnitude(math.min(handVector.Magnitude, 1 + armLength * 0.1));
+					local armStrength = (arm.Mass + arm.Material.StructuralIntegrity * 0.5) * pushStrength;
+
+					shove.Pos = shove.Pos and shove.Pos + SceneMan:ShortestDistance(shove.Pos, arm.HandPos, SceneMan.SceneWrapsX) * 0.5 or arm.HandPos;
+					shove.Power = shove.Power and shove.Power + armStrength or armStrength;
+					shove.Vector = shove.Vector and shove.Vector + handVector * 0.5 or handVector * 0.5;
+				end
+				actor.lastHandPos[i] = arm.HandPos;
+			end
+		end
+		if shove.Pos then
+			--local moCheck = SceneMan:GetMOIDPixel(shove.Pos.X + actor.FlipFactor, shove.Pos.Y - 1);
+			local moCheck = SceneMan:CastMORay(shove.Pos, shove.Vector, actor.ID, actor.Team, rte.airID, false, shove.Vector.Magnitude - 1);
+			if moCheck ~= rte.NoMOID then
+				local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
+				if mo and mo.Team ~= actor.Team and IsActor(mo) then
+					if actor.Mass > mo.Mass then
+						ToActor(mo).Status = Actor.UNSTABLE;
+						--Simulate target actor weight with an attachable
+						if not actor.weight then
+							actor.weight = CreateAttachable("Null Attachable");
+							actor.weight.Mass = mo.Mass;
+							actor:AddAttachable(actor.weight);
 						end
+						local shoveVel = shove.Vector/rte.PxTravelledPerFrame;
+						mo.Vel = mo.Vel * 0.5 + shoveVel:SetMagnitude(math.min(shoveVel.Magnitude, math.sqrt(actor.IndividualDiameter))) - SceneMan.GlobalAcc * GetMPP() * rte.PxTravelledPerFrame;
+						mo.AngularVel = (aimAngle - actor.lastAngle) * actor.FlipFactor * math.pi;
+					else
+						mo:AddForce(shove.Vector * (actor.Mass * 0.5) * shove.Power, Vector());
 					end
 				end
 			end
-			actor.lastHandPos[i] = arm.HandPos;
 		end
+		actor.lastAngle = aimAngle;
+	else
+		actor.lastAngle = aimAngle;
+		actor.lastHandPos = {actor.Pos, actor.Pos};
 	end
 end
 
