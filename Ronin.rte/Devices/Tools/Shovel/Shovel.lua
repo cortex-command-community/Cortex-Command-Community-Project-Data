@@ -1,19 +1,17 @@
 function Create(self)
 	self.origStanceOffset = Vector(0, 8);
-	self.rotNum = 0;
 	self.minimumRoF = self.RateOfFire * 0.5;
 
 	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag"};
-
+	self.collectSound = CreateSoundContainer("Device Switch", "Base.rte");
 	--How much the shovel tilts when firing
 	self.angleSize = 1.0;
 end
 function Update(self)
-	self.RotAngle = self.RotAngle + self.rotNum * self.FlipFactor;
-	self.StanceOffset = Vector(self.origStanceOffset.X + self.rotNum * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.rotNum);
+	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
 	--Revert rotation
-	if self.rotNum > 0 then
-		self.rotNum = math.max(self.rotNum - (0.0003 * self.RateOfFire), 0);
+	if self.InheritedRotAngleOffset > 0 then
+		self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
 	end
 	local actor = MovableMan:GetMOFromID(self.RootID);
 	if actor and IsActor(actor) then
@@ -22,7 +20,7 @@ function Update(self)
 		local resource = actor:GetNumberValue("RoninShovelResource");
 
 		if self.FiredFrame then
-			self.rotNum = self.angleSize;
+			self.InheritedRotAngleOffset = self.angleSize;
 			local particleCount = 3;
 			local fireVec = Vector(60 * self.FlipFactor, 0):RadRotate(self.RotAngle):RadRotate(0.2 * self.FlipFactor);
 			for i = 1, particleCount do
@@ -60,7 +58,7 @@ function Update(self)
 								hits = hits + 1;
 								if hits > rayCount * 0.5 then
 									actor:SetNumberValue("RoninShovelResource", resource + 1);
-									AudioMan:PlaySound("Base.rte/Sounds/Devices/DeviceSwitch".. math.random(3) ..".flac", self.Pos);
+									self.collectSound:Play(self.Pos);
 									break;
 								end
 								break;

@@ -23,7 +23,7 @@ function Update(self)
 		parent:GetController():SetState(Controller.AIM_SHARP, false);
 		turn = math.abs(self.lastAngle - parent:GetAimAngle(false));
 
-		local newAngle = -(-0.8 + math.sin(self.rotFactor) * 0.4 - parent:GetAimAngle(false)) * self.FlipFactor;
+		self.InheritedRotAngleOffset = -(-0.8 + math.sin(self.rotFactor) * 0.4) * self.FlipFactor;
 		
 		self.Scale = 1;
 		if self.Magazine then
@@ -56,7 +56,6 @@ function Update(self)
 		self.actDelay = 200;
 
 		self.StanceOffset = Vector(10 + self.rotFactor * 3, 1):RadRotate(math.sin(self.rotFactor * 0.3) - 0.3);
-		self.RotAngle = newAngle;
 
 		self.lastAngle = parent:GetAimAngle(true);
 	else

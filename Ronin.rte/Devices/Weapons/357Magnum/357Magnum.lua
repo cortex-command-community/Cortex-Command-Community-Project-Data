@@ -71,9 +71,7 @@ function Update(self)
 			end
 			if self:IsReloading() then
 				self.RotAngle = self.prevAngle + (self.FlipFactor * 0.42 * self.drawGunSpeed);
-				local spinOffset = Vector(-2 * self.FlipFactor, -2);
 				self.JointOffset = Vector(2, 2);
-				self.Pos = self.Pos - spinOffset + spinOffset:RadRotate(self.RotAngle);
 				self.prevAngle = self.RotAngle;
 				self:SetNumberValue("CowboyMode", 5);
 			else
