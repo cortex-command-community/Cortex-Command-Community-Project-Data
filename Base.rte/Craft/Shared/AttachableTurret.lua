@@ -15,8 +15,14 @@ end
 function Update(self)
 	local parent = self:GetParent();
 	if parent then
+		--Aim directly away from parent
+		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);
+		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0))/(1 + self.verticalFactor) - self.rotation;
 		if IsActor(parent) then
 			parent = ToActor(parent);
+			if parent.Status ~= Actor.STABLE then
+				return;
+			end
 			local controller = parent:GetController();
 				
 			if controller:IsState(Controller.MOVE_RIGHT) then
@@ -40,9 +46,6 @@ function Update(self)
 		else
 			self.verticalFactor = 0;
 		end
-		--Aim directly away from parent
-		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);
-		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0))/(1 + self.verticalFactor) - self.rotation;
 		if self.areaMode then	--Area Mode
 			local aimPos = self.Pos + Vector((self.searchRange * 0.5), 0):RadRotate(self.RotAngle);
 			--Debug: visualize aim area
