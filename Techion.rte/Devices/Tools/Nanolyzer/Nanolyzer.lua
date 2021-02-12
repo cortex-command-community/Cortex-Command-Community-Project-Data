@@ -106,8 +106,8 @@ function Update(self)
 				if dustTarget then
 					local parts = {dustTarget};
 					--Measure the corners of a box that the Actor is supposedly inside of
-					local topLeft = Vector(-dustTarget.Radius, -dustTarget.Radius);
-					local bottomRight = Vector(dustTarget.Radius, dustTarget.Radius);
+					local topLeft = Vector(-dustTarget.IndividualRadius, -dustTarget.IndividualRadius);
+					local bottomRight = Vector(dustTarget.IndividualRadius, dustTarget.IndividualRadius);
 					for att in dustTarget.Attachables do
 						if IsAttachable(att) then
 							local dist = SceneMan:ShortestDistance(dustTarget.Pos, att.Pos, SceneMan.SceneWrapsX);

@@ -53,8 +53,8 @@ function Update(self)
 							and SceneMan:CastObstacleRay(self.MuzzlePos, SceneMan:ShortestDistance(self.MuzzlePos, actor.Pos, SceneMan.SceneWrapsX), Vector(), Vector(), actor.ID, actor.Team, rte.airID, 10) < 0 then
 
 								--Measure the approximate corners of a box that the Actor is supposedly inside of
-								local topLeft = Vector(-actor.Radius, -actor.Radius);
-								local bottomRight = Vector(actor.Radius, actor.Radius);
+								local topLeft = Vector(-actor.IndividualRadius, -actor.IndividualRadius);
+								local bottomRight = Vector(actor.IndividualRadius, actor.IndividualRadius);
 								for att in actor.Attachables do
 									if IsAttachable(att) then
 										local dist = SceneMan:ShortestDistance(actor.Pos, att.Pos, SceneMan.SceneWrapsX);
@@ -78,7 +78,7 @@ function Update(self)
 					if lastTargetCount < #self.targets then
 						AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.flac", self.Pos);
 					end
-					if not playerControlled then
+					if playerControlled == false then
 						parent:GetController():SetState(Controller.WEAPON_FIRE, false);
 					end
 				end
