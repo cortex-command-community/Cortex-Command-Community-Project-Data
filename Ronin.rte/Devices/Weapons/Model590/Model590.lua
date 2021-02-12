@@ -1,8 +1,9 @@
 function Create(self)
 	self.pullTimer = Timer();
-
 	self.loaded = false;
 	self.rotFactor = math.pi;
+	
+	self.cockSound = CreateSoundContainer("Ronin Model 590 Cock Sound", "Ronin.rte");
 end
 function Update(self)
 	local actor = self:GetRootParent();
@@ -19,7 +20,7 @@ function Update(self)
 		self:Deactivate();
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
-				AudioMan:PlaySound("Ronin.rte/Devices/Weapons/Model590/Sounds/Chamber.flac", self.Pos);
+				self.cockSound:Play(self.Pos);
 				self.playedSound = true;
 			end
 			if self.shell then

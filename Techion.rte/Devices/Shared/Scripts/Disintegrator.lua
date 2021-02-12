@@ -3,6 +3,8 @@ function Create(self)
 	self.effectSpeed = 0.01;
 	self.setScale = 1;
 	self.minScale = 0.1;
+
+	self.disintegrationSound = CreateSoundContainer("Disintegration Sound", "Techion.rte");
 	
 	local target;
 	local strength = math.random(self.PinStrength * 0.5, self.PinStrength);
@@ -52,8 +54,8 @@ function Create(self)
 				self.target.MissionCritical = true;	--This ensures that the target Actor doesn't settle during the effect
 				self.target.HitsMOs = false;
 				self.target.AngularVel = self.target.AngularVel * 0.5 - self.target.Vel.X + self.target.FlipFactor;
-				
-				AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/Disintegrate".. math.random(3) ..".flac", self.target.Pos);
+
+				self.disintegrationSound:Play(self.target.Pos);
 			end
 			--Flag this actor as being hit by a disintegrator particle
 			ToActor(target):SetNumberValue("ToDisintegrate", ToActor(target):GetNumberValue("ToDisintegrate") + 1);

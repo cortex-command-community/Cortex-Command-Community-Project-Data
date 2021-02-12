@@ -19,14 +19,16 @@ function Create(self)
 	
 	--How many pixels to skip when detecting MOs, for optimization reasons
 	self.skipPixels = 1;
+	
+	--Sounds
+	self.dissipateSound = CreateSoundContainer("Dissipate Sound", "Techion.rte");
+	self.disintegrationSound = CreateSoundContainer("Disintegration Sound", "Techion.rte");
 end
 
 function Update(self)
     if self.FiredFrame then
-        local aimAngle = self.RotAngle;
-        if self.HFlipped then
-            aimAngle = aimAngle + math.pi;
-        end
+        local aimAngle = self.HFlipped and self.RotAngle + math.pi or self.RotAngle;
+
         local aimVec = Vector(self.range, 0):RadRotate(aimAngle);
         local aimUp = Vector(aimVec.X, aimVec.Y):RadRotate(math.pi * 0.5):Normalize();
         local hitPos = Vector();
@@ -49,8 +51,9 @@ function Update(self)
                     glow.Pos = hitPos;
                     MovableMan:AddParticle(glow);
 
-					if not self.sound or not self.sound:IsBeingPlayed() then
-						self.sound = AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/LaserDissipate".. math.random(3) ..".flac", hitPos, -1, 0, 128, RangeRand(0.7, 1.3), math.random(100), false);
+					if self.dissipateSound:IsBeingPlayed() then
+						self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
+						self.dissipateSound:Play(hitPos);
 					end
                 end
             end
@@ -89,8 +92,9 @@ function Update(self)
 										piece.AirResistance = RangeRand(0.1, 0.2);
 										MovableMan:AddParticle(piece);
 									end
-									if not self.sound or not self.sound:IsBeingPlayed() then
-										self.sound = AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/LaserDissipate".. math.random(3) ..".flac", actor.Pos, -1, 0, 128, RangeRand(0.7, 1.3), math.random(100), false);
+									if self.dissipateSound:IsBeingPlayed() then
+										self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
+										self.dissipateSound:Play(actor.Pos);
 									end
 								end
 							end
@@ -150,7 +154,7 @@ function Update(self)
 						glow.Vel = mo.Vel;
 						MovableMan:AddParticle(glow);
 					end
-					AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/DisintegrateAlt".. math.random(3) ..".flac", dustTarget.Pos);
+					self.disintegrationSound:Play(dustTarget.Pos);
 					dustTarget.ToDelete = true;
 				end
 			end
