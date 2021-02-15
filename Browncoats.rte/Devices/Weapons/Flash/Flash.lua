@@ -130,12 +130,5 @@ function Update(self)
 		rocket.Team = self.Team;
 		rocket.IgnoresTeamHits = true;
 		MovableMan:AddParticle(rocket);
-		
-		local blast = CreateAEmitter("Browncoats.rte/Browncoat Rocket Launcher Blast");
-		blast.Pos = self.Pos;
-		blast.Vel = self.Vel;
-		blast.HFlipped = self.HFlipped;
-		blast.RotAngle = self.RotAngle;
-		MovableMan:AddParticle(blast);
 	end
 end
