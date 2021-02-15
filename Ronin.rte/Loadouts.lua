@@ -8,13 +8,13 @@ RoninLoadouts["Light"]["Tertiary"] = {"Luger P08", "Beretta 93R", "Shovel", "Med
 RoninLoadouts["Light"]["Throwable"] = {"M67 Grenade", "M24 Potato Masher", "Molotov Cocktail"};
 
 RoninLoadouts["Heavy"]["Headgear"] = {"Soldier Helmet", "Motorcycle Helmet", "Dummy Mask", "Browncoat Mask"};
-RoninLoadouts["Heavy"]["Primary"] = {"M60"};
+RoninLoadouts["Heavy"]["Primary"] = {"M60", "Stoner 63"};
 RoninLoadouts["Heavy"]["Secondary"] = {"Luger P08", "Beretta 93R"};
 RoninLoadouts["Heavy"]["Tertiary"] = {"Luger P08", "Beretta 93R"};
 
 RoninLoadouts["CQB"]["Headgear"] = {"Dummy Mask", "Browncoat Mask"};
 RoninLoadouts["CQB"]["Primary"] = {"Model 590", "SPAS 12"};
-RoninLoadouts["CQB"]["Secondary"] = {".357 Magnum", "Desert Eagle", "UZI", "MP5K"};
+RoninLoadouts["CQB"]["Secondary"] = {".357 Magnum", "Desert Eagle", "UZI", "MP5K", "Sawed-Off Shotgun"};
 RoninLoadouts["CQB"]["Tertiary"] = {"Luger P08", "Beretta 93R", "Chainsaw"};
 
 RoninLoadouts["Grenadier"]["Headgear"] = {"Soldier Helmet"};

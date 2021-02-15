@@ -2,7 +2,7 @@ function Create(self)
 	self.pullTimer = Timer();
 	self.rotFactor = math.pi;
 	
-	self.boltPullSound = CreateSoundContainer("Ronin Kar98 Bolt Pull Sound");
+	self.boltPullSound = CreateSoundContainer("Ronin Kar98 Bolt Pull Sound", "Ronin.rte");
 end
 function Update(self)
 	local parent;
