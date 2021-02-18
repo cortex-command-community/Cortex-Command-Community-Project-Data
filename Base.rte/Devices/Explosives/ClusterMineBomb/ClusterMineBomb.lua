@@ -34,7 +34,7 @@ function Update(self)
 			for i = 1, self.mineCount do
 				local mine = CreateMOSRotating("Anti Personnel Mine Active");
 				mine.Pos = self.Pos;
-				mine.Vel = self.Vel/2 + Vector(self.Vel.X, self.Vel.Y):RadRotate(spread * 0.6 - (spread * (i/self.mineCount)) + RangeRand(-0.1, 0.1)):SetMagnitude(20);
+				mine.Vel = self.Vel * 0.5 + Vector(self.Vel.X, self.Vel.Y):RadRotate(spread * 0.6 - (spread * (i/self.mineCount)) + RangeRand(-0.1, 0.1)):SetMagnitude(20);
 				mine.Sharpness = self.alliedTeam;
 				MovableMan:AddParticle(mine);
 				self:GibThis();

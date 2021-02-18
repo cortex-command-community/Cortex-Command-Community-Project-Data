@@ -95,6 +95,10 @@ function Update(self)
 				end
 			end
 			PrimitiveMan:DrawCirclePrimitive(controller.Player, self.guideTable[#self.guideTable], self.guideRadius, self.guideColor);
+			--Optional: move view point closer to guide point?
+			--local viewLength = SceneMan:ShortestDistance(actor.EyePos, actor.ViewPoint, SceneMan.SceneWrapsX).Magnitude;
+			--local viewPoint = actor.ViewPoint + SceneMan:ShortestDistance(actor.ViewPoint, self.guideTable[#self.guideTable], SceneMan.SceneWrapsX):SetMagnitude(viewLength);
+			--SceneMan:SetScrollTarget(viewPoint, 0.1, false, ActivityMan:GetActivity():ScreenOfPlayer(controller.Player));
 		end
 	else
 		self.throwTimer = nil;
