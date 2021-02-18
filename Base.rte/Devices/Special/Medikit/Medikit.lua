@@ -28,11 +28,11 @@ function Update(self)
 				target:FlashWhite(50);
 				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.flac", self.Pos);
 
-				local targetSize = math.ceil(5 + target.Radius * 0.5);
-				for i = 1, targetSize do
+				local particleCount = math.ceil(1 + target.Radius * 0.5);
+				for i = 1, particleCount do
 					local part = CreateMOPixel("Heal Glow", "Base.rte");
-					local vec = Vector(targetSize * 2, 0):RadRotate(6.28/targetSize * i);
-					part.Pos = target.Pos + Vector(0, -targetSize * 0.3):RadRotate(target.RotAngle) + vec;
+					local vec = Vector(particleCount * 2, 0):RadRotate(math.pi * 2 * i/particleCount);
+					part.Pos = target.Pos + Vector(0, -particleCount * 0.3):RadRotate(target.RotAngle) + vec;
 					part.Vel = target.Vel * 0.5 - Vector(vec.X, vec.Y) * 0.25;
 					MovableMan:AddParticle(part);
 				end

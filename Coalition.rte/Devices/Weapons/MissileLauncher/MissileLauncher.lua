@@ -40,16 +40,7 @@ function Update(self)
 					if moCheck ~= rte.NoMOID then
 						local mo = ToMOSRotating(MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID));
 						if mo and mo.ClassName ~= "ADoor" and mo.Team ~= parent.Team then
-							local size = mo.Radius;
-							for att in mo.Attachables do
-								if IsAttachable(att) then
-									local tempRadius = SceneMan:ShortestDistance(mo.Pos, att.Pos, SceneMan.SceneWrapsX).Magnitude + att.Radius;
-									if tempRadius > size then
-										size = tempRadius;
-									end
-								end
-							end
-							local movement = (mo.Vel.Magnitude + math.abs(mo.AngularVel) + 0.1) * math.sqrt(size);
+							local movement = (mo.Vel.Magnitude + math.abs(mo.AngularVel) + 0.1) * math.sqrt(mo.Radius);
 							if movement > self.lockThreshold then
 
 								self.targetLostTimer:Reset();
@@ -57,7 +48,7 @@ function Update(self)
 									AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.flac", self.Pos);
 								end
 								self.target = IsACrab(mo) and ToACrab(mo) or mo;
-								self.markerSize = size;
+								self.markerSize = mo.Radius;
 							end
 						end
 					end
