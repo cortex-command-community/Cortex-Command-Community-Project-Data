@@ -673,6 +673,17 @@ CrpChainLightningRifle Firing Sounds
 
 
 *******************************************************************************
+Dummy.rte\Devices\Tools\Shielder\Sounds
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+Impact: VoltShieldImpactDefault
+ShieldGib: VoltShieldDisable
+Fire: VoltShieldDrop
+ReloadEnd: CrpSpearGunChargeUpA
+
+
+*******************************************************************************
  Coalition.rte\Devices\Weapons\SniperRifle\Sounds
 -------------------------------------------------------------------------------
 New World Interactive: Insurgency
@@ -1179,5 +1190,6 @@ Base.rte\Sounds\Physics\RobotLight
 Impact:
 
 CrpArachnoidMicroLand		(Warframe)
+
 
 *******************************************************************************

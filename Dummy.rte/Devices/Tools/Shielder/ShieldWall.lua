@@ -4,14 +4,10 @@ function Create(self)
 	self.glow.EffectRotAngle = self.RotAngle;
 	MovableMan:AddParticle(self.glow);
 	self.glowID = self.glow.UniqueID;
+	
+	self.AngularVel = 0;
 end
 function Update(self)
-	if self.AngularVel < 1 then
-		self.AngularVel = 0;
-	else
-		self.AngularVel = self.AngularVel * 0.99;
-		--self.EffectRotAngle = self.RotAngle;
-	end
 	if self.glow and self.glow.UniqueID == self.glowID then
 		self.glow.Pos = self.Pos;
 		if self.AngularVel ~= 0 then
@@ -21,10 +17,20 @@ function Update(self)
 	else
 		self.glow = nil;
 	end
+
+	self.AngularVel = 0;
+
 	if self.PinStrength == 0 and self.Vel.Magnitude < 1 then
 		self.PinStrength = self.Mass;
+	else
+		self.Vel = Vector();
 	end
 	if self.Age > self.Lifetime - 17 * (1 + self.WoundCount) then
 		self:GibThis();
+	end
+end
+function Destroy(self)
+	if self.glow then
+		self.glow.ToDelete = true;
 	end
 end
