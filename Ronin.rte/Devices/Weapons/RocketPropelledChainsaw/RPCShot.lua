@@ -33,7 +33,7 @@ function Update(self)
 				self.AngularVel = self.AngularVel + math.random(-5, 5);
 			else
 				local moVelFactor = mo.Vel * (0.7 - 0.7/(math.sqrt(mo.Mass/self.Mass + 1)));
-				self.Vel = self.Vel/math.sqrt(velFactor + 1) + moVelFactor + Vector(2/(velFactor + 1), 0):RadRotate(self.firstAngle);
+				self.Vel = self.Vel/math.sqrt(velFactor + 1) + moVelFactor + Vector(2/(velFactor + 1) * self.FlipFactor, 0):RadRotate(self.firstAngle);
 
 				self.AngularVel = self.AngularVel * 0.9 + math.random(-1, 1);
 				self.angleCorrectionRatio = self.angleCorrectionRatio - 0.02;
@@ -67,8 +67,10 @@ function Update(self)
 		self.toGibCounter = math.abs(self.toGibCounter - 1);	--Revert gib countdown
 		if math.random() < self.angleCorrectionRatio then
 			--Maintain straighter angle, making it easier to go through lots of objects
-			self.AngularVel = self.AngularVel * 0.99 - (self.RotAngle - self.firstAngle);
-			self.RotAngle = (self.RotAngle + self.Vel.AbsRadAngle + self.firstAngle)/3;
+			if math.abs(self.RotAngle) < math.pi then
+				self.AngularVel = self.AngularVel * 0.99 - (self.RotAngle - self.firstAngle) * 2;
+				self.RotAngle = self.RotAngle * (1 - self.OrientToVel) + self.firstAngle * self.OrientToVel;
+			end
 		end
 	end
 	if self.toGibCounter == 60 then	--60 frames have passed while still (or 90 inside a MO)
