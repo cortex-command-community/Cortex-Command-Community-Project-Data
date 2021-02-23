@@ -60,16 +60,6 @@ function Create(self)
 	---------------- AI variables end ----------------
 end
 
-function Update(self)
-	-- Re-orient the craft at 180 degrees to help the rotational AI
-	if self.RotAngle > math.pi then
-		self.RotAngle = self.RotAngle - (math.pi * 2);
-	end
-	if self.RotAngle < -math.pi then
-		self.RotAngle = self.RotAngle + (math.pi * 2);
-	end
-end
-
 function UpdateAI(self)
 	self.Ctrl = self:GetController();
 	
