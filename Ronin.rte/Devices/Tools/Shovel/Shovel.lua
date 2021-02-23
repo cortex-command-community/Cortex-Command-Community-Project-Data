@@ -7,6 +7,9 @@ function Create(self)
 	self.collectSound = CreateSoundContainer("Device Switch", "Base.rte");
 	--How much the shovel tilts when firing
 	self.angleSize = 1.0;
+
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
+	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 end
 function Update(self)
 	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
@@ -15,11 +18,10 @@ function Update(self)
 	if self.InheritedRotAngleOffset > 0 then
 		self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
 	end
-	local actor = MovableMan:GetMOFromID(self.RootID);
-	if actor and IsActor(actor) then
-		actor = ToActor(actor);
-		actor:GetController():SetState(Controller.AIM_SHARP, false);
-		local resource = actor:GetNumberValue("RoninShovelResource");
+	local parent = self:GetRootParent();
+	if parent and IsActor(parent) then
+		parent = ToActor(parent);
+		local resource = parent:GetNumberValue("RoninShovelResource");
 
 		if self.FiredFrame then
 			self.InheritedRotAngleOffset = self.angleSize;
@@ -59,7 +61,7 @@ function Update(self)
 							if material == terrainMaterial then
 								hits = hits + 1;
 								if hits > rayCount * 0.5 then
-									actor:SetNumberValue("RoninShovelResource", resource + 1);
+									parent:SetNumberValue("RoninShovelResource", resource + 1);
 									self.collectSound:Play(self.Pos);
 									break;
 								end
@@ -77,13 +79,35 @@ function Update(self)
 
 			self.Magazine.RoundCount = resource > 0 and resource or -1;
 		end
-		self.RateOfFire = self.minimumRoF + (self.minimumRoF) * (actor.Health/actor.MaxHealth);
+		self.RateOfFire = self.minimumRoF + (self.minimumRoF) * (parent.Health/parent.MaxHealth);
 	else
 		self.Scale = 1;
 		if self.Magazine then
 			self.Magazine.Scale = 0;
 		end
+		if self.lastVel.Magnitude > 25 then
+			if self.HitWhatMOID ~= rte.NoMOID then
+				local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
+				if mo then
+					local particleCount = 2;
+					local spread = self.AngularVel * TimerMan.DeltaTimeSecs * 0.5;
+					for i = 0, particleCount - 1 do
+						local damagePar = CreateMOPixel("Smack Particle");
+						damagePar.Mass = self.Mass/particleCount;
+						damagePar.Sharpness = self.Sharpness * particleCount;
+
+						damagePar.Pos = self.lastMuzzlePos;
+						damagePar.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * 0.5 - spread * i/(particleCount - 1)) * 1.5;
+	
+						damagePar:SetWhichMOToNotHit(self, -1);
+						MovableMan:AddParticle(damagePar);
+					end
+				end
+			end
+		end
 	end
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
+	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 end
 function OnPieMenu(item)
 	if item and IsHDFirearm(item) and item.PresetName == "Shovel" then
