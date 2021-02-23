@@ -1,5 +1,6 @@
 function Create(self)
 	self.origStanceOffset = Vector(0, 8);
+	self.origSharpStanceOffset = Vector(4, 6);
 	self.minimumRoF = self.RateOfFire * 0.5;
 
 	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag"};
@@ -9,6 +10,7 @@ function Create(self)
 end
 function Update(self)
 	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
+	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
 	--Revert rotation
 	if self.InheritedRotAngleOffset > 0 then
 		self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
