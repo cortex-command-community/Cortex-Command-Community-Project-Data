@@ -17,13 +17,13 @@ function Update(self)
 					break;
 				end
 			end
-			if target and (target.Health < target.MaxHealth or target.TotalWoundCount > 0) then
+			if target and (target.Health < target.MaxHealth or target.WoundCount > 0) then
 				local strength = self.baseStrength + math.ceil(3000/(1 + math.abs(target.Mass + target.Material.StructuralIntegrity) * 0.5));
 				if target.Health < target.MaxHealth then
 					target.Health = math.min(target.Health + strength, target.MaxHealth);
 				end
-				if target.TotalWoundCount > 0 then
-					target:RemoveAnyRandomWounds(math.ceil(strength * 0.15));
+				if target.WoundCount > 0 then
+					target:RemoveWounds(math.ceil(strength * 0.15));
 				end
 				target:FlashWhite(50);
 				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.flac", self.Pos);
