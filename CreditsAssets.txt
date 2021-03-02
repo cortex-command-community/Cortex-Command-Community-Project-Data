@@ -235,6 +235,38 @@ New World Interactive: Insurgency
 
 ShipExplosion1-3 - vehicle_explode
 
+*******************************************************************************
+ Ronin.rte\Devices\Explosives\MolotovCocktail\Sounds
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+molotov_detonate
+molotov_glass_break
+
+molotov_lighter_strike
+molotov_ignite
+
+*******************************************************************************
+ Ronin.rte\Devices\Misc\Bottle\Sounds
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+molotov_glass_break
+
+*******************************************************************************
+ Ronin.rte\Devices\Special\Scrambler\Sounds
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+GrnOceanElectricSurge
+
+TennoHubCompBeepA
+CrpBeepCombyF
+
+New World Interactive: Insurgency: Sandstorm
+
+m19_twist_dial
+
 
 *******************************************************************************
  Ronin.rte\Devices\Weapons\M60\Sounds
@@ -244,6 +276,17 @@ New World Interactive: Insurgency: Sandstorm
 M60 Firing Sounds
 M240 Firing Sounds?
 M249 Reload Sounds
+
+*******************************************************************************
+ Ronin.rte\Devices\Weapons\Stoner63\Sounds
+-------------------------------------------------------------------------------
+New World Interactive: Insurgency: Sandstorm
+
+MG3 Reload Sounds
+M4A1 Firing Sounds
+M249 Firing Sounds
+Global Drum Mag Sounds
+
 
 
 *******************************************************************************
@@ -643,6 +686,7 @@ Digital Extremes: Warframe
 CrpSpearGun Firing Sounds
 LatoVandal Firing Sounds
 
+RailgunFullyCharged
 
 *******************************************************************************
  Dummy.rte\Devices\Weapons\FragNailer\Sounds
@@ -802,6 +846,16 @@ Digital Extremes: Warframe
 
 TnoSundialSMG Firing Sounds
 TennoDrakeRifle Firing Sounds
+
+*******************************************************************************
+ Browncoats.rte\Devices\Tools\Blowtorch\Sounds
+-------------------------------------------------------------------------------
+
+Digital Extremes: Warframe
+
+Ember Sounds
+Archwing Burn Loop
+GrnFlameSpear
 
 
 *******************************************************************************
