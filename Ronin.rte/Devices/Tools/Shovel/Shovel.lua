@@ -5,10 +5,11 @@ function Create(self)
 
 	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag"};
 	self.collectSound = CreateSoundContainer("Device Switch", "Base.rte");
+	self.hitSound = CreateSoundContainer("Ronin Shovel Hit", "Ronin.rte");
 	--How much the shovel tilts when firing
 	self.angleSize = 1.0;
 
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
+	self.lastVel = Vector(50 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 end
 function Update(self)
@@ -38,7 +39,7 @@ function Update(self)
 			--Play a radical sound if a MO is met
 			local moCheck = SceneMan:CastMORay(self.MuzzlePos, trace, self.ID, self.Team, 0, false, 1);
 			if moCheck ~= rte.NoMOID then
-				AudioMan:PlaySound("Ronin.rte/Devices/Tools/Shovel/Sounds/Melee".. math.random(3) ..".flac", self.MuzzlePos);
+				self.hitSound:Play(self.MuzzlePos);
 				for i = 1, particleCount do
 					local damagePar = CreateMOPixel("Smack Particle");
 					damagePar.Pos = self.MuzzlePos;
@@ -89,12 +90,12 @@ function Update(self)
 			if self.HitWhatMOID ~= rte.NoMOID then
 				local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
 				if mo then
-					local particleCount = 2;
+					local particleCount = 3;
 					local spread = self.AngularVel * TimerMan.DeltaTimeSecs * 0.5;
 					for i = 0, particleCount - 1 do
 						local damagePar = CreateMOPixel("Smack Particle");
-						damagePar.Mass = self.Mass/particleCount;
-						damagePar.Sharpness = self.Sharpness * particleCount;
+						damagePar.Mass = self.Mass--/particleCount;
+						damagePar.Sharpness = self.Sharpness-- * particleCount;
 
 						damagePar.Pos = self.lastMuzzlePos;
 						damagePar.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * 0.5 - spread * i/(particleCount - 1)) * 1.5;
@@ -102,6 +103,7 @@ function Update(self)
 						damagePar:SetWhichMOToNotHit(self, -1);
 						MovableMan:AddParticle(damagePar);
 					end
+					self.hitSound:Play(self.MuzzlePos);
 				end
 			end
 		end

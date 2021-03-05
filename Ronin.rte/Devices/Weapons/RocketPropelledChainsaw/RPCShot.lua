@@ -56,9 +56,6 @@ function Update(self)
 			end
 		end
 	end
-	if self.lifeTimer:IsPastSimMS(4000) then
-		self.toGib = true;
-	end
 	if self.Vel.Magnitude < 2 then	--Countdown to explode if too still
 		self.toGibCounter = self.toGibCounter + 1;
 		local newVel = Vector(-3/(self.Vel.Magnitude + 1) * self.FlipFactor, 0):RadRotate(self.RotAngle + RangeRand(-1.5, 1.5));
@@ -74,9 +71,6 @@ function Update(self)
 		end
 	end
 	if self.toGibCounter == 60 then	--60 frames have passed while still (or 90 inside a MO)
-		self.toGib = true;
-	end
-	if self.toGib then
 		self:GibThis();
 	end
 	self.lastAngle = self.RotAngle;
