@@ -17,7 +17,6 @@ function Update(self)
 		self.rotFactor = math.pi;
 	end
 	if parent and not self.loaded and self.RoundInMagCount > 0 and not self.reloadCycle then
-		self:Deactivate();
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
 				parent:GetController():SetState(Controller.AIM_SHARP, false);
