@@ -44,7 +44,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 					FoundMO = ToACRocket(FoundMO)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
-				elseif FoundMO.ClassName == "ADoor" then
+				elseif FoundMO.ClassName == "ADoor" and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then
 					FoundMO = ToActor(FoundMO)

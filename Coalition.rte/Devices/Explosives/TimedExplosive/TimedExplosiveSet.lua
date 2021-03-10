@@ -5,7 +5,6 @@ function Create(self)
 	self.blipTimer = Timer();
 
 	self.actionPhase = 0;
-	self.blink = true;
 	self.changeCounter = 0;
 	self.stuck = false;
 	self.blipdelay = 1000;
@@ -13,101 +12,81 @@ function Create(self)
 	self.minBlipDelay = 100;
 	self.medBlipDelay = 250;
 	self.maxBlipDelay = 500;
+	
+	self.detonateDelay = self:NumberValueExists("DetonationDelay") and self:GetNumberValue("DetonationDelay") or 11000;
+	self.Frame = 1;
 
+	if TimedExplosiveTable == nil then
+		TimedExplosiveTable = {};
+	end
+
+	self.tableNum = #TimedExplosiveTable + 1;
+	TimedExplosiveTable[self.tableNum] = self;
+
+	RemoteExplosiveStick(self);
 end
 
 function Update(self)
 
-	if self.actionPhase == 0 then
-		local rayHitPos = Vector(0,0);
-		local rayHit = false;
-		for i = 1, 15 do
-			local checkPos = self.Pos + Vector(self.Vel.X,self.Vel.Y):SetMagnitude(i);
-			local checkPix = SceneMan:GetMOIDPixel(checkPos.X,checkPos.Y);
-			if checkPix ~= rte.NoMOID then
-				checkPos = checkPos + SceneMan:ShortestDistance(checkPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(3);
-				self.target = MovableMan:GetMOFromID(checkPix);
-				self.stickpositionX = checkPos.X-self.target.Pos.X;
-				self.stickpositionY = checkPos.Y-self.target.Pos.Y;
-				self.stickrotation = self.target.RotAngle;
-				self.stickdirection = self.RotAngle;
-				local soundfx = CreateAEmitter("Remote Explosive Sound Activate");
-				soundfx.Pos = self.Pos;
-				MovableMan:AddParticle(soundfx);
-				self.stuck = true;
-				rayHit = true;
-				break;
-			end
-		end
-		if rayHit == true then
-			self.actionPhase = 1;
-		else
-			if SceneMan:CastStrengthRay(self.Pos,Vector(self.Vel.X,self.Vel.Y):SetMagnitude(15),0,rayHitPos,0,0,SceneMan.SceneWrapsX) == true then
-				self.Pos = rayHitPos + SceneMan:ShortestDistance(rayHitPos,self.Pos,SceneMan.SceneWrapsX):SetMagnitude(3);
-				self.PinStrength = 1000;
-				self.AngularVel = 0;
-				self.stuck = true;
-				self.actionPhase = 2;
-				local soundfx = CreateAEmitter("Remote Explosive Sound Activate");
-				soundfx.Pos = self.Pos;
-				MovableMan:AddParticle(soundfx);
-			end
-		end
-	elseif self.actionPhase == 1 then
-		if self.target ~= nil and self.target.ID ~= 255 then
-			self.Pos = self.target.Pos + Vector(self.stickpositionX,self.stickpositionY):RadRotate(self.target.RotAngle-self.stickrotation);
-			self.RotAngle = self.stickdirection+(self.target.RotAngle-self.stickrotation);
-			self.PinStrength = 1000;
-			self.Vel = Vector(0,0);
-		else
-			self.PinStrength = 0;
-			self.actionPhase = 0;
-		end
+	if TimedExplosiveTable == nil then
+		TimedExplosiveTable = {};
+		TimedExplosiveTable[self.tableNum] = self;
 	end
 
+	RemoteExplosiveStick(self);
 
-	if self.stuck == true then
-
-		if self.changeCounter == 0 and self.lifeTimer.ElapsedSimTimeMS > 5000 then
-			self.changeCounter = 1;
-			self.blipdelay = self.maxBlipDelay;
-		end
-
-		if self.changeCounter == 1 and self.lifeTimer.ElapsedSimTimeMS > 7000 then
-			self.changeCounter = 2;
-			self.blipdelay = self.medBlipDelay;
-		end
-
-		if self.changeCounter == 2 and self.lifeTimer.ElapsedSimTimeMS > 9000 then
-			self.changeCounter = 3;
-			self.blipdelay = self.minBlipDelay;
-		end
-
-		if self.lifeTimer:IsPastSimMS(10000) then
+	if self.stuck then
+		if self.lifeTimer:IsPastSimMS(self.detonateDelay) then
 			self:GibThis();
 		else
 			self.ToDelete = false;
 			self.ToSettle = false;
+		
+			local number = math.ceil((self.detonateDelay - self.lifeTimer.ElapsedSimTimeMS) * 0.01) * 0.1;
+			local text = "".. number;
+			if number == math.ceil(number) then
+				text = text ..".0";
+			end
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+
+				local screen = ActivityMan:GetActivity():ScreenOfPlayer(player);
+				if screen ~= -1 and not SceneMan:IsUnseen(self.Pos.X, self.Pos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(player)) then
+					PrimitiveMan:DrawTextPrimitive(screen, self.Pos + Vector(-5, -self.Diameter), text, true, 0);
+				end
+			end
 		end
 
-		if self.blinkTimer:IsPastSimMS(self.blipdelay/2) then
-			self.blinkTimer:Reset();
-			if self.blink == false then
-				self.blink = true;
-				self.Frame = 0;
-			else
-				self.blink = false;
-				self.Frame = 1;
-			end
+		if self.blipTimer:IsPastSimMS(50) then
+			self.Frame = 0;
+		else
+			self.Frame = 1;
 		end
 
 		if self.blipTimer:IsPastSimMS(self.blipdelay) then
 			self.blipTimer:Reset();
-			local soundfx = CreateAEmitter("Timed Explosive Sound Blip");
-			soundfx.Pos = self.Pos;
-			MovableMan:AddParticle(soundfx);
+			self.blinkTimer:Reset();
+			AudioMan:PlaySound("Coalition.rte/Devices/Explosives/TimedExplosive/Sounds/TimedExplosiveBlip.flac", self.Pos);
+
+			if self.changeCounter == 0 and self.lifeTimer.ElapsedSimTimeMS > (self.detonateDelay * 0.85 - 5000) then
+				self.changeCounter = 1;
+				self.blipdelay = self.maxBlipDelay;
+			end
+
+			if self.changeCounter == 1 and self.lifeTimer.ElapsedSimTimeMS > (self.detonateDelay * 0.90 - 3000) then
+				self.changeCounter = 2;
+				self.blipdelay = self.medBlipDelay;
+			end
+
+			if self.changeCounter == 2 and self.lifeTimer.ElapsedSimTimeMS > (self.detonateDelay * 0.95 - 1000) then
+				self.changeCounter = 3;
+				self.blipdelay = self.minBlipDelay;
+			end
 		end
-
 	end
-
+	if self.Sharpness == 1 then
+		self.ToDelete = true;
+	end
+end
+function Destroy(self)
+	TimedExplosiveTable[self.tableNum] = nil;
 end

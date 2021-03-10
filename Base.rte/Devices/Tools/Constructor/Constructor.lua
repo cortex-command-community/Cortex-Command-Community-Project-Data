@@ -2,7 +2,7 @@
 function OnPieMenu(item)
 	if item and IsHDFirearm(item) and item.PresetName == "Constructor" then
 		item = ToHDFirearm(item);
-		if item:GetNumberValue("Constructor Mode") == 1 then
+		if item:GetStringValue("ConstructorMode") == "Spray" then
 			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Spray Mode", "ConstructorSprayMode");
 		else
 			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Dig Mode", "ConstructorDigMode");
@@ -11,7 +11,7 @@ function OnPieMenu(item)
 end
 
 function ConstructorWrapPos(checkPos)
-	if SceneMan.SceneWrapsX == true then
+	if SceneMan.SceneWrapsX then
 		if checkPos.X > SceneMan.SceneWidth then
 			checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y);
 		elseif checkPos.X < 0 then
@@ -28,25 +28,25 @@ function ConstructorFloodFill(x, y, startnum, maxnum, array, realposition, reals
 	if startnum < maxnum then
 		if array[x+1][y] == -1 or array[x+1][y] > startnum then
 			local checkPos = ConstructorWrapPos(realposition + Vector(realspacing,0));
-			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == 0 then
+			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == rte.airID then
 				ConstructorFloodFill(x+1, y, startnum+1, maxnum, array, checkPos, realspacing);
 			end
 		end
 		if array[x-1][y] == -1 or array[x-1][y] > startnum then
 			local checkPos = ConstructorWrapPos(realposition + Vector(-realspacing,0));
-			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == 0 then
+			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == rte.airID then
 				ConstructorFloodFill(x-1, y, startnum+1, maxnum, array, checkPos, realspacing);
 			end
 		end
 		if array[x][y+1] == -1 or array[x][y+1] > startnum then
 			local checkPos = ConstructorWrapPos(realposition + Vector(0,realspacing));
-			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == 0 then
+			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == rte.airID then
 				ConstructorFloodFill(x, y+1, startnum+1, maxnum, array, checkPos, realspacing);
 			end
 		end
 		if array[x][y-1] == -1 or array[x][y-1] > startnum then
 			local checkPos = ConstructorWrapPos(realposition + Vector(0,-realspacing));
-			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == 0 then
+			if SceneMan:GetTerrMatter(checkPos.X+(realspacing*0.5),checkPos.Y+(realspacing*0.5)) == rte.airID then
 				ConstructorFloodFill(x, y-1, startnum+1, maxnum, array, checkPos, realspacing);
 			end
 		end
@@ -69,7 +69,7 @@ function ConstructorTerrainRay(start, trace, skip)
 		local invector = start + Vector(skip*i,0):RadRotate(angle);
 		local checkPos = ConstructorWrapPos(invector);
 		local terrCheck = SceneMan:GetTerrMatter(checkPos.X,checkPos.Y);
-		if terrCheck ~= 0 then
+		if terrCheck ~= rte.airID then
 			roughLandPos = checkPos;
 			break;
 		end
@@ -81,7 +81,7 @@ function ConstructorTerrainRay(start, trace, skip)
 		local checkPos = ConstructorWrapPos(invector);
 		local terrCheck = SceneMan:GetTerrMatter(checkPos.X,checkPos.Y);
 		roughLandPos = checkPos;
-		if terrCheck ~= 0 then
+		if terrCheck ~= rte.airID then
 			break;
 		end
 	end
@@ -93,7 +93,7 @@ end
 function Create(self)
 
 	self.fireTimer = Timer();
-	self.fired = false;
+	self.displayTimer = Timer();
 	
 	self.startresource = 3;	-- how many blocks of concrete to start with
 
@@ -107,7 +107,7 @@ function Create(self)
 
 	self.clearer = CreateMOSRotating("Constructor Terrain Clearer");
 
-	self.digstrength = 100;	-- the StructualIntegrity limit the device can harvest
+	self.digstrength = 210;	-- the StructualIntegrity limit the device can harvest
 	
 	self.diglength = 50;
 	self.digspersecond = 100;
@@ -123,6 +123,7 @@ function Create(self)
 	self.toautobuild = false;
 	self.aicontrolled = false;
 	self.displaygrid = true;
+	self.cursormovespeed = 2;
 
 	-- autobuild for standard units
 	self.autobuildlist = {
@@ -196,7 +197,7 @@ end
 
 function Update(self)
 	
-	if self.RootID ~= 255 then
+	if self.RootID ~= rte.NoMOID then
 		local actor = MovableMan:GetMOFromID(self.RootID);
 		if MovableMan:IsActor(actor) then
 		
@@ -204,20 +205,21 @@ function Update(self)
 			local ctrl = actor:GetController();
 			local screen = ActivityMan:GetActivity():ScreenOfPlayer(ctrl.Player);
 			
-			if self.Magazine ~= nil then
+			if self.Magazine then
 				self.Magazine.RoundCount = self.resource;
 			end
-			-- display dig/spray mode when opening pie menu
-			local mode = {"Dig", "Spray"};
 			
 			if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
-				PrimitiveMan:DrawTextPrimitive(screen, actor.AboveHUDPos + Vector(0, 26), "Mode: " .. mode[self:GetNumberValue("Constructor Mode") + 1], true, 1);
+				PrimitiveMan:DrawTextPrimitive(screen, actor.AboveHUDPos + Vector(0, 26), "Mode: ".. self:GetStringValue("ConstructorMode"), true, 1);
 			end
 			
 			-- constructor actions if the user is in gold dig mode
 			if actor.AIMode == Actor.AIMODE_GOLDDIG then
 				if self.toautobuild == false then
 					if actor:IsPlayerControlled() == false then
+						if self:GetStringValue("ConstructorMode") == "Spray" then
+							self:SetStringValue("ConstructorMode", "Dig");
+						end
 						if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos,Vector(0,50),3), SceneMan.SceneWrapsX).Magnitude < 30 then
 							self.tunnelFillTimer:Reset();
 							self.aicontrolled = true;
@@ -287,20 +289,19 @@ function Update(self)
 								end
 							end
 						end
-
 					end
 				end
 			else
 				self.toautobuild = false;
 			end
-
-			if self.Sharpness == 0 then	-- dig/spray
+			local mode = self:GetNumberValue("BuildMode");
+			if mode == 0 then
 				-- activation
 				if ctrl:IsState(Controller.WEAPON_FIRE) then
 
 					local angle = actor:GetAimAngle(true);
 					
-					if self:GetNumberValue("Constructor Mode") == 1 then
+					if self:GetStringValue("ConstructorMode") == "Spray" then
 					
 						if self.resource > self.buildcost / 5 then
 							for i = 1, 4 do
@@ -341,7 +342,7 @@ function Update(self)
 												self.clearer:EraseFromTerrain();
 												local collectfx2 = CreateMOPixel("Particle Constructor Gather Material Gold");
 												collectfx2.Pos = Vector(checkpos.X,checkpos.Y);
-												collectfx2.Sharpness = self.UniqueID;
+												collectfx2.Sharpness = self.ID;
 												MovableMan:AddParticle(collectfx2);
 											else
 												local matstrength = SceneMan:CastStrengthSumRay(Vector(checkpos.X,checkpos.Y-1),Vector(checkpos.X,checkpos.Y),0,0);
@@ -364,80 +365,111 @@ function Update(self)
 								if diddig then
 									local collectfx = CreateMOPixel("Particle Constructor Gather Material");
 									collectfx.Pos = Vector(digpos.X,digpos.Y);
-									collectfx.Sharpness = self.UniqueID;
+									collectfx.Sharpness = self.ID;
 									MovableMan:AddParticle(collectfx);
 								end
-
 							else	-- deactivate if digging air
 								self:Deactivate();
 								break;
 							end
-
 						end
-
 					end
-					
 				else
 					self.fireTimer:Reset();
 				end
 
-			elseif self.Sharpness == 1 then	-- cancel
-				self.Sharpness = 0;
+			elseif mode == 1 then	-- cancel
+				self:RemoveNumberValue("BuildMode");
 
 				self.buildlist = {};
+				self.cursor = nil;
 
-			elseif self.Sharpness == 2 then	-- build
-				self.Sharpness = 0;
+			elseif mode == 2 then	-- build
+				self:RemoveNumberValue("BuildMode");
 
 				-- constructor build cursor
-
-				if MovableMan:IsActor(self.cursor) then
-					self.cursor.Sharpness = -2;
-				end
-
 				if actor:IsPlayerControlled() then
-					self.cursor = CreateActor("Constructor Cursor");
-					self.cursor.Pos = self.MuzzlePos;
-					self.cursor.Team = actor.Team;
-					self.cursor.Sharpness = self.UniqueID;
-					MovableMan:AddActor(self.cursor);
-					ActivityMan:GetActivity():SwitchToActor(self.cursor, ctrl.Player, actor.Team);
+					self.cursor = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 				end
 			end
+			local displayColorBlue = 5;
+			local displayColorYellow = 120;
+			local displayColorRed = 13;
+			local displayColorWhite = 254;
+			if self.displayTimer:IsPastSimMS(TimerMan.DeltaTimeMS) then
+				self.displayTimer:Reset();
+				-- flickering colors
+				displayColorBlue = 195;
+				displayColorYellow = 116;
+				displayColorRed = 12;
+				displayColorWhite = 252;
+			end
 
-			if MovableMan:IsActor(self.cursor) then
-				if self.cursor.Sharpness == self.UniqueID then
+			if self.cursor then
+			
+				actor.ViewPoint = self.cursor;
 
-					local mapx = math.floor((self.cursor.Pos.X-12)/24)*24+12;
-					local mapy = math.floor((self.cursor.Pos.Y-12)/24)*24+12;
-					PrimitiveMan:DrawBoxPrimitive(screen, Vector(mapx, mapy), Vector(mapx+23, mapy+23), 120);
+				local cursorMovement = Vector();
+				
+				if ctrl:IsMouseControlled() then
+					cursorMovement = cursorMovement + ctrl.MouseMovement;
+				else
+					if ctrl:IsState(Controller.HOLD_UP) or ctrl:IsState(Controller.BODY_JUMP) then
+						cursorMovement = cursorMovement + Vector(0, -1);
+					end
+					if ctrl:IsState(Controller.HOLD_DOWN) or ctrl:IsState(Controller.BODY_CROUCH) then
+						cursorMovement = cursorMovement + Vector(0, 1);
+					end
+					if ctrl:IsState(Controller.HOLD_LEFT) then
+						cursorMovement = cursorMovement + Vector(-1, 0);
+					end
+					if ctrl:IsState(Controller.HOLD_RIGHT) then
+						cursorMovement = cursorMovement + Vector(1, 0);
+					end
+				end
 
+				if cursorMovement.Magnitude > 0 then
+					if ctrl:IsMouseControlled() then
+						self.cursor = self.cursor + cursorMovement;
+					else
+						self.cursor = self.cursor + cursorMovement:SetMagnitude(self.cursormovespeed);
+					end
+				end
+
+				local mapx = math.floor((self.cursor.X - 12)/24) * 24 + 12;
+				local mapy = math.floor((self.cursor.Y - 12)/24) * 24 + 12;
+
+				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(0, 4), self.cursor + Vector(0, -4), displayColorYellow);
+				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), displayColorYellow);
+				PrimitiveMan:DrawBoxPrimitive(screen, Vector(mapx, mapy), Vector(mapx + 23, mapy + 23), displayColorYellow);
+
+				if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
+					self.cursor = nil;
+				elseif actor:IsPlayerControlled() then
 					-- add blocks to the build queue if the cursor is firing
-					if self.cursor:IsPlayerControlled() then
-						if self.cursor:GetController():IsState(Controller.WEAPON_FIRE) then
-							local freeslot = true;
-							for i = 1, #self.buildlist do
-								if self.buildlist[i] ~= nil and self.buildlist[i][1] == mapx and self.buildlist[i][2] == mapy then
-									freeslot = false;
-									break;
-								end
-							end
-							if freeslot then
-								local buildthis = {};
-								buildthis[1] = mapx;
-								buildthis[2] = mapy;
-								buildthis[3] = 0;
-								self.buildlist[#self.buildlist+1] = buildthis;
+					if ctrl:IsState(Controller.WEAPON_FIRE) then
+						local freeslot = true;
+						for i = 1, #self.buildlist do
+							if self.buildlist[i] ~= nil and self.buildlist[i][1] == mapx and self.buildlist[i][2] == mapy then
+								freeslot = false;
+								break;
 							end
 						end
-					else
-						self.cursor.Sharpness = -2;
+						if freeslot then
+							local buildthis = {};
+							buildthis[1] = mapx;
+							buildthis[2] = mapy;
+							buildthis[3] = 0;
+							self.buildlist[#self.buildlist+1] = buildthis;
+						end
+					end
+					for state = 0, 40 do	-- go through and disable all 41 controller states when moving the build cursor
+						ctrl:SetState(state, false);
 					end
 				else
 					self.cursor = nil;
 				end
 			end
-
 			-- clean up the build list of nil slots and draw the squares to show the build layout
 			local templist = {};
 			for i = 1, #self.buildlist do
@@ -445,9 +477,9 @@ function Update(self)
 					templist[#templist+1] = self.buildlist[i];
 					if self.displaygrid then
 						if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildlist[i][1],self.buildlist[i][2]), SceneMan.SceneWrapsX).Magnitude < self.builddistance then
-							PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), 5);
+							PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), displayColorBlue);
 						else
-							PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), 13);
+							PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildlist[i][1],self.buildlist[i][2]), Vector(self.buildlist[i][1]+23,self.buildlist[i][2]+23), displayColorRed);
 						end
 					end
 				end
@@ -459,7 +491,7 @@ function Update(self)
 			self.buildTimer:Reset();
 			for i = 1, buildamount do
 				if self.resource > self.buildcost then
-					if self.buildlist[1] ~= nil then
+					if self.buildlist[1] then
 
 						if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildlist[1][1],self.buildlist[1][2]), SceneMan.SceneWrapsX).Magnitude < self.builddistance then
 
@@ -469,17 +501,18 @@ function Update(self)
 								local bx = self.buildlist[1][3]-(by*8);
 								by = by*3-1;
 								bx = bx*3-1;
-								
-								PrimitiveMan:DrawLinePrimitive(screen, self.Pos, self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx+self.buildlist[1][1]+2,by+self.buildlist[1][2]+2), SceneMan.SceneWrapsX ), 5);
-								PrimitiveMan:DrawBoxFillPrimitive(screen, Vector(bx+self.buildlist[1][1]+1,by+self.buildlist[1][2]+1),Vector(bx+self.buildlist[1][1]+3,by+self.buildlist[1][2]+3),254);
 
+								local bpos = self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx+self.buildlist[1][1]+2,by+self.buildlist[1][2]+2), SceneMan.SceneWrapsX);
+								PrimitiveMan:DrawLinePrimitive(screen, self.Pos, bpos, displayColorBlue);
+								PrimitiveMan:DrawBoxFillPrimitive(screen, Vector(bx+self.buildlist[1][1]+1,by+self.buildlist[1][2]+1),Vector(bx+self.buildlist[1][1]+3,by+self.buildlist[1][2]+3), displayColorWhite);
+								
 								for x = 1, 3 do
 									for y = 1, 3 do
 										local name = "";
 										if bx+x == 0 or bx+x == 23 or by+y == 0 or by+y == 23 then
-											name = "Particle Constructor Concrete Border "..(math.floor(math.random()*4)+1);
+											name = "Particle Constructor Concrete Border "..math.random(4);
 										else
-											name = "Particle Constructor Concrete "..(math.floor(math.random()*13)+1);
+											name = "Particle Constructor Concrete "..math.random(13);
 										end
 										local terrainpar = CreateMOPixel(name);
 										terrainpar.Pos = ConstructorWrapPos(Vector(bx+self.buildlist[1][1]+x,by+self.buildlist[1][2]+y));
@@ -487,6 +520,7 @@ function Update(self)
 										terrainpar.ToSettle = true;
 									end
 								end
+								AudioMan:PlaySound("Base.rte/Sounds/Geiger".. math.random(3) ..".flac", bpos);
 								self.buildlist[1][3] = self.buildlist[1][3] + 1;
 							else
 								self.buildlist[1] = nil;
@@ -496,24 +530,14 @@ function Update(self)
 							self.buildlist[#self.buildlist+1] = self.buildlist[1];
 							self.buildlist[1] = nil;
 						end
-
 					end
 				end
 			end
-
-		else
-			if MovableMan:IsActor(self.cursor) then
-				self.cursor.Sharpness = -2;
-				self.cursor = nil;
+			if display then
+				self.displayTimer:Reset();
 			end
+		elseif self.cursor then
+			self.cursor = nil;
 		end
-
-	end
-
-end
-
-function Destroy(self)
-	if MovableMan:IsActor(self.cursor) then
-		self.cursor.Sharpness = -2;
 	end
 end

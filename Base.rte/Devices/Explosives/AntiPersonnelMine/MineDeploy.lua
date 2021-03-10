@@ -1,16 +1,13 @@
 function Create(self)
 
 	self.alliedTeam = -1;
-
 end
 
 function Update(self)
 
-	if self.ID ~= self.RootID then
-		local actor = MovableMan:GetMOFromID(self.RootID);
-		if MovableMan:IsActor(actor) then
-			self.alliedTeam = ToActor(actor).Team;
-		end
+	local parent = self:GetRootParent();
+	if IsActor(parent) then
+		self.alliedTeam = ToActor(parent).Team;
 	end
 
 	if self:IsActivated() and self.ID == self.RootID then

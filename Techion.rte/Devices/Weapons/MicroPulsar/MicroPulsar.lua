@@ -1,6 +1,5 @@
 function Create(self)
 	self.delayTimer = Timer();
-	self.negativeNum = 1;
 	self.guidePos = null;
 	self.guideSize = 0;
 	self.guideLine = null;
@@ -17,84 +16,71 @@ function Update(self)
 			self.guidePos = null;
 			local longDist = 800;
 			local shortDist = 98;
-			if self.HFlipped == false then
-				self.negativeNum = 1;
-			else
-				self.negativeNum = -1;
-			end
-			for i = 1, MovableMan:GetMOIDCount()-1 do
+			for i = 1, MovableMan:GetMOIDCount() - 1 do
 				local mo = MovableMan:GetMOFromID(i);
 				if mo and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
 
-					local distCheck = SceneMan:ShortestDistance(self.MuzzlePos,mo.Pos,SceneMan.SceneWrapsX);
-					if distCheck.Magnitude-mo.Radius < longDist then
+					local distCheck = SceneMan:ShortestDistance(self.MuzzlePos, mo.Pos, SceneMan.SceneWrapsX);
+					if distCheck.Magnitude - mo.Radius < longDist then
 
-						local toCheckPos = Vector(distCheck.Magnitude*self.negativeNum,0):RadRotate(self.RotAngle);
+						local toCheckPos = Vector(distCheck.Magnitude * self.FlipFactor, 0):RadRotate(self.RotAngle);
 						local checkPos = self.MuzzlePos + toCheckPos;
 						if SceneMan.SceneWrapsX == true then
 							if checkPos.X > SceneMan.SceneWidth then
-								checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y);
+								checkPos = Vector(checkPos.X - SceneMan.SceneWidth, checkPos.Y);
 							elseif checkPos.X < 0 then
-								checkPos = Vector(SceneMan.SceneWidth + checkPos.X,checkPos.Y);
+								checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 							end
 						end
 
-						local distCheck2 = SceneMan:ShortestDistance(checkPos,mo.Pos,SceneMan.SceneWrapsX);
+						local distCheck2 = SceneMan:ShortestDistance(checkPos, mo.Pos, SceneMan.SceneWrapsX);
 
-						if distCheck2.Magnitude-mo.Radius < shortDist then
+						if distCheck2.Magnitude - mo.Radius < shortDist then
 
-							if SceneMan:CastStrengthRay(self.MuzzlePos,toCheckPos,0,Vector(0,0),3,0,SceneMan.SceneWrapsX) == false and SceneMan:CastStrengthRay(checkPos,distCheck2:SetMagnitude(distCheck2.Magnitude-mo.Radius),0,Vector(0,0),3,0,SceneMan.SceneWrapsX) == false then
-								self.guidePos = Vector(mo.Pos.X,mo.Pos.Y);
+							if SceneMan:CastStrengthRay(self.MuzzlePos, toCheckPos, 0, Vector(), 3, rte.airID, SceneMan.SceneWrapsX) == false and SceneMan:CastStrengthRay(checkPos, distCheck2:SetMagnitude(distCheck2.Magnitude - mo.Radius), 0, Vector(), 3, rte.airID, SceneMan.SceneWrapsX) == false then
+								self.guidePos = Vector(mo.Pos.X, mo.Pos.Y);
 								self.guideSize = mo.Radius;
 								self.guideLine = toCheckPos;
 								self.guideLine2 = distCheck2;
-								longDist = distCheck.Magnitude-mo.Radius;
-								shortDist = distCheck2.Magnitude-mo.Radius;
+								longDist = distCheck.Magnitude - mo.Radius;
+								shortDist = distCheck2.Magnitude - mo.Radius;
 							end
 						end
-
 					end
-
 				end
 			end
 		end
 		if self.guidePos ~= null then
-		--	PrimitiveMan:DrawBoxPrimitive(self.guidePos+Vector(-self.guideSize,-self.guideSize),self.guidePos+Vector(self.guideSize,self.guideSize),13);
-		--	PrimitiveMan:DrawCirclePrimitive(self.guidePos,self.guideSize,13);
-		--	if self.guideLine.Magnitude-self.guideSize > 0 then
-		--		local endPoint = self.guideLine:SetMagnitude(self.guideLine.Magnitude);
-		--		PrimitiveMan:DrawLinePrimitive(self.MuzzlePos,self.guideLinePoint,13);
-		--	end
-			local cornerPos = Vector(self.guidePos.X-self.guideSize,self.guidePos.Y-self.guideSize);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
 
-			cornerPos = Vector(self.guidePos.X-self.guideSize,self.guidePos.Y+self.guideSize);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
+			local cornerPos = Vector(self.guidePos.X - self.guideSize, self.guidePos.Y - self.guideSize);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(5, 0), 13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(0, 5), 13);
 
-			cornerPos = Vector(self.guidePos.X+self.guideSize,self.guidePos.Y+self.guideSize);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
+			cornerPos = Vector(self.guidePos.X - self.guideSize, self.guidePos.Y + self.guideSize);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(5, 0), 13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(0, -5), 13);
 
-			cornerPos = Vector(self.guidePos.X+self.guideSize,self.guidePos.Y-self.guideSize);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
+			cornerPos = Vector(self.guidePos.X + self.guideSize, self.guidePos.Y + self.guideSize);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(-5, 0), 13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(0, -5), 13);
 
-			cornerPos = Vector(self.guidePos.X,self.guidePos.Y-self.guideSize);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,-5),13);
+			cornerPos = Vector(self.guidePos.X + self.guideSize, self.guidePos.Y - self.guideSize);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(-5, 0), 13);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(0, 5), 13);
 
-			cornerPos = Vector(self.guidePos.X-self.guideSize,self.guidePos.Y);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(-5,0),13);
+			cornerPos = Vector(self.guidePos.X, self.guidePos.Y - self.guideSize);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(0, -5), 13);
 
-			cornerPos = Vector(self.guidePos.X,self.guidePos.Y+self.guideSize);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(0,5),13);
+			cornerPos = Vector(self.guidePos.X - self.guideSize, self.guidePos.Y);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(-5, 0), 13);
 
-			cornerPos = Vector(self.guidePos.X+self.guideSize,self.guidePos.Y);
-			PrimitiveMan:DrawLinePrimitive(cornerPos,cornerPos+Vector(5,0),13);
+			cornerPos = Vector(self.guidePos.X, self.guidePos.Y + self.guideSize);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(0, 5), 13);
+
+			cornerPos = Vector(self.guidePos.X + self.guideSize, self.guidePos.Y);
+			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(5, 0), 13);
 		end
 	else
 		self.guidePos = null;
 	end
-
 end

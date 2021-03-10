@@ -8,7 +8,7 @@ function ConstantGoldIncomeScript:UpdateScript()
 		for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 			local activity = ActivityMan:GetActivity();
 			if activity then
-				if activity:IsPlayerTeam(team) then
+				if activity:IsHumanTeam(team) then
 					activity:SetTeamFunds(activity:GetTeamFunds(team) + (self.updateInterval / 1000 * self.goldPerSecond), team);
 				end
 			end

@@ -601,7 +601,7 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 
 		for _ = 1, actorsInCargo do
 			local Passenger
-			if math.random() < self:GetCrabToHumanSpawnRatio(self.AI[Team].TechID) + self.Difficulty / 800 then
+			if math.random() < self:GetCrabToHumanSpawnRatio(self.AI[Team].TechID) then
 				Passenger = self:CreateCrab(Team)
 			elseif RangeRand(0, 105) < self.Difficulty then
 				Passenger = self:CreateHeavyInfantry(Team)
