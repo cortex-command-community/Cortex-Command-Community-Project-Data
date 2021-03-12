@@ -6,7 +6,7 @@ function Create(self)
 		self.notSticky = true;
 	elseif string.find(self.PresetName, "Short") then
 		self.isShort = true;
-		self.deleteDelay = self.Lifetime * RangeRand(0.05, 0.15);
+		self.deleteDelay = self.Lifetime * RangeRand(0.1, 0.2);
 	end
 end
 function Update(self)
