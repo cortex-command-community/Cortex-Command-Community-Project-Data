@@ -3,8 +3,9 @@ HumanFunctions = {};
 function HumanFunctions.DoAlternativeGib(actor)
 	--Detach limbs instead of regular gibbing
 	if actor.detachWoundLimit or actor.detachImpulseLimit then
-		if actor.detachWoundLimit and actor.WoundCount > actor.detachWoundLimit then
-			actor.detachWoundLimit = actor.WoundCount + 1;
+		local torsoWoundCount = actor:GetWoundCount(false, false, false);
+		if actor.detachWoundLimit and torsoWoundCount > actor.detachWoundLimit then
+			actor.detachWoundLimit = torsoWoundCount + 1;
 
 			local parts = {actor.BGArm, actor.BGLeg, actor.FGLeg, actor.Head};	--Priority order (Never detach FG Arm)
 			local mostWounds, detachLimb;
@@ -16,7 +17,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 				end
 			end
 			if detachLimb then
-				detachLimb.JointStrength = -1;
+				actor:RemoveAttachable(detachLimb, true, true);
 			end
 		end
 		if actor.detachImpulseLimit and actor.TravelImpulse.Magnitude > actor.detachImpulseLimit and actor.Mass > 0 then
@@ -37,7 +38,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 			if detachLimb and detachLimb.Mass > 0 then
 				local limbImpulse = actor.TravelImpulse.Magnitude/detachLimb.Mass;
 				if limbImpulse > detachLimb.JointStrength then
-					detachLimb.JointStrength = -1;
+					actor:RemoveAttachable(detachLimb, true, true);
 					if math.random() * limbImpulse > detachLimb.GibImpulseLimit then
 						detachLimb:GibThis();
 					end
