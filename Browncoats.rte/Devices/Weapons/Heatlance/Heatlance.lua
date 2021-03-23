@@ -19,7 +19,8 @@ function Update(self)
 		if parent and IsActor(parent) then
 			parent = ToActor(parent);
 			local parentDimensions = Vector(ToMOSprite(parent):GetSpriteWidth(), ToMOSprite(parent):GetSpriteHeight());
-			self.Magazine.Pos = parent.Pos + Vector(-(parentDimensions.X - ToMOSprite(self.Magazine):GetSpriteWidth()) * 0.7 * parent.FlipFactor, - parentDimensions.Y * 0.3);
+			local magDimensions = Vector(self.Magazine:GetSpriteWidth(), self.Magazine:GetSpriteHeight());
+			self.Magazine.Pos = parent.Pos + Vector(-(parentDimensions.X + magDimensions.X) * 0.4 * parent.FlipFactor, -(parentDimensions.Y + magDimensions.Y) * 0.2):RadRotate(parent.RotAngle);
 			self.Magazine.RotAngle = parent.RotAngle;
 		end
 	end

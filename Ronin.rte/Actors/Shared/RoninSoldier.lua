@@ -19,7 +19,7 @@ function Create(self)
 			local loadoutName = string.gsub(self.PresetName, "Ronin Infantry ", "");
 			if RoninLoadouts[loadoutName] then
 				local unit = RoninLoadouts[loadoutName];
-				-- Pick a random item out of each set of items
+				--Pick a random item out of each set of items
 				local firearms = {unit["Primary"], unit["Secondary"], unit["Tertiary"]};
 				for class = 1, #firearms do
 					if firearms[class] then
@@ -34,6 +34,11 @@ function Create(self)
 				if unit["Headgear"] and self.Head then
 					self.Head:AddAttachable(CreateAttachable("Ronin ".. unit["Headgear"][math.random(#unit["Headgear"])]));
 				end
+			end
+		elseif math.random() < 0.01 then
+			local headgear = CreateAttachable("Ronin Crab Helmet", "Ronin.rte");
+			if headgear and self.Head then
+				self.Head:AddAttachable(headgear);
 			end
 		elseif self.PresetName == "Ronin Heavy" then
 			local headgear = CreateAttachable("Ronin ".. RoninLoadouts["Heavy"]["Headgear"][math.random(#RoninLoadouts["Heavy"]["Headgear"])]);

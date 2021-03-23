@@ -15,7 +15,7 @@ function Create(self)
 	
 	self.DeliveryState = ACraft.FALL;
 	self.LastAIMode = Actor.AIMODE_NONE;
-	self.groundDist = self.Radius / 1.35;
+	self.groundDist = self.Radius/1.35;
 	
 	self.LZpos = SceneMan:MovePointToGround(self.Pos, self.groundDist, 9);
 	self.velIntegrator = 0;
@@ -85,7 +85,7 @@ function UpdateAI(self)
 	
 	-- Reset StableTimer if not in a stable and upright state
 	self.velIntegrator = self.velIntegrator * 0.8 + self.Vel.Magnitude * 0.2;
-	if self.velIntegrator > 3 or math.abs(self.AngularVel) > 0.75 then
+	if self.velIntegrator > 5 or math.abs(self.AngularVel) > 1 then
 		self.StableTimer:Reset();
 	else
 		self.LZpos.X = self.Pos.X;
@@ -107,7 +107,7 @@ function UpdateAI(self)
 			if self.ObstacleTimer:IsPastSimTimeLimit() then
 				self.ObstacleTimer:Reset();
 				
-				local Trace = Vector(self.Vel.X+RangeRand(-1, 1), math.max(self.Vel.Y, 2)) * 40;
+				local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.max(self.Vel.Y, 2)) * 40;
 				local obstID = SceneMan:CastMORay(self.Pos, Trace, self.ID, self.IgnoresWhichTeam, 0, false, 5);
 				if obstID ~= rte.NoMOID then
 					local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
@@ -161,7 +161,7 @@ function UpdateAI(self)
 					self:CloseHatch();
 				end
 			end
-		elseif self.StableTimer:IsPastSimMS(400) and self.HatchState == ACraft.CLOSED then
+		elseif self.StableTimer:IsPastSimMS(300) and self.HatchState == ACraft.CLOSED then
 			self:OpenHatch();
 			self.DoorTimer:Reset();
 		end
@@ -170,7 +170,7 @@ function UpdateAI(self)
 		if self.ObstacleTimer:IsPastSimTimeLimit() then
 			self.ObstacleTimer:Reset();
 			
-			local Trace = Vector(self.Vel.X+RangeRand(-1, 1), math.min(self.Vel.Y, -1)) * 50;
+			local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.min(self.Vel.Y, -1)) * 50;
 			local obstID = SceneMan:CastMORay(self.Pos, Trace, self.ID, self.IgnoresWhichTeam, 0, false, 5);
 			if obstID ~= rte.NoMOID then
 				local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
@@ -199,7 +199,7 @@ function UpdateAI(self)
 				self.Ctrl:SetState(Controller.MOVE_UP, true);	-- Don't burst when returning to orbit
 			else
 				if change > 11 and not self.burstUp then
-					self.burstUp = math.max(15 - change, 4); -- Wait n frames until next burst (lower -> better control)
+					self.burstUp = math.max(16 - change, 2); -- Wait n frames until next burst (lower -> better control)
 				elseif change < -20 then
 					self.burstUp = nil;
 					self.Ctrl:SetState(Controller.MOVE_DOWN, true);
@@ -216,23 +216,23 @@ function UpdateAI(self)
 	local targetAng = 0;
 	if self.Vel.Y > 0 then
 		if change < -4 then
-			targetAng = -math.max(change / 40, -0.5);
+			targetAng = -math.max(change/40, -0.5);
 		elseif change > 4 then
-			targetAng = -math.min(change / 40, 0.5);
+			targetAng = -math.min(change/40, 0.5);
 		end
 	else
 		if change > 4 then
-			targetAng = -math.max(change / 40, -0.5);
+			targetAng = -math.max(change/40, -0.5);
 		elseif change < -4 then
-			targetAng = -math.min(change / 40, 0.5);
+			targetAng = -math.min(change/40, 0.5);
 		end
 	end
 	
 	-- Control angle
 	change = self.AngPID:Update(self.RotAngle + self.AngularVel, targetAng);
 	-- Don't burst side thrusters from minimal tilt
-	local tilted = math.floor(math.abs(self.RotAngle) + 0.8);
-	if tilted  ~= 0 then
+	local tilted = math.floor(math.abs(self.RotAngle) + 0.9);
+	if tilted ~= 0 then
 		if change > 1.1 and not self.burstRight then
 			self.burstRight = math.max(5 - change, 2); -- Wait n frames until next burst (lower -> better control)
 		elseif change < -1.1 and not self.burstLeft then
@@ -265,7 +265,7 @@ function UpdateAI(self)
 		self.burstUp = self.burstUp - 1;
 		if self.burstUp < 0 then
 			self.Ctrl:SetState(Controller.MOVE_UP, true);
-			if self.burstUp < -12 then
+			if self.burstUp < -16 then
 				self.burstUp = nil;
 			end
 		end

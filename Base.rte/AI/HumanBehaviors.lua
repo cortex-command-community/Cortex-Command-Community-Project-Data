@@ -2115,10 +2115,12 @@ function HumanBehaviors.GoProne(AI, Owner, TargetPos, targetID)
 	end
 	
 	AI.proneState = AHuman.PRONE
-	if Dist.X > 0 then
-		AI.lateralMoveState = Actor.LAT_RIGHT
-	else
-		AI.lateralMoveState = Actor.LAT_LEFT
+	if not Owner.EquippedBGItem then
+		if Dist.X > 0 then
+			AI.lateralMoveState = Actor.LAT_RIGHT
+		else
+			AI.lateralMoveState = Actor.LAT_LEFT
+		end
 	end
 	
 	return true
@@ -2836,7 +2838,7 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y)
 		
 		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) then
-			meleeDist = Owner.Radius + 25
+			meleeDist = Owner.IndividualRadius + 25
 			startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 		elseif Owner.armSway then
 			local arm = Owner.FGArm or Owner.BGArm

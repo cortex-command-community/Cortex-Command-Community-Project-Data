@@ -292,7 +292,7 @@ function Update(self)
 			self.toAutoBuild = false;
 		end
 		local mode = self:GetNumberValue("BuildMode");
-		if mode == 0 then
+		if mode == 0 and not self.cursor then
 			-- activation
 			if ctrl:IsState(Controller.WEAPON_FIRE) then
 
