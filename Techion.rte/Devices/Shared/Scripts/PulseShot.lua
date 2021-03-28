@@ -1,6 +1,7 @@
 function Create(self)
 	self.disintegrationStrength = 50;
 	self.EffectRotAngle = self.Vel.AbsRadAngle;
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 	--Check backward (second argument) on the first frame as the projectile might be bouncing off something immediately
 	PulsarDissipate(self, true);
 	
@@ -31,9 +32,11 @@ function PulsarDissipate(self, inverted)
 	local hitPos = Vector();
 	local skipPx = math.sqrt(self.Vel.Magnitude) * 0.5;
 
-	local ray = SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx);
-	if ray >= 0 then
-		local mo = MovableMan:GetMOFromID(SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y));
+	local moid =	SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx) >= 0
+					and SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y) or self.HitWhatMOID;
+	
+	if moid ~= rte.NoMOID then
+		local mo = MovableMan:GetMOFromID(moid);
 		if mo then
 			hit = true;
 
@@ -43,14 +46,14 @@ function PulsarDissipate(self, inverted)
 			melt.Sharpness = mo.RootID;
 			melt.PinStrength = self.disintegrationStrength;
 			MovableMan:AddMO(melt);
-		else
-			local penetration = self.Mass * self.Sharpness * self.Vel.Magnitude;
-			if SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)).StructuralIntegrity > penetration then
-				hit = true;
-			end
+		end
+	else
+		local penetration = self.Mass * self.Sharpness * self.Vel.Magnitude;
+		if SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)).StructuralIntegrity > penetration then
+			hit = true;
 		end
 	end
-	if hit or self.Vel.Magnitude < 5 then
+	if hit or math.abs(self.Vel.AbsRadAngle - self.lastVel.AbsRadAngle) > 0.1 or self.Vel.Magnitude < self.lastVel.Magnitude * 0.5 then
 		local offset = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(skipPx);
 		self.explosion = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
 		self.explosion.Pos = hitPos - offset;
@@ -59,6 +62,7 @@ function PulsarDissipate(self, inverted)
 		self.explosion.Vel = offset;
 		MovableMan:AddParticle(self.explosion);
 	end
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 end
 --[[ To-do: Use this system instead
 function OnCollideWithMO(self, mo, parentMO)
