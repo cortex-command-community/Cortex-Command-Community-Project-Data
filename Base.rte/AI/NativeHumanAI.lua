@@ -346,67 +346,78 @@ function NativeHumanAI:Update(Owner)
 					end
 					
 					if Leader then
-						if Leader.EquippedItem and SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest < (Leader.Height + Owner.Height) * 0.5 then
+						local dist = SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest
+						local radius = (Leader.Height + Owner.Height) * 0.5
+						if dist < radius then
+							--if Leader:IsPlayerControlled() then
+							local copyControls = {Controller.MOVE_LEFT, Controller.MOVE_RIGHT, Controller.BODY_JUMPSTART, Controller.BODY_JUMP, Controller.BODY_CROUCH}
+							for _, control in pairs(copyControls) do
+								local state = Leader:GetController():IsState(control)
+								self.Ctrl:SetState(control, state)
+							end
+							--end
+							if Leader.EquippedItem then
 
-							if IsHDFirearm(Leader.EquippedItem) then
+								if IsHDFirearm(Leader.EquippedItem) then
 
-								local LeaderWeapon = ToHDFirearm(Leader.EquippedItem)
-								if LeaderWeapon:IsWeapon() then
-									local AimDelta = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false)
-									self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Leader.ViewPoint+AimDelta, false).Normalized
-									self.deviceState = AHuman.POINTING
+									local LeaderWeapon = ToHDFirearm(Leader.EquippedItem)
+									if LeaderWeapon:IsWeapon() then
+										local AimDelta = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false)
+										self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Leader.ViewPoint + AimDelta, false).Normalized
+										self.deviceState = AHuman.POINTING
 
-									-- check if the SL is shooting and if we have a similar weapon
-									if Owner.FirearmIsReady then
-										self.deviceState = AHuman.AIMING
-									
-										if IsHDFirearm(Owner.EquippedItem) and Leader:GetController():IsState(Controller.WEAPON_FIRE) then
-											local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
-											if OwnerWeapon:IsTool() then
-												-- try equipping a weapon
-												if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
-													Owner:EquipFirearm(true)
-												end
-											elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
-												OwnerWeapon:CompareTrajectories(LeaderWeapon) < math.max(100, OwnerWeapon:GetAIBlastRadius())
-											then
-												-- slightly displace full-auto shots to diminish stacking sounds and create a more dense fire rate
-												if OwnerWeapon.FullAuto then
-													if math.random() < 0.3 then
+										-- check if the SL is shooting and if we have a similar weapon
+										if Owner.FirearmIsReady then
+											self.deviceState = AHuman.AIMING
+										
+											if IsHDFirearm(Owner.EquippedItem) and Leader:GetController():IsState(Controller.WEAPON_FIRE) then
+												local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
+												if OwnerWeapon:IsTool() then
+													-- try equipping a weapon
+													if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+														Owner:EquipFirearm(true)
+													end
+												elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
+													OwnerWeapon:CompareTrajectories(LeaderWeapon) < math.max(100, OwnerWeapon:GetAIBlastRadius())
+												then
+													-- slightly displace full-auto shots to diminish stacking sounds and create a more dense fire rate
+													if OwnerWeapon.FullAuto then
+														if math.random() < 0.3 then
+															self.Target = nil
+															self.squadShoot = true
+														end
+													else
 														self.Target = nil
 														self.squadShoot = true
 													end
-												else
-													self.Target = nil
-													self.squadShoot = true
 												end
+											else
+												self.squadShoot = false
 											end
+										else
+											if Owner.FirearmIsEmpty then
+												Owner:ReloadFirearm()
+											elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+												Owner:EquipFirearm(true)
+											end
+										end
+									end
+								elseif IsTDExplosive(Leader.EquippedItem) and Leader:IsPlayerControlled() then
+									-- throw grenades in unison with squad
+									if ToTDExplosive(Leader.EquippedItem):HasObjectInGroup("Bombs - Grenades") and Owner:HasObjectInGroup("Bombs - Grenades") then
+
+										self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false).Normalized
+										self.deviceState = AHuman.POINTING
+
+										if Leader:GetController():IsState(Controller.WEAPON_FIRE) then
+
+											Owner:EquipDeviceInGroup("Bombs - Grenades", true)
+
+											self.Target = nil
+											self.squadShoot = true
 										else
 											self.squadShoot = false
 										end
-									else
-										if Owner.FirearmIsEmpty then
-											Owner:ReloadFirearm()
-										elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
-											Owner:EquipFirearm(true)
-										end
-									end
-								end
-							elseif IsTDExplosive(Leader.EquippedItem) and Leader:IsPlayerControlled() then
-								-- throw grenades in unison with squad
-								if ToTDExplosive(Leader.EquippedItem):HasObjectInGroup("Bombs - Grenades") and Owner:HasObjectInGroup("Bombs - Grenades") then
-
-									self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false).Normalized
-									self.deviceState = AHuman.POINTING
-
-									if Leader:GetController():IsState(Controller.WEAPON_FIRE) then
-
-										Owner:EquipDeviceInGroup("Bombs - Grenades", true)
-
-										self.Target = nil
-										self.squadShoot = true
-									else
-										self.squadShoot = false
 									end
 								end
 							end
