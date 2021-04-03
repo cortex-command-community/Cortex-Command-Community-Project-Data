@@ -15,6 +15,11 @@ function Create(self)
 		if self.face == 2 then
 			self.Head:AddAttachable(CreateAttachable("Ronin Brunette Ponytail"));
 		end
+	else
+		self.face = self:GetNumberValue("Identity");
+		if self.Head then
+			self.Head.Frame = self.face;
+		end
 	end
 end
 function Update(self)
