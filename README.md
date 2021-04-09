@@ -1,9 +1,9 @@
 # Cortex Command Community Project
-This is where you can find the community's plans for Cortex Command's future. There'll be rebalancing, new weapons and units, and much more. Stay up to date in our [discord channel](https://discord.gg/SdNnKJN).
+This is where you can find the community's plans for Cortex Command's future. There'll be rebalancing, new weapons and units, and much more. Stay up to date in our [discord channel](https://discord.gg/TSU6StNQUG).
 
 # How To Make Your Voice Heard #
 
-So you want to take part in the project? A good start would be going to the discord where the project is discussed. You can find a link [here](https://discord.gg/SdNnKJN). After that, all our releases will be available under the releases area and all of our bugs and changes and ideas are tracked in github issues. Feel free to play and suggest changes or point out any problems.
+So you want to take part in the project? A good start would be going to the discord where the project is discussed. You can find a link [here](https://discord.gg/TSU6StNQUG). After that, all our releases will be available under the releases area and all of our bugs and changes and ideas are tracked in github issues. Feel free to play and suggest changes or point out any problems.
 ***
 # How To Make Issues #
 
