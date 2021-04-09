@@ -25,7 +25,7 @@ function Update(self)
 	if moCheck ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(moCheck);
 		if mo then
-			if mo.Material.StructuralIntegrity > 100 then
+			if mo.Material.StructuralIntegrity > self.Mass * self.Sharpness then
 				local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 				self:AddWound(CreateAEmitter(self:GetEntryWoundPresetName()), Vector(math.random(1 + self.length), 0), true);
 	
