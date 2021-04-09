@@ -349,13 +349,11 @@ function NativeHumanAI:Update(Owner)
 						local dist = SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest
 						local radius = (Leader.Height + Owner.Height) * 0.5
 						if dist < radius then
-							--if Leader:IsPlayerControlled() then
 							local copyControls = {Controller.MOVE_LEFT, Controller.MOVE_RIGHT, Controller.BODY_JUMPSTART, Controller.BODY_JUMP, Controller.BODY_CROUCH}
 							for _, control in pairs(copyControls) do
 								local state = Leader:GetController():IsState(control)
 								self.Ctrl:SetState(control, state)
 							end
-							--end
 							if Leader.EquippedItem then
 
 								if IsHDFirearm(Leader.EquippedItem) then
