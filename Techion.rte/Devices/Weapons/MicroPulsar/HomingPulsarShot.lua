@@ -1,7 +1,7 @@
 function Create(self)
 
 	self.disintegrationStrength = 50;
-	self.adjustmentAmount = 2;
+	self.adjustmentAmount = 1;
 
 	self.delayTimer = Timer();
 
@@ -39,6 +39,7 @@ function Create(self)
 			end
 		end
 	end
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 	PulsarDissipate(self, true);
 	
 	self.trailPar = CreateMOPixel("Techion Pulse Shot Trail Glow Small");
@@ -48,6 +49,7 @@ function Create(self)
 	MovableMan:AddParticle(self.trailPar);
 end
 function Update(self)
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 	if self.delayTimer:IsPastSimMS(25) and self.target ~= null and self.target.ID ~= rte.NoMOID then
 		local checkVel = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
 		checkVel = checkVel:SetMagnitude(checkVel.Magnitude - self.target.Radius);
@@ -65,6 +67,8 @@ function Update(self)
 			self.trailPar.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(3);
 			self.trailPar.Vel = self.Vel * 0.5;
 			self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
+		else
+			self.trailPar = nil;
 		end
 	end
 	self.EffectRotAngle = self.Vel.AbsRadAngle;

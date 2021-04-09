@@ -1,7 +1,6 @@
 function Create(self)
 	self.disintegrationStrength = 50;
 	self.EffectRotAngle = self.Vel.AbsRadAngle;
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 	--Check backward (second argument) on the first frame as the projectile might be bouncing off something immediately
 	PulsarDissipate(self, true);
 	
@@ -21,6 +20,8 @@ function Update(self)
 			self.trailPar.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(6);
 			self.trailPar.Vel = self.Vel * 0.5;
 			self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
+		else
+			self.trailPar = nil;
 		end
 	end
 	self.EffectRotAngle = self.Vel.AbsRadAngle;
@@ -44,7 +45,7 @@ function PulsarDissipate(self, inverted)
 			melt.Pos = self.Pos;
 			melt.Team = self.Team;
 			melt.Sharpness = mo.RootID;
-			melt.PinStrength = self.disintegrationStrength;
+			melt.PinStrength = self.disintegrationStrength or 1;
 			MovableMan:AddMO(melt);
 		end
 	else
@@ -53,7 +54,7 @@ function PulsarDissipate(self, inverted)
 			hit = true;
 		end
 	end
-	if hit or math.abs(self.Vel.AbsRadAngle - self.lastVel.AbsRadAngle) > 0.1 or self.Vel.Magnitude < self.lastVel.Magnitude * 0.5 then
+	if hit or math.abs(math.sin(self.Vel.AbsRadAngle - self.lastVel.AbsRadAngle)) > 0.1 or self.Vel.Magnitude < self.lastVel.Magnitude * 0.5 then
 		local offset = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(skipPx);
 		self.explosion = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
 		self.explosion.Pos = hitPos - offset;
