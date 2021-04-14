@@ -241,12 +241,14 @@ function OneManArmy:UpdateActivity()
 			ship.Team = self.CPUTeam;
 			
 			-- The max allowed weight of this craft plus cargo
-			local craftMaxMass = ship.MaxMass
+			local craftMaxMass = ship.MaxInventoryMass
 			if craftMaxMass < 0 then
 				craftMaxMass = math.huge
 			elseif craftMaxMass < 1 then
-				craftMaxMass = ship.Mass + 400	-- MaxMass not defined
+				ship = RandomACRocket("Any", 0);
+				craftMaxMass = ship.MaxInventoryMass
 			end
+			local totalInventoryMass = 0
 			
 			-- Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
@@ -259,9 +261,10 @@ function OneManArmy:UpdateActivity()
 				passenger.Team = self.CPUTeam;
 
 				-- Check that we can afford to buy and to carry the weight of this passenger
-				if (ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3)) <= self:GetTeamFunds(self.CPUTeam) and (ship.Mass + passenger.Mass) <= craftMaxMass then
+				if (ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3)) <= self:GetTeamFunds(self.CPUTeam) and (totalInventoryMass + passenger.Mass) <= craftMaxMass then
 					-- Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
+					totalInventoryMass = totalInventoryMass + passenger.Mass
 					passenger = nil;
 				else
 					-- Nope; just delete the nixed passenger and stop adding new ones

@@ -580,11 +580,12 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 	local Craft = RandomACDropShip("Craft", self.AI[Team].TechID)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -617,8 +618,12 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -651,11 +656,16 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -679,8 +689,12 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -705,11 +719,16 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -731,8 +750,12 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -757,11 +780,16 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -783,8 +811,12 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if inventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -837,7 +869,8 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
@@ -850,8 +883,12 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 				Craft:AddInventoryItem(Payload)
 			end
 			
+			local inventoryMass = 0;
+			for item in Craft.Inventory do
+				inventoryMass = inventoryMass + item.Mass;
+			end
 			-- Stop adding bombs when exceeding the weight limit
-			if Craft.Mass > craftMaxMass then 
+			if inventoryMass > craftMaxMass then 
 				break
 			end
 		end

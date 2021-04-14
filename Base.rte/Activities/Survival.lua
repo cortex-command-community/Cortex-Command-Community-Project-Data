@@ -215,7 +215,7 @@ function Survival:UpdateActivity()
 				passenger.Team = self.CPUTeam;
 
 				-- Check that we can afford to buy and to carry the weight of this passenger
-				if ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3) <= self:GetTeamFunds(self.CPUTeam) and (ship.Mass + passenger.Mass) <= ship.MaxMass then
+				if ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3) <= self:GetTeamFunds(self.CPUTeam) and passenger.Mass <= ship.MaxInventoryMass then
 					-- Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
 					passenger = nil;
