@@ -21,7 +21,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 		end
 		if actor.detachImpulseLimit and actor.TravelImpulse.Magnitude > actor.detachImpulseLimit then
 			local parts = {actor.BGLeg, actor.BGArm, actor.FGLeg, actor.FGArm, actor.Head};	--Priority order
-			local impulsePoint = actor.Pos - actor.TravelImpulse/actor.Mass;
+			local impulsePoint = actor.Pos - actor.TravelImpulse/(actor.Mass == 0 and 0.0001 or actor.Mass);
 			local closestDist, detachLimb;
 			--Pick the limb closest to the direction of impulse
 			for _, limb in pairs(parts) do
@@ -35,7 +35,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 				end
 			end
 			if detachLimb then
-				local limbImpulse = actor.TravelImpulse.Magnitude/detachLimb.Mass;
+				local limbImpulse = actor.TravelImpulse.Magnitude/(detachLimb.Mass == 0 and 0.0001 or detachLimb.Mass);
 				if limbImpulse > detachLimb.JointStrength then
 					detachLimb.JointStrength = -1;
 					if math.random() * limbImpulse > detachLimb.GibImpulseLimit then
