@@ -377,7 +377,7 @@ function Update(self)
 					local jointStiffness;
 					local target = self.target;
 					if target.ID ~= target.RootID then
-						local mo = MovableMan:GetMOFromID(target.RootID);
+						local mo = target:GetRootParent();
 						if mo.ID ~= rte.NoMOID and IsAttachable(target) then
 							-- It's best to apply all the forces to the parent instead of utilizing JointStiffness
 							target = mo;

@@ -27,6 +27,7 @@ function Update(self)
 	self.EffectRotAngle = self.Vel.AbsRadAngle;
 end
 function PulsarDissipate(self, inverted)
+	self.lastVel = self.lastVel or Vector(self.Vel.X, self.Vel.Y);
 
 	local trace = inverted and Vector(-self.Vel.X, -self.Vel.Y):SetMagnitude(GetPPM()) or Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + 1);
 	local hit;
