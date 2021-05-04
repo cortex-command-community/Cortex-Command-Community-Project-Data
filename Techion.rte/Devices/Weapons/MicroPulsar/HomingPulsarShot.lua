@@ -1,14 +1,12 @@
 function Create(self)
 
-	self.disintegrationStrength = 50;
 	self.adjustmentAmount = 1;
 
 	self.delayTimer = Timer();
 
-	self.target = null;
 	local longDist = 800;
 	local shortDist = 98;
-	
+	--To-do: fix this garbage targeting system?
 	for i = 1, MovableMan:GetMOIDCount() - 1 do
 		local mo = MovableMan:GetMOFromID(i);
 		if mo and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
@@ -39,18 +37,9 @@ function Create(self)
 			end
 		end
 	end
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
-	PulsarDissipate(self, true);
-	
-	self.trailPar = CreateMOPixel("Techion Pulse Shot Trail Glow Small");
-	self.trailPar.Pos = self.Pos - (self.Vel * rte.PxTravelledPerFrame);
-	self.trailPar.Vel = self.Vel * 0.1;
-	self.trailPar.Lifetime = 60;
-	MovableMan:AddParticle(self.trailPar);
 end
 function Update(self)
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
-	if self.delayTimer:IsPastSimMS(25) and self.target ~= null and self.target.ID ~= rte.NoMOID then
+	if self.delayTimer:IsPastSimMS(25) and self.target and self.target.ID ~= rte.NoMOID then
 		local checkVel = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
 		checkVel = checkVel:SetMagnitude(checkVel.Magnitude - self.target.Radius);
 		if SceneMan:CastStrengthRay(self.Pos, checkVel, 0, Vector(), 3, rte.airID, SceneMan.SceneWrapsX) == false then
@@ -58,18 +47,4 @@ function Update(self)
 			self.Vel = Vector(self.Vel.Magnitude, 0):RadRotate(aimVel.AbsRadAngle);
 		end
 	end
-	self.ToSettle = false;
-	if self.explosion then
-		self.ToDelete = true;
-	else
-		PulsarDissipate(self, false);
-		if self.trailPar and MovableMan:IsParticle(self.trailPar) then
-			self.trailPar.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(3);
-			self.trailPar.Vel = self.Vel * 0.5;
-			self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
-		else
-			self.trailPar = nil;
-		end
-	end
-	self.EffectRotAngle = self.Vel.AbsRadAngle;
 end
