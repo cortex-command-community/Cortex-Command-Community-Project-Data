@@ -30,7 +30,7 @@ function Update(self)
 			local fireVec = Vector(60 * self.FlipFactor, 0):RadRotate(self.RotAngle):RadRotate(0.2 * self.FlipFactor);
 			for i = 1, particleCount do
 				--Lua-generated particles that can chip stone
-				local dig = CreateMOPixel("Particle Ronin Shovel 2");
+				local dig = CreateMOPixel("Particle Ronin Shovel 2", "Ronin.rte");
 				dig.Pos = self.MuzzlePos;
 				dig.Vel = Vector(55 * self.FlipFactor, 0):RadRotate(self.RotAngle + (-0.3 + i * 0.2) * self.FlipFactor);
 				MovableMan:AddParticle(dig);
@@ -41,7 +41,7 @@ function Update(self)
 			if moCheck ~= rte.NoMOID then
 				self.hitSound:Play(self.MuzzlePos);
 				for i = 1, particleCount do
-					local damagePar = CreateMOPixel("Smack Particle");
+					local damagePar = CreateMOPixel("Smack Particle", "Base.rte");
 					damagePar.Pos = self.MuzzlePos;
 					damagePar.Vel = Vector(fireVec.X, fireVec.Y):RadRotate((-0.8 + i * 0.4) * self.FlipFactor);
 					damagePar.Team = self.Team;
@@ -93,7 +93,7 @@ function Update(self)
 					local particleCount = 3;
 					local spread = self.AngularVel * TimerMan.DeltaTimeSecs * 0.5;
 					for i = 0, particleCount - 1 do
-						local damagePar = CreateMOPixel("Smack Particle");
+						local damagePar = CreateMOPixel("Smack Particle", "Base.rte");
 						damagePar.Mass = self.Mass--/particleCount;
 						damagePar.Sharpness = self.Sharpness-- * particleCount;
 

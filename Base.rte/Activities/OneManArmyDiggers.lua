@@ -81,32 +81,20 @@ function OneManArmy:StartActivity()
 						local primaryWeapon, secondaryWeapon, throwable, actor;
 						for entity in module.Presets do
 							local picked;	-- Prevent duplicates
-							if not primaryWeapon and entity.ClassName == "HDFirearm" then
-								if ToMOSRotating(entity):HasObjectInGroup(primaryGroup)
-								and ToMOSRotating(entity).IsBuyable then
-									primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
-									picked = true;
-								end
+							if not primaryWeapon and entity.ClassName == "HDFirearm" if ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).IsBuyable then
+								primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
+								picked = true;
 							end
-							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" then
-								if ToMOSRotating(entity):HasObjectInGroup(secondaryGroup)
-								and ToMOSRotating(entity).IsBuyable then
-									secondaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
-									picked = true;
-								end
+							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) and ToMOSRotating(entity).IsBuyable then
+								secondaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
+								picked = true;
 							end
-							if not picked and not throwable and entity.ClassName == "TDExplosive" then
-								if ToMOSRotating(entity):HasObjectInGroup("Bombs - Grenades")
-								and ToMOSRotating(entity).IsBuyable then
-									throwable = CreateTDExplosive(entity:GetModuleAndPresetName());
-									picked = true;
-								end
+							if not picked and not throwable and entity.ClassName == "TDExplosive" and ToMOSRotating(entity):HasObjectInGroup("Bombs - Grenades") and ToMOSRotating(entity).IsBuyable then
+								throwable = CreateTDExplosive(entity:GetModuleAndPresetName());
+								picked = true;
 							end
-							if not picked and not actor and entity.ClassName == "AHuman" then
-								if ToMOSRotating(entity):HasObjectInGroup(actorGroup)
-								and ToMOSRotating(entity).IsBuyable then
-									actor = CreateAHuman(entity:GetModuleAndPresetName());
-								end
+							if not picked and not actor and entity.ClassName == "AHuman" and ToMOSRotating(entity):HasObjectInGroup(actorGroup) and ToMOSRotating(entity).IsBuyable then
+								actor = CreateAHuman(entity:GetModuleAndPresetName());
 							end
 						end
 						if actor then

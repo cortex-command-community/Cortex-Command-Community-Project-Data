@@ -18,7 +18,7 @@ function Update(self)
 				self.lastMag.Sharpness = 1;
 				self.lastMag.Vel = self.lastMag.Vel + Vector(-10 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 
-				local effect = CreateAEmitter("Techion Giga Pulsar Magazine Eject Effect");
+				local effect = CreateAEmitter("Techion Giga Pulsar Magazine Eject Effect", "Techion.rte");
 				effect.Pos = self.lastMag.Pos;
 				effect.RotAngle = self.RotAngle;
 				effect.HFlipped = self.HFlipped;
