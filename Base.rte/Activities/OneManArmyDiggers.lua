@@ -81,7 +81,7 @@ function OneManArmy:StartActivity()
 						local primaryWeapon, secondaryWeapon, throwable, actor;
 						for entity in module.Presets do
 							local picked;	-- Prevent duplicates
-							if not primaryWeapon and entity.ClassName == "HDFirearm" if ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).IsBuyable then
 								primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
