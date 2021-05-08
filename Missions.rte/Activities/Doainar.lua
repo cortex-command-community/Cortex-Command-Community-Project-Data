@@ -279,12 +279,12 @@ function DoainarMission:UpdateActivity()
 	for actor in MovableMan.Actors do
 		if self.aggress == false then
 			if not self.caveAreaA:IsInside(actor.Pos) and not self.caveAreaB:IsInside(actor.Pos) and actor.PresetName == "Crab" then
-				self:AddObjectivePoint("Kill!", actor.Pos + Vector(0, -actor.Radius), Activity.TEAM_1, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("Kill!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
 			end
 		end
 		if self.mamadead == true then
 			if actor.PresetName == "Crab" then
-				self:AddObjectivePoint("Kill!", actor.Pos + Vector(0, -actor.Radius), Activity.TEAM_1, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("Kill!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
 			end
 		end
 	end

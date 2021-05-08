@@ -58,7 +58,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 end
 	
 function HumanFunctions.DoAutomaticEquip(actor)
-	--Equip a weapon automatically if the one held by a player is destroyed
+	--Equip a weapon automatically if the one held by a player is destroyed (To-do: move this to cpp?)
 	if actor.EquippedItem == nil and not actor.controller:IsState(Controller.WEAPON_FIRE) and (actor:IsPlayerControlled() or actor:UnequipBGArm()) then
 		actor:EquipFirearm(true);
 	end

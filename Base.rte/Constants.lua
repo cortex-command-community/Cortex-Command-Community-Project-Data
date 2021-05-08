@@ -2,8 +2,8 @@
 rte = {};
 
 rte.MOIDCountMax = math.max(SettingsMan.RecommendedMOIDCount * 3, 250);
-rte.DefenderMOIDMax = SettingsMan.RecommendedMOIDCount;
-rte.AIMOIDMax = SettingsMan.RecommendedMOIDCount/2;
+rte.AIMOIDMax = rte.MOIDCountMax/4;
+rte.DefenderMOIDMax = rte.MOIDCountMax - rte.AIMOIDMax;
 rte.NoMOID = 255;
 rte.SpawnIntervalScale = 1.0;
 rte.StartingFundsScale = 1.0;
