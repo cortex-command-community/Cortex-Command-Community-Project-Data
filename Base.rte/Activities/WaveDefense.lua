@@ -556,12 +556,13 @@ end
 function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 	local Craft = RandomACDropShip("Craft", self.AI.Tech)	-- Pick a craft to deliver with
 	if Craft then
-		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		-- The max allowed weight of this craft's cargo
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -595,8 +596,12 @@ function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
+				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 					break
 				end
 			end
@@ -615,25 +620,30 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 	local Craft, actorsInCargo
 	if math.random() < 0.6 then
 		Craft = RandomACDropShip("Craft", self.AI.Tech)
-    if Craft.MaxPassengers < 2 then
-      actorsInCargo = 1
-    elseif Craft.MaxPassengers > 2 then
-      actorsInCargo = math.random(2, Craft.MaxPassengers)
-    else
-      actorsInCargo = 2
-    end
+	    if Craft.MaxPassengers < 2 then
+	      actorsInCargo = 1
+	    elseif Craft.MaxPassengers > 2 then
+	      actorsInCargo = math.random(2, Craft.MaxPassengers)
+	    else
+	      actorsInCargo = 2
+	    end
 	else
 		Craft = RandomACRocket("Craft", self.AI.Tech)
 		actorsInCargo = Craft.MaxPassengers
 	end
 	
 	if Craft then
-		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		-- The max allowed weight of this craft's cargo
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -657,8 +667,12 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+				    inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -683,11 +697,16 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -709,8 +728,12 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -735,11 +758,16 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -761,8 +789,12 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
+				local inventoryMass = 0;
+				for item in Craft.Inventory do
+					inventoryMass = inventoryMass + item.Mass;
+				end
 				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -780,11 +812,12 @@ function WaveDefense:CreateBombDrop(bombPosX)
 	local Craft = RandomACDropShip("Craft", self.AI.Tech)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
@@ -794,8 +827,12 @@ function WaveDefense:CreateBombDrop(bombPosX)
 		for _ = 3, 5 do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.AI.Tech))
 			
+			local inventoryMass = 0;
+			for item in Craft.Inventory do
+				inventoryMass = inventoryMass + item.Mass;
+			end
 			-- Stop adding bombs when exceeding the weight limit
-			if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+			if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 				break
 			end
 		end
