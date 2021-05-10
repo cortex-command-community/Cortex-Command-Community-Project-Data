@@ -325,12 +325,14 @@ function WaveDefense:UpdateActivity()
 			if playertally < 1 then
 				self.WinnerTeam = self.CPUTeam
 				ActivityMan:EndActivity()
-				
-				AudioMan:ClearMusicQueue();
-				AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-				AudioMan:QueueSilence(10);
-				AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
-				
+
+				-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+				if not self:IsPaused() then
+					AudioMan:ClearMusicQueue();
+					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+					AudioMan:QueueSilence(10);
+					AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+				end
 				return
 			end
 			
