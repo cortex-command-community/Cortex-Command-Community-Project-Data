@@ -2128,12 +2128,14 @@ end
 
 -- get the projectile properties from the magazine
 function HumanBehaviors.GetProjectileData(Owner)
-	local Weapon = ToHDFirearm(Owner.EquippedItem)
-	local Round, Projectile, PrjDat
-	if Weapon.Magazine then
-		Round = Weapon.Magazine.NextRound
-		Projectile = Round.NextParticle
-		PrjDat = {MagazineName=Weapon.Magazine.PresetName}
+	local Weapon, Round, Projectile, PrjDat
+	if Owner.EquippedItem and IsHDFirearm(Owner.EquippedItem) then
+		Weapon = ToHDFirearm(Owner.EquippedItem)
+		if Weapon.Magazine then
+			Round = Weapon.Magazine.NextRound
+			Projectile = Round.NextParticle
+			PrjDat = {MagazineName=Weapon.Magazine.PresetName}
+		end
 	end
 	if Round == nil or Round.IsEmpty then	-- set default values if there is no particle
 		PrjDat.g = 0

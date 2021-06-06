@@ -12,7 +12,7 @@ function Create(self)
 		randomDirection = self.Pos.X > (SceneMan.SceneWidth - 99) and -1 or (self.Pos.X < 99 and 1 or randomDirection);
 	end
 	self.AngularVel = -randomDirection * math.random(1, 10);
-	self.Vel = Vector(randomDirection * math.random(1, 20), 40);
+	self.Vel = Vector(randomDirection * math.random(1, 20), math.min(10 + 10 * 1500/SceneMan.SceneHeight, 100));
 end
 function Update(self)
 	--Apply damage to the actors inside based on impulse forces

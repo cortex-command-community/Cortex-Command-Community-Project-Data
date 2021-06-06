@@ -25,7 +25,7 @@ function Update(self)
 	else
 		self.Vel = Vector();
 	end
-	if self.Age > self.Lifetime - 17 * (1 + self.WoundCount) then
+	if self.Age > self.Lifetime - 30 * (1 + self.WoundCount) then
 		self:GibThis();
 	end
 end

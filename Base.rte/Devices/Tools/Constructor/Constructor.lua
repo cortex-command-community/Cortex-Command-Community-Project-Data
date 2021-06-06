@@ -54,7 +54,7 @@ function ConstructorFloodFill(x, y, startnum, maxnum, array, realposition, reals
 end
 
 function ConstructorSnapPos(checkPos)
-	return Vector(math.floor((checkPos.x - 12)/24) * 24 + 12, math.floor((checkPos.y - 12)/24) * 24 + 12);
+	return Vector(math.floor((checkPos.X - 12)/24) * 24 + 12, math.floor((checkPos.Y - 12)/24) * 24 + 12);
 end
 
 function ConstructorTerrainRay(start, trace, skip)

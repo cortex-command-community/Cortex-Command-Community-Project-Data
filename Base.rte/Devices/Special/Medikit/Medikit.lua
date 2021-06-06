@@ -23,7 +23,7 @@ function Update(self)
 					target.Health = math.min(target.Health + strength, target.MaxHealth);
 				end
 				if target.WoundCount > 0 then
-					target:RemoveWounds(math.ceil(strength * 0.15));
+					target:RemoveWounds(math.ceil(strength * 0.15), true, false, false);
 				end
 				target:FlashWhite(50);
 				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.flac", self.Pos);

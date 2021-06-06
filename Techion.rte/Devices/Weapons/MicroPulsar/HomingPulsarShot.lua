@@ -9,9 +9,9 @@ function Create(self)
 	--To-do: fix this garbage targeting system?
 	for i = 1, MovableMan:GetMOIDCount() - 1 do
 		local mo = MovableMan:GetMOFromID(i);
-		if mo and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
+		if mo and mo.ClassName ~= "ADoor" and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
 
-		local distCheck = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
+			local distCheck = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 			if distCheck.Magnitude - mo.Radius < longDist then
 
 				local toCheckPos = Vector(distCheck.Magnitude, 0):RadRotate(self.Vel.AbsRadAngle);
