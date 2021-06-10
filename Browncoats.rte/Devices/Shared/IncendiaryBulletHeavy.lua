@@ -1,30 +1,34 @@
 function Create(self)
-	self.trailLength = 50;
-	local trail = CreateMOPixel("Incendiary Bullet Trail Glow 0");
-	trail.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame * 0.5;
-	trail.EffectRotAngle = self.Vel.AbsRadAngle;
-	MovableMan:AddParticle(trail);
-	
 	self.fire = CreatePEmitter("Flame Hurt Short");
+	self.smokeTwirlCounter = math.random() < 0.5 and math.pi or 0;
 end
 function Update(self)
 	local velFactor = math.floor(1 + math.sqrt(self.Vel.Magnitude)/(1 + self.Age * 0.01));
-	for i = 1, velFactor do
-		local particle = i == 1 and CreateMOPixel("Ground Fire Burn Particle") or CreateMOSParticle("Flame Smoke 1 Micro");
-		particle.Pos = Vector(self.Pos.X, self.Pos.Y) - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame * (i/velFactor);
-		particle.Vel = self.Vel * 0.5 + Vector(math.random(5, 10)/velFactor, 0):RadRotate(math.random() * 6.28);
-		particle.Lifetime = particle.Lifetime * RangeRand(0.7, math.sqrt(velFactor));
-		particle.Sharpness = particle.Sharpness/i;
-		particle.GlobalAccScalar = -math.random();
-		particle.Team = self.Team;
-		particle.IgnoresTeamHits = true;
-		MovableMan:AddParticle(particle);
+
+	local particle = CreateMOPixel("Fire Burn Particle");
+	particle.Pos = Vector(self.Pos.X, self.Pos.Y) - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame * 0.5;
+	particle.Vel = self.Vel * 0.5 + Vector(math.random(5, 10)/velFactor, 0):RadRotate(math.random() * math.pi * 2);
+	particle.Lifetime = particle.Lifetime * RangeRand(0.3, 0.5);
+	particle.GlobalAccScalar = -math.random();
+	particle.Team = self.Team;
+	particle.IgnoresTeamHits = true;
+	MovableMan:AddParticle(particle);
+
+	local offset = self.Vel * rte.PxTravelledPerFrame;
+	local trailLength = math.floor(offset.Magnitude * 0.5 - 1);
+	for i = 1, trailLength do
+		local effect = CreateMOSParticle("Flame Smoke 1 Micro", "Base.rte");
+		effect.Lifetime = effect.Lifetime * RangeRand(0.5, 1);
+
+		effect.AirResistance = effect.AirResistance * RangeRand(0.9, 1);
+		effect.GlobalAccScalar = effect.GlobalAccScalar * math.random();
+
+		effect.Pos = self.Pos - offset + (offset * i/trailLength);
+		effect.Vel = self.Vel * 0.1 + Vector(1, math.sin(self.smokeTwirlCounter) + RangeRand(-0.1, 0.1)):RadRotate(self.Vel.AbsRadAngle);
+		
+		self.smokeTwirlCounter = self.smokeTwirlCounter + RangeRand(-0.2, 0.4);
+		MovableMan:AddParticle(effect);
 	end
-	local glowNumber = self.Vel.Magnitude > 60 and 1 or (self.Vel.Magnitude > 40 and 2 or (self.Vel.Magnitude > 20 and 3 or 4));
-	local trail = CreateMOPixel("Incendiary Bullet Trail Glow ".. glowNumber);
-	trail.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.min(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.trailLength) * 0.5);
-	trail.EffectRotAngle = self.Vel.AbsRadAngle;
-	MovableMan:AddParticle(trail);
 
 	if self.ToDelete then
 		if self.Age < self.Lifetime then
@@ -37,12 +41,6 @@ function Update(self)
 				self.fire.Vel = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(skipPx);
 				MovableMan:AddParticle(self.fire);
 			end
-		else
-			local smoke = CreateMOSParticle("Flame Smoke 1");
-			smoke.Pos = Vector(self.Pos.X, self.Pos.Y);
-			smoke.Vel = Vector(self.Vel.X, self.Vel.Y) * 0.5;
-			smoke.Lifetime = math.random(250, 500);
-			MovableMan:AddParticle(smoke);
 		end
 	end
 end

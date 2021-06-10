@@ -8,7 +8,7 @@ function FriendlyFireScript:UpdateScript()
 	if self.updateTimer:IsPastSimTimeLimit() then
 		for part in MovableMan.Particles do
 			if part.HitsMOs and part.Team ~= -1 then
-				if (part.Age * GetPPM() * part.Vel.Magnitude) / 1000 > self.safeDist then
+				if (part.Age * GetPPM() * part.Vel.Magnitude) * 0.001 > self.safeDist then
 					part.Team = -1;
 					part.IgnoresTeamHits = false;
 				end

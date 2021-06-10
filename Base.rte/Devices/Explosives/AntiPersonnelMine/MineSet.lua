@@ -28,7 +28,7 @@ function Create(self)
 
 	self.checkDelay = 100;
 	self.checkDelayExtension = 0.1;
-	self.detonateThreshold = 10;
+	self.detonateThreshold = 15;
 	self.detonateDelay = 200;
 end
 

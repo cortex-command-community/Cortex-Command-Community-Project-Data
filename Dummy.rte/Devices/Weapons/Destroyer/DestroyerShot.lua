@@ -14,11 +14,11 @@ function Update(self)
 
 	if self.emitTimer:IsPastSimMS(6) then
 		self.emitTimer:Reset();
-		local particleCount = 1 + math.sqrt(self.Vel.Magnitude * 0.1);
+		local particleCount = 1 + math.sqrt(self.Vel.Magnitude * 0.2);
 		for i = 1, particleCount do
 			local damagePar = CreateMOPixel("Dummy.rte/Destroyer Emission Particle ".. math.random(2));
 			damagePar.Pos = self.Pos;
-			damagePar.Vel = self.Vel * 0.5 + Vector(particleCount + math.random(10), 0):RadRotate(6.28 * math.random());
+			damagePar.Vel = self.Vel * 0.5 + Vector(particleCount + math.random(10), 0):RadRotate(math.pi * 2 * math.random());
 			damagePar.Team = self.Team;
 			damagePar.IgnoresTeamHits = true;
 			MovableMan:AddParticle(damagePar);

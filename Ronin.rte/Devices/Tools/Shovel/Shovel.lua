@@ -1,35 +1,36 @@
 function Create(self)
 	self.origStanceOffset = Vector(0, 8);
-	self.rotNum = 0;
+	self.origSharpStanceOffset = Vector(4, 6);
 	self.minimumRoF = self.RateOfFire * 0.5;
 
-	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble"};
-	
-	self.resource = 0;
-	self.resourcePerBag = 10;
+	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag"};
+	self.collectSound = CreateSoundContainer("Device Switch", "Base.rte");
+	self.hitSound = CreateSoundContainer("Ronin Shovel Hit", "Ronin.rte");
 	--How much the shovel tilts when firing
 	self.angleSize = 1.0;
+
+	self.lastVel = Vector(50 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 end
 function Update(self)
-	self.RotAngle = self.RotAngle + self.rotNum * self.FlipFactor;
-	self.StanceOffset = Vector(self.origStanceOffset.X + self.rotNum * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.rotNum);
+	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
+	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
 	--Revert rotation
-	if self.rotNum > 0 then
-		self.rotNum = math.max(self.rotNum - (0.0003 * self.RateOfFire), 0);
+	if self.InheritedRotAngleOffset > 0 then
+		self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
 	end
-	local actor = MovableMan:GetMOFromID(self.RootID);
-	if actor and IsActor(actor) then
-		actor = ToActor(actor);
-		actor:GetController():SetState(Controller.AIM_SHARP, false);
-		local resource = actor:GetNumberValue("RoninShovelResource");
+	local parent = self:GetRootParent();
+	if parent and IsActor(parent) then
+		parent = ToActor(parent);
+		local resource = parent:GetNumberValue("RoninShovelResource");
 
 		if self.FiredFrame then
-			self.rotNum = self.angleSize;
+			self.InheritedRotAngleOffset = self.angleSize;
 			local particleCount = 3;
 			local fireVec = Vector(60 * self.FlipFactor, 0):RadRotate(self.RotAngle):RadRotate(0.2 * self.FlipFactor);
 			for i = 1, particleCount do
 				--Lua-generated particles that can chip stone
-				local dig = CreateMOPixel("Particle Ronin Shovel 2");
+				local dig = CreateMOPixel("Particle Ronin Shovel 2", "Ronin.rte");
 				dig.Pos = self.MuzzlePos;
 				dig.Vel = Vector(55 * self.FlipFactor, 0):RadRotate(self.RotAngle + (-0.3 + i * 0.2) * self.FlipFactor);
 				MovableMan:AddParticle(dig);
@@ -38,9 +39,9 @@ function Update(self)
 			--Play a radical sound if a MO is met
 			local moCheck = SceneMan:CastMORay(self.MuzzlePos, trace, self.ID, self.Team, 0, false, 1);
 			if moCheck ~= rte.NoMOID then
-				AudioMan:PlaySound("Ronin.rte/Devices/Tools/Shovel/Sounds/Melee".. math.random(3) ..".flac", self.MuzzlePos);
+				self.hitSound:Play(self.MuzzlePos);
 				for i = 1, particleCount do
-					local damagePar = CreateMOPixel("Smack Particle");
+					local damagePar = CreateMOPixel("Smack Particle", "Base.rte");
 					damagePar.Pos = self.MuzzlePos;
 					damagePar.Vel = Vector(fireVec.X, fireVec.Y):RadRotate((-0.8 + i * 0.4) * self.FlipFactor);
 					damagePar.Team = self.Team;
@@ -48,7 +49,7 @@ function Update(self)
 					damagePar.Mass = damagePar.Mass * RangeRand(0.5, 1.0);
 					MovableMan:AddParticle(damagePar);
 				end
-			elseif resource < self.resourcePerBag then
+			elseif resource < 10 then
 				--Gather materials and turn them into sandbags
 				local rayCount = 3;
 				local hits = 0;
@@ -61,8 +62,8 @@ function Update(self)
 							if material == terrainMaterial then
 								hits = hits + 1;
 								if hits > rayCount * 0.5 then
-									actor:SetNumberValue("RoninShovelResource", resource + 1);
-									AudioMan:PlaySound("Base.rte/Sounds/Devices/DeviceSwitch".. math.random(3) ..".flac", self.Pos);
+									parent:SetNumberValue("RoninShovelResource", resource + 1);
+									self.collectSound:Play(self.Pos);
 									break;
 								end
 								break;
@@ -79,13 +80,36 @@ function Update(self)
 
 			self.Magazine.RoundCount = resource > 0 and resource or -1;
 		end
-		self.RateOfFire = self.minimumRoF + (self.minimumRoF) * (actor.Health/actor.MaxHealth);
+		self.RateOfFire = self.minimumRoF + (self.minimumRoF) * (parent.Health/parent.MaxHealth);
 	else
 		self.Scale = 1;
 		if self.Magazine then
 			self.Magazine.Scale = 0;
 		end
+		if self.lastVel.Magnitude > 25 then
+			if self.HitWhatMOID ~= rte.NoMOID then
+				local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
+				if mo then
+					local particleCount = 3;
+					local spread = self.AngularVel * TimerMan.DeltaTimeSecs * 0.5;
+					for i = 0, particleCount - 1 do
+						local damagePar = CreateMOPixel("Smack Particle", "Base.rte");
+						damagePar.Mass = self.Mass--/particleCount;
+						damagePar.Sharpness = self.Sharpness-- * particleCount;
+
+						damagePar.Pos = self.lastMuzzlePos;
+						damagePar.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * 0.5 - spread * i/(particleCount - 1)) * 1.5;
+	
+						damagePar:SetWhichMOToNotHit(self, -1);
+						MovableMan:AddParticle(damagePar);
+					end
+					self.hitSound:Play(self.MuzzlePos);
+				end
+			end
+		end
 	end
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
+	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 end
 function OnPieMenu(item)
 	if item and IsHDFirearm(item) and item.PresetName == "Shovel" then

@@ -15,6 +15,11 @@ function Create(self)
 		if self.face == 2 then
 			self.Head:AddAttachable(CreateAttachable("Ronin Brunette Ponytail"));
 		end
+	else
+		self.face = self:GetNumberValue("Identity");
+		if self.Head then
+			self.Head.Frame = self.face;
+		end
 	end
 end
 function Update(self)
@@ -35,7 +40,7 @@ function Update(self)
 		if self.Status == Actor.UNSTABLE then
 			if not crouching then
 				local motion = self.Vel.Magnitude * 0.5 + math.abs(self.AngularVel);
-				if self.AngularVel ~= 0 then
+				if motion > 1 then
 					self.AngularVel = self.AngularVel * (1 - 0.1/motion);
 				end
 				if self.tapTimer:IsPastSimMS(500) and math.cos(self.RotAngle) > 0.9 and motion < 20  then

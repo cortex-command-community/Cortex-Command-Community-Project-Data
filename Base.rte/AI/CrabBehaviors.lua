@@ -89,8 +89,9 @@ end
 function CrabBehaviors.Sentry(AI, Owner, Abort)
 	local sweepUp = true
 	local sweepDone = false
-	local maxAng = Owner.AimRange
-	local minAng = -maxAng
+	-- to-do: refer to upper/lower limits!
+	local maxAng = Owner.AimRange--Owner.AimRangeUpperLimit
+	local minAng = -maxAng--Owner.AimRangeLowerLimit
 	local aim
 	
 	if AI.OldTargetPos then	-- try to reacquire an old target

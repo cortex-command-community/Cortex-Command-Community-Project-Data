@@ -154,6 +154,8 @@ function HumanBehaviors.CalculateThreatLevel(MO, Owner)
 		else
 			priority = priority + 0.3
 		end
+	elseif MO.ClassName == "ADoor" then
+		priority = priority * 0.5
 	end
 	
 	return priority - MO.Health / 500	-- prioritize damaged targets
@@ -2113,10 +2115,12 @@ function HumanBehaviors.GoProne(AI, Owner, TargetPos, targetID)
 	end
 	
 	AI.proneState = AHuman.PRONE
-	if Dist.X > 0 then
-		AI.lateralMoveState = Actor.LAT_RIGHT
-	else
-		AI.lateralMoveState = Actor.LAT_LEFT
+	if not Owner.EquippedBGItem then
+		if Dist.X > 0 then
+			AI.lateralMoveState = Actor.LAT_RIGHT
+		else
+			AI.lateralMoveState = Actor.LAT_LEFT
+		end
 	end
 	
 	return true
@@ -2124,12 +2128,16 @@ end
 
 -- get the projectile properties from the magazine
 function HumanBehaviors.GetProjectileData(Owner)
-	local Weapon = ToHDFirearm(Owner.EquippedItem)
-	local Round = Weapon.Magazine.NextRound
-	local Projectile = Round.NextParticle
-	local PrjDat = {MagazineName=Weapon.Magazine.PresetName}
-	
-	if Round.IsEmpty then	-- set default values if there is no particle
+	local Weapon, Round, Projectile, PrjDat
+	if Owner.EquippedItem and IsHDFirearm(Owner.EquippedItem) then
+		Weapon = ToHDFirearm(Owner.EquippedItem)
+		if Weapon.Magazine then
+			Round = Weapon.Magazine.NextRound
+			Projectile = Round.NextParticle
+			PrjDat = {MagazineName=Weapon.Magazine.PresetName}
+		end
+	end
+	if Round == nil or Round.IsEmpty then	-- set default values if there is no particle
 		PrjDat.g = 0
 		PrjDat.vel = 100
 		PrjDat.rng = math.huge
@@ -2533,6 +2541,10 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 			if Owner.EquippedItem and ToHeldDevice(Owner.EquippedItem):IsReloading() then
 				ShootTimer:Reset()
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).Normalized
+				if AI.lateralMoveState == Actor.LAT_STILL then
+					AI.proneState = AHuman.PRONE
+					--AI.Ctrl:SetState(Controller.BODY_CROUCH, true)
+				end
 			elseif Owner:EquipFirearm(true) then
 				local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame, just in case the magazine is replenished by another script
 				if _abrt then return true end
@@ -2828,7 +2840,7 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y)
 		
 		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) then
-			meleeDist = Owner.Radius + 25
+			meleeDist = Owner.IndividualRadius + 25
 			startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 		elseif Owner.armSway then
 			local arm = Owner.FGArm or Owner.BGArm

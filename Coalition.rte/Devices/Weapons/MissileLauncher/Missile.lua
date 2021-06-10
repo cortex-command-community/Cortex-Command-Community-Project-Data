@@ -13,7 +13,7 @@ function Create(self)
 	self.lifeTimer:SetSimTimeLimitMS(self.Lifetime - math.ceil(TimerMan.DeltaTimeMS));
 end
 function Update(self)
-	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X)/10);
+	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X) * 0.1);
 	if self.target and self.target.ID ~= rte.NoMOID then
 		local targetDist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
 		if targetDist.Magnitude < self.Diameter then
@@ -25,7 +25,7 @@ function Update(self)
 			turnAngle = turnAngle > math.pi and turnAngle - (math.pi * 2) or (turnAngle < -math.pi and turnAngle + (math.pi * 2) or turnAngle);
 
 			self.Vel = (self.Vel + targetVel):SetMagnitude(self.Vel.Magnitude);
-			self.AngularVel = self.AngularVel/2 - (turnAngle * self.turnStrength);
+			self.AngularVel = self.AngularVel * 0.5 - (turnAngle * self.turnStrength);
 		end
 	end
 	if self.lifeTimer:IsPastSimTimeLimit() then

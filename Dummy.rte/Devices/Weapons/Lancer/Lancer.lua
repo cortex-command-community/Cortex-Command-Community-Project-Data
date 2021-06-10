@@ -7,6 +7,11 @@ function Create(self)
 
 	self.sound = false;
 	self.setAngle = 0;
+	
+	self.fireSound = {};
+	self.fireSound.low = CreateSoundContainer("Dummy Lancer Fire Sound Low", "Dummy.rte");
+	self.fireSound.medium = CreateSoundContainer("Dummy Lancer Fire Sound Medium", "Dummy.rte");
+	self.fireSound.high = CreateSoundContainer("Dummy Lancer Fire Sound High", "Dummy.rte");
 end
 function Update(self)
 	if self.FiredFrame then
@@ -40,8 +45,8 @@ function Update(self)
 			smokePar.IgnoresTeamHits = true;
 			MovableMan:AddParticle(smokePar);
 		end
-		local sound = self.chargeCounter > highCharge and "High" or (self.chargeCounter < lowCharge and "Low" or "Medium");
-		AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/Fire".. sound ..".flac", self.MuzzlePos);
+		local sound = self.chargeCounter > highCharge and self.fireSound.high or (self.chargeCounter < lowCharge and self.fireSound.low or self.fireSound.medium);
+		sound:Play(self.MuzzlePos);
 
 		self.chargeCounter = 1;
 	else

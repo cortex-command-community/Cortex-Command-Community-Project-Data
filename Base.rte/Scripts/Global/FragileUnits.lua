@@ -2,10 +2,8 @@ function FragileUnitsScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("FragileUnitsScript") then
 			self:MakeFragile(actor);
-			for i = 1, actor.InventorySize do
-				local item = actor:Inventory();
+			for item in actor.Inventory do
 				self:MakeFragile(item);
-				actor:SwapNextInventory(item, true);
 			end
 		end
 	end

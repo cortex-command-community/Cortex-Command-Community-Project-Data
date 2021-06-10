@@ -7,12 +7,10 @@ function ToughUnitsScript:UpdateScript()
 			if IsAHuman(actor) or IsACrab(actor) then
 				self:Buff(actor);
 			else
-				for i = 1, actor.InventorySize do
-					local item = actor:Inventory();
+				for item in actor.Inventory do
 					if IsActor(item) then
 						self:Buff(ToActor(item));
 					end
-					actor:SwapNextInventory(item, true);
 				end
 			end
 		end

@@ -29,6 +29,10 @@ function Create(self)
 	self.autoClimbIntervalA = 4.0;	-- How many pixels the rope retracts / extends at a time when auto-climbing (fast)
 	self.autoClimbIntervalB = 2.0;	-- How many pixels the rope retracts / extends at a time when auto-climbing (slow)
 	
+	self.stickSound = CreateSoundContainer("Grapple Gun Claw Stick", "Base.rte");
+	self.clickSound = CreateSoundContainer("Grapple Gun Click", "Base.rte");
+	self.returnSound = CreateSoundContainer("Grapple Gun Return", "Base.rte");
+	
 	for i = 1, MovableMan:GetMOIDCount() - 1 do
 		local gun = MovableMan:GetMOFromID(i);
 		if gun and gun.ClassName == "HDFirearm" and gun.PresetName == "Grapple Gun" and SceneMan:ShortestDistance(self.Pos, ToHDFirearm(gun).MuzzlePos, self.mapWrapsX).Magnitude < 5 then
@@ -178,7 +182,7 @@ function Update(self)
 				end
 			end
 			if self.actionMode > 1 then
-				AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/ClawStick.flac", self.Pos);
+				self.stickSound:Play(self.Pos);
 				self.setLineLength = math.floor(self.lineLength);
 				self.Vel = Vector();
 				self.PinStrength = 1000;
@@ -188,7 +192,7 @@ function Update(self)
 			if self.lineLength > self.maxLineLength then
 				if self.limitReached == false then
 					self.limitReached = true;
-					AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/Click.flac", startPos);
+					self.clickSound:Play(startPos);
 				end
 				local movetopos = self.parent.Pos + (self.lineVec):SetMagnitude(self.maxLineLength);
 				if self.mapWrapsX == true then
@@ -373,7 +377,7 @@ function Update(self)
 					local jointStiffness;
 					local target = self.target;
 					if target.ID ~= target.RootID then
-						local mo = MovableMan:GetMOFromID(target.RootID);
+						local mo = target:GetRootParent();
 						if mo.ID ~= rte.NoMOID and IsAttachable(target) then
 							-- It's best to apply all the forces to the parent instead of utilizing JointStiffness
 							target = mo;
@@ -444,14 +448,14 @@ function Update(self)
 		-- Fine tuning: take the seam into account when drawing the rope
 		local drawPos = self.parent.Pos + self.lineVec:SetMagnitude(self.lineLength);
 		if self.ToDelete == true then
-			drawPos = self.parent.Pos + (self.lineVec/2);
+			drawPos = self.parent.Pos + (self.lineVec * 0.5);
 			if self.parentGun and self.parentGun.Magazine then
 				-- Show the magazine as if the hook is being retracted
 				self.parentGun.Magazine.Pos = drawPos;
 				self.parentGun.Magazine.Scale = 1;
 				self.parentGun.Magazine.Frame = 0;
 			end
-			AudioMan:PlaySound("Base.rte/Devices/Tools/GrappleGun/Sounds/Return.flac", drawPos);
+			self.returnSound:Play(drawPos);
 		end
 		PrimitiveMan:DrawLinePrimitive(startPos, drawPos, 249);
 	elseif self.parentGun and IsHDFirearm(self.parentGun) then

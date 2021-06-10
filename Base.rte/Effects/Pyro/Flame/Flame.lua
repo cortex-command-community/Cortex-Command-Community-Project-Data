@@ -6,8 +6,9 @@ function Create(self)
 		self.notSticky = true;
 	elseif string.find(self.PresetName, "Short") then
 		self.isShort = true;
-		self.deleteDelay = self.Lifetime * RangeRand(0.05, 0.15);
+		self.deleteDelay = self.Lifetime * RangeRand(0.1, 0.2);
 	end
+	self.shortFlame = CreatePEmitter("Flame Hurt Short Float", "Base.rte");
 end
 function Update(self)
 	self.ToSettle = false;
@@ -29,23 +30,26 @@ function Update(self)
 			if self.checkTimer:IsPastSimMS(self.checkDelay) then
 				self.checkTimer:Reset();
 				self.checkDelay = math.floor(self.checkDelay * 1.05 + 3);	--Gradually extend the delay for optimization reasons
-				local checkPos = Vector(self.Pos.X, self.Pos.Y - 1) + self.Vel * rte.PxTravelledPerFrame * math.random();
-				local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
-				if moCheck ~= rte.NoMOID then
-					local mo = MovableMan:GetMOFromID(moCheck);
-					if mo and (self.Team == Activity.NOTEAM or mo.Team ~= self.Team) then
-						self.target = ToMOSRotating(mo);
+				if self.Vel.Magnitude > 1 then
+					local checkPos = Vector(self.Pos.X, self.Pos.Y - 1) + self.Vel * rte.PxTravelledPerFrame * math.random();
+					local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
+					if moCheck ~= rte.NoMOID then
+						local mo = MovableMan:GetMOFromID(moCheck);
+						if mo and (self.Team == Activity.NOTEAM or mo.Team ~= self.Team) then
+							self.target = ToMOSRotating(mo);
 
-						self.isShort = true;
-						self.deleteDelay = math.random(self.Lifetime);
-						self.GlobalAccScalar = 0.9;
-						
-						self.targetStickAngle = mo.RotAngle;	
-						self.stickPos = SceneMan:ShortestDistance(mo.Pos, self.Pos, SceneMan.SceneWrapsX) * 0.8;
+							self.isShort = true;
+							self.deleteDelay = math.random(self.Lifetime);
+							self.GlobalAccScalar = 0.9;
+							
+							self.targetStickAngle = mo.RotAngle;	
+							self.stickPos = SceneMan:ShortestDistance(mo.Pos, self.Pos, SceneMan.SceneWrapsX) * 0.8;
+						end
 					end
-				elseif not self.isShort and math.random() < 0.1 then
+				end
+				if not self.isShort and math.random() < 0.1 then
 					--Spawn another, shorter flame particle occasionally
-					local particle = CreatePEmitter("Flame Hurt Short Float");
+					local particle = self.shortFlame:Clone();
 					particle.Lifetime = particle.Lifetime * RangeRand(0.6, 0.9);
 					particle.Vel = self.Vel + Vector(0, -3) + Vector(math.random(), 0):RadRotate(math.random() * math.pi * 2);
 					particle.Pos = Vector(self.Pos.X, self.Pos.Y - 1);

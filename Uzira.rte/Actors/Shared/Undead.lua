@@ -1,5 +1,6 @@
 function Update(self)
-	if self.FGArm and (self.FGLeg or self.BGLeg) then
-		self.Health = self.MaxHealth;
+	if self.Health > 0 and self.FGArm and (self.FGLeg or self.BGLeg) then
+		local limbs = {self.Head, self.FGArm, self.BGArm, self.FGLeg, self.BGLeg};
+		self.Health = self.MaxHealth * (1 - self.WoundCount/self:GetGibWoundLimit(true, false, false)) * #limbs/5;
 	end
 end

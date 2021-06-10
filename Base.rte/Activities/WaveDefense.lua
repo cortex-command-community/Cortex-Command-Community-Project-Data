@@ -878,7 +878,7 @@ end
 
 -- Get any Actor from the CPU's native tech
 function WaveDefense:CreateRandomInfantry()
-	local	Passenger = RandomAHuman("Actors", self.AI.Tech)
+	local	Passenger = RandomAHuman("Any", self.AI.Tech)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI.Tech))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))

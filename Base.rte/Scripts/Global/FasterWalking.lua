@@ -6,10 +6,8 @@ function FasterWalkingScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("FasterWalkingScript") then
 			self:BoostWalkSpeed(actor);
-			for i = 1, actor.InventorySize do
-				local item = actor:Inventory();
+			for item in actor.Inventory do
 				self:BoostWalkSpeed(item);
-				actor:SwapNextInventory(item, true);
 			end
 		end
 	end
