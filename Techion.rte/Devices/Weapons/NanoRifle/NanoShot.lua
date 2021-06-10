@@ -19,22 +19,37 @@ function Create(self)
 			end
 		end
 	end
-	
 	--Speed at which this can actually activate.
 	self.speedThreshold = 100;
 
 	self.deleteNextFrame = false;
 	--Check backward.
 	self.CheckCollision(Vector(self.Vel.X, self.Vel.Y):RadRotate(math.pi));
+
+	self.trailLength = 50;
+
+	self.trailPar = CreateMOPixel("Nano Rifle Trail Glow");
+	self.trailPar.Pos = self.Pos;
+	self.trailPar.Vel = self.Vel * 0.1;
+	self.trailPar.Lifetime = 60;
+	MovableMan:AddParticle(self.trailPar);
+
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 end
 
 function Update(self)
+	if not self.ToDelete and self.trailPar and MovableMan:IsParticle(self.trailPar) then
+		self.trailPar.Pos = self.Pos - Vector(self.lastVel.X, self.lastVel.Y):SetMagnitude(math.min(self.lastVel.Magnitude * rte.PxTravelledPerFrame, self.trailLength) * 0.5);
+		self.trailPar.Vel = self.lastVel * 0.5;
+		self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
+	end
 	if self.deleteNextFrame then
 		self.ToDelete = true;
 	elseif self.Vel.Magnitude >= self.speedThreshold then
 		--Check forward.
 		self.CheckCollision(self.Vel);
 	end
+	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 end
 
 function OnCollideWithTerrain(self, terrainID)

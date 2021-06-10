@@ -18,12 +18,11 @@ function Create(self)
 				checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 			end
 		end
-		local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
-		if terrCheck == rte.airID then
+		if SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) == rte.airID then
 			local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 			if moCheck ~= rte.NoMOID then
 				local actor = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-				if actor.Team ~= self.Team then
+				if actor and actor.Team ~= self.Team then
 					self.target = actor;
 					break;
 				end
@@ -71,7 +70,7 @@ function Update(self)
 			for actor in MovableMan.Actors do
 				if actor.Team ~= self.Team then
 					self.potentialtargetdist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-					if (self.lastdist == nil or (self.lastdist ~= nil and self.potentialtargetdist.Magnitude < self.lastdist)) and self.potentialtargetdist.Magnitude <= 500 and SceneMan:CastStrengthRay(self.Pos, self.potentialtargetdist:SetMagnitude(self.potentialtargetdist.Magnitude - actor.Radius), 0, Vector(), 5, 0, SceneMan.SceneWrapsX) == false then
+					if (self.lastdist == nil or (self.lastdist ~= nil and self.potentialtargetdist.Magnitude < self.lastdist)) and self.potentialtargetdist.Magnitude <= 500 and SceneMan:CastStrengthRay(self.Pos, self.potentialtargetdist:SetMagnitude(self.potentialtargetdist.Magnitude - actor.Radius), 0, Vector(), 5, rte.airID, SceneMan.SceneWrapsX) == false then
 						self.lastdist = self.potentialtargetdist.Magnitude;
 						self.target = actor;
 						self.lasttargetpos = Vector(self.target.Pos.X, self.target.Pos.Y);
@@ -85,8 +84,7 @@ function Update(self)
 		self:GibThis();
 	end
 
-	local terrCheck = SceneMan:GetTerrMatter(self.Pos.X, self.Pos.Y);
-	if terrCheck == rte.airID then
+	if SceneMan:GetTerrMatter(self.Pos.X, self.Pos.Y) == rte.airID then
 		local moCheck = SceneMan:GetMOIDPixel(self.Pos.X, self.Pos.Y);
 		if moCheck ~= rte.NoMOID then
 			local actor = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);

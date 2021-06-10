@@ -18,7 +18,7 @@ function Update(self)
 			local shortDist = 98;
 			for i = 1, MovableMan:GetMOIDCount() - 1 do
 				local mo = MovableMan:GetMOFromID(i);
-				if mo and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
+				if mo and mo.ClassName ~= "ADoor" and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
 
 					local distCheck = SceneMan:ShortestDistance(self.MuzzlePos, mo.Pos, SceneMan.SceneWrapsX);
 					if distCheck.Magnitude - mo.Radius < longDist then

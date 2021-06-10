@@ -10,8 +10,11 @@ function Create(self)
 	self.activated = false;
 	self.actDelay = 200;
 	
-	self.dismemberTimer = Timer();
+	self.dismemberStrength = 250;
 	self.length = ToMOSprite(self):GetSpriteWidth();
+
+	self.startSound = CreateSoundContainer("Ronin Chainsaw Start", "Ronin.rte");
+	self.stopSound = CreateSoundContainer("Ronin Chainsaw Stop", "Ronin.rte");
 end
 function Update(self)
 
@@ -23,7 +26,7 @@ function Update(self)
 		parent:GetController():SetState(Controller.AIM_SHARP, false);
 		turn = math.abs(self.lastAngle - parent:GetAimAngle(false));
 
-		local newAngle = -(-0.8 + math.sin(self.rotFactor) * 0.4 - parent:GetAimAngle(false)) * self.FlipFactor;
+		self.InheritedRotAngleOffset = -(-0.8 + math.sin(self.rotFactor) * 0.4);
 		
 		self.Scale = 1;
 		if self.Magazine then
@@ -56,7 +59,6 @@ function Update(self)
 		self.actDelay = 200;
 
 		self.StanceOffset = Vector(10 + self.rotFactor * 3, 1):RadRotate(math.sin(self.rotFactor * 0.3) - 0.3);
-		self.RotAngle = newAngle;
 
 		self.lastAngle = parent:GetAimAngle(true);
 	else
@@ -84,18 +86,14 @@ function Update(self)
 			self.Scale = 0;
 			self.fired = true;
 			--Dismemberment: detach limbs via MO detection
-			if self.dismemberTimer:IsPastSimMS(200) then
-				self.dismemberTimer:Reset();
-				local moCheck = SceneMan:CastMORay(self.Pos, Vector(self.length * 0.8 * self.FlipFactor, 0):RadRotate(self.RotAngle), self.ID, self.Team, rte.airID, true, 2);
-				if moCheck ~= rte.NoMOID then
-					local mo = MovableMan:GetMOFromID(moCheck);
-					if mo and IsAttachable(mo) and ToAttachable(mo):IsAttached() and not (IsHeldDevice(mo) or IsThrownDevice(mo)) then
-						mo = ToAttachable(mo);
-						local chances = 1/(math.sqrt(math.abs(mo.JointStrength) + 1));
-						if math.random() < chances then
-							mo.JointStrength = -1;
-							mo.GetsHitByMOs = false;			-- Makes detached limbs more visible
-						end
+			local moCheck = SceneMan:CastMORay(self.Pos, Vector(self.length * 0.8 * self.FlipFactor, 0):RadRotate(self.RotAngle), self.ID, self.Team, rte.airID, true, 2);
+			if moCheck ~= rte.NoMOID then
+				local mo = MovableMan:GetMOFromID(moCheck);
+				if mo and IsAttachable(mo) and ToAttachable(mo):IsAttached() and not (IsHeldDevice(mo) or IsThrownDevice(mo)) then
+					mo = ToAttachable(mo);
+					local jointPos = mo.Pos + Vector(mo.JointOffset.X * mo.FlipFactor, mo.JointOffset.Y):RadRotate(mo.RotAngle);
+					if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX).Magnitude < 3 and math.random(self.dismemberStrength) > mo.JointStrength then
+						ToMOSRotating(mo:GetParent()):RemoveAttachable(mo.UniqueID, true, true);
 					end
 				end
 			end
@@ -103,7 +101,7 @@ function Update(self)
 			self.Scale = 1;
 			self.fired = false;
 			
-			AudioMan:PlaySound("Ronin.rte/Devices/Weapons/Chainsaw/Sounds/ChainsawEnd.flac", self.Pos);
+			self.stopSound:Play(self.Pos);
 
 			if self.Magazine.RoundCount == 0 then
 				self:Reload();

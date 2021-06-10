@@ -1,6 +1,5 @@
 function Create(self)
 	self.AirResistance = self.AirResistance * RangeRand(1.0, 1.5);
-	self.trailLength = 15;
 
 	self.trailPar = CreateMOPixel("Dummy Blaster Trail Glow");
 	self.trailPar.Pos = self.Pos;
@@ -14,7 +13,7 @@ function Create(self)
 end
 function Update(self)
 	if not self.ToDelete and self.trailPar and MovableMan:IsParticle(self.trailPar) then
-		self.trailPar.Pos = self.Pos - Vector(self.lastVel.X, self.lastVel.Y):SetMagnitude(math.min(self.lastVel.Magnitude * rte.PxTravelledPerFrame, self.trailLength) * 0.5);
+		self.trailPar.Pos = self.Pos - Vector(self.lastVel.X, self.lastVel.Y):SetMagnitude(math.min(self.lastVel.Magnitude * rte.PxTravelledPerFrame, self.TrailLength) * 0.5);
 		self.trailPar.Vel = self.lastVel * 0.5;
 		self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
 	end

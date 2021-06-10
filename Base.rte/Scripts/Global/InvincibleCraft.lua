@@ -1,7 +1,7 @@
 function InvincibleCraftScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("InvincibleCraftScript") then
-			actor:SetNumberValue("InvincibleCraftScript", 1)
+			actor:SetNumberValue("InvincibleCraftScript", 1);
 			if IsACDropShip(actor) or IsACRocket(actor) then
 				actor.HitsMOs = false;
 				actor.GetsHitByMOs = false;

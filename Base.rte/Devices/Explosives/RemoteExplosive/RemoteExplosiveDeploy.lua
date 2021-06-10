@@ -13,7 +13,8 @@ function Update(self)
 		local explosive = CreateMOSRotating(self.PresetName .. " Active");
 		explosive.Pos = self.Pos;
 		explosive.Vel = self.Vel;
-		explosive.RotAngle = self.Vel.AbsRadAngle;
+		explosive.RotAngle = self.Vel.AbsRadAngle + (self.HFlipped and math.pi * self.FlipFactor or 0);
+		explosive.HFlipped = self.HFlipped;
 		explosive.Sharpness = self.alliedTeam;
 		MovableMan:AddParticle(explosive);
 		

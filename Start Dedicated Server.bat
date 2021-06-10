@@ -1,0 +1,1 @@
+"Cortex Command.exe" -server 8000

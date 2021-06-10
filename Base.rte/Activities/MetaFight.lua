@@ -111,7 +111,7 @@ function MetaFight:BrainCheck()
 			-- If there's only one active team, it means they are clearing out wildlife in this mission
 			if self.TeamCount == 1 then
 				-- Check if there's any wildlife left to clear out, and the brain is standing on the surface (and not in a ship still)
-				if not MovableMan:GetFirstTeamActor(Activity.NOTEAM, Activity.NOPLAYER) and MovableMan:IsActor(self:GetPlayerBrain(player)) and self:GetPlayerBrain(player):IsInGroup("Brains") then
+				if not MovableMan:GetFirstTeamActor(Activity.NOTEAM, Activity.PLAYER_NONE) and MovableMan:IsActor(self:GetPlayerBrain(player)) and self:GetPlayerBrain(player):IsInGroup("Brains") then
 					-- Only do EndActivity if the winner outcome has changed
 					local winnerChanged = self.WinnerTeam ~= self:WhichTeamLeft();
 					self.WinnerTeam = self:WhichTeamLeft();
@@ -576,7 +576,7 @@ function MetaFight:StartActivity()
 			for Act in MovableMan.AddedActors do
 				if not Act:HasObjectInGroup("Brains") and not IsADoor(Act) then
 					local value = Act:GetTotalValue(0, 1, defenderTeamNativeCostMultiplier)
-					if Act.PlacedByPlayer == Activity.NOPLAYER then
+					if Act.PlacedByPlayer == Activity.PLAYER_NONE then
 						value = value * 0.5	-- This actor is left-over from previous battles
 					end
 					
@@ -1074,7 +1074,7 @@ function MetaFight:UpdateActivity()
 								-- The brain should stay put, presumably in a safe spot as dictated by the base plan
 								-- Not a brain, so can this actor go hunt the enemy brain?
 								-- If so, check if it was ordered during the fight as opposed to placed beforehand as defensive sentry
-								if actor.PlacedByPlayer == Activity.NOPLAYER and not actor:IsInGroup("Anti-Air") and not actor:IsInGroup("Brains") then
+								if actor.PlacedByPlayer == Activity.PLAYER_NONE and not actor:IsInGroup("Anti-Air") and not actor:IsInGroup("Brains") then
 									actor.AIMode = Actor.AIMODE_BRAINHUNT;
 									break;
 								end

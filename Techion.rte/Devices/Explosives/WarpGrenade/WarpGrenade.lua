@@ -28,7 +28,7 @@ function Update(self)
 				MovableMan:AddParticle(effect);
 				effect:GibThis();
 
-				self.holder.Pos = self.Pos + Vector(0, -self.holder.Radius * 1.5);
+				self.holder.Pos = self.Pos + Vector(0, -self.holder.Radius * 0.5);
 				self.holder:FlashWhite(200);
 				--Telefrag! Kill actors if you teleport directly on top of them
 				for actor in MovableMan.Actors do

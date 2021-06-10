@@ -3,7 +3,7 @@ function Create(self)
 	self.explodeTimer = Timer();
 	self.partList = {};
 
-	self.explodeTime = 2000;
+	self.explodeTime = 1500;
 	self.numOfParticles = 40;
 	self.particlesPerOil = 5;
 

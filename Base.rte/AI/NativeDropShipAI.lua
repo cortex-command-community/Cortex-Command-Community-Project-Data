@@ -27,7 +27,7 @@ function NativeDropShipAI:Create(Owner)
 	elseif Members.AIMode == Actor.AIMODE_BOMB then
 		Members.hoverAlt = Owner.Radius * 6
 	else
-		Members.hoverAlt = Owner.Radius * 2	
+		Members.hoverAlt = Owner.Radius * 2
 	end
 	
 	-- The controllers
