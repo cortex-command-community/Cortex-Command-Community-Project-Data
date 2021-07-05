@@ -207,7 +207,7 @@ function NativeTurretAI:CreateAttackBehavior(Owner)
 		self.NextBehaviorName = "ShootTarget"
 	else
 		if Owner.FirearmIsEmpty then
-			Owner:ReloadFirearm()
+			Owner:ReloadFirearms()
 		end
 		
 		return
@@ -226,7 +226,7 @@ function NativeTurretAI:CreateSuppressBehavior(Owner)
 		self.NextBehaviorName = "ShootArea"
 	else
 		if Owner.FirearmIsEmpty then
-			self:ReloadFirearm()
+			self:ReloadFirearms()
 		end
 		
 		return
