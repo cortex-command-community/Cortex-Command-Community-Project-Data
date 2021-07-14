@@ -679,31 +679,34 @@ function MetaFight:EndActivity()
 
 	-- If there's no brains left in the scene at all after game over, then re-do the outcome
 	self.NoBrainsLeft = self:NoTeamLeft();
-	
-	-- This is now no-man's land
-	if self.NoBrainsLeft then
-		self.WinnerTeam = Activity.NOTEAM;
-		SceneMan.Scene.TeamOwnership = Activity.NOTEAM;
-		-- Should not clear blueprints because this wipes all placed loadouts info
-		--SceneMan.Scene:ClearPlacedObjectSet(Scene.BLUEPRINT);
-		-- Sad music
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
-	-- Also play sad music if no humans are left
-	elseif self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	-- But if humans are left, then play happy music!
-	else
-		-- Win music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- This is now no-man's land
+		if self.NoBrainsLeft then
+			self.WinnerTeam = Activity.NOTEAM;
+			SceneMan.Scene.TeamOwnership = Activity.NOTEAM;
+			-- Should not clear blueprints because this wipes all placed loadouts info
+			--SceneMan.Scene:ClearPlacedObjectSet(Scene.BLUEPRINT);
+			-- Sad music
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		-- Also play sad music if no humans are left
+		elseif self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		-- But if humans are left, then play happy music!
+		else
+			-- Win music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 
 	-- Display appropriate message for each player, winner or loser
