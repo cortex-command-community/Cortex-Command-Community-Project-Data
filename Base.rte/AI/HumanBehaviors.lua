@@ -2754,14 +2754,21 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 					if Owner.ThrowableIsReady then
 						local Grenade = ToThrownDevice(Owner.EquippedItem)
 						if Grenade then
-							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, Grenade.MaxThrowVel)
+							local maxThrowVel = Grenade.MaxThrowVel
+							local minThrowVel = Grenade.MinThrowVel
+							if maxThrowVel == 0 then
+								maxThrowVel = Owner.FGArm.ThrowStrength + math.abs(Owner.AngularVel * 0.5) * math.cos(Owner.RotAngle)/math.sqrt(math.abs(Grenade.Mass) + 1)
+								minThrowVel = maxThrowVel * 0.2
+							end
+							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, maxThrowVel)
 							if aim then
+								aim = aim - Owner.RotAngle
 								ThrowTimer:Reset()
 								aimTime = Owner.ThrowPrepTime * RangeRand(0.9, 1.1)
 								local maxAim = aim
 								
 								-- try again with an average throw vel
-								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (Grenade.MaxThrowVel+Grenade.MinThrowVel)/2)
+								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (maxThrowVel + minThrowVel)/2)
 								if aim then
 									aimTime = Owner.ThrowPrepTime * RangeRand(0.45, 0.55)
 								else
