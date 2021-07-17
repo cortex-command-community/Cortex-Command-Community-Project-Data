@@ -209,7 +209,7 @@ function Update(self)
 			end
 			
 			--Counteract gravity.
-			wasp.Vel = Vector(wasp.Vel.X, wasp.Vel.Y - SceneMan.Scene.GlocalAcc.Y * TimerMan.DeltaTimeSecs);
+			wasp.Vel = Vector(wasp.Vel.X, wasp.Vel.Y - SceneMan.Scene.GlobalAcc.Y * TimerMan.DeltaTimeSecs);
 			
 			if wasp.Vel.Largest > self.maxSpeed * speedMod * attackMax then
 				wasp.Vel = (wasp.Vel/wasp.Vel.Largest) * self.maxSpeed * speedMod * attackMax;
