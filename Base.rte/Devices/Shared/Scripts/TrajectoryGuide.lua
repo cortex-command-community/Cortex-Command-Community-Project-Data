@@ -4,12 +4,12 @@ function Create(self)
 	self.laserTimer:SetSimTimeLimitMS(10);
 	self.guideTable = {};
 
-	self.projectileVel = 30;
-
 	if IsThrownDevice(self) then
 		self.isThrownDevice = true;
-		self.projectileVel = self.MaxThrowVel;
-		self.projectileVelMin = self.MinThrowVel;
+		if self.MaxThrowVel > 0 then
+			self.projectileVelMax = self.MaxThrowVel;
+			self.projectileVelMin = self.MinThrowVel;
+		end
 		self.projectileGravity = self.GlobalAccScalar;
 		self.projectileAirResistance = self.AirResistance;
 		self.projectileAirThreshold = self.AirThreshold;
@@ -46,7 +46,7 @@ function Update(self)
 		if controller:IsState(Controller.AIM_SHARP) or self.isThrownDevice and controller:IsState(Controller.WEAPON_FIRE) then
 			if self.laserTimer:IsPastSimTimeLimit() then
 
-				local guideParPos, gudeParVel;
+				local guideParPos, guideParVel;
 
 				if self.isThrownDevice and IsAHuman(actor) then
 					--Display detonation point if a scripted fuze is active
@@ -54,10 +54,13 @@ function Update(self)
 						self.maxTrajectoryPars = (self.fuzeDelay - self.fuze.ElapsedSimTimeMS - self.laserTimer.ElapsedSimTimeMS)/TimerMan.DeltaTimeMS * rte.PxTravelledPerFrame;
 					end
 					actor = ToAHuman(actor);
+					local rotationThisFrame = actor.AngularVel * TimerMan.DeltaTimeSecs;
+					local maxVel = self.projectileVelMax or (actor.FGArm.ThrowStrength + math.abs(actor.AngularVel * 0.5))/math.sqrt(math.abs(self.Mass) + 1);
+					local minVel = self.projectileVelMin or maxVel * 0.2;
 					--The following offset is as found in the source code (To-do: expose and utilize EndThrowOffset properly instead)
-					guideParPos = actor.Pos + Vector((actor.FGArm.ParentOffset.X + 15) * actor.FlipFactor, actor.FGArm.ParentOffset.Y - 8);
-					local projectileVel = self.throwTimer and self.projectileVelMin + (self.projectileVel - self.projectileVelMin) * math.min(self.throwTimer.ElapsedSimTimeMS, actor.ThrowPrepTime)/actor.ThrowPrepTime or self.projectileVel;
-					guideParVel = Vector(projectileVel, 0):RadRotate(actor.RotAngle + actor:GetAimAngle(true));
+					guideParPos = actor.Pos + actor.Vel * rte.PxTravelledPerFrame + Vector((actor.FGArm.ParentOffset.X + actor.FGArm.MaxLength) * actor.FlipFactor, actor.FGArm.ParentOffset.Y - actor.FGArm.MaxLength * 0.5):RadRotate(actor:GetAimAngle(false) * actor.FlipFactor);
+					local projectileVel = self.throwTimer and minVel + (maxVel - minVel) * math.min(self.throwTimer.ElapsedSimTimeMS, actor.ThrowPrepTime)/actor.ThrowPrepTime or maxVel;
+					guideParVel = Vector(projectileVel, 0):RadRotate(actor.RotAngle + actor:GetAimAngle(true) + rotationThisFrame);
 				else
 					guideParPos = self.MuzzlePos;
 					guideParVel = Vector(self.projectileVel, 0):RadRotate(actor:GetAimAngle(true));
