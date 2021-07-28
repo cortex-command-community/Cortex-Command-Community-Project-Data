@@ -79,7 +79,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 		if AI.ReloadTimer:IsPastSimMS(8000) then	-- check if we need to reload
 			AI.ReloadTimer:Reset()
 			if Owner.FirearmNeedsReload then
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 			end
 		end
 	end
@@ -536,7 +536,7 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 			
 			ShootTimer:Reset()
 			if Owner.FirearmIsEmpty then
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 				aimError = RangeRand(-0.14, 0.14) * AI.aimSkill
 				aimTime = RangeRand(220, 330) * AI.aimSpeed + 50
 				if Owner.FirearmActivationDelay > 0 then
@@ -681,7 +681,7 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 			AI.fire = false
 			
 			if Owner.FirearmIsEmpty then
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 			end
 			
 			break -- stop this behavior when the mag is empty
