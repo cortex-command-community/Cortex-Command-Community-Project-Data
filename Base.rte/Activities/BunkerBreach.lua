@@ -263,7 +263,7 @@ function BunkerBreach:UpdateActivity()
 
 		if not MovableMan:IsActor(self.CPUBrain) then
 			self.WinnerTeam = Activity.TEAM_1
-			MovableMan:KillAllActors(self.WinnerTeam)
+			MovableMan:KillAllEnemyActors(self.WinnerTeam)
 			ActivityMan:EndActivity()
 			return
 		else
@@ -296,7 +296,7 @@ function BunkerBreach:UpdateActivity()
 			
 			if players < 1 then
 				self.WinnerTeam = self.CPUTeam
-				MovableMan:KillAllActors(self.WinnerTeam)
+				MovableMan:KillAllEnemyActors(self.WinnerTeam)
 				ActivityMan:EndActivity()
 				return
 			end

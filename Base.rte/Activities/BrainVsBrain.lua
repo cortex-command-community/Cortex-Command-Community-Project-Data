@@ -383,12 +383,12 @@ function BrainvsBrain:UpdateActivity()
 				
 				if red_players < 1 and green_players > 0 then
 					self.WinnerTeam = Activity.TEAM_2
-					MovableMan:KillAllActors(self.WinnerTeam)
+					MovableMan:KillAllEnemyActors(self.WinnerTeam)
 					ActivityMan:EndActivity()
 					return
 				elseif green_players < 1 and red_players > 0 then
 					self.WinnerTeam = Activity.TEAM_1
-					MovableMan:KillAllActors(self.WinnerTeam)
+					MovableMan:KillAllEnemyActors(self.WinnerTeam)
 					ActivityMan:EndActivity()
 					return
 				elseif green_players < 1 and red_players < 1 then

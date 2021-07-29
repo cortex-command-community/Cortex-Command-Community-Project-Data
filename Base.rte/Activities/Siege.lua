@@ -334,7 +334,7 @@ function Siege:UpdateActivity()
 		
 		if players < 1 then
 			self.WinnerTeam = self.CPUTeam
-			MovableMan:KillAllActors(self.WinnerTeam)
+			MovableMan:KillAllEnemyActors(self.WinnerTeam)
 			ActivityMan:EndActivity()
 			return
 		end
@@ -444,7 +444,7 @@ function Siege:UpdateActivity()
 		
 		if troops < 2 then
 			self.WinnerTeam = self.PlayerTeam
-			MovableMan:KillAllActors(self.WinnerTeam)
+			MovableMan:KillAllEnemyActors(self.WinnerTeam)
 			ActivityMan:EndActivity()
 			return
 		end
