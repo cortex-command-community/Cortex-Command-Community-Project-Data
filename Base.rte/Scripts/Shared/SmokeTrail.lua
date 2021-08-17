@@ -1,7 +1,9 @@
 function Create(self)
 	self.smokeTrailLifeTime = self:NumberValueExists("SmokeTrailLifeTime") and self:GetNumberValue("SmokeTrailLifeTime") or 150;
-	self.smokeTrailRadius = self:NumberValueExists("SmokeTrailRadius") and self:GetNumberValue("SmokeTrailRadius") or ToMOSprite(self):GetSpriteHeight() * 0.5;
+	self.smokeTrailRadius = self:NumberValueExists("SmokeTrailRadius") and self:GetNumberValue("SmokeTrailRadius") or ToMOSprite(self):GetSpriteHeight() * 0.5 - 1;
 	self.smokeTrailTwirl = self:NumberValueExists("SmokeTrailTwirl") and self:GetNumberValue("SmokeTrailTwirl") or 0;
+	
+	self.smokeAirThreshold = 5/(1 + self.smokeTrailLifeTime * 0.01);
 	self.smokeTwirlCounter = math.random() < 0.5 and math.pi or 0;
 end
 function Update(self)
@@ -12,10 +14,11 @@ function Update(self)
 		local effect = CreateMOSParticle("Tiny Smoke Trail 1", "Base.rte");
 		effect.Pos = self.Pos - (offset * i/trailLength) + Vector(RangeRand(-1, 1), RangeRand(-1, 1)) * self.smokeTrailRadius;
 		effect.Vel = self.Vel * RangeRand(0.75, 1);
-		effect.Lifetime = self.smokeTrailLifeTime * RangeRand(0.5, 1);
+		effect.Lifetime = self.smokeTrailLifeTime * RangeRand(0.5, 1) * (self.Lifetime > 1 and 1 - self.Age/self.Lifetime or 1);
+		effect.AirResistance = effect.AirResistance * RangeRand(0.9, 1);
+		effect.AirThreshold = self.smokeAirThreshold;
 	
 		if self.smokeTrailTwirl > 0 then
-			effect.AirResistance = effect.AirResistance * RangeRand(0.9, 1);
 			effect.GlobalAccScalar = effect.GlobalAccScalar * math.random();
 
 			effect.Pos = self.Pos - offset + (offset * i/trailLength);
