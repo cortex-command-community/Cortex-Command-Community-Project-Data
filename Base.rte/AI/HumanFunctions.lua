@@ -66,10 +66,6 @@ end
 
 function HumanFunctions.DoArmSway(actor, pushStrength)
 	local aimAngle = actor:GetAimAngle(false);
-	if actor.weight then
-		actor:RemoveAttachable(actor.weight);
-		actor.weight = nil;
-	end
 	if actor.Status == Actor.STABLE and actor.lastHandPos then
 		--Unequip weapons by pressing both weapon switch keys at once
 		if actor.controller:IsState(Controller.WEAPON_CHANGE_NEXT) and actor.controller:IsState(Controller.WEAPON_CHANGE_PREV) then
@@ -99,7 +95,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 			if arm then
 				arm = ToArm(arm);
 				
-				local armLength = ToMOSprite(arm):GetSpriteWidth();
+				local armLength = arm.MaxLength;
 				local rotAng = actor.RotAngle - (1.57 * actor.FlipFactor);
 				local legMain = armPairs[i][2];
 				local legAlt = armPairs[i][3];
@@ -113,7 +109,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 				if actor.controller:IsState(Controller.AIM_SHARP) then
 					arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
 				else
-					arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
+					arm.IdleOffset = Vector(0, armLength * 0.7):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
 				end
 				if actor.shoved or (actor.EquippedItem and IsTDExplosive(actor.EquippedItem) and actor.controller:IsState(Controller.WEAPON_FIRE)) then
 					arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
@@ -138,11 +134,10 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 					if actor.Mass > mo.Mass then
 						ToActor(mo).Status = Actor.UNSTABLE;
 						--Simulate target actor weight with an attachable
-						if not actor.weight then
-							actor.weight = CreateAttachable("Null Attachable");
-							actor.weight.Mass = mo.Mass;
-							actor:AddAttachable(actor.weight);
-						end
+						local weight = CreateAttachable("Null Attachable");
+						weight.Mass = mo.Mass;
+						weight.Lifetime = 1;
+						actor:AddAttachable(weight);
 						local shoveVel = shove.Vector/rte.PxTravelledPerFrame;
 						mo.Vel = mo.Vel * 0.5 + shoveVel:SetMagnitude(math.min(shoveVel.Magnitude, math.sqrt(actor.IndividualDiameter))) - SceneMan.GlobalAcc * GetMPP() * rte.PxTravelledPerFrame;
 						mo.AngularVel = (aimAngle - actor.lastAngle) * actor.FlipFactor * math.pi;

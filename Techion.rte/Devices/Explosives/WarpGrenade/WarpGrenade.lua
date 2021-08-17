@@ -63,10 +63,11 @@ function Update(self)
 		end
 	elseif self:IsActivated() then
 		--Get the holder
-		if (self.holder and self.holder.ID == rte.NoMOID) or self.holder == nil then
+		if self.holder == nil or self.holder.ID == rte.NoMOID then
 			local newHolder = MovableMan:GetMOFromID(self.RootID);
 			if MovableMan:IsActor(newHolder) then
 				self.holder = ToActor(newHolder);
+				self.guideRadius = newHolder.Radius;
 			end
 		end
 		self.fuze = Timer();

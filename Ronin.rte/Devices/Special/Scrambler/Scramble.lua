@@ -44,7 +44,7 @@ function Update(self)
 	self.ToSettle = false;
 	local actorCount = 0;
 	for i = 1, #self.actorTable do
-		if IsActor(self.actorTable[i]) then
+		if MovableMan:IsActor(self.actorTable[i]) then
 			local actor = ToActor(self.actorTable[i]);
 			if actor:NumberValueExists("RoninScrambler") and actor.Status < Actor.DYING then
 				actorCount = actorCount + 1;

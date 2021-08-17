@@ -15,9 +15,7 @@ function Update(self)
 	if self.explosion then
 		self.ToDelete = true;
 	else
-		if PulsarDissipate(self, false) == false then
-			self.EffectRotAngle = self.Vel.AbsRadAngle;
-		end
+		self.EffectRotAngle = self.Vel.AbsRadAngle;
 		if self.trailPar and MovableMan:IsParticle(self.trailPar) then
 			self.trailPar.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.TrailLength - 1);
 			self.trailPar.Vel = self.Vel * 0.5;
@@ -28,7 +26,6 @@ function Update(self)
 	end
 end
 function PulsarDissipate(self, inverted)
-	self.lastVel = self.lastVel or Vector(self.Vel.X, self.Vel.Y);
 
 	local trace = inverted and Vector(-self.Vel.X, -self.Vel.Y):SetMagnitude(GetPPM()) or Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + 1);
 	local hit = false;
@@ -53,7 +50,7 @@ function PulsarDissipate(self, inverted)
 		local penetration = self.Mass * self.Sharpness * self.Vel.Magnitude;
 		if SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)).StructuralIntegrity > penetration then
 			hit = true;
-		elseif self.Vel.Magnitude < self.lastVel.Magnitude * 0.5 then
+		elseif self.Vel.Magnitude < self.PrevVel.Magnitude * 0.5 then
 			hit = true;
 		end
 	end
@@ -65,25 +62,15 @@ function PulsarDissipate(self, inverted)
 		self.explosion.Team = self.Team;
 		self.explosion.Vel = offset;
 		MovableMan:AddParticle(self.explosion);
+		
+		self.TrailLength = 0;
+		self.ToDelete = true;
 	end
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
-	
 	return hit;
 end
---[[ To-do: Use this system instead
 function OnCollideWithMO(self, mo, parentMO)
-	self.explosion = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
-	self.explosion.Pos = self.Pos;
-	self.explosion.RotAngle = self.Vel.AbsRadAngle;
-	self.explosion.Team = self.Team;
-	self.explosion.Vel = self.Vel;
-	MovableMan:AddParticle(self.explosion);
+	PulsarDissipate(self, false);
 end
 function OnCollideWithTerrain(self, terrainID)
-	self.explosion = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
-	self.explosion.Pos = self.Pos;
-	self.explosion.RotAngle = self.Vel.AbsRadAngle;
-	self.explosion.Team = self.Team;
-	self.explosion.Vel = self.Vel;
-	MovableMan:AddParticle(self.explosion);
-end]]--
+	PulsarDissipate(self, false);
+end

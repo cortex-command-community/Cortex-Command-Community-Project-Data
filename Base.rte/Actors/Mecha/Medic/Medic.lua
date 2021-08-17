@@ -52,9 +52,7 @@ function Update(self)
 								cross.Pos = healTarget.AboveHUDPos + Vector(0, 4);
 								MovableMan:AddParticle(cross);
 							end
-							if healTarget.Health >= healTarget.MaxHealth then
-								healTarget:RemoveWounds(self.healStrength);
-							end
+							healTarget:RemoveWounds(self.healStrength);
 						end
 					end
 				end

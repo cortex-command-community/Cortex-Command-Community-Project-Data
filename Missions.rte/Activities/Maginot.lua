@@ -339,23 +339,27 @@ function MaginotMission:UpdateActivity()
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) and not self.braindead[player] then
 				--If the player's brain is in the escape zone and the escape ship hasn't spawned yet...
-				if self.RescueTrigger:IsInside(self:GetPlayerBrain(player).Pos) and not MovableMan:IsActor(self.EscapeShip) then
-					--Make a ship land in the escape zone.
-					self.EscapeShip = CreateACRocket("Rocket MK2", "Base.rte")
-					self.EscapeShip.Pos = Vector(self.RescueLZ:GetRandomPoint().X, 0)
-					self.EscapeShip.Team = Activity.TEAM_1
-					self.EscapeShip:SetControllerMode(Controller.CIM_AI, -1)
-					
-					--Run through all players and give them a message that a ship is arriving.
-					for plr = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-						if self:PlayerActive(plr) and self:PlayerHuman(plr) and not self.braindead[plr] then
-							self:ResetMessageTimer(plr)
-							FrameMan:ClearScreenText(plr)
-							FrameMan:SetScreenText("Sending down a ship...", plr, 0, 5000, false)
+				if not MovableMan:IsActor(self.EscapeShip) then
+					if self.RescueTrigger:IsInside(self:GetPlayerBrain(player).Pos) then
+						--Make a ship land in the escape zone.
+						self.EscapeShip = CreateACRocket("Rocket MK2", "Base.rte")
+						self.EscapeShip.Pos = Vector(self.RescueLZ:GetRandomPoint().X, 0)
+						self.EscapeShip.Team = Activity.TEAM_1
+						self.EscapeShip:SetControllerMode(Controller.CIM_AI, -1)
+						
+						--Run through all players and give them a message that a ship is arriving.
+						for plr = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+							if self:PlayerActive(plr) and self:PlayerHuman(plr) and not self.braindead[plr] then
+								self:ResetMessageTimer(plr)
+								FrameMan:ClearScreenText(plr)
+								FrameMan:SetScreenText("Sending down a ship...", plr, 0, 5000, false)
+							end
 						end
+						
+						MovableMan:AddActor(self.EscapeShip)
 					end
-					
-					MovableMan:AddActor(self.EscapeShip)
+				elseif self.EscapeShip.Age > 10000 and self.EscapeShip.Age < 10100 and not self.EscapeShip:IsPlayerControlled() then
+					self.EscapeShip:OpenHatch();
 				end
 			end
 		end
