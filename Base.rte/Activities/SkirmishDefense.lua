@@ -621,12 +621,7 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -692,12 +687,7 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -753,12 +743,7 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -814,12 +799,7 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -886,12 +866,7 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 				Craft:AddInventoryItem(Payload)
 			end
 			
-			local inventoryMass = 0;
-			for item in Craft.Inventory do
-				inventoryMass = inventoryMass + item.Mass;
-			end
-			-- Stop adding bombs when exceeding the weight limit
-			if inventoryMass > craftMaxMass then 
+			if Craft.InventoryMass > craftMaxMass then
 				break
 			end
 		end

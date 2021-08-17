@@ -569,11 +569,7 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -633,11 +629,7 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -695,11 +687,7 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -757,11 +745,7 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -795,11 +779,7 @@ function BrainvsBrain:CreateBombDrop(bombPosX)
 		for _ = 1, math.random(3, 6) do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.CPUTechID))
 			
-			local inventoryMass = 0;
-			for item in Craft.Inventory do
-				inventoryMass = inventoryMass + item.Mass;
-			end				-- Stop adding actors when exceeding the weight limit
-			if inventoryMass > craftMaxMass then 
+			if Craft.InventoryMass > craftMaxMass then 
 				break
 			end
 		end
