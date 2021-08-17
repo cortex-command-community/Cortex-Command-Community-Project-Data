@@ -18,7 +18,6 @@ function NativeHumanAI:Create(Owner)
 
 	Members.squadShoot = false
 	Members.useMedikit = false
-	Members.scatter = false
 
 	-- timers
 	Members.AirTimer = Timer()
@@ -251,6 +250,7 @@ function NativeHumanAI:Update(Owner)
 	-- look for targets
 	local FoundMO, HitPoint = self.SpotTargets(self, Owner, self.skill)	
 	if FoundMO then
+		--TODO: decide whether to attack based on the material strength of found MO
 		if self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
 			self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y)
 			self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false)
@@ -278,8 +278,7 @@ function NativeHumanAI:Update(Owner)
 					FoundMO = ToACRocket(FoundMO)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
-				elseif FoundMO.ClassName == "ADoor" and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached()
-				and (Owner:EquipNamedDevice("Heavy Digger", true) or (Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity)) then
+				elseif FoundMO.ClassName == "ADoor" and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then
 					FoundMO = ToActor(FoundMO)
@@ -324,7 +323,8 @@ function NativeHumanAI:Update(Owner)
 			end
 		end
 	end
-
+	
+	self.squadShoot = false
 	if Owner.MOMoveTarget then
 		-- make the last waypoint marker stick to the MO we are following
 		if MovableMan:ValidMO(Owner.MOMoveTarget) then
@@ -558,7 +558,7 @@ function NativeHumanAI:Update(Owner)
 					self.useMedikit = Owner:EquipNamedDevice("Medikit", true)
 				else
 					self.useMedikit = false
-					if self.scatter ~= true and Owner.AIMode == Actor.AIMODE_SENTRY then
+					if not self.scatter and Owner.AIMode == Actor.AIMODE_SENTRY then
 						Owner.AIMode = Actor.AIMODE_PATROL
 						self.scatter = true
 					end
@@ -567,6 +567,9 @@ function NativeHumanAI:Update(Owner)
 				if self.useMedikit == true then	
 					self.useMedikit = false
 					Owner:EquipFirearm(true)
+					if self.scatter and Owner.Health == Owner.MaxHealth then
+						self.scatter = false
+					end
 				end
 				if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
 					self.AlarmTimer:Reset()
@@ -727,9 +730,17 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	
 	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
 
-	if self.Target and IsADoor(self.Target) and Owner:EquipNamedDevice("Heavy Digger", true) then
-		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
-		self.NextBehaviorName = "AttackTarget"
+	if IsADoor(self.Target) then 
+		if Owner:EquipNamedDevice("Heavy Digger", true) then
+			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
+			self.NextBehaviorName = "AttackTarget"
+		elseif Owner:EquipNamedDevice("Timed Explosive", true) then
+			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
+			self.NextBehaviorName = "ThrowTarget"
+		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (ToADoor(self.Target).Door or self.Target).Material.StructuralIntegrity then
+			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
+			self.NextBehaviorName = "ShootTarget"
+		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
 	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
@@ -758,10 +769,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			
 			return
 		else -- there are probably no weapons around here (in the vicinity of an area adjacent to a location)
-			if self.Target and MovableMan:ValidMO(self.Target) and 
-				not (self.isPlayerOwned and Owner.AIMode == Actor.AIMODE_SENTRY) and
-				(self.Target.ClassName == "AHuman" or self.Target.ClassName == "ACrab")
-			then
+			if not (self.isPlayerOwned and Owner.AIMode == Actor.AIMODE_SENTRY) and (self.Target.ClassName == "AHuman" or self.Target.ClassName == "ACrab") then
 				self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 				self.NextBehaviorName = "AttackTarget"
 			else
