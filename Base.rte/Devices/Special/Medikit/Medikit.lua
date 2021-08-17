@@ -1,6 +1,9 @@
 function Create(self)
 	self.uses = 3;
 	self.baseStrength = 10;
+	
+	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
+	self.errorSound = CreateSoundContainer("Error", "Base.rte");
 end
 function Update(self)
 	if self.FiredFrame then
@@ -26,7 +29,7 @@ function Update(self)
 					target:RemoveWounds(math.ceil(strength * 0.15), true, false, false);
 				end
 				target:FlashWhite(50);
-				AudioMan:PlaySound("Base.rte/Sounds/GUIs/SlicePicked.flac", self.Pos);
+				self.confirmSound:Play(self.Pos);
 
 				local particleCount = math.ceil(1 + target.Radius * 0.5);
 				for i = 1, particleCount do
@@ -43,7 +46,7 @@ function Update(self)
 				self:Reload();
 				self.uses = self.uses - 1;
 			else
-				AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.flac", self.Pos);
+				self.errorSound:Play(self.Pos);
 			end
 		end
 	end
