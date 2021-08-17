@@ -58,8 +58,8 @@ function HumanFunctions.DoAlternativeGib(actor)
 end
 	
 function HumanFunctions.DoAutomaticEquip(actor)
-	--Equip a weapon automatically if the one held by a player is destroyed (To-do: move this to cpp?)
-	if actor.EquippedItem == nil and not actor.controller:IsState(Controller.WEAPON_FIRE) and (actor:IsPlayerControlled() or actor:UnequipBGArm()) then
+	--Equip a weapon automatically if the one held by a player is destroyed
+	if actor.EquippedItem == nil and not actor.controller:IsState(Controller.WEAPON_FIRE) and actor:IsPlayerControlled() then
 		actor:EquipFirearm(true);
 	end
 end
@@ -67,14 +67,6 @@ end
 function HumanFunctions.DoArmSway(actor, pushStrength)
 	local aimAngle = actor:GetAimAngle(false);
 	if actor.Status == Actor.STABLE and actor.lastHandPos then
-		--Unequip weapons by pressing both weapon switch keys at once
-		if actor.controller:IsState(Controller.WEAPON_CHANGE_NEXT) and actor.controller:IsState(Controller.WEAPON_CHANGE_PREV) then
-			local item = CreateHeldDevice("Null Item");
-			actor:AddInventoryItem(item);
-			actor:EquipNamedDevice("Null Item", true);
-			item.ToDelete = true;
-		end
-		--Control arm movements
 		--Flail around if aiming around too fast
 		local angleMovement = actor.lastAngle - aimAngle;
 		actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel) * 0.1 + 1);

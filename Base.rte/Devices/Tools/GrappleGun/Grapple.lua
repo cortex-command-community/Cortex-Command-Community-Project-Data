@@ -187,7 +187,6 @@ function Update(self)
 				self.Vel = Vector();
 				self.PinStrength = 1000;
 				self.Frame = 1;
-				self.lastVel = Vector(self.Pos.X, self.Pos.Y);
 			end
 			if self.lineLength > self.maxLineLength then
 				if self.limitReached == false then
@@ -341,7 +340,7 @@ function Update(self)
 					
 				elseif self.lineLength > self.setLineLength then
 				
-					local hookVel = SceneMan:ShortestDistance(Vector(self.lastVel.X, self.lastVel.Y), Vector(self.Pos.X, self.Pos.Y), self.mapWrapsX);
+					local hookVel = SceneMan:ShortestDistance(Vector(self.PrevPos.X, self.PrevPos.Y), Vector(self.Pos.X, self.Pos.Y), self.mapWrapsX);
 
 					local pullAmountNumber = self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle;
 					if pullAmountNumber < 0 then
@@ -395,7 +394,7 @@ function Update(self)
 						-- Take wrapping to account, treat all distances relative to hook
 						local parentPos = target.Pos + SceneMan:ShortestDistance(target.Pos, self.parent.Pos, self.mapWrapsX);
 						-- Add forces to both user and the target MO
-						local hookVel = SceneMan:ShortestDistance(Vector(self.lastVel.X, self.lastVel.Y), Vector(self.Pos.X, self.Pos.Y), self.mapWrapsX);
+						local hookVel = SceneMan:ShortestDistance(Vector(self.PrevPos.X, self.PrevPos.Y), Vector(self.Pos.X, self.Pos.Y), self.mapWrapsX);
 
 						local pullAmountNumber = self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle;
 						if pullAmountNumber < 0 then
@@ -413,8 +412,6 @@ function Update(self)
 
 						target:AddAbsForce(targetforce, self.Pos);--target.Pos + SceneMan:ShortestDistance(target.Pos, self.Pos, self.mapWrapsX));
 						target.AngularVel = target.AngularVel * 0.99;
-						
-						self.lastVel = Vector(self.Pos.X, self.Pos.Y);
 					end
 				else	-- Our MO has been destroyed, return hook
 					self.ToDelete = true;
