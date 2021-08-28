@@ -681,7 +681,7 @@ function MetaFight:EndActivity()
 	self.NoBrainsLeft = self:NoTeamLeft();
 
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
-	if not self:IsPaused() then
+	if not self.Paused then
 		-- This is now no-man's land
 		if self.NoBrainsLeft then
 			self.WinnerTeam = Activity.NOTEAM;
@@ -976,7 +976,7 @@ function MetaFight:UpdateActivity()
 			self:DisableAIs(false, Activity.NOTEAM);
 			self:InitAIs()
 			-- Reset the mouse value and pathfinding so it'll know about the newly placed stuff
-			UInputMan:SetMouseValueMagnitude(0);
+			UInputMan:SetMouseValueMagnitude(0, -1);
 			SceneMan.Scene:ResetPathFinding();
 			-- Start the in-game music track
 			AudioMan:ClearMusicQueue();
