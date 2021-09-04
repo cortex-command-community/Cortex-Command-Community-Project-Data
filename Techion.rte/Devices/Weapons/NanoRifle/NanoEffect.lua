@@ -3,10 +3,13 @@ function Create(self)
 	for id = 1, MovableMan:GetMOIDCount() - 1 do
 		local mo = MovableMan:GetMOFromID(id);
 		if mo and mo.UniqueID == self.Sharpness then
-			self.target = mo;
+			self.target = ToMOSRotating(mo);
 			break;
 		end
 	end
+	
+	self.healing = self.target.Team == self.Team;
+	self.healMultiplier = self.target.ModuleName == "Techion.rte" and 1.0 or 0.5;
 	
 	if self.target then
 		--Current number of damage pulses.
@@ -19,10 +22,10 @@ function Create(self)
 		self.flickerChance = 0.9;
 		
 		--Length of time between pulses of damage.
-		self.damageTime = 300;
+		self.pulseTime = 300;
 		
 		--Timer for damage.
-		self.damageTimer = Timer();
+		self.pulseTimer = Timer();
 		
 		--Offset information.
 		self.Pos = self.Pos + self.Vel * rte.PxTravelledPerFrame;
@@ -52,22 +55,34 @@ function Update(self)
 			MovableMan:AddParticle(flicker);
 		end
 		
-		--Cause damage.
-		if self.damageTimer:IsPastSimMS(self.damageTime + self.target.Material.StructuralIntegrity * 2) then
+		--Cause damage to enemies, or heal friendlies.
+		if self.pulseTimer:IsPastSimMS(self.pulseTime + self.target.Material.StructuralIntegrity * 2) then
 
 			if IsAttachable(self.target) then
 				self.nextTarget = ToAttachable(self.target):GetParent();
 				self.nextTargetOffset = ToAttachable(self.target).ParentOffset;
 			end
-
-			local woundName = ToMOSRotating(self.target):GetEntryWoundPresetName();
-			if woundName ~= "" then
-				local wound = CreateAEmitter(woundName);
-				wound.EmitAngle = self.targetOffset.AbsRadAngle + RangeRand(-0.1, 0.1);
-				ToMOSRotating(self.target):AddWound(wound, self.targetOffset + Vector(math.random(-1, 1), math.random(-1, 1)), true);
+			if self.healing then
+				if self.target.WoundCount > 0 then
+					local damage = self.target:RemoveWounds(1);
+					local parent = self.target:GetParent() or self.target;
+					if IsActor(parent) then
+						ToActor(parent):AddHealth(damage * self.healMultiplier);
+					end
+				else
+					--Move on to the next target MO to repair.
+					self.target = nil;
+				end
+			else
+				local woundName = ToMOSRotating(self.target):GetEntryWoundPresetName();
+				if woundName ~= "" then
+					local wound = CreateAEmitter(woundName);
+					wound.EmitAngle = self.targetOffset.AbsRadAngle + RangeRand(-0.1, 0.1);
+					ToMOSRotating(self.target):AddWound(wound, self.targetOffset + Vector(math.random(-1, 1), math.random(-1, 1)), true);
+				end
 			end
 			self.pulses = self.pulses + 1;
-			self.damageTimer:Reset();
+			self.pulseTimer:Reset();
 		end
 		if self.pulses > self.maxPulses then
 			self.ToDelete = true;
@@ -79,6 +94,10 @@ function Update(self)
 
 		self.nextTarget = nil;
 	else
-		self:GibThis();
+		if self.healing then
+			self.ToDelete = true;
+		else
+			self:GibThis();
+		end
 	end
 end
