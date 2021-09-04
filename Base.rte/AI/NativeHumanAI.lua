@@ -737,7 +737,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		elseif Owner:EquipNamedDevice("Timed Explosive", true) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 			self.NextBehaviorName = "ThrowTarget"
-		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (ToADoor(self.Target).Door or self.Target).Material.StructuralIntegrity then
+		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
 		end

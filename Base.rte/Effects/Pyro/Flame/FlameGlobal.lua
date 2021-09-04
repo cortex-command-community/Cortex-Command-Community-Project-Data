@@ -1,36 +1,38 @@
 --Global handler for flame particles - this eliminates the need to run a script on each of the particles
+GlobalFlameManagement = {FlameHandler = nil, Flames = {}};
+
 function Create(self)
 	self.shortFlame = CreatePEmitter("Flame Hurt Short Float", "Base.rte");
-	print("GlobalFlameHandler:Create()");
 end
 --To-do: multiple flames close to each other should form a bigger flame
 function Update(self)
 	self.PinStrength = 900001;
 	local flameCount = 0;
 	local nearbyFlame = {};
-	if #Flames ~= 0 then
-		for i = 1, #Flames do
-			if Flames[i] and Flames[i].particle and MovableMan:ValidMO(Flames[i].particle) then
+	if #GlobalFlameManagement.Flames ~= 0 then
+		--TODO: use 'pairs' instead?
+		for i = 1, #GlobalFlameManagement.Flames do
+			if GlobalFlameManagement.Flames[i] and GlobalFlameManagement.Flames[i].particle and MovableMan:ValidMO(GlobalFlameManagement.Flames[i].particle) then
 			
 				flameCount = flameCount + 1;
 		
-				local flame = Flames[i].particle;
+				local flame = GlobalFlameManagement.Flames[i].particle;
 				local ageRatio = flame.Age/flame.Lifetime;
 				flame.ToSettle = false;
 				flame.Throttle = flame.Throttle - TimerMan.DeltaTimeMS/flame.Lifetime;
 				
-				if Flames[i].target and Flames[i].target.ID ~= rte.NoMOID and not Flames[i].target.ToDelete then
-					flame.Vel = Flames[i].target.Vel;
-					flame.Pos = Flames[i].target.Pos + Vector(Flames[i].stickOffset.X, Flames[i].stickOffset.Y):RadRotate(Flames[i].target.RotAngle - Flames[i].targetStickAngle);
-					local actor = Flames[i].target:GetRootParent();
+				if GlobalFlameManagement.Flames[i].target and GlobalFlameManagement.Flames[i].target.ID ~= rte.NoMOID and not GlobalFlameManagement.Flames[i].target.ToDelete then
+					flame.Vel = GlobalFlameManagement.Flames[i].target.Vel;
+					flame.Pos = GlobalFlameManagement.Flames[i].target.Pos + Vector(GlobalFlameManagement.Flames[i].stickOffset.X, GlobalFlameManagement.Flames[i].stickOffset.Y):RadRotate(GlobalFlameManagement.Flames[i].target.RotAngle - GlobalFlameManagement.Flames[i].targetStickAngle);
+					local actor = GlobalFlameManagement.Flames[i].target:GetRootParent();
 					if MovableMan:IsActor(actor) then
 						actor = ToActor(actor);
-						actor.Health = actor.Health - (Flames[i].target.DamageMultiplier + flame.Throttle)/(actor.Mass * 0.5 + Flames[i].target.Material.StructuralIntegrity * 0.75);
+						actor.Health = actor.Health - (GlobalFlameManagement.Flames[i].target.DamageMultiplier + flame.Throttle)/(actor.Mass * 0.5 + GlobalFlameManagement.Flames[i].target.Material.StructuralIntegrity * 0.75);
 						--Stop, drop and roll!
 						flame.Lifetime = flame.Lifetime - math.abs(actor.AngularVel);
 					end
 				else
-					Flames[i].target = nil;
+					GlobalFlameManagement.Flames[i].target = nil;
 					if math.random() > ageRatio then
 						if flame.Vel.Magnitude > 1 then
 							local checkPos = Vector(flame.Pos.X, flame.Pos.Y - 1) + flame.Vel * rte.PxTravelledPerFrame * math.random();
@@ -38,22 +40,22 @@ function Update(self)
 							if moCheck ~= rte.NoMOID then
 								local mo = MovableMan:GetMOFromID(moCheck);
 								if mo and (flame.Team == Activity.NOTEAM or mo.Team ~= flame.Team) then
-									Flames[i].target = ToMOSRotating(mo);
+									GlobalFlameManagement.Flames[i].target = ToMOSRotating(mo);
 									
-									Flames[i].isShort = true;
-									Flames[i].deleteDelay = math.random(flame.Lifetime);
+									GlobalFlameManagement.Flames[i].isShort = true;
+									GlobalFlameManagement.Flames[i].deleteDelay = math.random(flame.Lifetime);
 									
-									Flames[i].targetStickAngle = mo.RotAngle;	
-									Flames[i].stickOffset = SceneMan:ShortestDistance(mo.Pos, flame.Pos, SceneMan.SceneWrapsX) * 0.8;
+									GlobalFlameManagement.Flames[i].targetStickAngle = mo.RotAngle;	
+									GlobalFlameManagement.Flames[i].stickOffset = SceneMan:ShortestDistance(mo.Pos, flame.Pos, SceneMan.SceneWrapsX) * 0.8;
 									
 									flame.GlobalAccScalar = 0.9;
 								end
-							elseif flame.GlobalAccScalar < 0.5 and Flames[i].isShort and math.random() < 0.2 and SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
-								Flames[i].deleteDelay = math.random(flame.Lifetime);
+							elseif flame.GlobalAccScalar < 0.5 and GlobalFlameManagement.Flames[i].isShort and math.random() < 0.2 and SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
+								GlobalFlameManagement.Flames[i].deleteDelay = math.random(flame.Lifetime);
 								flame.GlobalAccScalar = 0.9;
 							end
 						end
-						if not Flames[i].isShort then
+						if not GlobalFlameManagement.Flames[i].isShort then
 							--Combine two flames into one
 							if flame.Throttle < 0 then
 								for n = 1, #nearbyFlame do
@@ -69,8 +71,8 @@ function Update(self)
 										newFlame.Pos = flame.Pos;
 										newFlame.Vel = flame.Vel;
 										MovableMan:AddParticle(newFlame);
-										Flames[i].particle = newFlame;
-										Flames[i].isShort = true;
+										GlobalFlameManagement.Flames[i].particle = newFlame;
+										GlobalFlameManagement.Flames[i].isShort = true;
 										flame.ToDelete = true;
 										flame = newFlame;
 										]]--
@@ -88,22 +90,21 @@ function Update(self)
 								MovableMan:AddParticle(particle);
 							end
 						end
-						if Flames[i].deleteDelay and flame.Age > Flames[i].deleteDelay then
+						if GlobalFlameManagement.Flames[i].deleteDelay and flame.Age > GlobalFlameManagement.Flames[i].deleteDelay then
 							flame.ToDelete = true;
 						end
 					end
 				end
 			else
-				Flames[i] = {};
+				GlobalFlameManagement.Flames[i] = {};
 			end
 		end
 		if flameCount == 0 then
 			--Clear the global table
-			Flames = {};
+			GlobalFlameManagement.Flames = {};
 		end
 	end
 end
 function Destroy(self)
-	GlobalFlameHandler = nil;
-	print("GlobalFlameHandler:Destroy()");
+	GlobalFlameManagement.FlameHandler = nil;
 end

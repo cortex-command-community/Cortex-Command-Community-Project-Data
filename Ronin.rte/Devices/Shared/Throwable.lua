@@ -8,7 +8,7 @@ end
 function OnCollideWithMO(self, mo, rootMO)
 	if self.thrown then
 		local force = self.PrevVel * self.impactPower;
-		mo:AddForce(force, Vector());
+		mo:AddImpulseForce(force, Vector());
 		if force.Magnitude * self.Sharpness > mo.Material.StructuralIntegrity then
 			local woundName = mo:GetEntryWoundPresetName();
 			if woundName ~= "" then

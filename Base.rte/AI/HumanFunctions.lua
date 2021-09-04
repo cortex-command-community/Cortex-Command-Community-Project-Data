@@ -56,13 +56,6 @@ function HumanFunctions.DoAlternativeGib(actor)
 		end
 	end
 end
-	
-function HumanFunctions.DoAutomaticEquip(actor)
-	--Equip a weapon automatically if the one held by a player is destroyed
-	if actor.EquippedItem == nil and not actor.controller:IsState(Controller.WEAPON_FIRE) and actor:IsPlayerControlled() then
-		actor:EquipFirearm(true);
-	end
-end
 
 function HumanFunctions.DoArmSway(actor, pushStrength)
 	local aimAngle = actor:GetAimAngle(false);
@@ -181,4 +174,31 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 			end
 		end
 	end
+end
+--Lunge forward, preferably as result of some dedicated input. Returns horizontal direction of lunge. (TODO: move this into another table?)
+function HumanFunctions.Lunge(actor, power)
+	local flip = 0;
+	if actor.Status == Actor.STABLE then
+		flip = actor.FlipFactor;
+		if actor.controller:IsState(Controller.MOVE_RIGHT) then
+			flip = 1;
+		elseif actor.controller:IsState(Controller.MOVE_LEFT) then
+			flip = -1;
+		end
+		--Different factors that affect the lunge
+		local angVel = math.abs(actor.AngularVel * 0.1) + 1;
+		local vel = (actor.Vel.Magnitude + angVel)^2 * 0.0005 + 1;
+		local mass = math.abs(actor.Mass * 0.005) + 1;
+		local aimAng = actor:GetAimAngle(false);
+		local vertical = math.abs(math.cos(aimAng))/vel;
+		local strength = power * math.min(actor.Health/actor.MaxHealth, 1);
+		
+		local jumpVec =	Vector((power + strength/vel) * flip, -(power * 0.5 + (strength * 0.3)) * vertical):RadRotate(aimAng * actor.FlipFactor);
+		
+		actor.Vel = actor.Vel + jumpVec/mass;
+		actor.AngularVel = actor.AngularVel - (1/angVel * vertical) * flip * math.cos(actor.RotAngle);
+		actor.Status = Actor.UNSTABLE;
+		actor.tapTimer:Reset();
+	end
+	return flip;
 end

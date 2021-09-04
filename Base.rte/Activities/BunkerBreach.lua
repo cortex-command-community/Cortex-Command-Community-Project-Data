@@ -283,7 +283,7 @@ function BunkerBreach:UpdateActivity()
 						self.attackPos = targetActor.Pos;
 						
 						self.CPUSpawnDelay = self.CPUSpawnDelay * 0.5;--* dist.Magnitude/searchRadius;
-
+						--TODO: Fix GetClosestTeamActor and use that instead
 						local closestGuard = MovableMan:GetClosestEnemyActor(targetActor.Team, targetActor.Pos, searchRadius - dist.Magnitude, Vector());
 						if closestGuard and math.random() > dist.Magnitude/searchRadius and closestGuard.AIMode == Actor.AIMODE_SENTRY and closestGuard:GetAlarmPoint() ~= Vector() then
 							--Send a nearby alerted guard after the intruder

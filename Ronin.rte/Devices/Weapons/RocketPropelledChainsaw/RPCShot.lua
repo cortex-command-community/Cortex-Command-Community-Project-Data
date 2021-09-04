@@ -29,7 +29,7 @@ function Update(self)
 				local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 				self:AddWound(CreateAEmitter(self:GetEntryWoundPresetName()), Vector(math.random(1 + self.length), 0), true);
 	
-				mo:AddForce(self.Vel * self.Mass, Vector());
+				mo:AddImpulseForce(self.Vel * self.Mass, Vector());
 				self.Vel = (mo.Vel - dist:SetMagnitude(self.Vel.Magnitude):RadRotate(RangeRand(-1, 1))) * 0.5;
 				self.AngularVel = self.AngularVel + math.random(10, 20) * (math.random() < 0.5 and 1 or -1);
 			else
