@@ -19,7 +19,7 @@ function Update(self)
 		for i = 1, dots do
 			local checkPos = self.Pos + trace * (i/dots);
 			local checkPix = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
-			if checkPix ~= rte.NoMOID and (self.ID == rte.NoMOID or (self.ID ~= rte.NoMOID and checkPix ~= self.ID)) and MovableMan:GetMOFromID(checkPix).Team ~= self.Team then
+			if checkPix ~= rte.NoMOID and (self.ID == rte.NoMOID or checkPix ~= self.ID) and MovableMan:GetMOFromID(checkPix).Team ~= self.Team then
 				checkPos = checkPos + SceneMan:ShortestDistance(checkPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(3);
 				
 				self.target = MovableMan:GetMOFromID(checkPix);

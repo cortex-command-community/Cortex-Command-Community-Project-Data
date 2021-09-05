@@ -976,7 +976,8 @@ function MetaFight:UpdateActivity()
 			self:DisableAIs(false, Activity.NOTEAM);
 			self:InitAIs()
 			-- Reset the mouse value and pathfinding so it'll know about the newly placed stuff
-			UInputMan:SetMouseValueMagnitude(0);
+			-- TODO: Find out if this needs to be fixed
+			--UInputMan:SetMouseValueMagnitude(0);
 			SceneMan.Scene:ResetPathFinding();
 			-- Start the in-game music track
 			AudioMan:ClearMusicQueue();
