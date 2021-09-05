@@ -1,8 +1,6 @@
 function Create(self)
-	self.fireVel = 30;
-	self.spread = math.rad(self.ParticleSpreadRange);
-	
-	self.rocketCount = 4;
+	self.fireVel = 40;
+	self.spread = math.rad(self.ShakeRange);
 	
 	self.searchRange = 100 + FrameMan.PlayerScreenWidth * 0.3;
 	self.searchTimer = Timer();
@@ -33,7 +31,7 @@ function Update(self)
 						self.targets = {};
 
 						for actor in MovableMan.Actors do
-							if #self.targets < self.rocketCount and actor.Team ~= self.Team then
+							if #self.targets < self.RoundInMagCapacity and actor.Team ~= self.Team then
 
 								if (SceneMan:ShortestDistance(searchPos, actor.Pos, SceneMan.SceneWrapsX).Magnitude - actor.Radius) < self.searchRange
 								and (actor.Vel.Magnitude + math.abs(actor.AngularVel) + 1)/math.sqrt(actor.Radius) < self.lockThreshold
@@ -96,7 +94,7 @@ function Update(self)
 	if self.FiredFrame then
 		local rocketNumber = self.RoundInMagCount + 1;
 	
-		local rocket = CreateAEmitter("Particle Browncoat Rocket");
+		local rocket = CreateAEmitter("Particle Browncoat Rocket", "Browncoats.rte");
 		if #self.targets > 0 then
 			if self.targets[rocketNumber] and self.targets[rocketNumber].actor.ID ~= rte.NoMOID then
 				rocket:SetNumberValue("TargetID", self.targets[rocketNumber].actor.ID);
@@ -106,8 +104,8 @@ function Update(self)
 				rocket:SetNumberValue("TargetID", self.targets[math.random(#self.targets)].actor.ID);
 			end
 		end
-		rocket.Pos = self.MuzzlePos + Vector(0, (rocketNumber - self.rocketCount * 0.5)):RadRotate(self.RotAngle);
-		rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((self.spread * 0.5) - (rocketNumber/self.rocketCount) * self.spread) * self.FlipFactor);
+		rocket.Pos = self.MuzzlePos + Vector(0, (rocketNumber - self.RoundInMagCapacity * 0.5)):RadRotate(self.RotAngle);
+		rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((self.spread * 0.5) - (rocketNumber/self.RoundInMagCapacity) * self.spread) * self.FlipFactor);
 		rocket.RotAngle = rocket.Vel.AbsRadAngle;
 		rocket.AngularVel = math.cos(rocket.Vel.AbsRadAngle) * 5;
 		rocket.Team = self.Team;
