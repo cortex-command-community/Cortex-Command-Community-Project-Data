@@ -2324,7 +2324,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 						aimTarget = Dist.AbsRadAngle
 						AI.canHitTarget = true
 						if Owner.InventorySize > 0 then	-- we have more things in the inventory
-							if range < 60 and Owner:HasObjectInGroup("Tools - Diggers") then
+							if range < 60 and (Owner:HasObjectInGroup("Tools - Diggers") or Owner:HasObjectInGroup("Weapons - Melee")) then
 								AI:CreateHtHBehavior(Owner)
 								break
 							elseif Owner:EquipLoadedFirearmInGroup("Any", "Weapons - Explosive", true) then

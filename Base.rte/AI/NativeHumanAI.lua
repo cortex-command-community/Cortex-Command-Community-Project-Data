@@ -278,7 +278,7 @@ function NativeHumanAI:Update(Owner)
 					FoundMO = ToACRocket(FoundMO)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
-				elseif FoundMO.ClassName == "ADoor" and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
+				elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then
 					FoundMO = ToActor(FoundMO)
@@ -790,7 +790,7 @@ end
 
 -- force the use of a digger when attacking
 function NativeHumanAI:CreateHtHBehavior(Owner)					-- has to be digger, not just "tool"
-	if Owner.AIMode ~= Actor.AIMODE_SQUAD and self.Target and Owner:HasObjectInGroup("Tools - Diggers") then	--Owner:EquipDiggingTool(true) then
+	if Owner.AIMode ~= Actor.AIMODE_SQUAD and self.Target and (Owner:HasObjectInGroup("Tools - Diggers") or Owner:HasObjectInGroup("Weapons - Melee")) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 		self.NextBehaviorName = "AttackTarget"
 		self.NextCleanup = function(AI)
