@@ -1,5 +1,4 @@
 function Create(self)
-	self.uses = 3;
 	self.baseStrength = 10;
 	
 	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
@@ -21,7 +20,7 @@ function Update(self)
 				end
 			end
 			if target and (target.Health < target.MaxHealth or target.WoundCount > 0) then
-				local strength = self.baseStrength + math.ceil(3000/(1 + math.abs(target.Mass + target.Material.StructuralIntegrity) * 0.5));
+				local strength = self.baseStrength + math.ceil(3000/(1 + math.abs(target.Mass - target.InventoryMass + target.Material.StructuralIntegrity) * 0.5));
 				if target.Health < target.MaxHealth then
 					target.Health = math.min(target.Health + strength, target.MaxHealth);
 				end
@@ -42,17 +41,15 @@ function Update(self)
 				local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
 				cross.Pos = target.AboveHUDPos + Vector(0, 5);
 				MovableMan:AddParticle(cross);
-
-				self:Reload();
-				self.uses = self.uses - 1;
 			else
 				self.errorSound:Play(self.Pos);
+				if self.Magazine then
+					self.Magazine.RoundCount = self.Magazine.RoundCount + self.RoundsFired;
+				end
 			end
 		end
-	end
-	if self.uses == 0 then
-		self.ToDelete = true;
-	elseif self.Magazine then
-		self.Magazine.RoundCount = self.uses;
+		if self.RoundInMagCount == 0 then
+			self.ToDelete = true;
+		end
 	end
 end
