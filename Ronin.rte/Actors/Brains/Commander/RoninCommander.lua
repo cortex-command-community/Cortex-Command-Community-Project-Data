@@ -23,6 +23,7 @@ function Create(self)
 			self.Head.Frame = self.face;
 		end
 	end
+	self.stableVel = self:GetStableVelocityThreshold();
 end
 function Update(self)
 	if self.updateTimer:IsPastSimMS(1000) then
@@ -36,9 +37,9 @@ function Update(self)
 		end
 	end
 	self.Frame = (self.face == 2 and self.Vel.Y > (SceneMan.GlobalAcc.Y * 0.15)) and 3 or self.face;
-	
+	local crouching = false;
 	if self:IsPlayerControlled() and self.Status < Actor.INACTIVE and self.FGLeg and self.BGLeg then
-		local crouching = self.controller:IsState(Controller.BODY_CROUCH);
+		crouching = self.controller:IsState(Controller.BODY_CROUCH);
 		if self.Status == Actor.UNSTABLE then
 			if self.dir == self.FlipFactor then
 				local motion = (self.Vel.Magnitude * 0.5 + math.abs(self.AngularVel));
@@ -49,6 +50,7 @@ function Update(self)
 			else
 				self.dir = 0;
 			end
+			crouching = false;
 		elseif crouching then
 			if not self.crouchHeld then
 				if not self.tapTimer:IsPastSimMS(self.lungeTapDelay) and SceneMan.Scene.GlobalAcc.Magnitude > 10 then
@@ -60,4 +62,5 @@ function Update(self)
 		end
 		self.crouchHeld = crouching;
 	end
+	self:SetStableVelocityThreshold(crouching and self.stableVel * (1 + math.cos(self.RotAngle)) or self.stableVel)
 end
