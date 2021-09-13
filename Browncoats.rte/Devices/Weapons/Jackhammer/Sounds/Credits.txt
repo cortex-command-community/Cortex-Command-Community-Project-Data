@@ -1,0 +1,16 @@
+Fire:
+
+Warframe:
+
+DexSybarisShotA
+WeaponPunchShotgunCommonOne2DA
+SeerFireShotA
+TennoHandShotgun2DTailA
+
+GrnFlameSpearFire2DA
+
+Reload:
+
+Warframe:
+
+Lanka
