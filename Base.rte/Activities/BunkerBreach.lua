@@ -214,7 +214,7 @@ function BunkerBreach:UpdateActivity()
 				self.defenderBrain = findBrain;
 			else
 				self.WinnerTeam = self.attackerTeam;
-				MovableMan:KillAllEnemyActors(self.defenderTeam);
+				MovableMan:KillAllEnemyActors(self.attackerTeam);
 				ActivityMan:EndActivity();
 				return
 			end
@@ -313,7 +313,7 @@ function BunkerBreach:UpdateActivity()
 				end
 			end
 		elseif MovableMan:GetTeamMOIDCount(self.CPUTeam) < 5 then
-			MovableMan:KillAllEnemyActors(self.CPUTeam);
+			MovableMan:KillAllEnemyActors(self.playerTeam);
 			self.WinnerTeam = self.playerTeam;
 			ActivityMan:EndActivity();
 			return
@@ -498,7 +498,7 @@ function BunkerBreach:CreateBrainBot(team)
 	if actor then
 		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
 		if team == self.attackerTeam then
-			actor:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"));
+			actor:AddInventoryItem(CreateHDFirearm("Constructor", "Base.rte"));
 		else
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
 		end
