@@ -172,6 +172,19 @@ explosions:
 exp_small_tail_close
 exp_small_core_close
 
+*******************************************************************************
+ Browncoats.rte\Devices\Weapons\Jackhammer\Sounds
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+DexSybarisShotA
+WeaponPunchShotgunCommonOne2DA
+SeerFireShotA
+TennoHandShotgun2DTailA
+
+GrnFlameSpearFire2DA
+
+Lanka Reload Sounds
 
 *******************************************************************************
  Ronin.rte\Devices\Weapons\RPG7\Sounds
@@ -183,6 +196,16 @@ RPG7 Reload Sounds
 exp_rpg_core_close
 exp_rpg_ambience_close
 exp_large_tail_close
+
+*******************************************************************************
+  Ronin.rte\Devices\Tools\MedicalDartGun\Sounds
+-------------------------------------------------------------------------------
+Digital Extremes: Warframe
+
+TranquillizerRifleShotA
+TranquillizerRifleMechA
+
+GarudaCrossbow Reload Sounds
 
 
 *******************************************************************************
