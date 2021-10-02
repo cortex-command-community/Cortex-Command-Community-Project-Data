@@ -60,8 +60,7 @@ function Update(self)
 				end
 				--Check that the target isn't obscured by terrain
 				local aimTrace = SceneMan:ShortestDistance(self.Pos, aimTarget.Pos, SceneMan.SceneWrapsX);
-				local terrCheck = SceneMan:CastStrengthRay(self.Pos, aimTrace, 30, Vector(), 5, 0, SceneMan.SceneWrapsX);
-				if terrCheck == false then
+				if not SceneMan:CastStrengthRay(self.Pos, aimTrace, 30, Vector(), 5, 0, SceneMan.SceneWrapsX) then
 					self.RotAngle = aimTrace.AbsRadAngle;
 					--Debug: visualize aim trace
 					if self.showAim then

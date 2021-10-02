@@ -25,7 +25,6 @@ function Update(self)
 				local damage = impulse/(actor.GibImpulseLimit * 0.1 + actor.Material.StructuralIntegrity * 10);
 				actor.Health = damage > 0 and actor.Health - damage or actor.Health;
 			end
-			self:SwapNextInventory(actor, true);
 		end
 	end
 	if self.GibTimer:IsPastSimTimeLimit() then
