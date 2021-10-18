@@ -498,12 +498,7 @@ function Siege:CreateHeavyDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -540,12 +535,7 @@ function Siege:CreateSWATDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass * 0.75 then 
+				if Craft.InventoryMass > craftMaxMass * 0.75 then 
 					break
 				end
 			end
@@ -582,12 +572,7 @@ function Siege:CreateArtilleryDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -641,12 +626,7 @@ function Siege:CreateMediumDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -698,12 +678,7 @@ function Siege:CreateLightDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -751,12 +726,7 @@ function Siege:CreateEngineerDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -809,12 +779,7 @@ function Siege:CreateScoutDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end

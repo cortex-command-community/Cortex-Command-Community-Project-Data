@@ -681,7 +681,7 @@ function MetaFight:EndActivity()
 	self.NoBrainsLeft = self:NoTeamLeft();
 
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
-	if not self.Paused then
+	if not self:IsPaused() then
 		-- This is now no-man's land
 		if self.NoBrainsLeft then
 			self.WinnerTeam = Activity.NOTEAM;

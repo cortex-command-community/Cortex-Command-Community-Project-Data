@@ -88,7 +88,7 @@ function Update(self)
 		local moCheck = SceneMan:GetMOIDPixel(self.Pos.X, self.Pos.Y);
 		if moCheck ~= rte.NoMOID then
 			local actor = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-			if actor.Team ~= self.Team then
+			if actor and actor.Team ~= self.Team then
 				self:GibThis();
 				if IsActor(actor) then
 					local melt = CreateMOPixel("Disintegrator");

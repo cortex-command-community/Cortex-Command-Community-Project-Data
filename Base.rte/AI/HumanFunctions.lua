@@ -56,29 +56,10 @@ function HumanFunctions.DoAlternativeGib(actor)
 		end
 	end
 end
-	
-function HumanFunctions.DoAutomaticEquip(actor)
-	--Equip a weapon automatically if the one held by a player is destroyed (To-do: move this to cpp?)
-	if actor.EquippedItem == nil and not actor.controller:IsState(Controller.WEAPON_FIRE) and (actor:IsPlayerControlled() or actor:UnequipBGArm()) then
-		actor:EquipFirearm(true);
-	end
-end
 
 function HumanFunctions.DoArmSway(actor, pushStrength)
 	local aimAngle = actor:GetAimAngle(false);
-	if actor.weight then
-		actor:RemoveAttachable(actor.weight);
-		actor.weight = nil;
-	end
 	if actor.Status == Actor.STABLE and actor.lastHandPos then
-		--Unequip weapons by pressing both weapon switch keys at once
-		if actor.controller:IsState(Controller.WEAPON_CHANGE_NEXT) and actor.controller:IsState(Controller.WEAPON_CHANGE_PREV) then
-			local item = CreateHeldDevice("Null Item");
-			actor:AddInventoryItem(item);
-			actor:EquipNamedDevice("Null Item", true);
-			item.ToDelete = true;
-		end
-		--Control arm movements
 		--Flail around if aiming around too fast
 		local angleMovement = actor.lastAngle - aimAngle;
 		actor.AngularVel = actor.AngularVel - (2 * angleMovement * actor.FlipFactor)/(math.abs(actor.AngularVel) * 0.1 + 1);
@@ -99,7 +80,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 			if arm then
 				arm = ToArm(arm);
 				
-				local armLength = ToMOSprite(arm):GetSpriteWidth();
+				local armLength = arm.MaxLength;
 				local rotAng = actor.RotAngle - (1.57 * actor.FlipFactor);
 				local legMain = armPairs[i][2];
 				local legAlt = armPairs[i][3];
@@ -113,7 +94,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 				if actor.controller:IsState(Controller.AIM_SHARP) then
 					arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
 				else
-					arm.IdleOffset = Vector(0, (armLength + arm.SpriteOffset.X) * 1.1):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
+					arm.IdleOffset = Vector(0, armLength * 0.7):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
 				end
 				if actor.shoved or (actor.EquippedItem and IsTDExplosive(actor.EquippedItem) and actor.controller:IsState(Controller.WEAPON_FIRE)) then
 					arm.IdleOffset = Vector(armLength + (pushStrength * armLength), 0):RadRotate(aimAngle);
@@ -138,11 +119,10 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 					if actor.Mass > mo.Mass then
 						ToActor(mo).Status = Actor.UNSTABLE;
 						--Simulate target actor weight with an attachable
-						if not actor.weight then
-							actor.weight = CreateAttachable("Null Attachable");
-							actor.weight.Mass = mo.Mass;
-							actor:AddAttachable(actor.weight);
-						end
+						local weight = CreateAttachable("Null Attachable");
+						weight.Mass = mo.Mass;
+						weight.Lifetime = 1;
+						actor:AddAttachable(weight);
 						local shoveVel = shove.Vector/rte.PxTravelledPerFrame;
 						mo.Vel = mo.Vel * 0.5 + shoveVel:SetMagnitude(math.min(shoveVel.Magnitude, math.sqrt(actor.IndividualDiameter))) - SceneMan.GlobalAcc * GetMPP() * rte.PxTravelledPerFrame;
 						mo.AngularVel = (aimAngle - actor.lastAngle) * actor.FlipFactor * math.pi;
@@ -194,4 +174,31 @@ function HumanFunctions.DoVisibleInventory(actor, showAll)
 			end
 		end
 	end
+end
+--Lunge forward, preferably as result of some dedicated input. Returns horizontal direction of lunge. (TODO: move this into another table?)
+function HumanFunctions.Lunge(actor, power)
+	local flip = 0;
+	if actor.Status == Actor.STABLE then
+		flip = actor.FlipFactor;
+		if actor.controller:IsState(Controller.MOVE_RIGHT) then
+			flip = 1;
+		elseif actor.controller:IsState(Controller.MOVE_LEFT) then
+			flip = -1;
+		end
+		--Different factors that affect the lunge
+		local angVel = math.abs(actor.AngularVel * 0.1) + 1;
+		local vel = (actor.Vel.Magnitude + angVel)^2 * 0.0005 + 1;
+		local mass = math.abs(actor.Mass * 0.005) + 1;
+		local aimAng = actor:GetAimAngle(false);
+		local vertical = math.abs(math.cos(aimAng))/vel;
+		local strength = power * math.min(actor.Health/actor.MaxHealth, 1);
+		
+		local jumpVec =	Vector((power + strength/vel) * flip, -(power * 0.5 + (strength * 0.3)) * vertical):RadRotate(aimAng * actor.FlipFactor);
+		
+		actor.Vel = actor.Vel + jumpVec/mass;
+		actor.AngularVel = actor.AngularVel - (1/angVel * vertical) * flip * math.cos(actor.RotAngle);
+		actor.Status = Actor.UNSTABLE;
+		actor.tapTimer:Reset();
+	end
+	return flip;
 end

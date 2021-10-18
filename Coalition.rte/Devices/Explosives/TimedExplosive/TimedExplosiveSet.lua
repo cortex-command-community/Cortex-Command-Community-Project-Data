@@ -23,6 +23,9 @@ function Create(self)
 	self.tableNum = #TimedExplosiveTable + 1;
 	TimedExplosiveTable[self.tableNum] = self;
 
+	self.activateSound = CreateSoundContainer("Explosive Device Activate", "Base.rte");
+	self.blipSound = CreateSoundContainer("Timed Explosive Blip", "Coalition.rte");
+	
 	RemoteExplosiveStick(self);
 end
 
@@ -65,7 +68,7 @@ function Update(self)
 		if self.blipTimer:IsPastSimMS(self.blipdelay) then
 			self.blipTimer:Reset();
 			self.blinkTimer:Reset();
-			AudioMan:PlaySound("Coalition.rte/Devices/Explosives/TimedExplosive/Sounds/TimedExplosiveBlip.flac", self.Pos);
+			self.blipSound:Play(self.Pos);
 
 			if self.changeCounter == 0 and self.lifeTimer.ElapsedSimTimeMS > (self.detonateDelay * 0.85 - 5000) then
 				self.changeCounter = 1;

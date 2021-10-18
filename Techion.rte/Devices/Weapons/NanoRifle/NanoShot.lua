@@ -1,21 +1,25 @@
 function Create(self)
 	--Collide with objects and deploy the destroy effect.
-	self.CheckCollision = function(vel)
-		local Trace = vel * rte.PxTravelledPerFrame;
-		local moid = SceneMan:CastMORay(self.Pos, Trace, rte.NoMOID, self.Team, rte.airID, true, 1);
+	self.CheckCollision = function(inverted)
+		local trace = self.Vel * rte.PxTravelledPerFrame;
+		if inverted then
+			trace = trace * (-1);
+		end
+		local moid = SceneMan:CastMORay(self.Pos, trace, rte.NoMOID, -2, rte.airID, true, 1);
 		if moid > 0 and moid < rte.NoMOID then
 			local hitPos = Vector();
-			SceneMan:CastFindMORay(self.Pos, Trace, moid, hitPos, rte.airID, true, 1);
-			self.deleteNextFrame = true;
-			self.Vel = (SceneMan:ShortestDistance(self.Pos, hitPos, true)/TimerMan.DeltaTimeSecs)/GetPPM();
-
-			local target = MovableMan:GetMOFromID(moid);
-			if target then
-				local destroy = CreateAEmitter("Nanobot Destroy Effect", "Techion.rte");
-				destroy.Sharpness = target.UniqueID;
-				destroy.Pos = hitPos + SceneMan:ShortestDistance(hitPos, target.Pos, true):SetMagnitude(3);
-				destroy.Vel = target.Vel;
-				MovableMan:AddParticle(destroy);
+			SceneMan:CastFindMORay(self.Pos, trace, moid, hitPos, rte.airID, true, 1);
+			local target = ToMOSRotating(MovableMan:GetMOFromID(moid));
+			if target and (target.Team ~= self.Team or (target.WoundCount > 0 and target.PresetName ~= "Nano Rifle")) then
+				self.deleteNextFrame = true;
+				self.Vel = (SceneMan:ShortestDistance(self.Pos, hitPos, true)/TimerMan.DeltaTimeSecs)/GetPPM();
+			
+				local effect = CreateAEmitter("Nanobot Effect", "Techion.rte");
+				effect.Sharpness = target.UniqueID;
+				effect.Pos = hitPos + SceneMan:ShortestDistance(hitPos, target.Pos, true):SetMagnitude(3);
+				effect.Vel = target.Vel;
+				effect.Team = self.Team;
+				MovableMan:AddParticle(effect);
 			end
 		end
 	end
@@ -24,7 +28,7 @@ function Create(self)
 
 	self.deleteNextFrame = false;
 	--Check backward.
-	self.CheckCollision(Vector(self.Vel.X, self.Vel.Y):RadRotate(math.pi));
+	self.CheckCollision(true);
 
 	self.trailLength = 50;
 
@@ -47,7 +51,7 @@ function Update(self)
 		self.ToDelete = true;
 	elseif self.Vel.Magnitude >= self.speedThreshold then
 		--Check forward.
-		self.CheckCollision(self.Vel);
+		self.CheckCollision(false);
 	end
 	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 end

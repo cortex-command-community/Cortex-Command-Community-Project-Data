@@ -598,12 +598,7 @@ function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 					break
 				end
 			end
@@ -669,12 +664,7 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-				    inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -730,12 +720,7 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -791,12 +776,7 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				local inventoryMass = 0;
-				for item in Craft.Inventory do
-					inventoryMass = inventoryMass + item.Mass;
-				end
-				-- Stop adding actors when exceeding the weight limit
-				if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -829,12 +809,7 @@ function WaveDefense:CreateBombDrop(bombPosX)
 		for _ = 3, 5 do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.AI.Tech))
 			
-			local inventoryMass = 0;
-			for item in Craft.Inventory do
-				inventoryMass = inventoryMass + item.Mass;
-			end
-			-- Stop adding bombs when exceeding the weight limit
-			if inventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+			if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 				break
 			end
 		end

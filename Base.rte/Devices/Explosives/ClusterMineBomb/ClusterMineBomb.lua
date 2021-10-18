@@ -2,7 +2,6 @@ function Create(self)
 
 	self.alliedTeam = -1;
 	self.lastAngle = self.RotAngle;
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 	
 	self.deployRange = 100;
 	
@@ -12,7 +11,6 @@ end
 function Update(self)
 
 	self.lastAngle = self.RotAngle;
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 
 	if not self:GetParent() then
 		if self.alliedTeam == -1 then

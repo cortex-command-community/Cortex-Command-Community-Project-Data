@@ -4,13 +4,12 @@ function Create(self)
 	self.regenTimer = Timer();
 
 	self.lastWoundCount = self.WoundCount;
-	self.lastHealth = self.Health;
 end
 function Update(self)
 	if self.regenTimer:IsPastSimMS(self.regenDelay) then
 		self.regenTimer:Reset();
 		if self.Health > 0 then
-			local damageRatio = (self.WoundCount - self.lastWoundCount)/self:GetGibWoundLimit(true, false, false) + (self.lastHealth - self.Health)/self.MaxHealth;
+			local damageRatio = (self.WoundCount - self.lastWoundCount)/self:GetGibWoundLimit(true, false, false) + (self.PrevHealth - self.Health)/self.MaxHealth;
 			if damageRatio > 0 then
 				self.regenDelay = self.regenDelay * (1 + damageRatio);
 			else
@@ -24,6 +23,5 @@ function Update(self)
 			end
 		end
 		self.lastWoundCount = self.WoundCount;
-		self.lastHealth = self.Health;
 	end
 end

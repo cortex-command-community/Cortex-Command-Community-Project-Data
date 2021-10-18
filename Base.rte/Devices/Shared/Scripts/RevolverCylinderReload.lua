@@ -10,7 +10,7 @@ function Update(self)
 		for i = 1, self.shellsToEject do
 			local shell = self.shellMOSRotating and CreateMOSRotating(self.shellMOSRotating) or CreateMOSParticle(self.shellMOSParticle);
 			shell.Pos = self.Pos;
-			shell.Vel = self.Vel + Vector(RangeRand(-3, 0) * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(math.random(-16, 16));
+			shell.Vel = self.Vel + Vector(RangeRand(-3, 0) * self.FlipFactor, 0):RadRotate(self.RotAngle + RangeRand(-0.3, 0.3));
 			shell.AngularVel = RangeRand(-1, 1);
 			MovableMan:AddParticle(shell);
 		end

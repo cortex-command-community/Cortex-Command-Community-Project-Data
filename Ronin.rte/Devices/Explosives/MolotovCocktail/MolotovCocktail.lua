@@ -1,6 +1,6 @@
 function Create(self)
 	self.origMass = self.Mass;
-	self.lastVel = 0;
+	self.explosion = CreateMOSRotating("Molotov Cocktail Explosion", "Ronin.rte");
 end
 function Update(self)
 	if self.ID == self.RootID then
@@ -8,22 +8,24 @@ function Update(self)
 			self.AngularVel = self.AngularVel - self.Vel.Magnitude * self.FlipFactor * math.random();
 			self.thrown = true;
 		end
-		self.Mass = self.origMass + math.sqrt(self.lastVel);
+		self.Mass = self.origMass + math.sqrt(self.PrevVel.Magnitude);
 	else
 		self.thrown = false;
 		self.Mass = self.origMass;
 	end
-	if self.WoundCount > 1 then
-		self:Activate();
+	if not self.lit and self.WoundCount > 0 then
+		--Slight chance for projectiles to light the molotov instead of breaking it
+		if math.random(0, 10) < self.WoundCount then
+			self:Activate();
+		else
+			self:GibThis();
+		end
 	end
-	if not self.explosion and self:IsActivated() then
-		self.explosion = CreateMOSRotating("Molotov Cocktail Explosion");
-	end
-	self.lastVel = self.Vel.Magnitude;
+	self.lit = self:IsActivated();
 end
 function Destroy(self)
-	-- Explode into flames only if lit
-	if self.explosion then
+	--Explode into flames only if lit
+	if self.lit then
 		self.explosion.Pos = Vector(self.Pos.X, self.Pos.Y);
 		self.explosion.Vel = Vector(self.Vel.X, self.Vel.Y);
 		MovableMan:AddParticle(self.explosion);
