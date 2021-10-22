@@ -98,7 +98,6 @@ function Update(self)
 			table.insert(parts, mo);
 			local totalAttSize = mo.Radius;
 			local inverseScale = 1 - self.setScale;
-			mo:RemoveWounds(1);
 
 			for att in mo.Attachables do
 				table.insert(parts, att);

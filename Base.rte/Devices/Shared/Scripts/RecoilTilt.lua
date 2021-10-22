@@ -17,10 +17,4 @@ function Update(self)
 	if self.FiredFrame then
 		self.InheritedRotAngleOffset = self.InheritedRotAngleOffset + (self.recoilAngleSize * RangeRand(self.recoilAngleVariation, 1))/(1 + self.InheritedRotAngleOffset)^2;
 	end
-	if self.recoilStanceFactor ~= 0 then
-		local setStanceAngle = self.InheritedRotAngleOffset * self.recoilStanceFactor * 0.5;
-		local xFactor = 1 + setStanceAngle * 0.5;
-		self.StanceOffset = Vector(self.origStanceOffset.X/xFactor, self.origStanceOffset.Y):RadRotate(setStanceAngle);
-		self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X/xFactor, self.origSharpStanceOffset.Y):RadRotate(setStanceAngle);
-	end
 end

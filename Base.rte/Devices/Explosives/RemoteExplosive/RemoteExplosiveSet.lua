@@ -18,6 +18,8 @@ function Create(self)
 	self.tableNum = #RemoteExplosiveTableA + 1;
 	RemoteExplosiveTableA[self.tableNum] = self;
 	RemoteExplosiveTableB[self.tableNum] = self.alliedTeam;
+	
+	self.activateSound = CreateSoundContainer("Explosive Device Activate", "Base.rte");
 
 	RemoteExplosiveStick(self);
 end
@@ -76,7 +78,9 @@ function RemoteExplosiveStick(self)
 				self.stickRotation = self.target.RotAngle;
 				self.stickDirection = self.RotAngle;
 
-				AudioMan:PlaySound("Base.rte/Devices/Explosives/RemoteExplosive/Sounds/RemoteExplosiveActivate.flac", self.Pos);
+				if self.activateSound then
+					self.activateSound:Play(self.Pos);
+				end
 				self.stuck = true;
 				rayHit = true;
 				break;
@@ -91,7 +95,9 @@ function RemoteExplosiveStick(self)
 			self.stuck = true;
 			self.actionPhase = 2;
 
-			AudioMan:PlaySound("Base.rte/Devices/Explosives/RemoteExplosive/Sounds/RemoteExplosiveActivate.flac", self.Pos);
+			if self.activateSound then
+				self.activateSound:Play(self.Pos);
+			end
 		end
 	else
 		self.Vel = Vector();

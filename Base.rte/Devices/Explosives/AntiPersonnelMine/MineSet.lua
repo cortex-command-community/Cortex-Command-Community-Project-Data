@@ -30,6 +30,9 @@ function Create(self)
 	self.checkDelayExtension = 0.1;
 	self.detonateThreshold = 15;
 	self.detonateDelay = 200;
+	
+	self.activateSound = CreateSoundContainer("Mine Activate", "Base.rte");
+	self.detonateSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
 end
 
 function Update(self)
@@ -68,7 +71,7 @@ function Update(self)
 			self.RotAngle = self.faceDirection - (math.pi * 0.5);
 			self.PinStrength = self.GibImpulseLimit;
 			self.actionPhase = 1;
-			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.flac", self.Pos);
+			self.activateSound:Play();
 			self.delayTimer:Reset();
 		end
 
@@ -127,7 +130,7 @@ function Update(self)
 			self.blink = true;
 			self.Frame = ((self.alliedTeam + 1) * 2) + 1;
 			self.delayTimer:Reset();
-			AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.flac", self.Pos);
+			self.detonateSound:Play(self.Pos);
 		end
 		if self.delayTimer:IsPastSimMS(self.detonateDelay) then
 			self.Vel = Vector(25, 0):RadRotate(self.faceDirection);

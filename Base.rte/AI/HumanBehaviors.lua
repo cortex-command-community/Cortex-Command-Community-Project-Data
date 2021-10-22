@@ -205,9 +205,7 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 					if ID ~= rte.NoMOID then
 						local FoundMO = MovableMan:GetMOFromID(ID)
 						if FoundMO then
-							if ID ~= FoundMO.RootID then
-								FoundMO = MovableMan:GetMOFromID(FoundMO.RootID)
-							end
+							FoundMO = FoundMO:GetRootParent()
 							
 							if not FoundMO.EquippedItem or not FoundMO.EquippedItem:HasObjectInGroup("Weapons - Explosive") then
 								FoundMO = nil	-- don't shoot at without weapons or actors using tools
@@ -2326,7 +2324,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 						aimTarget = Dist.AbsRadAngle
 						AI.canHitTarget = true
 						if Owner.InventorySize > 0 then	-- we have more things in the inventory
-							if range < 60 and Owner:HasObjectInGroup("Tools - Diggers") then
+							if range < 60 and (Owner:HasObjectInGroup("Tools - Diggers") or Owner:HasObjectInGroup("Weapons - Melee")) then
 								AI:CreateHtHBehavior(Owner)
 								break
 							elseif Owner:EquipLoadedFirearmInGroup("Any", "Weapons - Explosive", true) then
@@ -2768,7 +2766,7 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 								local maxAim = aim
 								
 								-- try again with an average throw vel
-								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (maxThrowVel + minThrowVel)/2)
+								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (maxThrowVel + minThrowVel) * 0.5)
 								if aim then
 									aimTime = Owner.ThrowPrepTime * RangeRand(0.45, 0.55)
 								else

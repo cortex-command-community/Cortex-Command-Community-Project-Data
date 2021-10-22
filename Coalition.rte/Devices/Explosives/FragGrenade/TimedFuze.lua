@@ -5,7 +5,7 @@ end
 function Update(self)
 	if self.fuze then
 		if self.fuze:IsPastSimMS(self.fuzeDelay) then
-			self:GibThis();
+			self.ToDelete = true;
 		end
 	elseif self:IsActivated() then
 		self.fuze = Timer();

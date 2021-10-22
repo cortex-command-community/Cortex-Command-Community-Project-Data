@@ -3,7 +3,7 @@ function Create(self)
 	self.origSharpStanceOffset = Vector(4, 6);
 	self.minimumRoF = self.RateOfFire * 0.5;
 
-	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag"};
+	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag", "Scrap Metal", "Flesh Scraps"};
 	self.collectSound = CreateSoundContainer("Device Switch", "Base.rte");
 	self.hitSound = CreateSoundContainer("Ronin Shovel Hit", "Ronin.rte");
 	--How much the shovel tilts when firing

@@ -6,6 +6,8 @@ function Create(self)
 	self.alliedTeam = -1;
 	
 	self.detonateDelay = 60000/self.RateOfFire;
+	
+	self.detonateSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
 end
 
 function Update(self)
@@ -35,7 +37,7 @@ function Update(self)
 							end
 						end
 					end
-					AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineDetonate.flac", self.Pos);
+					self.detonateSound:Play(self.Pos);
 					self.fireOn = true;
 					self:Reload();
 				end

@@ -1,14 +1,13 @@
 function Create(self)
 
-	self.speed = 8;
-
+	self.speed = self.Vel.Magnitude;
+	
 	self.ToSettle = false;
 	if self.Sharpness ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(self.Sharpness);
 		if mo then
 			self.target = mo;
 			self.Sharpness = 0;
-			self.PinStrength = 0;
 		end
 	else
 		self.ToDelete = true;
@@ -17,13 +16,15 @@ end
 
 function Update(self)
 
-	self.ToSettle = false;
 	if self.target and self.target.ID ~= rte.NoMOID then
 		local dist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
 		if dist.Magnitude > self.speed then
-			self.Vel = Vector(dist.X,dist.Y):SetMagnitude(self.speed);
+			self.Vel = Vector(dist.X, dist.Y):SetMagnitude(self.speed) - (SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs) * self.GlobalAccScalar;
 		else
 			self.ToDelete = true;
 		end
+	end
+	if self.PinStrength > 0 then
+		self.Pos = self.Pos + self.Vel * rte.PxTravelledPerFrame;
 	end
 end

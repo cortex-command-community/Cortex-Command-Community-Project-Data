@@ -31,6 +31,7 @@ function ZombieCaveMission:StartActivity()
 
 	-- Team 2 is always zombie
 	self.ZombieTeam = Activity.TEAM_2;
+	self.AmbusherTeam = Activity.TEAM_4;
 
 	-- Create the zombie generators and place them in the scene
 	self.Generator1 = CreateAEmitter("Zombie Generator");
@@ -373,8 +374,7 @@ function ZombieCaveMission:UpdateActivity()
 					self:AddObjectivePoint("Load into a ship!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
 					self:AddObjectivePoint("KILL!", actor.AboveHUDPos, self.ZombieTeam, GameActivity.ARROWDOWN);
 				end
-			end
-			if actor:HasObjectInGroup("Brains") then
+			elseif actor:HasObjectInGroup("Brains") then
 				self:AddObjectivePoint("Protect!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
 				self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.ZombieTeam, GameActivity.ARROWDOWN);
 			end
@@ -422,8 +422,8 @@ function ZombieCaveMission:UpdateActivity()
 			ship2.Pos.X = 2300;
 			ship1.Pos.Y = 0;
 			ship2.Pos.Y = -50;
-			ship1.Team = self.ZombieTeam;
-			ship2.Team = self.ZombieTeam;
+			ship1.Team = self.AmbusherTeam;
+			ship2.Team = self.AmbusherTeam;
 			
 			-- Let the spawn into the world, passing ownership
 			MovableMan:AddActor(ship1);
@@ -437,7 +437,7 @@ function ZombieCaveMission:UpdateActivity()
 	-- Any ronin guys who reach the innermost cave, should go brain hunt afterward
 	if self.CurrentFightStage == self.FightStage.AMBUSH then
 		for actor in MovableMan.Actors do
-			if actor.Team == self.ZombieTeam and self.artifactArea:IsInside(actor.Pos) then
+			if actor.Team == self.AmbusherTeam and self.artifactArea:IsInside(actor.Pos) then
 				actor.AIMode = Actor.AIMODE_BRAINHUNT;
 			end
 		end

@@ -29,8 +29,9 @@ function Update(self)
 				local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 				self:AddWound(CreateAEmitter(self:GetEntryWoundPresetName()), Vector(math.random(1 + self.length), 0), true);
 	
+				mo:AddImpulseForce(self.Vel * self.Mass, Vector());
 				self.Vel = (mo.Vel - dist:SetMagnitude(self.Vel.Magnitude):RadRotate(RangeRand(-1, 1))) * 0.5;
-				self.AngularVel = self.AngularVel + math.random(-5, 5);
+				self.AngularVel = self.AngularVel + math.random(10, 20) * (math.random() < 0.5 and 1 or -1);
 			else
 				local moVelFactor = mo.Vel * (0.7 - 0.7/(math.sqrt(mo.Mass/self.Mass + 1)));
 				self.Vel = self.Vel/math.sqrt(velFactor + 1) + moVelFactor + Vector(2/(velFactor + 1) * self.FlipFactor, 0):RadRotate(self.firstAngle);
@@ -65,7 +66,7 @@ function Update(self)
 		if math.random() < self.angleCorrectionRatio then
 			--Maintain straighter angle, making it easier to go through lots of objects
 			if math.abs(self.RotAngle) < math.pi then
-				self.AngularVel = self.AngularVel * 0.99 - (self.RotAngle - self.firstAngle) * 2;
+				self.AngularVel = self.AngularVel * 0.99 - (self.RotAngle - self.firstAngle) * 2/(math.abs(self.AngularVel) + 1);
 				self.RotAngle = self.RotAngle * (1 - self.OrientToVel) + self.firstAngle * self.OrientToVel;
 			end
 		end
