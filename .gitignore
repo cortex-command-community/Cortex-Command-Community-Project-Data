@@ -45,6 +45,8 @@ luac.out
 # Manifest files
 *.manifest
 
+**/desktop.ini
+
 .vs/
 _Screenshots/
 Base.rte/Settings.ini
@@ -52,8 +54,6 @@ Benchmark.rte/
 Scenes.rte/
 Metagames.rte/
 DedicatedServerDebug.bat
-
-Cortex Command Experimental Multiplayer Operations Guide.docx
 
 allegro.log
 abortscreen.bmp
