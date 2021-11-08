@@ -6,17 +6,17 @@
 * @administrators
 
 #Lua Owners
-*.lua @scripters
+*.lua @lua-script-managers
 
 #INI Owners
-*.ini @ini-coders
+*.ini @ini-code-managers
 
 #Sprite Owners
-*.bmp @spriters
-*.png @spriters
+*.bmp @sprite-managers
+*.png @sprite-managers
 
 #Audio Owners
-*.wav @audio-makers
-*.ogg @audio-makers
-*.flac @audio-makers
-*.mp3 @audio-makers
+*.wav @audio-managers
+*.ogg @audio-managers
+*.flac @audio-managers
+*.mp3 @audio-managers
