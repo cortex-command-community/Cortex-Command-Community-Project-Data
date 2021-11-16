@@ -572,13 +572,18 @@ New World Interactive: Insurgency
 
 MG42 Reload Sounds
 
-Colesy_: Battlesound mod for Day of Infamy
+Still North Media: Firearm Sound Effects - Raw Master Tracks
 
-Kar98 Firing Sounds
+Savage 10 .300 Blackout/T_26.wav
 
-Digital Extremes: Warframe
+Sonniss: GDC Audio Bundle 2020
 
-GrnQueenGaurdDualPistols Firing Sounds
+Conor Bradley - Metal Chains/Dog_Chain-Hits.wav
+Conor Bradley - Metal Chains/Heavy_Chain-Foley_On_Wood.wav
+
+Sonniss: GDC Audio Bundle 2016
+Bottle Rocket Fx - Impact Collection/Impact_Drum Hit_03.wav
+Mattia Cellotto - Rocks Momentum/Woodshed - Rock and Wood Large Impacts - 1 Meter. Rock,Wood,Large,Impact,Roll,Various_02.wav
 
 
 *******************************************************************************
