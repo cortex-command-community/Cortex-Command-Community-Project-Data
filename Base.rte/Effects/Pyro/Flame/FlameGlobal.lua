@@ -27,7 +27,7 @@ function Update(self)
 					local actor = GlobalFlameManagement.Flames[i].target:GetRootParent();
 					if MovableMan:IsActor(actor) then
 						actor = ToActor(actor);
-						actor.Health = actor.Health - (GlobalFlameManagement.Flames[i].target.DamageMultiplier + flame.Throttle)/(actor.Mass * 0.5 + GlobalFlameManagement.Flames[i].target.Material.StructuralIntegrity * 0.75);
+						actor.Health = actor.Health - math.max(GlobalFlameManagement.Flames[i].target.DamageMultiplier * (flame.Throttle + 1), 0.1)/(actor.Mass * 0.7 + GlobalFlameManagement.Flames[i].target.Material.StructuralIntegrity);
 						--Stop, drop and roll!
 						flame.Lifetime = flame.Lifetime - math.abs(actor.AngularVel);
 					end
