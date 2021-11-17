@@ -191,7 +191,7 @@ function Harvester:UpdateActivity()
 			end
 
 			-- The max allowed weight of this craft plus cargo
-			local shipMaxMass = ship.MaxMass
+			local shipMaxMass = ship.MaxInventoryMass
 			if shipMaxMass < 0 then
 				shipMaxMass = math.huge
 			elseif shipMaxMass < 1 then

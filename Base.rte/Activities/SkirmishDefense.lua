@@ -848,7 +848,7 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 	local Craft = RandomACDropShip("Craft", self.AI[Team].TechID)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
