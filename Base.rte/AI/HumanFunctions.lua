@@ -91,7 +91,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 					rotAng = legMain.RotAngle;
 				end
 				--Flail arms in tandem with leg movement or raise them them up for a push if aiming
-				if actor.controller:IsState(Controller.AIM_SHARP) then
+				if not actor.controller:IsMouseControlled() and actor.controller:IsState(Controller.AIM_SHARP) then
 					arm.IdleOffset = Vector(0, 1):RadRotate(aimAngle);
 				else
 					arm.IdleOffset = Vector(0, armLength * 0.7):RadRotate(rotAng * actor.FlipFactor + 1.5 + (i * 0.2));
@@ -114,7 +114,7 @@ function HumanFunctions.DoArmSway(actor, pushStrength)
 			--local moCheck = SceneMan:GetMOIDPixel(shove.Pos.X + actor.FlipFactor, shove.Pos.Y - 1);
 			local moCheck = SceneMan:CastMORay(shove.Pos, shove.Vector, actor.ID, actor.Team, rte.airID, false, shove.Vector.Magnitude - 1);
 			if moCheck ~= rte.NoMOID then
-				local mo = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
+				local mo = ToMOSRotating(MovableMan:GetMOFromID(moCheck)):GetRootParent();
 				if mo and mo.Team ~= actor.Team and IsActor(mo) then
 					if actor.Mass > mo.Mass then
 						ToActor(mo).Status = Actor.UNSTABLE;
