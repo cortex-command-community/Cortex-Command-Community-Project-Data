@@ -558,7 +558,7 @@ function NativeHumanAI:Update(Owner)
 					self.useMedikit = Owner:EquipNamedDevice("Medikit", true)
 				else
 					self.useMedikit = false
-					if not self.scatter and Owner.AIMode == Actor.AIMODE_SENTRY then
+					if self.scatter == nil and Owner.AIMode == Actor.AIMODE_SENTRY then
 						Owner.AIMode = Actor.AIMODE_PATROL
 						self.scatter = true
 					end
@@ -567,9 +567,9 @@ function NativeHumanAI:Update(Owner)
 				if self.useMedikit == true then	
 					self.useMedikit = false
 					Owner:EquipFirearm(true)
-					if self.scatter and Owner.Health == Owner.MaxHealth then
-						self.scatter = false
-					end
+				end
+				if self.scatter and Owner.Health > Owner.PrevHealth then
+					self.scatter = false
 				end
 				if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
 					self.AlarmTimer:Reset()

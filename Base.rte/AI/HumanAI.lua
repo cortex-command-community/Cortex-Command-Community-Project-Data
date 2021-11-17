@@ -11,16 +11,8 @@ function Create(self)
 end
 function Update(self)
 	self.controller = self:GetController();
-	--Order the AI of this actor to stop running around if selected by player
-	if self.AI.scatter and self:IsPlayerControlled() then
-		self.AIMode = Actor.AIMODE_SENTRY;
-		self.AI.scatter = false;
-	end
 	if self.alternativeGib then
 		HumanFunctions.DoAlternativeGib(self);
-	end
-	if self.automaticEquip then
-		HumanFunctions.DoAutomaticEquip(self);
 	end
 	if self.armSway then
 		HumanFunctions.DoArmSway(self, (self.Health/self.MaxHealth));	--Argument: shove strength
