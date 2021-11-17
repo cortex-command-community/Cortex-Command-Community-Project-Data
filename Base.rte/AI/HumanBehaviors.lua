@@ -935,10 +935,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	local itemsFound = 0
 	for Item in MovableMan.Items do	-- store all HeldDevices of the correct type and within a certain range in a table
 		local HD = ToHeldDevice(Item)
-		if HD and not HD:IsActivated() and HD.Vel.Largest < 3 and
-			SceneMan:ShortestDistance(Owner.Pos, HD.Pos, false).Largest < minDist and
-			not SceneMan:IsUnseen(HD.Pos.X, HD.Pos.Y, Owner.Team)
-		then
+		if HD and HD:IsPickupableBy(Owner) and not HD:IsActivated() and HD.Vel.Largest < 3 and SceneMan:ShortestDistance(Owner.Pos, HD.Pos, SceneMan.SceneWrapsX).Largest < minDist and not SceneMan:IsUnseen(HD.Pos.X, HD.Pos.Y, Owner.Team) then
 			table.insert(Devices, HD)
 			itemsFound = itemsFound + 1
 		end
