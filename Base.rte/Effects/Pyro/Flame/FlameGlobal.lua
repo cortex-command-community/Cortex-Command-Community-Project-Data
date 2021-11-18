@@ -21,7 +21,7 @@ function Update(self)
 				flame.ToSettle = false;
 				flame.Throttle = flame.Throttle - TimerMan.DeltaTimeMS/flame.Lifetime;
 				
-				if GlobalFlameManagement.Flames[i].target and GlobalFlameManagement.Flames[i].target.ID ~= rte.NoMOID and not GlobalFlameManagement.Flames[i].target.ToDelete then
+				if GlobalFlameManagement.Flames[i].target and MovableMan:ValidMO(GlobalFlameManagement.Flames[i].target) and GlobalFlameManagement.Flames[i].target.ID ~= rte.NoMOID and not GlobalFlameManagement.Flames[i].target.ToDelete then
 					flame.Vel = GlobalFlameManagement.Flames[i].target.Vel;
 					flame.Pos = GlobalFlameManagement.Flames[i].target.Pos + Vector(GlobalFlameManagement.Flames[i].stickOffset.X, GlobalFlameManagement.Flames[i].stickOffset.Y):RadRotate(GlobalFlameManagement.Flames[i].target.RotAngle - GlobalFlameManagement.Flames[i].targetStickAngle);
 					local actor = GlobalFlameManagement.Flames[i].target:GetRootParent();
