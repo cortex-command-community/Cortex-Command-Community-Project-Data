@@ -261,13 +261,11 @@ ShipExplosion1-3 - vehicle_explode
 *******************************************************************************
  Ronin.rte\Devices\Explosives\MolotovCocktail\Sounds
 -------------------------------------------------------------------------------
-New World Interactive: Insurgency: Sandstorm
+Light.flac
+	Still North Media - Free Flammable Pack
 
-molotov_detonate
-molotov_glass_break
-
-molotov_lighter_strike
-molotov_ignite
+MolotovBreak1.flac, MolotovBreak2.flac
+	Fesliyan Sounds - Royalty Free Sound Effects, Gun Shooting
 
 *******************************************************************************
  Ronin.rte\Devices\Misc\Bottle\Sounds
@@ -876,12 +874,11 @@ TennoDrakeRifle Firing Sounds
  Browncoats.rte\Devices\Tools\Blowtorch\Sounds
 -------------------------------------------------------------------------------
 
-Digital Extremes: Warframe
-
-Ember Sounds
-Archwing Burn Loop
-GrnFlameSpear
-
+Start.flac, Loop.flac, End.flac
+	Fesliyan Sounds - Royalty Free Sound Effects, Gun Shooting
+	Still North Media
+	
+	M9a4 Trigger Sounds
 
 *******************************************************************************
  Browncoats.rte\Devices\Weapons\Trailblazer\Sounds
