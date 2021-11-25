@@ -876,9 +876,7 @@ TennoDrakeRifle Firing Sounds
 
 Start.flac, Loop.flac, End.flac
 	Fesliyan Sounds - Royalty Free Sound Effects, Gun Shooting
-	Still North Media
-	
-	M9a4 Trigger Sounds
+	Still North Media - M9a4 Trigger Sounds
 
 *******************************************************************************
  Browncoats.rte\Devices\Weapons\Trailblazer\Sounds
@@ -1150,33 +1148,8 @@ StorageContainerCylinderSmash	-
 *******************************************************************************
 Base.rte\Sounds\Penetration\Flesh\ClothedFlesh
 -------------------------------------------------------------------------------
-TorsoImpact:
-
-3p_bulletbodyimpact		(Insurgency)
-
-LimbImpact:
-
-pl_damagebullet			(Insurgency)
-
-HeadImpact:
-
-headshot_tp			(Insurgency)
-
-HeadGib:
-
-headshot_tp_pumpkin		(Insurgency)
-
-TorsoGib:
-
-ImpactGoreLarge			(Warframe)
-
-LimbGib:
-
-InfestedCrawlerDeathFall	(Warframe)
-
-ExitSweetener:
-
-HeadshotImpactFlesh		(Warframe)
+HeadImpact
+	Sinnuss GDC Sounds - Fox Audio Post-Production, Bones & Blood + Vegetable Massacre
 
 
 *******************************************************************************
