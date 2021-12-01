@@ -878,6 +878,12 @@ Start.flac, Loop.flac, End.flac
 	Fesliyan Sounds - Royalty Free Sound Effects, Gun Shooting
 	Still North Media - M9a4 Trigger Sounds
 
+ReloadStart
+	TBD
+
+ReloadEnd
+	TBD
+
 *******************************************************************************
  Browncoats.rte\Devices\Weapons\Trailblazer\Sounds
 -------------------------------------------------------------------------------
@@ -1150,6 +1156,12 @@ Base.rte\Sounds\Penetration\Flesh\ClothedFlesh
 -------------------------------------------------------------------------------
 HeadImpact
 	Sinnuss GDC Sounds - Fox Audio Post-Production, Bones & Blood + Vegetable Massacre
+
+LimbImpact
+	TBD
+
+TorsoImpact
+	TBD
 
 
 *******************************************************************************
