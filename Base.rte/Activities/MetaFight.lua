@@ -51,19 +51,14 @@ function MetaFight:BrainCheck()
 									ActivityMan:EndActivity();
 								end
 							end
-							-- This whole loser team is done for, so self-destruct all of its actors
+							
+							-- This whole loser team is done for, so swap its doors to the winner's team, and self-destruct all of its other actors.
 							for actor in MovableMan.Actors do
-								if actor.Team == team then
-									if IsAHuman(actor) and ToAHuman(actor).Head then
-										ToAHuman(actor).Head:GibThis();
-									-- Doors don't get destroyed, they just change teams to the winner
-									elseif IsADoor(actor) then
-										actor.Team = self.WinnerTeam;
-									else
-										actor:GibThis();
-									end
+								if actor.Team == team and IsADoor(actor) then
+									actor.Team = self.WinnerTeam;
 								end
 							end
+							MovableMan:KillAllTeamActors(team);
 							-- Finally, deactive the player entirely -	no don't this is done in AutoResolveOffensive if needed
 --							self:DeactivatePlayer(player);
 						end
