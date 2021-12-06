@@ -168,7 +168,7 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 	local canSupress = not AI.flying and Owner.FirearmIsReady and Owner.EquippedItem:HasObjectInGroup("Weapons - Explosive")
 	for Event in MovableMan.AlarmEvents do
 		if Event.Team ~= Owner.Team then	-- caused by some other team's activities - alarming!
-			loudness = Owner.AimDistance + FrameMan.PlayerScreenWidth * 0.6 * Owner.Perceptiveness * Event.Range	-- adjust the audible range to the screen resolution
+			loudness = Owner.AimDistance + Owner.Perceptiveness * Event.Range
 			AlarmVec = SceneMan:ShortestDistance(Owner.EyePos, Event.ScenePos, false)	-- see how far away the alarm situation is
 			if AlarmVec.Largest < loudness then	-- only react if the alarm is within hearing range
 				-- if our relative position to the alarm location is the same, don't repeat the signal
@@ -181,11 +181,12 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 						if SceneMan:CastStrengthSumRay(Owner.EyePos, Event.ScenePos, 4, rte.grassID) < 100 then
 							AI.AlarmPos = Vector(Event.ScenePos.X, Event.ScenePos.Y)
 						end
-					elseif not SceneMan:CastStrengthRay(Owner.EyePos, AlarmVec, 6, Vector(), 8, rte.grassID, true)	then
+					elseif not SceneMan:CastStrengthRay(Owner.EyePos, AlarmVec, 6, Vector(), 8, rte.grassID, true) then
 						AI.AlarmPos = Vector(Event.ScenePos.X, Event.ScenePos.Y)
 					end
 					
 					if AI.AlarmPos then
+						Owner:SetAlarmPoint(AI.AlarmPos)
 						AI:CreateFaceAlarmBehavior(Owner)
 						return true
 					end
