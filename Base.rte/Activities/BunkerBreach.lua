@@ -264,9 +264,11 @@ function BunkerBreach:UpdateActivity()
 				self.CPUSpawnTimer:Reset();
 				
 				local moRatio = (MovableMan:GetTeamMOIDCount(self.CPUTeam) + 1)/(MovableMan:GetTeamMOIDCount(self.playerTeam) + 1);
-			
+				--Send CPU to dig for gold if funds are low and a digger hasn't recently been sent
+				self.sendGoldDiggers = not self.sendGoldDiggers and (funds < 500 or math.random() < 0.9);
+				
 				if self.CPUTeam == self.attackerTeam then
-					if funds < 500 then
+					if self.sendGoldDiggers then
 						self:CreateDrop(self.CPUTeam, "Engineer");
 					elseif moRatio < 1.75 then
 						self:CreateDrop(self.CPUTeam);
@@ -277,7 +279,7 @@ function BunkerBreach:UpdateActivity()
 				elseif self.CPUTeam == self.defenderTeam then
 				
 					local dist = Vector();
-					local searchRadius = SceneMan.SceneWidth * 0.3;
+					local searchRadius = (SceneMan.SceneWidth + SceneMan.SceneHeight) * 0.15;
 					local targetActor = MovableMan:GetClosestEnemyActor(self.CPUTeam, Vector(self.defenderBrain.Pos.X, SceneMan.SceneHeight * 0.5), searchRadius, dist);
 					if targetActor and not SceneMan:IsUnseen(targetActor.Pos.X, targetActor.Pos.Y, self.CPUTeam) then
 						self.attackPos = targetActor.Pos;
@@ -304,7 +306,11 @@ function BunkerBreach:UpdateActivity()
 						self.attackPos = nil;
 						
 						if moRatio < 1.25 then
-							self:CreateDrop(self.CPUTeam);
+							if self.sendGoldDiggers then
+								self:CreateDrop(self.CPUTeam, "Engineer");
+							else
+								self:CreateDrop(self.CPUTeam);
+							end
 							self.CPUSpawnDelay = (60000 - self.difficultyRatio * 30000 + moRatio * 15000) * rte.SpawnIntervalScale;
 						else
 							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
@@ -358,11 +364,6 @@ function BunkerBreach:CreateDrop(team, loadout)
 		end
 		
 		if passenger then
-			if self.attackPos then
-				passenger:AddAISceneWaypoint(self.attackPos);
-			else
-				passenger.AIMode = Actor.AIMODE_BRAINHUNT;
-			end
 			craft:AddInventoryItem(passenger);
 		end
 	end
@@ -460,8 +461,10 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			end
 		end
 	end
-	if loadout == "Engineer" then
+	if loadout == "Engineer" and self.sendGoldDiggers then
 		actor.AIMode = Actor.AIMODE_GOLDDIG;
+	elseif self.attackPos then
+		actor:AddAISceneWaypoint(self.attackPos);
 	elseif team == self.attackerTeam then
 		actor.AIMode = Actor.AIMODE_BRAINHUNT;
 	else
