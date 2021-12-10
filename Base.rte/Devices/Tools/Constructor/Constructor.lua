@@ -92,7 +92,6 @@ function Create(self)
 	self.fireTimer = Timer();
 	self.displayTimer = Timer();
 	
-	self.startResource = 2;	--How many blocks of concrete to start with
 
 	self.buildTimer = Timer();
 	self.buildList = {};
@@ -101,6 +100,8 @@ function Create(self)
 							
 	self.blockSize = 24;
 	self.fullBlock = 64 * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
+	self.maxResource = 12 * self.fullBlock;
+	self.startResource = 6;
 	self.resource = self.startResource * self.fullBlock;
 	self.tunnelFillTimer = Timer();
 
@@ -114,7 +115,6 @@ function Create(self)
 	self.buildsPerSecond = 100;
 	self.buildSound = CreateSoundContainer("Geiger Click", "Base.rte");
 
-	self.maxResource = 10 * self.fullBlock;
 	self.buildDistance = 400; -- pixel distance
 	self.minFillDistance = 5; -- block distance
 	self.maxFillDistance = 6; -- block distance
@@ -122,8 +122,7 @@ function Create(self)
 
 	-- don't change these
 	self.toAutoBuild = false;
-	self.aiControlled = false;
-	self.displayGrid = true;
+	self.operatedByAI = false;
 	self.cursorMoveSpeed = 2;
 
 	-- autobuild for standard units
@@ -167,31 +166,36 @@ function Create(self)
 
 	-- autobuild for brain units
 	self.autoBuildListBrain = {
+				Vector(-2, 2), 
 				Vector(-2, 1), 
 				Vector(-2, 0), 
 				Vector(-2, -1), 
+				Vector(2, 2), 
+				Vector(2, 1), 
+				Vector(2, 0), 
+				Vector(2, -1), 
+				
 				Vector(-2, -2), 
 				Vector(-1, -2), 
 				Vector(0, -2), 
 				Vector(1, -2), 
-				Vector(2, 1), 
-				Vector(2, 0), 
-				Vector(2, -1), 
 				Vector(2, -2), 
 
+				Vector(-3, 3), 
+				Vector(-3, 2), 
+				Vector(-3, 1), 
 				Vector(-3, 0), 
 				Vector(-3, -1), 
-				Vector(-3, -2), 
 
-				Vector(-2, -3), 
-				Vector(-1, -3), 
-				Vector(0, -3), 
-				Vector(1, -3), 
-				Vector(2, -3), 
-
+				Vector(3, 3), 
+				Vector(3, 2), 
+				Vector(3, 1), 
 				Vector(3, 0), 
 				Vector(3, -1), 
-				Vector(3, -2)
+				
+				Vector(-1, -1), 
+				Vector(0, -1), 
+				Vector(1, -1), 
 			};
 
 end
@@ -207,7 +211,7 @@ function Update(self)
 		local screen = ActivityMan:GetActivity():ScreenOfPlayer(ctrl.Player);
 
 		if self.Magazine then
-			self.Magazine.RoundCount = self.resource;
+			self.Magazine.RoundCount = math.max(self.resource, 1);
 			
 			self.Magazine.Mass = 1 + 39 * (self.resource/self.maxResource);
 			self.Magazine.Scale = 0.5 + (self.resource/self.maxResource) * 0.5;
@@ -223,44 +227,43 @@ function Update(self)
 		end
 		
 		-- constructor actions if the user is in gold dig mode
-		if actor.AIMode == Actor.AIMODE_GOLDDIG then
+		if playerControlled then
+			self.operatedByAI = false;
+			self.toAutoBuild = true;
+		elseif actor.AIMode == Actor.AIMODE_GOLDDIG then
 			if self.toAutoBuild == false then
-				if not playerControlled then
-					if self:GetStringValue("ConstructorMode") == "Spray" then
-						self:SetStringValue("ConstructorMode", "Dig");
-					end
-					self.blockSize = 24;
-					if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), SceneMan.SceneWrapsX).Magnitude < 30 then
-						self.tunnelFillTimer:Reset();
-						self.aiControlled = true;
-						self.displayGrid = false;
-						self.toAutoBuild = true;
-						self.buildList = {};
-						local buildscheme = self.autoBuildList;
-						if actor:HasObjectInGroup("Brains") then
-							buildscheme = self.autoBuildListBrain;
-							self.blockSize = 24;
-						end
-						local snappos = ConstructorSnapPos(actor.Pos, self.blockSize);
-						for i = 1, #buildscheme do
-							local temppos = snappos + Vector(buildscheme[i].X * self.blockSize, buildscheme[i].Y * self.blockSize);
-							local buildThis = {};
-							buildThis[1] = temppos.X;
-							buildThis[2] = temppos.Y;
-							buildThis[3] = 0;
-							buildThis[4] = self.blockSize;
-							self.buildList[#self.buildList + 1] = buildThis;
-						end
-
-					end
-				else
+				if self:GetStringValue("ConstructorMode") == "Spray" then
+					self:SetStringValue("ConstructorMode", "Dig");
+				end
+				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), SceneMan.SceneWrapsX).Magnitude < 30 then
+					self.tunnelFillTimer:Reset();
+					self.operatedByAI = true;
 					self.toAutoBuild = true;
+					self.buildList = {};
+					local buildscheme = self.autoBuildList;
+					if actor:HasObjectInGroup("Brains") then
+						buildscheme = self.autoBuildListBrain;
+						self.blockSize = 12;
+					else
+						self.blockSize = 24;
+					end
+					local snappos = ConstructorSnapPos(actor.Pos, self.blockSize);
+					for i = 1, #buildscheme do
+						local temppos = snappos + Vector(buildscheme[i].X * self.blockSize, buildscheme[i].Y * self.blockSize);
+						local buildThis = {};
+						buildThis[1] = temppos.X;
+						buildThis[2] = temppos.Y;
+						buildThis[3] = 0;
+						buildThis[4] = self.blockSize;
+						self.buildList[#self.buildList + 1] = buildThis;
+					end
 				end
 			end
 
 			-- constructor actions if it's AI controlled
-			if self.aiControlled then
+			if self.operatedByAI then
 				if self.tunnelFillTimer:IsPastSimMS(self.tunnelFillDelay) and #self.buildList == 0 then
+					self.blockSize = 24;
 					self.tunnelFillTimer:Reset();
 
 					-- create an empty 2D array, call cells having -1
@@ -296,7 +299,7 @@ function Update(self)
 									buildThis[1] = mapX;
 									buildThis[2] = mapY;
 									buildThis[3] = 0;
-									buildThis[4] = 24;
+									buildThis[4] = self.blockSize;
 									self.buildList[#self.buildList + 1] = buildThis;
 								end
 							end
@@ -341,6 +344,7 @@ function Update(self)
 						if SceneMan:GetTerrMatter(digPos.X, digPos.Y) ~= rte.airID then
 
 							local digWeight = 0;
+							local found = false;
 
 							for x = 1, 3 do
 								for y = 1, 3 do
@@ -361,26 +365,27 @@ function Update(self)
 												if math.random() > material.StructuralIntegrity/(self.digStrength * 1.1) then
 													self.clearer.Pos = Vector(checkPos.X, checkPos.Y);
 													self.clearer:EraseFromTerrain();
-													digWeight = digWeight + material.StructuralIntegrity * 0.01;
+													digWeight = digWeight + math.sqrt(material.StructuralIntegrity/self.digStrength);
 												end
-											else	-- deactivate if material is too strong
-												self:Deactivate();
-												break;
+												found = true;
 											end
 										end
 									end
 								end
 							end
 							if digWeight > 0 then
-								self.resource = math.min(self.resource + digWeight, self.maxResource);
+								digWeight = digWeight/9;
+								self.resource = math.min(self.resource + digWeight * self.buildCost, self.maxResource);
 								
-								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeight > 4 and " Big" or ""));
+								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeight > 0.5 and " Big" or ""));
 								collectFX.Pos = Vector(digPos.X, digPos.Y);
 								collectFX.Sharpness = self.ID;
 								collectFX.Vel.Y = 10/(collectFX.Mass + digWeight);
 								collectFX.Lifetime = SceneMan:ShortestDistance(digPos, self.Pos, SceneMan.SceneWrapsX).Magnitude/(collectFX.Vel.Magnitude * rte.PxTravelledPerFrame) * TimerMan.DeltaTimeMS;
 
 								MovableMan:AddParticle(collectFX);
+							elseif not found then
+								self:Deactivate();
 							end
 						else	-- deactivate if digging air
 							self:Deactivate();
@@ -500,7 +505,7 @@ function Update(self)
 		for i = 1, #self.buildList do
 			if self.buildList[i] ~= nil then
 				tempList[#tempList + 1] = self.buildList[i];
-				if self.displayGrid then
+				if not self.operatedByAI then
 					if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[i][1], self.buildList[i][2]), SceneMan.SceneWrapsX).Magnitude < self.buildDistance then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildList[i][1], self.buildList[i][2]), Vector(self.buildList[i][1] + self.buildList[i][4] - 1, self.buildList[i][2] + self.buildList[i][4] - 1), displayColorBlue);
 					else
@@ -530,7 +535,7 @@ function Update(self)
 					for x = 1, cellSize do
 						for y = 1, cellSize do
 							local pos = Vector(startPos.X + x, startPos.Y + y);
-							local strengthRatio = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(pos.X, pos.Y)).StructuralIntegrity/200;
+							local strengthRatio = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(pos.X, pos.Y)).StructuralIntegrity/self.digStrength;
 							if strengthRatio < 1 then
 								local name = "";
 								if bx + x == 0 or bx + x == self.buildList[1][4] - 1 or by + y == 0 or by + y == self.buildList[1][4] - 1 then
@@ -550,9 +555,21 @@ function Update(self)
 					if didBuild then
 						self.resource = self.resource - (self.buildCost * totalCost);
 						local buildPos = self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx + self.buildList[1][1] + (cellSize - 1), by + self.buildList[1][2] + (cellSize - 1)), SceneMan.SceneWrapsX);
-						PrimitiveMan:DrawBoxFillPrimitive(screen, Vector(bx + self.buildList[1][1] + 1, by + self.buildList[1][2] + 1), Vector(bx + self.buildList[1][1] + cellSize, by + self.buildList[1][2] + cellSize), displayColorWhite);
-						PrimitiveMan:DrawLinePrimitive(screen, self.Pos, buildPos, displayColorBlue);
+						
+						for otherPlayer = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+							local otherScreen = ActivityMan:GetActivity():ScreenOfPlayer(otherPlayer);
+							if otherScreen ~= -1 and (otherScreen == screen or not SceneMan:IsUnseen(buildPos.X, buildPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(otherPlayer))) then
+								PrimitiveMan:DrawBoxFillPrimitive(otherScreen, Vector(bx + self.buildList[1][1] + 1, by + self.buildList[1][2] + 1), Vector(bx + self.buildList[1][1] + cellSize, by + self.buildList[1][2] + cellSize), displayColorWhite);
+							end
+						end
+						if screen ~= -1 then
+							PrimitiveMan:DrawLinePrimitive(screen, self.Pos, buildPos, displayColorBlue);
+						end
+
+						self.buildSound.Volume = totalCost;
+						self.buildSound.Pitch = 2 - totalCost;
 						self.buildSound:Play(buildPos);
+						
 						if self.buildList[1][3] == cellsPerBlock then
 							self.buildList[1] = nil;
 						end
