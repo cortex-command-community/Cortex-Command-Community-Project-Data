@@ -9,13 +9,17 @@ function Create(self)
 	if not self:NumberValueExists("Identity") then
 		self.face = math.random(0, self.FrameCount - 2);
 		self.Frame = self.face;
-		self.Head.Frame = self.face;
+		if self.Head then
+			self.Head.Frame = self.face;
+		end
 		self:SetNumberValue("Identity", self.face);
 		--Add a ponytail if we are Lara
 		if self.face == 2 then
 			self.DeathSound.Pitch = 1.2;
 			self.PainSound.Pitch = 1.2;
-			self.Head:AddAttachable(CreateAttachable("Ronin Brunette Ponytail"));
+			if self.Head then
+				self.Head:AddAttachable(CreateAttachable("Ronin Brunette Ponytail"));
+			end
 		end
 	else
 		self.face = self:GetNumberValue("Identity");
