@@ -64,6 +64,7 @@ function Update(self)
 										flame.Lifetime = flame.Lifetime + nearbyFlame[n].Lifetime * 0.5;
 										flame.Throttle = flame.Throttle + nearbyFlame[n].Throttle + 1;
 										flame.Pos = flame.Pos + dist * 0.5;
+										flame.Vel = flame.Vel - Vector(0, 1 + flame.Throttle):RadRotate(RangeRand(-1, 1));
 										nearbyFlame[n].ToDelete = true;
 										--[[To-do: spawn a new, bigger flame particle altogether?
 										local newFlame = CreatePEmitter("Big Flame", "Base.rte");
@@ -90,9 +91,9 @@ function Update(self)
 								MovableMan:AddParticle(particle);
 							end
 						end
-						if GlobalFlameManagement.Flames[i].deleteDelay and flame.Age > GlobalFlameManagement.Flames[i].deleteDelay then
-							flame.ToDelete = true;
-						end
+					end
+					if GlobalFlameManagement.Flames[i].deleteDelay and flame.Age > GlobalFlameManagement.Flames[i].deleteDelay then
+						flame.ToDelete = true;
 					end
 				end
 			else
