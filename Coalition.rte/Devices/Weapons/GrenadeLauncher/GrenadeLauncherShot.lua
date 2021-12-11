@@ -3,7 +3,7 @@ function Create(self)
 	self.stuck = false;
 	self.lifeTimer = Timer();
 	self.mode = self:GetStringValue("GrenadeMode");
-	self.fuzeDelay = self.mode == "Impact" and 4500 or 3000;
+	self.fuzeDelay = 3500;
 	self.sticky = self.mode == "Remote" or self.mode == "Timed";
 end
 

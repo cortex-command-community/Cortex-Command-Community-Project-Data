@@ -66,7 +66,6 @@ function Update(self)
 	end
 	if self:StringValueExists("GrenadeTrigger") then
 		local trigger = self:GetStringValue("GrenadeTrigger");
-		--TODO: Remove the rest of this Sharpness hack
 		for i = 1, #self.grenadeTableA do
 			if MovableMan:IsParticle(self.grenadeTableA[i]) then
 				self.grenadeTableA[i]:SetStringValue("GrenadeMode", trigger);
