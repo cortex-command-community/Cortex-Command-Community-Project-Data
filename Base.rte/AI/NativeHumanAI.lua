@@ -736,6 +736,9 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
+		else	--Cannot harm this door!
+			self.Target = nil
+			return
 		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
