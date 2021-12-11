@@ -60,11 +60,12 @@ function Create(self)
 	end
 end
 function Update(self)
-	if self.updateTimer:IsPastSimMS(1000) then
+	local damaged = self.Health < self.PrevHealth - 1;
+	if self.updateTimer:IsPastSimMS(1000) or damaged then
 		self.updateTimer:Reset();
 		self.aggressive = self.Health < (self.MaxHealth * 0.5);
 		if self.Head then
-			if self.aggressive or (self.controller and self.controller:IsState(Controller.WEAPON_FIRE)) then
+			if self.aggressive or damaged or (self.controller and self.controller:IsState(Controller.WEAPON_FIRE)) then
 				self.Head.Frame = self.face + (self.Head.FrameCount * 0.5);
 			else
 				self.Head.Frame = self.face;

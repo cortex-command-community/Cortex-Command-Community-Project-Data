@@ -36,7 +36,7 @@ function Update(self)
 	end
 	if self.Head then
 		self.Head.Frame = self.face;
-		if self.controller:IsState(Controller.WEAPON_FIRE) or self.aggressive then
+		if self.controller:IsState(Controller.WEAPON_FIRE) or self.aggressive or self.Health < self.PrevHealth - 1 then
 			self.Head.Frame = self.face + (self.Head.FrameCount * 0.5);
 		end
 	end
