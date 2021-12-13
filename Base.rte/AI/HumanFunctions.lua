@@ -35,7 +35,7 @@ function HumanFunctions.DoAlternativeGib(actor)
 					end
 				end
 			end
-			if detachLimb and detachLimb.Mass > 0 then
+			if detachLimb and detachLimb.Mass > 0 and detachLimb.JointStrength > 0 then
 				local limbImpulse = actor.TravelImpulse.Magnitude/detachLimb.Mass;
 				if limbImpulse > detachLimb.JointStrength then
 					actor:RemoveAttachable(detachLimb, true, true);
