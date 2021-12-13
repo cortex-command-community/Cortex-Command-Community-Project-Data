@@ -981,23 +981,13 @@ function WaveDefense:EnforceMOIDLimit()
 			table.insert(Prune, Item)
 		end
 		
-		for Act in MovableMan.Actors do
-			if not Act:HasObjectInGroup("Brains") then
-				table.insert(Prune, Act)
-			end
-		end
-		
 		-- Sort the tables so we delete the oldest object first
 		table.sort(Prune, function(A, B) return A.Age < B.Age end)
 		
 		while true do
 			local Object = table.remove(Prune)
 			if Object then
-				if Object:IsDevice() then
-					Object.ToSettle = true
-				else
-					Object.Health = 0
-				end
+				Object.ToSettle = true
 				
 				ids = ids - Object.MOIDFootprint
 				if ids < 1 then

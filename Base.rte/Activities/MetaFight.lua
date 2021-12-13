@@ -575,10 +575,8 @@ function MetaFight:StartActivity()
 						value = value * 0.5	-- This actor is left-over from previous battles
 					end
 					
-					-- Further reduce value if actors are badly damaged in terms of wounds
-					if Act.WoundCount / Act.GibWoundLimit > 0.5 then
-						value = value * 0.5
-					end
+					-- Further reduce value if actors are damaged
+					value = value * Act.Health/Act.MaxHealth;
 					
 					-- Reduce value if actors are out of base
 					if self.MetabaseArea then
@@ -591,12 +589,15 @@ function MetaFight:StartActivity()
 					if IsAHuman(Act) then
 						local human = ToAHuman(Act)
 						if human then
-							if human.FGArm == 0 or human.BGArm == 0 or human.FGLeg == 0 or human.BGLeg == 0 then
-								value = 0
+							local limbs = {human.FGArm, human.BGArm, human.FGLeg, human.BGLeg}
+							for _, limb in pairs(limbs) do
+								if limb == nil then
+									value = value * 0.5
+								end
 							end
 							
-							if human:IsInventoryEmpty() and human.EquippedItem == 0 then
-								value = 0
+							if human:IsInventoryEmpty() and human.EquippedItem == nil and human.EquippedBGItem == nil then
+								value = value * 0.5
 							end
 						end
 					end
