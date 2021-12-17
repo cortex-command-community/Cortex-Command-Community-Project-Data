@@ -50,9 +50,7 @@ function BunkerBreach:StartActivity()
 	self.checkTimer = Timer();
 	self.checkTimer:SetRealTimeLimitMS(1000);
 	self.CPUSpawnTimer = Timer();
-	self.CPUSpawnDelay = (45000 - self.difficultyRatio * 30000) * rte.SpawnIntervalScale;
-	self.IntruderAlertTimer = Timer();
-	self.IntruderDisbatchDelay = 5000;
+	self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000) * rte.SpawnIntervalScale;
 
 	for actor in MovableMan.AddedActors do
 		--Set all actors in the scene to the defending team
@@ -107,7 +105,7 @@ function BunkerBreach:StartActivity()
 	if self.CPUTeam ~= -1 then
 		self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 		self.CPUTechID = PresetMan:GetModuleID(self.CPUTechName);
-		self:SetTeamFunds(math.ceil((3000 + self.Difficulty * 50) * rte.StartingFundsScale), self.CPUTeam);
+		self:SetTeamFunds(5000 * (0.5 + math.floor(self.difficultyRatio * 10)/10), self.CPUTeam);
 		if self.CPUTeam == self.defenderTeam then
 			if SceneMan.Scene:HasArea("Brain") then
 				self.defenderBrain = self:CreateBrainBot(self.CPUTeam);
@@ -176,6 +174,8 @@ function BunkerBreach:StartActivity()
 			end
 		end
 	end
+	self.enemyForcesCount = 0;
+	self.enemyDiggersCount = 0;
 end
 
 
@@ -251,9 +251,28 @@ function BunkerBreach:UpdateActivity()
 			end
 		end
 	end
-	
+	self:ClearObjectivePoints();
 	if self.CPUTeam ~= -1 then
 		local funds = self:GetTeamFunds(self.CPUTeam);
+		local enemyCount = 0;
+		local allyCount = 0;
+		local diggerCount = 0;
+		for actor in MovableMan.Actors do
+			if actor.ClassName ~= "ADoor" and actor.Health > 0 then
+				--Units will weigh in based on their Health
+				if actor.Team == self.PlayerTeam then
+					allyCount = allyCount + actor.Health/actor.MaxHealth;
+				elseif actor.Team == self.CPUTeam then
+					enemyCount = enemyCount + actor.Health/actor.MaxHealth;
+					if actor:HasObjectInGroup("Tools - Diggers") and actor.AIMode == Actor.AIMODE_GOLDDIG then
+						diggerCount = diggerCount + 1;
+					end
+					if funds < 0 then
+						self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.playerTeam, GameActivity.ARROWDOWN)
+					end
+				end
+			end
+		end
 		if funds > 0 then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -263,16 +282,16 @@ function BunkerBreach:UpdateActivity()
 			if self.CPUSpawnTimer:IsPastSimMS(self.CPUSpawnDelay) then
 				self.CPUSpawnTimer:Reset();
 				
-				local moRatio = (MovableMan:GetTeamMOIDCount(self.CPUTeam) + 1)/(MovableMan:GetTeamMOIDCount(self.playerTeam) + 1);
+				local unitRatio = enemyCount/math.max(allyCount, 1);
 				--Send CPU to dig for gold if funds are low and a digger hasn't recently been sent
-				self.sendGoldDiggers = not self.sendGoldDiggers and (funds < 500 or math.random() < 0.9);
+				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < 3 and (funds < 500 or math.random() < 0.1);
 				
 				if self.CPUTeam == self.attackerTeam then
 					if self.sendGoldDiggers then
 						self:CreateDrop(self.CPUTeam, "Engineer");
-					elseif moRatio < 1.75 then
+					elseif unitRatio < 1.75 then
 						self:CreateDrop(self.CPUTeam);
-						self.CPUSpawnDelay = (45000 - self.difficultyRatio * 30000 + moRatio * 15000) * rte.SpawnIntervalScale;
+						self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + unitRatio * 5000) * rte.SpawnIntervalScale;
 					else
 						self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
 					end
@@ -296,7 +315,7 @@ function BunkerBreach:UpdateActivity()
 							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.8;
 						else
 							self:CreateDrop(self.CPUTeam);
-							self.CPUSpawnDelay = (60000 - self.difficultyRatio * 30000 + moRatio * 15000) * rte.SpawnIntervalScale;
+							self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000 + unitRatio * 7500) * rte.SpawnIntervalScale;
 							if math.random() < 0.5 then
 								--Change target for the next attack
 								self.attackPos = nil;
@@ -305,22 +324,23 @@ function BunkerBreach:UpdateActivity()
 					else
 						self.attackPos = nil;
 						
-						if moRatio < 1.25 then
+						if unitRatio < 1.25 then
 							if self.sendGoldDiggers then
 								self:CreateDrop(self.CPUTeam, "Engineer");
 							else
 								self:CreateDrop(self.CPUTeam);
 							end
-							self.CPUSpawnDelay = (60000 - self.difficultyRatio * 30000 + moRatio * 15000) * rte.SpawnIntervalScale;
+							self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000 + unitRatio * 7500) * rte.SpawnIntervalScale;
 						else
 							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
 						end
 					end
 				end
 			end
-		elseif MovableMan:GetTeamMOIDCount(self.CPUTeam) < 5 then
+		elseif enemyCount < 1 then
 			MovableMan:KillAllEnemyActors(self.playerTeam);
 			self.WinnerTeam = self.playerTeam;
+			self:ClearObjectivePoints();
 			ActivityMan:EndActivity();
 			return
 		end
@@ -330,10 +350,9 @@ end
 
 function BunkerBreach:CreateDrop(team, loadout)
 	local tech = self:GetTeamTech(team);
-	local craft;
 	local crabRatio = self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(tech));
 
-	craft = RandomACDropShip("Craft", tech);
+	local craft = RandomACDropShip("Craft", tech);
 	if not craft or craft.MaxInventoryMass <= 0 then
 		--MaxMass not defined, spawn a default craft
 		craft = RandomACDropShip("Craft", "Base.rte");
@@ -350,8 +369,9 @@ function BunkerBreach:CreateDrop(team, loadout)
 		xPos = math.random(100, SceneMan.SceneWidth - 100);
 	end
 	craft.Pos = Vector(xPos, -30);
+	local passengerCount = math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers);
 	
-	for i = 1, craft.MaxPassengers do
+	for i = 1, passengerCount do
 
 		if craft.InventoryMass > craft.MaxInventoryMass then 
 			break;
