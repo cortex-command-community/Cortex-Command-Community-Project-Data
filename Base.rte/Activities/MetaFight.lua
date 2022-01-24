@@ -8,7 +8,7 @@ function MetaFight:BrainCheck()
 	self:ClearObjectivePoints();
 	-- Keep track of which teams we have set objective points for already, since multiple players can be on the same team
 	local setTeam = { [Activity.TEAM_1] = false, [Activity.TEAM_2] = false, [Activity.TEAM_3] = false, [Activity.TEAM_4] = false };
-	
+
 	-----------------------------------------------------------------
 	-- Brain integrity check logic for every player, Human or AI
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -16,7 +16,7 @@ function MetaFight:BrainCheck()
 
 			-- The current player's team
 			local team = self:GetTeamOfPlayer(player);
-		
+
 --				if not self.StartTimer:IsPastSimMS(3000) then
 --					FrameMan:SetScreenText("Destroy the enemy brain(s)!", self:ScreenOfPlayer(player), 333, 5000, true);
 --				end
@@ -81,7 +81,7 @@ function MetaFight:BrainCheck()
 					if self.ActivityState ~= Activity.OVER and self:GetViewState(player) ~= Activity.OBSERVE then
 						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 					end
-					
+
 					if not setTeam[team] then
 						-- Add objective points
 						self:AddObjectivePoint("Protect!", self:GetPlayerBrain(player).AboveHUDPos, team, GameActivity.ARROWDOWN);
@@ -107,7 +107,7 @@ function MetaFight:BrainCheck()
 					self:SwitchToActor(foundBrain, player, team);
 				end
 			end
-			
+
 			-- If there's only one active team, it means they are clearing out wildlife in this mission
 			if self.TeamCount == 1 then
 				-- Check if there's any wildlife left to clear out, and the brain is standing on the surface (and not in a ship still)
@@ -150,7 +150,7 @@ function MetaFight:StartActivity()
 
 	-- Open all doors so we can do pathfinding through them with the brain placement
 	MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-	
+
 	-- Make all leftover craft take off and set all guards placed in the build phase in sentry mode
 	for actor in MovableMan.AddedActors do
 		-- Set all craft to fly away into orbit
@@ -161,7 +161,7 @@ function MetaFight:StartActivity()
 			actor.AIMode = Actor.AIMODE_SENTRY;
 		end
 	end
-	
+
 	if SceneMan.Scene:HasArea(rte.MetabaseArea) then
 		self.MetabaseArea = SceneMan.Scene:GetArea(rte.MetabaseArea)
 	else
@@ -195,12 +195,12 @@ function MetaFight:StartActivity()
 	self.TeamAIActive = { [Activity.TEAM_1] = false, [Activity.TEAM_2] = false, [Activity.TEAM_3] = false, [Activity.TEAM_4] = false };
 	-- Team has given up and is evacuating their brain
 	self.TeamEvacuating = { [Activity.TEAM_1] = false, [Activity.TEAM_2] = false, [Activity.TEAM_3] = false, [Activity.TEAM_4] = false };
-	
+
 	-- A list of AI controlled team numbers
 	local CPUTeams = {};
 	-- Timers for controlling the AI modes of team members
 	self.AIModeTimer = {};
-	
+
 	for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 		if self:TeamActive(team) then
 			-- Start out assuming all teams are all AI invaders, then disprove it
@@ -220,14 +220,14 @@ function MetaFight:StartActivity()
 					end
 				end
 			end
-			
+
 			if self.TeamAIActive[team] then
 				self.AIModeTimer[team] = Timer();
 				table.insert(CPUTeams, team);
 			end
 		end
 	end
-	
+
 	-- MetaFight-specific player parameters
 	self.InvadingPlayer = { [Activity.PLAYER_1] = false, [Activity.PLAYER_2] = false, [Activity.PLAYER_3] = false, [Activity.PLAYER_4] = false };
 	self.Ready = { [Activity.PLAYER_1] = false, [Activity.PLAYER_2] = false, [Activity.PLAYER_3] = false, [Activity.PLAYER_4] = false };
@@ -238,7 +238,7 @@ function MetaFight:StartActivity()
 	self.LastBrainPos = { [Activity.PLAYER_1] = Vector(), [Activity.PLAYER_2] = Vector(), [Activity.PLAYER_3] = Vector(), [Activity.PLAYER_4] = Vector() };
 	-- The position of the last brain that died
 	self.LastBrainDeathPos = Vector();
-	
+
 	-- Count how many invading players there are
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) then -- and self:PlayerHuman(player) then
@@ -247,11 +247,11 @@ function MetaFight:StartActivity()
 			end
 		end
 	end
-	
+
 	local defenderTeam
 	local defenderTeamNativeCostMultiplier = 1.0
-	
-	-- Now init all players 
+
+	-- Now init all players
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) then
 			-- Reset the timer that will measure the delay between ordering of reinforcements
@@ -270,7 +270,7 @@ function MetaFight:StartActivity()
 						self:GetBuyGUI(player):LoadAllLoadoutsFromFile();
 					end
 				end
-				
+
 				-- Set a temporary LZ
 				self:SetLandingZone(Vector(player*(SceneMan.SceneWidth-1)/4, 0), player);
 			end
@@ -282,33 +282,33 @@ function MetaFight:StartActivity()
 				if self.InvadingPlayerCount < 1 then
 					self.InvadingPlayerCount = 1;
 				end
-				
+
 				-- Human player; init as appropriate for invaders
 				if self:PlayerHuman(player) then
 					-- Set an initial landing team based on appropriate for his Tech's default brain Loadout
 					self:SetOverridePurchaseList("Infantry Brain", player);
-				
+
 					-- Set the mode to LZ select so the player can choose where to land first
 					self:SetViewState(Activity.LZSELECT, player);
 					FrameMan:SetScreenText("Choose where to land your assault brain", self:ScreenOfPlayer(player), 250, 3500, false);
 					self:ResetMessageTimer(player);
 				end
-			
+
 			-- Defending player
 			else
 				self.InvadingPlayer[player] = false;
 				defenderTeam = self:GetTeamOfPlayer(player);
-				
+
 				-- Store initial defender team funds to prevent from overflow caused by AI gold cheat
 				self.DefenderTeamInitialFunds = self:GetTeamFunds(defenderTeam)
-				
+
 				-- Find out NativeCostMultiplier for defenders, it will be used when we'll have to sell excess actors if MOID limit was reached
 				for metaPlayer = Activity.PLAYER_1, MetaMan.PlayerCount - 1 do
 					if MetaMan:GetPlayer(metaPlayer).InGamePlayer == player then
 						defenderTeamNativeCostMultiplier = MetaMan:GetPlayer(metaPlayer).NativeCostMultiplier
 					end
 				end
-				
+
 				-- Human player; init as appropriate for defenders
 				if self:PlayerHuman(player) then
 					-- Test if the brain is in a valid position
@@ -323,11 +323,11 @@ function MetaFight:StartActivity()
 						SceneMan.Scene:PlaceResidentBrain(player, self);
 						FrameMan:SetScreenText("READY to start - wait for others to finish...", self:ScreenOfPlayer(player), 333, -1, false);
 						self:ResetMessageTimer(player);
-						
-						-- If brain's coords are -1,-1 then it was auto-placed by MetaGameGUI when we captured an empty location 
+
+						-- If brain's coords are -1,-1 then it was auto-placed by MetaGameGUI when we captured an empty location
 						-- and now we need to relocate it. It does not really matter where, since the Scene should be still empty.
 						if residentBrain.Pos.X == -1 and residentBrain.Pos.Y == -1 then
-							-- Find some random spot to put our brain 
+							-- Find some random spot to put our brain
 							local pos
 							local sucess = false
 							-- Make few attempts to find a suitable spot
@@ -335,7 +335,7 @@ function MetaFight:StartActivity()
 								local rangeWidth
 								local rangeStart
 								local rangeEnd
-								
+
 								-- Try to divide the map into pieces and put every brain in separate piece if possible
 								if i < 10 then
 									rangeWidth = SceneMan.Scene.Width / Activity.MAXPLAYERCOUNT
@@ -347,15 +347,15 @@ function MetaFight:StartActivity()
 									rangeStart = 0
 									rangeEnd = rangeStart + rangeWidth
 								end
-								
+
 								--If scene is not wrapped then reduce range to avoid spawning on the edge of the scene
 								if not SceneMan.Scene.WrapsX then
 									rangeStart = rangeStart + rangeWidth * 0.25
 									rangeEnd = rangeEnd - rangeWidth * 0.25
 								end
-							
+
 								pos = Vector(math.random(rangeStart, rangeEnd), 0)
-								
+
 								sucess = true
 
 								-- Measure heights 5 times and verify that we can put brain there
@@ -364,12 +364,12 @@ function MetaFight:StartActivity()
 										sucess = false;
 									end
 								end
-								
+
 								if sucess then
 									break
 								end
 							end
-							
+
 							residentBrain.Pos = SceneMan:MovePointToGround(pos , 20 , 3);
 							-- Also order brain to dig itself
 							residentBrain.AIMode = Actor.AIMODE_GOLDDIG
@@ -380,7 +380,7 @@ function MetaFight:StartActivity()
 								-- If we can't even find a place inside the base, then at least move brain somewhere close to friendly unit
 								-- so it does not look lost and forgotten
 								local backupLocation
-								
+
 								-- If some actor was deployed somewhere, we can assume that this location is safe to move our brain to
 								for actor in MovableMan.AddedActors do
 									if actor.Team == residentBrain.Team and IsAHuman(actor) then
@@ -393,7 +393,7 @@ function MetaFight:StartActivity()
 										end
 									end
 								end
-								
+
 								-- Move brain and cancel gold dig order, is it's already inside the base
 								if newLocation then
 									residentBrain.AIMode = Actor.AIMODE_SENTRY
@@ -402,7 +402,7 @@ function MetaFight:StartActivity()
 									residentBrain.AIMode = Actor.AIMODE_SENTRY
 									residentBrain.Pos = backupLocation
 								end
-							end							
+							end
 						end
 					end
 
@@ -417,10 +417,10 @@ function MetaFight:StartActivity()
 					self.Ready[player] = true;
 					SceneMan.Scene:PlaceResidentBrain(player, self);
 
-					-- If brain's coords are -1,-1 then it was auto-placed by MetaGameGUI when we captured an empty location 
+					-- If brain's coords are -1,-1 then it was auto-placed by MetaGameGUI when we captured an empty location
 					-- and now we need to relocate it. It does not really matter where, since the Scene should be still empty.
 					if residentBrain.Pos.X == -1 and residentBrain.Pos.Y == -1 then
-						-- Find some random spot to put our brain 
+						-- Find some random spot to put our brain
 						local pos
 						local sucess = false
 						-- Make few attempts to find a suitable spot
@@ -428,7 +428,7 @@ function MetaFight:StartActivity()
 							local rangeWidth
 							local rangeStart
 							local rangeEnd
-							
+
 							-- Try to divide the map into pieces and put every brain in separate piece if possible
 							if i < 10 then
 								rangeWidth = SceneMan.Scene.Width / Activity.MAXPLAYERCOUNT
@@ -440,15 +440,15 @@ function MetaFight:StartActivity()
 								rangeStart = 0
 								rangeEnd = rangeStart + rangeWidth
 							end
-							
+
 							--If scene is not wrapped then reduce range to avoid spawning on the edge of the scene
 							if not SceneMan.Scene.WrapsX then
 								rangeStart = rangeStart + rangeWidth * 0.25
 								rangeEnd = rangeEnd - rangeWidth * 0.25
 							end
-						
+
 							pos = Vector(math.random(rangeStart, rangeEnd), 0)
-							
+
 							sucess = true
 
 							-- Measure heights 5 times and verify that we can put brain there
@@ -457,12 +457,12 @@ function MetaFight:StartActivity()
 									sucess = false;
 								end
 							end
-							
+
 							if sucess then
 								break
 							end
 						end
-						
+
 						residentBrain.Pos = SceneMan:MovePointToGround(pos , 20 , 3);
 						-- Also order brain to dig itself
 						residentBrain.AIMode = Actor.AIMODE_GOLDDIG
@@ -473,7 +473,7 @@ function MetaFight:StartActivity()
 							-- If we can't even find a place inside the base, then at least move brain somewhere close to friendly unit
 							-- so it does not look lost and forgotten
 							local backupLocation
-							
+
 							-- If some actor was deployed somewhere, we can assume that this location is safe to move our brain to
 							for actor in MovableMan.AddedActors do
 								if actor.Team == residentBrain.Team and IsAHuman(actor) then
@@ -486,7 +486,7 @@ function MetaFight:StartActivity()
 									end
 								end
 							end
-							
+
 							-- Move brain and cancel gold dig order, is it's already inside the base
 							if newLocation then
 								residentBrain.AIMode = Actor.AIMODE_SENTRY
@@ -495,9 +495,9 @@ function MetaFight:StartActivity()
 								residentBrain.AIMode = Actor.AIMODE_SENTRY
 								residentBrain.Pos = backupLocation
 							end
-						end							
+						end
 					end
-					
+
 					-- Still no brain of this player? Last ditch effort to find one and assign it to this player
 					if not self:GetPlayerBrain(player) then
 						self:SetPlayerBrain(MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player)), player);
@@ -536,24 +536,24 @@ function MetaFight:StartActivity()
 		self.AI.AttackTarget = {}
 		self.AI.AttackPos = {}
 		self.AI.Defender = {}
-		
+
 		self.AI.MOIDLimit = rte.AIMOIDMax * 3 / #CPUTeams
 	end
-	
+
 	-- Clear data about actors controlled by external scripts. If scripts are active they'll grab their actors back
 	-- but if not, actors will remain uncontrolled.
 	for actor in MovableMan.Actors do
 		actor:RemoveStringValue("ScriptControlled")
 	end
-	
+
 	for actor in MovableMan.AddedActors do
 		actor:RemoveStringValue("ScriptControlled")
 	end
-	
+
 	-- Enforce the MOID limit by deleting and refunding native actors
 	if defenderTeam then
 		self.hasDefender = true
-		
+
 		-- Estimate the total MOIDFootprint of the defender's actors
 		local defenderMOID = 0
 		for Act in MovableMan.AddedActors do
@@ -563,7 +563,7 @@ function MetaFight:StartActivity()
 				defenderMOID = defenderMOID + 8
 			end
 		end
-		
+
 		-- Make sure there are enough free MOIDs to land AI units
 		local ids = defenderMOID - rte.DefenderMOIDMax
 		if ids > 0 then
@@ -572,26 +572,26 @@ function MetaFight:StartActivity()
 				--table.insert(Prune, {MO=Item, score=Item:GetGoldValue(0, 1, defenderTeamNativeCostMultiplier)*0.5})
 				table.insert(Prune, {MO=Item, score=0}) -- Let's try to always remove weapons if we need MOIDs
 			end
-			
+
 			for Act in MovableMan.AddedActors do
 				if not Act:HasObjectInGroup("Brains") and not IsADoor(Act) then
 					local value = Act:GetTotalValue(0, 1, defenderTeamNativeCostMultiplier)
 					if Act.PlacedByPlayer == Activity.PLAYER_NONE then
 						value = value * 0.5	-- This actor is left-over from previous battles
 					end
-					
+
 					-- Further reduce value if actors are badly damaged in terms of wounds
 					if Act.WoundCount / Act.GibWoundLimit > 0.5 then
 						value = value * 0.5
 					end
-					
+
 					-- Reduce value if actors are out of base
 					if self.MetabaseArea then
 						if not self.MetabaseArea:IsInside(Act.Pos) then
 							value = value * 0.25
 						end
 					end
-					
+
 					-- Crippled actors and actors without weapons are first candidates to be removed
 					if IsAHuman(Act) then
 						local human = ToAHuman(Act)
@@ -599,7 +599,7 @@ function MetaFight:StartActivity()
 							if human.FGArm == 0 or human.BGArm == 0 or human.FGLeg == 0 or human.BGLeg == 0 then
 								value = 0
 							end
-							
+
 							if human:IsInventoryEmpty() and human.EquippedItem == 0 then
 								value = 0
 							end
@@ -610,14 +610,14 @@ function MetaFight:StartActivity()
 					if IsACRocket(Act) or IsACDropShip(Act) then
 						value = 0
 					end
-					
+
 					table.insert(Prune, {MO=Act, score=value})
 				end
 			end
-			
+
 			-- Sort the table so we delete the cheapest object first
 			table.sort(Prune, function(A, B) return A.score > B.score end)
-			
+
 			local count = 0
 			local gold = 0
 			local badcount = 0
@@ -628,7 +628,7 @@ function MetaFight:StartActivity()
 					if ids < 0 and Object.score > 0 then
 						break
 					end
-				
+
 					local MO = Object.MO
 					if MO:IsDevice() then
 						ids = ids - 1
@@ -651,17 +651,17 @@ function MetaFight:StartActivity()
 							badcount = badcount + 1
 						end
 					end
-					
+
 					gold = gold + MO:GetTotalValue(0, 1, defenderTeamNativeCostMultiplier)
 				else
 					break
 				end
 			end
-			
+
 			if (SettingsMan.PrintDebugInfo) then
 				print ("DEBUG: Objects removed: "..count.." [ "..badcount.." ] - " .. gold.. "oz of gold refunded")
 			end
-			
+
 			self:ChangeTeamFunds(gold, defenderTeam)	-- Refund the objects
 		end
 	end
@@ -737,7 +737,7 @@ function MetaFight:EndActivity()
 			self:ResetMessageTimer(player);
 		end
 	end
-				
+
 	-- Give the victorious team ownership of the played scene
 	if self.WinnerTeam ~= Activity.NOTEAM then
 		-- If these are new owners, delete the previous team's blueprint building plans for this base
@@ -745,7 +745,7 @@ function MetaFight:EndActivity()
 			-- Should not clear blueprints because this wipes all placed loadouts info
 			--SceneMan.Scene:ClearPlacedObjectSet(Scene.BLUEPRINT);
 		end
-		
+
 		-- If there was only one active team to begin with, it means they are clearing out wildlife in this mission
 		if self.TeamCount == 1 then
 			-- Play less exctatic music
@@ -762,10 +762,10 @@ function MetaFight:EndActivity()
 		-- Actually change ownership
 		SceneMan.Scene.TeamOwnership = self.WinnerTeam;
 	end
-	
+
 	-- Open all doors
 	MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-	
+
 end
 
 ---------------------------------------------------------
@@ -775,7 +775,7 @@ function MetaFight:UpdateActivity()
 	-- Immediately do scanning for teams who have scheduled it
 	local scanMessage = "Scanning";
 	local messageBlink = 500;
-	
+
 	-- DEBUG
 	--[[if SceneMan.Scene:HasArea(rte.MetabaseArea) then
 		self.Metabase = SceneMan.Scene:GetArea(rte.MetabaseArea)
@@ -785,7 +785,7 @@ function MetaFight:UpdateActivity()
 			end
 		end
 	end--]]--
-	
+
 	-- Wait a sec first before starting to scan, so player can get what's going on
 	if self.CurrentScanStage == self.ScanStage.PRESCAN then
 		scanMessage = "Preparing to scan site from orbit";
@@ -840,10 +840,10 @@ function MetaFight:UpdateActivity()
 				-- Check if anyone isn't done scanning yet
 				if self.ScanPosX[team] < SceneMan.Scene.Width then
 					doneScan = false;
-				end 
-			end			 
+				end
+			end
 		end
-		
+
 		-- If done scanning ALL TEAMS, move on the the post pause phase
 		if doneScan then
 			self.CurrentScanStage = self.ScanStage.POSTSCAN;
@@ -868,7 +868,7 @@ function MetaFight:UpdateActivity()
 			messageBlink = 0;
 		end
 	end
-	
+
 	-- Display the scanning text on all players' screens
 	if self.CurrentScanStage < self.ScanStage.DONESCAN then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -887,9 +887,9 @@ function MetaFight:UpdateActivity()
 	-----------------------------------------------
 	-- Players are placing brains and initial invading forces
 	if self.ActivityState == Activity.PREGAME then
-		-- See if players are getting done with placing etc. and ready to start		
+		-- See if players are getting done with placing etc. and ready to start
 		local allReady = true;
-		
+
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				----------------------------------
@@ -930,7 +930,7 @@ function MetaFight:UpdateActivity()
 				end
 			end
 		end
-		
+
 		-- YES, we are allegedly all ready to stop editing and start the game!
 		if allReady then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -950,7 +950,7 @@ function MetaFight:UpdateActivity()
 							SceneMan.Scene:RetrieveResidentBrains(self);
 							break;
 						end
-						
+
 						-- Set the brain to be the selected actor at start
 						self:SwitchToActor(self:GetPlayerBrain(player), player, self:GetTeamOfPlayer(player));
 						self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
@@ -965,7 +965,7 @@ function MetaFight:UpdateActivity()
 				end
 			end
 		end
-		
+
 		-- Still good to go? then START!
 		if allReady then
 			-- START the game
@@ -985,12 +985,12 @@ function MetaFight:UpdateActivity()
 			AudioMan:QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
 			AudioMan:QueueSilence(30);
 			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
-			
+
 			-- Find LZs for the AI teams
 			self:DesignateLZs()
 			self.AI.SpawnTimer:Reset()
 			self.AI.SpawnTimer:SetSimTimeLimitMS(20000)	-- give the brains some time to land before spawning units
-			
+
 			-- Spawn escort when attacking bunkers
 			if self.hasDefender then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -1003,7 +1003,7 @@ function MetaFight:UpdateActivity()
 			end
 		end
 	end
-	
+
 	-------------------------------------
 	-- Game is RUNNING
 	if self.ActivityState == Activity.RUNNING then
@@ -1013,15 +1013,15 @@ function MetaFight:UpdateActivity()
 			-- Only allow three orders per second, per AI team
 			if self:TeamActive(team) and self.TeamAIActive[team] and self.AIModeTimer[team]:IsPastRealMS(330) then
 				self.AIModeTimer[team]:Reset()
-				
+
 				-- Check if this team have selected a target to attack
 				local target
 				if MovableMan:IsActor(self.AI.AttackTarget[team]) then
 					target = self.AI.AttackTarget[team]
 				end
-				
+
 				-- INVADERS
-				if self.InvadingTeam[team] then					
+				if self.InvadingTeam[team] then
 					-- Give all existing team actors appropriate AI orders
 					for actor in MovableMan.Actors do
 						if actor.Team == team and not actor:StringValueExists("ScriptControlled") then
@@ -1040,7 +1040,7 @@ function MetaFight:UpdateActivity()
 									else
 										actor.AIMode = Actor.AIMODE_BRAINHUNT;
 									end
-									
+
 									break;
 								end
 							-- This actor have been ordered to attack a target, check that the target still exist
@@ -1052,7 +1052,7 @@ function MetaFight:UpdateActivity()
 									else
 										actor.AIMode = Actor.AIMODE_BRAINHUNT;
 									end
-									
+
 									break;
 								end
 							end
@@ -1087,7 +1087,7 @@ function MetaFight:UpdateActivity()
 									else
 										actor.AIMode = Actor.AIMODE_BRAINHUNT;
 									end
-									
+
 									break;
 								end
 							end
@@ -1100,18 +1100,18 @@ function MetaFight:UpdateActivity()
 		-----------------------------------------------------------------
 		-- Brain integrity check logic for every player, Human or AI
 		MetaFight:BrainCheck();
-		
+
 		-----------------------------------------------------------
 		-- AI players on AI-controlled teams order in reinforcements while they can afford them
-		if self.AI then			
+		if self.AI then
 			self.AI.LZmap:Update()
-			
+
 			if self.AI.SpawnTimer:IsPastSimTimeLimit() then
 				local activeAITeams = 0;
-			
+
 				if not self.AI.spawnForPlayer then
 					self.AI.SpawnTimer:Reset()
-					
+
 					-- find the first AI team
 					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 						local team = self:GetTeamOfPlayer(player)
@@ -1122,20 +1122,20 @@ function MetaFight:UpdateActivity()
 							activeAITeams = activeAITeams + 1
 						end
 					end
-					
+
 					self.AI.MOIDLimit = rte.AIMOIDMax * 3 / activeAITeams
 				end
-			
+
 				if self.AI.spawnForPlayer then
 					local team = self:GetTeamOfPlayer(self.AI.spawnForPlayer)
-				
+
 					if MovableMan:GetTeamMOIDCount(team) > self.AI.MOIDLimit then
 						self.AI.SpawnTimer:SetSimTimeLimitMS(2000)
 						self.AI.SpawnTimer:Reset()
 					else
 						if self:SearchLZ(self.AI.spawnForPlayer) then	-- returns true when the search is complete. may or may not spawn a unit
 							self.AI.SpawnTimer:Reset()
-							
+
 							-- find the next AI team (if any)
 							local oldPlayer = self.AI.spawnForPlayer
 							self.AI.spawnForPlayer = nil
@@ -1149,7 +1149,7 @@ function MetaFight:UpdateActivity()
 									end
 								end
 							end
-							
+
 							if self.AI.spawnForPlayer then
 								self.AI.SpawnTimer:SetSimTimeLimitMS(1000)
 							else	-- all AI teams have spawned, wait a little longer before we try to spawn troops again
@@ -1183,7 +1183,7 @@ end
 -- Make sure that all AI players have a LZ
 function MetaFight:DesignateLZs()
 	local OccupiedLZs = {}
-	
+
 	-- First, get the player LZs
 	local hasResidentBrain = false
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -1192,17 +1192,17 @@ function MetaFight:DesignateLZs()
 			local PlayerLZ = self:GetLandingZone(player)
 			table.insert(OccupiedLZs, math.floor(PlayerLZ.X))
 		end
-		
+
 		if SceneMan.Scene:GetResidentBrain(player) then
 			hasResidentBrain = true
 		end
 	end
-	
+
 	-- Now search for AI LZs
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and not self:PlayerHuman(player) and self.InvadingPlayer[player] then
 			local team = self:GetTeamOfPlayer(player)
-			if self.TeamAIActive[team] then				
+			if self.TeamAIActive[team] then
 				-- Find a good spot to land
 				local lzX = self.AI.LZmap:FindStartLZ(team, OccupiedLZs) or math.random(0, SceneMan.SceneWidth-1)	-- was FindSafeLZ
 				-- Mark this LZ as occupied
@@ -1225,7 +1225,7 @@ function MetaFight:SearchLZ(player)
 	if self:GetTeamFunds(team) <= self.EvacThreshold[player] then
 		return true
 	end
-	
+
 	-- Spawn LZ defender
 	if self.InvadingPlayer[player] and (not self.AI.Defender[team] or not MovableMan:IsActor(self.AI.Defender[team]) or self.AI.Defender[team]:IsDead()) then
 		local BrainPos = self:GetPlayerBrainPos(player)
@@ -1235,12 +1235,12 @@ function MetaFight:SearchLZ(player)
 			for x = 0, BrainPos.X-400, 120 do
 				table.insert(OccupiedLZs, x)
 			end
-			
+
 			-- Mark all LZs to the right of our brain as occupied
 			for x = BrainPos.X+400, SceneMan.SceneWidth-1, 120 do
 				table.insert(OccupiedLZs, x)
 			end
-			
+
 			-- Find a decent LZ close to our brain
 			local lzX = self.AI.LZmap:FindSafeLZ(team, OccupiedLZs)
 			if lzX then
@@ -1258,24 +1258,24 @@ function MetaFight:SearchLZ(player)
 							self.AI.Defender[team] = Passenger
 							Craft:AddInventoryItem(Passenger)
 						end
-						
+
 						-- Set team, location, deduct cost and spawn
 						Craft.Team = team
 						Craft.Pos = Vector(lzX, -20)
 						self:ChangeTeamFunds(-Craft:GetTotalValue(MetaPlayer.NativeTechModule, MetaPlayer.ForeignCostMultiplier, MetaPlayer.NativeCostMultiplier), team)
 						MovableMan:AddActor(Craft)
-						
+
 						return true
 					end
 				end
 			end
 		end
 	end
-	
+
 	if self.AI.AttackPos[team] then	-- Search for a LZ from where to attack the target
 		local easyPathLZx, easyPathLZobst, closeLZx, closeLZobst = self.AI.LZmap:FindLZ(team, self.AI.AttackPos[team])
 		if easyPathLZx then	-- Search done
-			
+
 			-- pick either the easy or the closeset LZ
 			local lzX, obstacleHeight
 			if closeLZobst < 25 and easyPathLZobst < 25 then
@@ -1298,14 +1298,14 @@ function MetaFight:SearchLZ(player)
 					obstacleHeight = easyPathLZobst
 				end
 			end
-			
+
 			if obstacleHeight > 200 and math.random() < 0.25 then
 				-- This target is very difficult to reach: cancel this attack and search for another target again soon
 				self.AI.AttackTarget[team] = nil
 				self.AI.AttackPos[team] = nil
 			else
 				-- Land a mix of default and random loadouts and then set all units in sentry-mode (or in goto-mode with a dead MOMoveTarget) to move towards the AttackTarget
-				
+
 				-- Set an appropriate Loadout from this player's Tech
 				local orderOK = false
 				if obstacleHeight < 30 then
@@ -1348,23 +1348,23 @@ function MetaFight:SearchLZ(player)
 					end
 				else
 					orderOK = self:OrderScoutLoadout(player, team)
-					
+
 					-- This target is very difficult to reach: change target for the next attack
 					self.AI.AttackTarget[team] = nil
 					self.AI.AttackPos[team] = nil
 				end
-				
+
 				if orderOK then
 					-- Set the LZ so the delivery will pop up there
 					self:SetLandingZone(SceneMan:MovePointToGround(Vector(lzX, -1), 10, 3), player)
-					
+
 					-- Create the actual delivery so it'll come down soon
 					if self.AI.AttackTarget[team] and MovableMan:IsActor(self.AI.AttackTarget[team]) then
 						self:CreateDelivery(player, Actor.AIMODE_GOTO, self.AI.AttackTarget[team])
 					else
 						self:CreateDelivery(player, Actor.AIMODE_BRAINHUNT)
 					end
-					
+
 					if not MovableMan:IsActor(self.AI.AttackTarget[team]) or math.random() < 0.4 then
 						-- Change target for the next attack
 						self.AI.AttackPos[team] = nil
@@ -1375,7 +1375,7 @@ function MetaFight:SearchLZ(player)
 					self:ClearOverridePurchase(player)
 				end
 			end
-			
+
 			return true
 		end
 	else	-- Select an enemy actor as a target for the next attack
@@ -1383,18 +1383,18 @@ function MetaFight:SearchLZ(player)
 		if SafePos then
 			local TargetActors = {}
 			for actor in MovableMan.Actors do
-				if actor.Team ~= team and ((actor.ClassName == "AHuman" and actor.PresetName ~= "Find Path") 
+				if actor.Team ~= team and ((actor.ClassName == "AHuman" and actor.PresetName ~= "Find Path")
 					or actor.ClassName == "ACrab" or actor.ClassName == "Actor") and not actor:IsDead()
 				then
 					local distance = SceneMan:ShortestDistance(SafePos, actor.Pos, false).Largest
 					if actor:HasObjectInGroup("Brains") then
 						distance = distance * 0.7	-- Prioritize brains
 					end
-					
+
 					table.insert(TargetActors, {Act=actor, score=distance})
 				end
 			end
-			
+
 			self.AI.AttackTarget[team] = self:SelectTarget(TargetActors)	-- Select the target based on distance from our brain
 			if self.AI.AttackTarget[team] then
 				self.AI.AttackPos[team] = Vector(self.AI.AttackTarget[team].Pos.X, self.AI.AttackTarget[team].Pos.Y)
@@ -1423,17 +1423,17 @@ end
 function MetaFight:SelectTarget(TargetActors)
 	if #TargetActors > 1 then
 		table.sort(TargetActors, function(A, B) return A.score < B.score end)	-- Actors closer to the surface first
-		
+
 		local temperature = 6	-- a higher temperature means less random selection
 		local sum = 0
 		local worstScore = TargetActors[#TargetActors].score
-		
+
 		-- normalize the score
 		for i, Data in pairs(TargetActors) do
 			TargetActors[i].chance = 1 - Data.score / worstScore
 			sum = sum + math.exp(temperature*TargetActors[i].chance)
 		end
-		
+
 		-- use Softmax to pick one of the n best LZs
 		if sum > 0 then
 			local pick = math.random() * sum
@@ -1445,7 +1445,7 @@ function MetaFight:SelectTarget(TargetActors)
 				end
 			end
 		end
-		
+
 		return TargetActors[1].Act
 	elseif #TargetActors == 1 then
 		return TargetActors[1].Act
@@ -1456,7 +1456,7 @@ end
 -- Pick a craft to deliver with
 function MetaFight:PickCraft(MetaPlayer)
 	local Craft
-	
+
 	-- Find a drop ship with MaxPassengers > 0
 	if math.random() < 0.4 then
 		for i = 1, 3 do
@@ -1467,7 +1467,7 @@ function MetaFight:PickCraft(MetaPlayer)
 				break
 			end
 		end
-		
+
 		-- not found, try a rocket
 		if not Craft then
 			for i = 1, 3 do
@@ -1488,7 +1488,7 @@ function MetaFight:PickCraft(MetaPlayer)
 				break
 			end
 		end
-		
+
 		-- not found, try a drop ship
 		if not Craft then
 			for i = 1, 3 do
@@ -1501,7 +1501,7 @@ function MetaFight:PickCraft(MetaPlayer)
 			end
 		end
 	end
-	
+
 	-- Use base crafts as a fall-back
 	if not Craft then
 		if math.random() < 0.5 then
@@ -1510,7 +1510,7 @@ function MetaFight:PickCraft(MetaPlayer)
 			Craft = RandomACRocket("Craft", "Base.rte")
 		end
 	end
-	
+
 	return Craft
 end
 
@@ -1518,25 +1518,25 @@ end
 -- Functions for creating drop-craft with random actors
 function MetaFight:OrderHeavyLoadout(player, team)
 	local MetaPlayer = MetaMan:GetMetaPlayerOfInGamePlayer(player)
-	
+
 	-- Pick a craft to deliver with
 	local Craft = MetaFight:PickCraft(MetaPlayer)
 	local passengerLimit = Craft.MaxPassengers
-	
+
 	-- Limit passengers based on difficulty
 	if passengerLimit > 1 then
 		if self.Difficulty < 90 then
 			passengerLimit = SelectRand(1, passengerLimit)
 		end
-		
+
 		if passengerLimit > 1 and self.Difficulty < 50 then
 			passengerLimit = passengerLimit - 1
 		end
 	end
-	
+
 	if Craft then
 		self:AddOverridePurchase(Craft, player)
-		
+
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
@@ -1549,7 +1549,7 @@ function MetaFight:OrderHeavyLoadout(player, team)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
@@ -1562,15 +1562,15 @@ function MetaFight:OrderHeavyLoadout(player, team)
 				diggers = diggers + d
 				totalMass = totalMass + m
 			end
-			
+
 			-- Stop adding actors when the cargo limit is reached
 			if actorsInCargo >= passengerLimit or totalMass > craftMaxMass then
 				break
 			end
-			
+
 			return true
 		end
-		
+
 		if diggers < 1 then
 			self:AddOverridePurchase(CreateHDFirearm("Light Digger", "Base.rte"), player)
 		end
@@ -1579,25 +1579,25 @@ end
 
 function MetaFight:OrderMediumLoadout(player, team)
 	local MetaPlayer = MetaMan:GetMetaPlayerOfInGamePlayer(player)
-	
+
 	-- Pick a craft to deliver with
 	local Craft = MetaFight:PickCraft(MetaPlayer)
 	local passengerLimit = Craft.MaxPassengers
-	
+
 	-- Limit passengers based on difficulty
 	if passengerLimit > 1 then
 		if self.Difficulty < 80 then
 			passengerLimit = SelectRand(1, passengerLimit)
 		end
-		
+
 		if passengerLimit > 1 and self.Difficulty < 40 then
 			passengerLimit = passengerLimit - 1
 		end
 	end
-	
+
 	if Craft then
 		self:AddOverridePurchase(Craft, player)
-		
+
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
@@ -1610,7 +1610,7 @@ function MetaFight:OrderMediumLoadout(player, team)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
@@ -1623,42 +1623,42 @@ function MetaFight:OrderMediumLoadout(player, team)
 				diggers = diggers + d
 				totalMass = totalMass + m
 			end
-			
+
 			-- Stop adding actors when the cargo limit is reached
 			if actorsInCargo >= passengerLimit or totalMass > craftMaxMass then
 				break
 			end
 		end
-		
+
 		if diggers < 1 then
 			self:AddOverridePurchase(CreateHDFirearm("Light Digger", "Base.rte"), player)
 		end
-		
+
 		return true
 	end
 end
 
 function MetaFight:OrderLightLoadout(player, team)
 	local MetaPlayer = MetaMan:GetMetaPlayerOfInGamePlayer(player)
-	
+
 	-- Pick a craft to deliver with
 	local Craft = MetaFight:PickCraft(MetaPlayer)
 	local passengerLimit = Craft.MaxPassengers
-	
+
 	-- Limit passengers based on difficulty
 	if passengerLimit > 1 then
 		if self.Difficulty < 70 then
 			passengerLimit = SelectRand(1, passengerLimit)
 		end
-		
+
 		if passengerLimit > 1 and self.Difficulty < 30 then
 			passengerLimit = passengerLimit - 1
 		end
 	end
-	
+
 	if Craft then
 		self:AddOverridePurchase(Craft, player)
-		
+
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
@@ -1671,49 +1671,49 @@ function MetaFight:OrderLightLoadout(player, team)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
 			local d, m = self:PurchaseLightInfantry(player, MetaPlayer.NativeTechModule)
 			diggers = diggers + d
 			totalMass = totalMass + m
-			
+
 			-- Stop adding actors when the cargo limit is reached
 			if actorsInCargo >= passengerLimit or totalMass > craftMaxMass then
 				break
 			end
 		end
-		
+
 		if diggers < 1 then
 			self:AddOverridePurchase(CreateHDFirearm("Light Digger", "Base.rte"), player)
 		end
-		
+
 		return true
 	end
 end
 
 function MetaFight:OrderScoutLoadout(player, team)
 	local MetaPlayer = MetaMan:GetMetaPlayerOfInGamePlayer(player)
-	
+
 	-- Pick a craft to deliver with
 	local Craft = MetaFight:PickCraft(MetaPlayer)
 	local passengerLimit = Craft.MaxPassengers
-	
+
 	-- Limit passengers based on difficulty
 	if passengerLimit > 1 then
 		if self.Difficulty < 60 then
 			passengerLimit = SelectRand(1, passengerLimit)
 		end
-		
+
 		if passengerLimit > 1 and self.Difficulty < 20 then
 			passengerLimit = passengerLimit - 1
 		end
 	end
-	
+
 	if Craft then
 		self:AddOverridePurchase(Craft, player)
-		
+
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
@@ -1726,7 +1726,7 @@ function MetaFight:OrderScoutLoadout(player, team)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		local totalMass = 0
 		local diggers = 0
 		for actorsInCargo = 1, 10 do
@@ -1739,24 +1739,24 @@ function MetaFight:OrderScoutLoadout(player, team)
 				diggers = diggers + d
 				totalMass = totalMass + m
 			end
-			
+
 			-- Stop adding actors when the cargo limit is reached
 			if actorsInCargo >= passengerLimit or totalMass > craftMaxMass then
 				break
 			end
 		end
-		
+
 		if diggers < 1 then
 			self:AddOverridePurchase(CreateHDFirearm("Light Digger", "Base.rte"), player)
 		end
-		
+
 		return true
 	end
 end
 
 function MetaFight:OrderEscortLoadout(xPosLZ, player, team)
 	local MetaPlayer = MetaMan:GetMetaPlayerOfInGamePlayer(player)
-	
+
 	-- Pick a craft to deliver with
 	local Craft = RandomACRocket("Craft", MetaPlayer.NativeTechModule)
 	if Craft then
@@ -1778,10 +1778,10 @@ function MetaFight:OrderEscortLoadout(xPosLZ, player, team)
 				Craft:AddInventoryItem(Passenger)
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(MetaPlayer.NativeTechModule, MetaPlayer.ForeignCostMultiplier, MetaPlayer.NativeCostMultiplier) * 0.33, team)
-		
+
 		Craft.Team = team
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
 		MovableMan:AddActor(Craft)	-- Spawn the Craft onto the scene
@@ -1798,19 +1798,19 @@ function MetaFight:PurchaseHeavyInfantry(player, techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
-		
+
 		Cargo = RandomHDFirearm("Weapons - Heavy", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
 		end
-		
+
 		Cargo = RandomHDFirearm("Weapons - Secondary", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
 		end
-		
+
 		if math.random() < rte.DiggersRate then
 			Cargo = RandomHDFirearm("Tools - Diggers", techID)
 			if Cargo then
@@ -1826,7 +1826,7 @@ function MetaFight:PurchaseHeavyInfantry(player, techID)
 			end
 		end
 	end
-	
+
 	return digger, mass
 end
 
@@ -1837,13 +1837,13 @@ function MetaFight:PurchaseMediumInfantry(player, techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
-		
+
 		Cargo = RandomHDFirearm("Weapons - Light", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
 		end
-		
+
 		if math.random() < rte.DiggersRate then
 			Cargo = RandomHDFirearm("Tools - Diggers", techID)
 			if Cargo then
@@ -1859,7 +1859,7 @@ function MetaFight:PurchaseMediumInfantry(player, techID)
 			end
 		end
 	end
-	
+
 	return digger, mass
 end
 
@@ -1870,13 +1870,13 @@ function MetaFight:PurchaseLightInfantry(player, techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
-		
+
 		Cargo = RandomHDFirearm("Weapons - Light", techID)
 		if Cargo then
 			self:AddOverridePurchase(Cargo, player)
 			mass = mass + Cargo.Mass
 		end
-		
+
 		if math.random() < rte.DiggersRate then
 			Cargo = RandomHDFirearm("Tools - Diggers", techID)
 			if Cargo then
@@ -1892,7 +1892,7 @@ function MetaFight:PurchaseLightInfantry(player, techID)
 			end
 		end
 	end
-	
+
 	return digger, mass
 end
 
@@ -1903,7 +1903,7 @@ function MetaFight:PurchaseScoutInfantry(player, techID)
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
-		
+
 		if math.random() < 0.6 then
 			Cargo = RandomHDFirearm("Weapons - Secondary", techID)
 			if Cargo then
@@ -1918,7 +1918,7 @@ function MetaFight:PurchaseScoutInfantry(player, techID)
 			end
 		end
 	end
-	
+
 	return digger, mass
 end
 
@@ -1931,7 +1931,7 @@ function MetaFight:CreateHeavyInfantry(mode, techID)
 		Passenger.AIMode = mode
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techID))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
-		
+
 		if math.random() < rte.DiggersRate then
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techID))
 		else
@@ -1940,7 +1940,7 @@ function MetaFight:CreateHeavyInfantry(mode, techID)
 				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID))
 			end
 		end
-	
+
 		return Passenger
 	end
 end
@@ -1955,7 +1955,7 @@ function MetaFight:CreateMediumInfantry(mode, techID)
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		end
-		
+
 		return Passenger
 	end
 end
@@ -1970,7 +1970,7 @@ function MetaFight:CreateLightInfantry(mode, techID)
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID))
 		end
-		
+
 		return Passenger
 	end
 end
@@ -1989,7 +1989,7 @@ function MetaFight:CreateScoutInfantry(mode, techID)
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
 		end
-		
+
 		return Passenger
 	end
 end
@@ -2004,6 +2004,6 @@ function MetaFight:WrapPos(lzX)
 	else
 		lzX = math.max(math.min(lzX, SceneMan.SceneWidth-50), 50)
 	end
-	
+
 	return lzX
 end
