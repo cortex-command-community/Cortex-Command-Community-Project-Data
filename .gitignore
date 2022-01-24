@@ -53,7 +53,6 @@ Base.rte/Settings.ini
 Benchmark.rte/
 Scenes.rte/
 Metagames.rte/
-DedicatedServerDebug.bat
 
 allegro.log
 abortscreen.bmp
