@@ -1,36 +1,15 @@
 package.loaded.Constants = nil; require("Constants");
 
 -----------------------------------------------------------------------------------------
--- Test a Scene for Compatibility
------------------------------------------------------------------------------------------
-
-function DoainarMission:SceneTest()
---[[ THIS TEST IS DONE AUTOMATICALLY BY THE GAME NOW; IT SCANS THE SCRIPT FOR ANY MENTIONS OF "GetArea" AND TESTS THE SCENES FOR HAVING THOSE USED AREAS DEFINED!
-	-- See if the required areas are present in the test scene
-	if not (TestScene:HasArea("Cave Inside A") and TestScene:HasArea("Cave Inside B") and
-			TestScene:HasArea("Console") and TestScene:HasArea("Pitfall")) then
-		-- If the test scene failed the compatibility test, invalidate it
-		TestScene = nil;
-	end
---]]
-end
-
------------------------------------------------------------------------------------------
 -- Start Activity
 -----------------------------------------------------------------------------------------
 
 function DoainarMission:StartActivity()
 	print("START! -- DoainarMission:StartActivity()!");
-
-	self.FightStage = { BEGINFIGHT = 0, OUTERCAVE = 1, INNERCAVE = 2, AMBUSH = 3, FIGHTSTAGECOUNT = 4 };
-	self.AreaTimer = Timer();
-	self.StepTimer = Timer();
+	--TODO: Clean up this ugly-ass script!
 	self.SpawnTimer = Timer();
-	self.CurrentFightStage = self.FightStage.BEGINFIGHT;
 	self.aggress = false;
 	self.downhole = false;
-	self.mamacrab = nil;
-	self.Sac = nil;
 	self.caveAreaA = SceneMan.Scene:GetArea("Cave Inside A");
 	self.caveAreaB = SceneMan.Scene:GetArea("Cave Inside B");
 	self.consoleArea = SceneMan.Scene:GetArea("Console");
@@ -41,25 +20,25 @@ function DoainarMission:StartActivity()
 	self.BrainHasLanded = {};
 	self.braindead = {};
 	self.mamajumptime = Timer();
-	self.litscreen = nil;
 
-	--------------------------
-	-- Set up teams
-
-	-- Team 2 is always CPU
+	self.PlayerTeam = Activity.TEAM_1;
 	self.CPUTeam = Activity.TEAM_2;
 
-	--------------------------
-	-- Set up players
-	-- Position of pieces that should conceal the cave.
-	--		self.piece1.Pos = Vector(1261,359);
-	--		self.piece2.Pos = Vector(1448,467);
-
 	self.Sac = CreateAEmitter("Eggsac");
-	self.Sac.Pos = Vector(1274, 294);
+	self.Sac.Pos = Vector(1274, 315);
 	self.Sac.Team = self.CPUTeam;
-	self.Sac:EnableEmission(true);
 	MovableMan:AddParticle(self.Sac);
+	
+	--Set all the underground doors to be quiet so that we don't ruin the surprise!
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor = ToADoor(actor);
+			actor.DoorMoveSound = nil;
+			actor.DoorMoveStartSound = nil;
+			actor.DoorMoveEndSound = nil;
+			actor.DoorDirectionChangeSound = nil;
+		end
+	end
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		-- Check if we already have a brain assigned
@@ -67,11 +46,11 @@ function DoainarMission:StartActivity()
 			self.braindead[player] = false;
 			local ship = CreateACRocket("Drop Crate");
 			local brain = CreateAHuman("Brain Robot");
-			local gun = CreateHDFirearm("Assault Rifle");
-			brain:AddInventoryItem(gun);
+			brain:AddInventoryItem(CreateHDFirearm("Assault Rifle"));
 			brain.AIMode = Actor.AIMODE_SENTRY;
 			ship:AddInventoryItem(brain);
-			ship.Pos = Vector(150+(player+1)*50, -50);
+			ship.Pos.X = 50 + player * ship.Radius;
+			ship.Vel.X = math.random(8, 12);
 			ship.Team = self:GetTeamOfPlayer(player);
 			ship:SetControllerMode(Controller.CIM_AI, -1);
 			-- Let the spawn into the world, passing ownership
@@ -89,29 +68,16 @@ function DoainarMission:StartActivity()
 	end
 
 	self.mamacrab = CreateACrab("Mega Crab");
-	self.mamacrab.Pos = Vector(1080, 315);
-	self.mamacrab.Team = -1;
-	self.mamacrab.HUDVisible = false;
-	self.mamacrab.AIMode = Actor.AIMODE_BRAINHUNT;
+	self.mamacrab.Pos = Vector(1176, 368);
+	self.mamacrab.Team = self.CPUTeam;
+	MovableMan:AddActor(self.mamacrab);
+	self.mamacrab.SpriteAnimDuration = self.mamacrab.SpriteAnimDuration * 10;
+	self.mamacrab.Status = Actor.INACTIVE;
+	self.mamacrab.PinStrength = 1;
 
 	self.target = self:GetPlayerBrain(Activity.PLAYER_1);
 	
-	-- Set up AI modes for the Actors that have been added to the scene by the scene definition
-	for actor in MovableMan.AddedActors do
-		if actor.Team == self.CPUTeam then
-			actor.HUDVisible = false;
-			actor.AIMode = Actor.AIMODE_PATROL;
-		end
-	end
-	
-	--------------------------
-	-- Set up tutorial
-	
-	self.AreaTimer:Reset();
-	self.StepTimer:Reset();
-	self.SpawnTimer:Reset();
-	
-	SceneMan:MakeAllUnseen(Vector(25, 25), Activity.TEAM_1);
+	SceneMan:MakeAllUnseen(Vector(36, 36), self.PlayerTeam);
 end
 
 -----------------------------------------------------------------------------------------
@@ -135,34 +101,35 @@ end
 -----------------------------------------------------------------------------------------
 
 function DoainarMission:UpdateActivity()
-	if MovableMan:IsActor(self.mamacrab) then
-		for actor in MovableMan.Actors do
-			if actor.Team == Activity.TEAM_1 then
-				if not MovableMan:IsActor(self.target) then
-					self.target = actor;
-				else
-					local thisPos = actor.Pos.X - self.mamacrab.Pos.X;
-					if thisPos < 0 then
-						thisPos = thisPos*-1;
-					end
-					local otherPos = self.target.Pos.X - self.mamacrab.Pos.X;
-					if otherPos < 0 then
-						otherPos = otherPos*-1;
-					end
-					if thisPos < otherPos and actor.Team == Activity.TEAM_1 then
-						self.target = actor;
-					end
-				end
+	-- Clear all objective markers, they get re-added each frame
+	self:ClearObjectivePoints();
+	if self.mamacrab and MovableMan:IsActor(self.mamacrab) then
+		if not MovableMan:IsActor(self.target) then
+			self.target = MovableMan:GetClosestTeamActor(self.PlayerTeam, Activity.PLAYER_NONE, self.mamacrab.Pos, SceneMan.SceneWidth, Vector(), self.mamacrab);
+		end
+	else
+		self.mamacrab = nil;
+	end
+	local crabcount = 0;
+	local crabsOutside = 0;
+	for actor in MovableMan.Actors do
+		if actor.PresetName == "Crab" then
+			crabcount = crabcount + 1;
+			if not self.mamacrab then
+				self:AddObjectivePoint("Kill!", actor.AboveHUDPos, self.PlayerTeam, GameActivity.ARROWDOWN);
+			elseif not self.aggress and not self.caveAreaA:IsInside(actor.Pos) and not self.caveAreaB:IsInside(actor.Pos) then
+				self:AddObjectivePoint("Kill!", actor.AboveHUDPos, self.PlayerTeam, GameActivity.ARROWDOWN);
+				crabsOutside = crabsOutside + 1;
+			end
+			if actor.Age < TimerMan.DeltaTimeMS then
+				actor.AIMode = math.random() < 0.5 and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL;
 			end
 		end
 	end
-	-- Clear all objective markers, they get re-added each frame
-	self:ClearObjectivePoints();
 
 	local consoleobj = 0;
 	local invest2obj = 0;
 	if not (self.ActivityState == Activity.OVER) then
-		--------------------------
 		-- Iterate through all human players
 		for player = 0, self.PlayerCount - 1 do
 			-- The current player's team
@@ -194,22 +161,19 @@ function DoainarMission:UpdateActivity()
 			if self.braindead[player] == false then
 				if (-self.SpawnTimer:LeftTillSimMS(0) >= 25) then
 					--Check if all the outside crabs have died, and if so, enter the "aggression" stage, where all the crabs try to kill you.
-					local crabcount = 0;
 					if self.aggress == false then
-						for actor in MovableMan.Actors do
-							if not self.caveAreaA:IsInside(actor.Pos) and not self.caveAreaB:IsInside(actor.Pos) and actor.PresetName == "Crab" then
-								crabcount = crabcount + 1;
-							end
-						end
-
-						if crabcount == 0 then
-							MovableMan:AddActor(self.mamacrab);
+						if MovableMan:IsActor(self.mamacrab) and (crabsOutside == 0 or self.mamacrab.PinStrength == 0 or self.mamacrab.Health < self.mamacrab.MaxHealth) then
+							self.mamacrab.SpriteAnimDuration = self.mamacrab.SpriteAnimDuration * 0.1;
 							self.aggress = true;
-							self.mamacrab.Vel = Vector((self.target.Pos.X - self.mamacrab.Pos.X)*0.025,-15 + ((self.target.Pos.Y - self.mamacrab.Pos.Y)*0.025));
-							self.mamajumptime:Reset();
+
+							self.mamacrab.PinStrength = 0;
+							self.mamacrab.Status = Actor.UNSTABLE;
+							
+							self.target = MovableMan:GetClosestTeamActor(self.PlayerTeam, Activity.PLAYER_NONE, self.mamacrab.Pos, SceneMan.SceneWidth, Vector(), self.mamacrab);
+
 							self:ResetMessageTimer(player);
 							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("Uh oh.  Looks like you angered the mother crab.  Kill it before it kills you!", player, 0, 5000, false);
+							FrameMan:SetScreenText("Uh oh, looks like you angered the mother crab!  Kill it before it kills you!", player, 0, 5000, false);
 							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", 0, -1);
 						end
 					end
@@ -222,12 +186,11 @@ function DoainarMission:UpdateActivity()
 						FrameMan:SetScreenText("Looks like there's a crab den down here.  We'll have to clear them out first.", player, 0, 5000, false);
 					end
 
-					if MovableMan:IsActor(self.mamacrab) == false and self.mamadead == false and self.aggress == true then
+					if not self.mamacrab and self.mamadead == false and self.aggress == true then
 						self.mamadead = true;
-						self.mamacrab = nil;
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(player);
-						FrameMan:SetScreenText("That was a close one.  Go finish off their den.", player, 0, 5000, false);
+						FrameMan:SetScreenText("That was a close one.  Go finish off their den!", player, 0, 5000, false);
 						AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0, -1);
 					end
 
@@ -242,15 +205,14 @@ function DoainarMission:UpdateActivity()
 						if self.pitfall:IsInside(self:GetControlledActor(player).Pos) and self.downhole == false then
 							self:ResetMessageTimer(player);
 							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("What the...?  Some kind of ancient bunker?  There's a computer of some kind down there, go see what's on it...", player, 0, 5000, false);
+							FrameMan:SetScreenText("What the...?  It's some kind of ancient bunker?  There seems to be a control panel inside, go see what's on it...", player, 0, 5000, false);
 							AudioMan:ClearMusicQueue();
 							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", 0, -1);
 							self.downhole = true;
 						end
-					end
-
-					if self.consoleArea:IsInside(self:GetControlledActor(player).Pos) then
-						consoleobj = 1;
+						if self.consoleArea:IsInside(self:GetControlledActor(player).Pos) then
+							consoleobj = 1;
+						end
 					end
 
 					if self.sacdestroyed == true and self.downhole == false then
@@ -258,7 +220,7 @@ function DoainarMission:UpdateActivity()
 					end
 
 					if MovableMan:IsActor(brain) then--self.braindead[player] == false then
-						self:AddObjectivePoint("Protect!", brain.AboveHUDPos + Vector(0, -8), Activity.TEAM_1, GameActivity.ARROWDOWN);
+						self:AddObjectivePoint("Protect!", brain.AboveHUDPos + Vector(0, -8), self.PlayerTeam, GameActivity.ARROWDOWN);
 					end				
 				end
 			end
@@ -275,28 +237,23 @@ function DoainarMission:UpdateActivity()
 			end
 		end
 	end
-		-- MARK THE OBJECTIVES
-	for actor in MovableMan.Actors do
-		if self.aggress == false then
-			if not self.caveAreaA:IsInside(actor.Pos) and not self.caveAreaB:IsInside(actor.Pos) and actor.PresetName == "Crab" then
-				self:AddObjectivePoint("Kill!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
-			end
-		end
-		if self.mamadead == true then
-			if actor.PresetName == "Crab" then
-				self:AddObjectivePoint("Kill!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
-			end
-		end
-	end
 
-	if self.mamadead == false and MovableMan:IsActor(self.mamacrab) then
-		self:AddObjectivePoint("Kill!", self.mamacrab.AboveHUDPos+Vector(0, -16), Activity.TEAM_1, GameActivity.ARROWDOWN);
-		if self.mamajumptime:LeftTillSimMS(3000) < 0 and MovableMan:IsActor(self.target) then				
-			self.mamacrab.Vel = Vector((self.target.Pos.X - self.mamacrab.Pos.X) * 0.045, -15 + ((self.target.Pos.Y - self.mamacrab.Pos.Y) * 0.025));
+	if self.mamadead == false and MovableMan:IsActor(self.mamacrab) and self.mamacrab.Status ~= Actor.INACTIVE then
+		self:AddObjectivePoint("Kill!", self.mamacrab.AboveHUDPos+Vector(0, -16), self.PlayerTeam, GameActivity.ARROWDOWN);
+		if self.mamajumptime:LeftTillSimMS(3000) < 0 and MovableMan:IsActor(self.target) and SceneMan:GetTerrMatter(self.mamacrab.Pos.X, self.mamacrab.Pos.Y + self.mamacrab:GetSpriteHeight() * 0.5) then				
+			local jumpVector = Vector((self.target.Pos.X - self.mamacrab.Pos.X) * 0.045, -15 + ((self.target.Pos.Y - self.mamacrab.Pos.Y) * 0.025));
+			self.mamacrab.Vel = self.mamacrab.Vel + jumpVector:SetMagnitude(math.min(jumpVector.Magnitude, 30));
+			self.mamacrab.Status = Actor.UNSTABLE;
 			self.mamajumptime:Reset();
 		end
 	elseif self.aggress == true and MovableMan:IsParticle(self.Sac) then
-		self:AddObjectivePoint("Destroy!", self.Sac.Pos+Vector(0,-16), Activity.TEAM_1, GameActivity.ARROWDOWN);
+		self:AddObjectivePoint("Destroy!", self.Sac.Pos+Vector(0,-16), self.PlayerTeam, GameActivity.ARROWDOWN);
+	end
+	if self.Sac and MovableMan:IsParticle(self.Sac) then
+		self.Sac.Throttle = 2/(1 + (crabcount + self.Sac.WoundCount) * 0.1) - 1;
+		self.Sac.SpriteAnimDuration = 600 - 300 * self.Sac.Throttle;
+	else
+		self.Sac = nil;
 	end
 
 	--Reading the console
@@ -308,10 +265,11 @@ function DoainarMission:UpdateActivity()
 			MovableMan:AddParticle(self.litscreen);
 		end
 		if self.deciphtimer:LeftTillSimMS(3000) > 0 then
-				self:AddObjectivePoint("Loading... " .. math.ceil(self.deciphtimer:LeftTillSimMS(3000)/1000) .. " seconds left.", Vector(1104, 600), Activity.TEAM_1, GameActivity.ARROWDOWN);
+			self:AddObjectivePoint("Loading... " .. math.ceil(self.deciphtimer:LeftTillSimMS(3000)/1000) .. " seconds left.", Vector(1104, 600), self.PlayerTeam, GameActivity.ARROWDOWN);
 		end
 		if -self.deciphtimer:LeftTillSimMS(0) > 3000 then
-			self.WinnerTeam = Activity.TEAM_1;
+			self.WinnerTeam = self.PlayerTeam;
+			self:ClearObjectivePoints();
 			ActivityMan:EndActivity();
 		end
 	else
@@ -322,11 +280,11 @@ function DoainarMission:UpdateActivity()
 	end
 
 	if self.downhole == true and consoleobj == 0 then
-		self:AddObjectivePoint("Investigate!", Vector(1104, 600), Activity.TEAM_1, GameActivity.ARROWDOWN);
+		self:AddObjectivePoint("Investigate!", Vector(1104, 600), self.PlayerTeam, GameActivity.ARROWDOWN);
 	end
 	
 	if invest2obj == 1 then
-		self:AddObjectivePoint("Buy a digging tool and dig!", Vector(1350, 350), Activity.TEAM_1, GameActivity.ARROWDOWN);
+		self:AddObjectivePoint("Get a digging tool and dig!", Vector(1390, 380), self.PlayerTeam, GameActivity.ARROWDOWN);
 	end
 	 --Sort the objective points
 	self:YSortObjectivePoints();
