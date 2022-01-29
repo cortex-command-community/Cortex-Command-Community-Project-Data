@@ -9,6 +9,7 @@ function Create(self)
 	self.alliedTeam = self.Sharpness;
 	self.Team = self.alliedTeam;
 	self.Sharpness = 0;
+	self.autoDetonate = self:NumberValueExists("AutoDetonate");
 
 	if RemoteExplosiveTableA == nil then
 		RemoteExplosiveTableA = {};
@@ -25,7 +26,7 @@ function Create(self)
 end
 
 function Update(self)
-
+	--TODO: Remove Sharpness hack!
 	if self.Sharpness == 0 then
 		self.ToDelete = false;
 		self.ToSettle = false;
@@ -40,6 +41,9 @@ function Update(self)
 
 	if self.stuck then
 		if self.blinkTimer:IsPastSimMS(500) then
+			if self.autoDetonate then
+				self.Sharpness = 2;
+			end
 			self.blinkTimer:Reset();
 			if self.blink == false then
 				self.blink = true;
@@ -49,6 +53,8 @@ function Update(self)
 				self.Frame = ((self.alliedTeam + 1) * 2) + 1;
 			end
 		end
+	else
+		self.blinkTimer:Reset();
 	end
 end
 function RemoteExplosiveStick(self)

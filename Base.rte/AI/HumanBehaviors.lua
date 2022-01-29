@@ -155,7 +155,7 @@ function HumanBehaviors.CalculateThreatLevel(MO, Owner)
 			priority = priority + 0.3
 		end
 	elseif MO.ClassName == "ADoor" then
-		priority = priority * 0.5
+		priority = priority * 0.3
 	end
 	
 	return priority - MO.Health / 500	-- prioritize damaged targets
@@ -173,7 +173,7 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 			if AlarmVec.Largest < loudness then	-- only react if the alarm is within hearing range
 				-- if our relative position to the alarm location is the same, don't repeat the signal
 				-- check if we have line of sight to the alarm point
-				if (not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false).Largest > 10) then
+				if (not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false).Magnitude > 25) then
 					AI.LastAlarmVec = AlarmVec
 					
 					if AlarmVec.Largest < 100 then
@@ -1174,7 +1174,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}}
 	
 	while true do
-		if Owner.Vel.Largest > 2 then
+		if (Owner.Vel + Owner.PrevVel).Magnitude > 3 then
 			StuckTimer:Reset()
 		end
 		
@@ -1219,6 +1219,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil
 			WptList = nil -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
+			StuckTimer:Reset()
 			if AI.jump then
 				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false
@@ -1236,11 +1237,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 			else
 				if PosRand() < 0.2 then
-					if AI.lateralMoveState == Actor.LAT_LEFT then
-						nextLatMove = Actor.LAT_RIGHT
-					else
-						nextLatMove = Actor.LAT_LEFT
-					end
+					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT
 				end
 				
 				-- refuelling done
@@ -1667,21 +1664,21 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							
 							if Waypoint then	-- move towards the waypoint
 								-- control horizontal movement
-								if Owner.FGLeg or Owner.BGLeg then
-									if not AI.flying then
-										if CurrDist.X < -3 then
-											nextLatMove = Actor.LAT_LEFT
-										elseif CurrDist.X > 3 then
-											nextLatMove = Actor.LAT_RIGHT
-										else
-											nextLatMove = Actor.LAT_STILL
+								if not AI.flying then
+									if CurrDist.X < -3 then
+										nextLatMove = Actor.LAT_LEFT
+									elseif CurrDist.X > 3 then
+										nextLatMove = Actor.LAT_RIGHT
+									else
+										nextLatMove = Actor.LAT_STILL
+									end
+									if not (Owner.FGLeg and Owner.BGLeg) then
+										if CurrDist.X * Owner.FlipFactor > 5 and -CurrDist.Y > math.abs(CurrDist.X) then
+											AI.flying = true
+										elseif not AI.jump then
+											AI.proneState = AHuman.GOPRONE
 										end
 									end
-								elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
-									-- no legs, jump forward
-									AI.jump = true
-								elseif not AI.jump then
-									AI.proneState = AHuman.GOPRONE
 								end
 								
 								if Waypoint.Type == "right" then
@@ -2139,11 +2136,6 @@ function HumanBehaviors.GetProjectileData(Owner)
 		PrjDat.vel = 100
 		PrjDat.rng = math.huge
 	else
-		PrjDat.blast = Weapon:GetAIBlastRadius() -- check if this weapon have a blast radius
-		if PrjDat.blast > 0 then
-			PrjDat.exp = true	-- set this for legacy reasons
-		end
-		
 		-- find muzzle velocity
 		PrjDat.vel = Weapon:GetAIFireVel()
 		-- half of the theoretical upper limit for the total amount of material strength this weapon can destroy in 250ms
@@ -2154,6 +2146,12 @@ function HumanBehaviors.GetProjectileData(Owner)
 		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs	-- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel)
 		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg
+		
+		PrjDat.blast = Weapon:GetAIBlastRadius()
+		if PrjDat.blast > 0 or Weapon:IsInGroup("Weapons - Explosive") then
+			PrjDat.exp = true	-- set this for legacy reasons
+			PrjDat.pen = PrjDat.pen + 100
+		end
 		
 		-- estimate theoretical max range with ...
 		local lifeTime = Weapon:GetAIBulletLifeTime()
