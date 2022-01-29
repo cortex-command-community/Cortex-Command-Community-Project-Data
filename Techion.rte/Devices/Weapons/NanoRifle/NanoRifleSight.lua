@@ -29,7 +29,7 @@ function Update(self)
 				local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
 				if terrCheck == rte.airID then
 					local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
-					if moCheck ~= rte.NoMOID then
+					if moCheck ~= rte.NoMOID and moCheck ~= self.ID then
 						local mo = ToMOSRotating(MovableMan:GetMOFromID(moCheck));
 						if mo and (mo.Team ~= actor.Team or (mo.WoundCount > 0 and mo.PresetName ~= "Nano Rifle")) then
 							roughLandPos = checkPos;
@@ -55,7 +55,7 @@ function Update(self)
 				local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
 				if terrCheck == rte.airID then
 					local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
-					if moCheck ~= rte.NoMOID then
+					if moCheck ~= rte.NoMOID and moCheck ~= self.ID then
 						if actor:IsPlayerControlled() then
 							local mo = MovableMan:GetMOFromID(moCheck);
 							PrimitiveMan:DrawCirclePrimitive(ActivityMan:GetActivity():ScreenOfPlayer(actor:GetController().Player), mo.Pos, mo.Radius, 5);

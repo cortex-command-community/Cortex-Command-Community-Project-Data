@@ -292,9 +292,11 @@ function BunkerBreach:UpdateActivity()
 			end
 		end
 		if funds > 0 then
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:SetScreenText("Enemy budget: " .. funds, self:ScreenOfPlayer(player), 0, 2500, false);
+			if self.CPUTeam == self.attackerTeam then
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					if self:PlayerActive(player) and self:PlayerHuman(player) then
+						FrameMan:SetScreenText("Enemy budget: " .. funds, self:ScreenOfPlayer(player), 0, 2500, false);
+					end
 				end
 			end
 			if self.CPUSpawnTimer:IsPastSimMS(self.CPUSpawnDelay) then
