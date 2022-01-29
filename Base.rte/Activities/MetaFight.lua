@@ -206,7 +206,9 @@ function MetaFight:StartActivity()
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:GetTeamOfPlayer(player) == team then
 					-- Any team with a player that has a brain resident in the scene are DEFENDERS
-					if SceneMan.Scene:GetResidentBrain(player) then
+					local residentBrain = SceneMan.Scene:GetResidentBrain(player);
+					if residentBrain then
+						ToActor(residentBrain).AIMode = Actor.AIMODE_SENTRY;
 						self.InvadingTeam[team] = false;
 					end
 					-- Disable the tactical team management on any team that has ANY human players on it - the humans get full control
@@ -985,7 +987,7 @@ function MetaFight:UpdateActivity()
 			-- Find LZs for the AI teams
 			self:DesignateLZs()
 			self.AI.SpawnTimer:Reset()
-			self.AI.SpawnTimer:SetSimTimeLimitMS(20000)	-- give the brains some time to land before spawning units
+			self.AI.SpawnTimer:SetSimTimeLimitMS(20000 - 10000 * (self.Difficulty/GameActivity.MAXDIFFICULTY));
 			
 			-- Spawn escort when attacking bunkers
 			if self.hasDefender then
@@ -1021,14 +1023,13 @@ function MetaFight:UpdateActivity()
 					-- Give all existing team actors appropriate AI orders
 					for actor in MovableMan.Actors do
 						if actor.Team == team and not actor:StringValueExists("ScriptControlled") then
+							-- The brain should try to dig itself into the ground to fortify itself against counterattack
+							if actor:IsInGroup("Brains") then
+								actor.AIMode = Actor.AIMODE_GOLDDIG;
+								break;
 							-- Actors start in sentry mode, send them towards the enemy target
-							if actor.AIMode == Actor.AIMODE_SENTRY then
-								-- The brain should try to dig itself into the ground to fortify itself against counterattack
-								if actor:IsInGroup("Brains") then
-									actor.AIMode = Actor.AIMODE_GOLDDIG;
-									break;
-								-- Not a brain, so can it go hunt the enemy brain?
-								elseif not actor:IsInGroup("Anti-Air") then
+							elseif actor.AIMode == Actor.AIMODE_SENTRY then
+								if not actor:IsInGroup("Anti-Air") then
 									if target then
 										actor.AIMode = Actor.AIMODE_GOTO
 										actor:ClearAIWaypoints();

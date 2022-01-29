@@ -730,7 +730,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		if Owner:EquipNamedDevice("Heavy Digger", true) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 			self.NextBehaviorName = "AttackTarget"
-		elseif Owner:EquipNamedDevice("Timed Explosive", true) then
+		elseif dist < 50 and (Owner:EquipNamedDevice("Remote Explosive", true) or Owner:EquipNamedDevice("Timed Explosive", true)) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 			self.NextBehaviorName = "ThrowTarget"
 		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then

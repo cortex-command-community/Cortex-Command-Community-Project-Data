@@ -118,7 +118,7 @@ function Create(self)
 	self.buildDistance = 400; -- pixel distance
 	self.minFillDistance = 5; -- block distance
 	self.maxFillDistance = 6; -- block distance
-	self.tunnelFillDelay = 30000;
+	self.tunnelFillDelay = 30000 + 30000 * (1 - ActivityMan:GetActivity().Difficulty/GameActivity.MAXDIFFICULTY);
 
 	-- don't change these
 	self.toAutoBuild = false;
@@ -238,6 +238,7 @@ function Update(self)
 				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), SceneMan.SceneWrapsX).Magnitude < 30 then
 					self.tunnelFillTimer:Reset();
 					self.operatedByAI = true;
+					self.aiSkillRatio = 1.5 - ActivityMan:GetActivity():GetTeamAISkill(actor.Team)/100;
 					self.toAutoBuild = true;
 					self.buildList = {};
 					local buildscheme = self.autoBuildList;
@@ -262,7 +263,7 @@ function Update(self)
 
 			-- constructor actions if it's AI controlled
 			if self.operatedByAI then
-				if self.tunnelFillTimer:IsPastSimMS(self.tunnelFillDelay) and #self.buildList == 0 then
+				if self.tunnelFillTimer:IsPastSimMS(self.tunnelFillDelay * self.aiSkillRatio) and #self.buildList == 0 then
 					self.blockSize = 24;
 					self.tunnelFillTimer:Reset();
 

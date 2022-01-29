@@ -285,16 +285,18 @@ function BunkerBreach:UpdateActivity()
 					if actor:HasObjectInGroup("Tools - Diggers") and actor.AIMode == Actor.AIMODE_GOLDDIG then
 						diggerCount = diggerCount + 1;
 					end
-					if funds < 0 then
+					if funds < 0 and self.CPUTeam == self.attackerTeam then
 						self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.playerTeam, GameActivity.ARROWDOWN)
 					end
 				end
 			end
 		end
 		if funds > 0 then
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:SetScreenText("Enemy budget: " .. funds, self:ScreenOfPlayer(player), 0, 2500, false);
+			if self.CPUTeam == self.attackerTeam then
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					if self:PlayerActive(player) and self:PlayerHuman(player) then
+						FrameMan:SetScreenText("Enemy budget: " .. funds, self:ScreenOfPlayer(player), 0, 2500, false);
+					end
 				end
 			end
 			if self.CPUSpawnTimer:IsPastSimMS(self.CPUSpawnDelay) then
@@ -535,8 +537,11 @@ end
 
 function BunkerBreach:CreateBrainBot(team)
 	local tech = self:GetTeamTech(team);
-	local actor = RandomAHuman("Brains", tech);
-	if actor then
+	local actor;
+	if tech ~= -1 and team == self.attackerTeam then
+		actor = PresetMan:GetLoadout("Infantry Brain", tech, false);
+	else
+		actor = RandomAHuman("Brains", tech);
 		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
 		if team == self.attackerTeam then
 			actor:AddInventoryItem(CreateHDFirearm("Constructor", "Base.rte"));
@@ -545,7 +550,6 @@ function BunkerBreach:CreateBrainBot(team)
 		end
 		actor.AIMode = Actor.AIMODE_SENTRY;
 		actor.Team = team;
-		return actor;
 	end
-	return nil;
+	return actor;
 end

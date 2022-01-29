@@ -33,7 +33,8 @@ function Update(self)
 				self.Vel = (mo.Vel - dist:SetMagnitude(self.Vel.Magnitude):RadRotate(RangeRand(-1, 1))) * 0.5;
 				self.AngularVel = self.AngularVel + math.random(10, 20) * (math.random() < 0.5 and 1 or -1);
 			else
-				local moVelFactor = mo.Vel * (0.7 - 0.7/(math.sqrt(mo.Mass/self.Mass + 1)));
+				--TODO: Clean up this ugly shit
+				local moVelFactor = mo.Vel * (0.5 - 0.5/(math.sqrt(mo.Mass/self.Mass + 1)));
 				self.Vel = self.Vel/math.sqrt(velFactor + 1) + moVelFactor + Vector(2/(velFactor + 1) * self.FlipFactor, 0):RadRotate(self.firstAngle);
 
 				self.AngularVel = self.AngularVel * 0.9 + math.random(-1, 1);

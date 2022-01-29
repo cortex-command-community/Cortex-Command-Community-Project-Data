@@ -17,6 +17,7 @@ function Create(self)
 	self.lockThreshold = 12;
 
 	self.arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
+	self.detectSound = CreateSoundContainer("Mine Activate", "Base.rte");
 end
 function Update(self)
 	local parent = self:GetRootParent();
@@ -45,7 +46,7 @@ function Update(self)
 
 								self.targetLostTimer:Reset();
 								if not self.target or (self.target and self.target.ID ~= mo.ID) then
-									AudioMan:PlaySound("Base.rte/Devices/Explosives/AntiPersonnelMine/Sounds/MineActivate.flac", self.Pos);
+									self.detectSound:Play(self.Pos);
 								end
 								self.target = IsACrab(mo) and ToACrab(mo) or mo;
 								self.markerSize = mo.Radius;
