@@ -26,6 +26,8 @@ function Create(self)
 	self.maxTrajectoryPars = self:NumberValueExists("TrajectoryGuideLength") and self:GetNumberValue("TrajectoryGuideLength") or 60;
 	self.guideColor = self:NumberValueExists("TrajectoryGuideColorIndex") and self:GetNumberValue("TrajectoryGuideColorIndex") or 120;
 	self.skipLines = self:NumberValueExists("TrajectoryGuideSkipLines") and self:GetNumberValue("TrajectoryGuideSkipLines") or 1;
+	self.crossLineCount = self:NumberValueExists("TrajectoryGuideCrossPartCount") and self:GetNumberValue("TrajectoryGuideCrossPartCount") or 0;
+	self.crossLineAngle = (math.pi * 2)/self.crossLineCount;
 	self.viewCorrection = self:NumberValueExists("TrajectoryGuideViewCorrection") and self:GetNumberValue("TrajectoryGuideViewCorrection") or 0;
 	self.drawHitsOnly = self:NumberValueExists("TrajectoryGuideDrawHitsOnly");
 	self.includeMOHits = self:NumberValueExists("TrajectoryGuideIncludeMOHits");
@@ -75,14 +77,14 @@ function Update(self)
 					end
 					local roughHit = false;
 					for i = 1, self.guideAccuracy do
+						guideParPos = guideParPos + guideParVel/self.guideAccuracy;
 						local moCheck = self.includeMOHits and SceneMan:GetMOIDPixel(guideParPos.X, guideParPos.Y) or rte.NoMOID;
-						if SceneMan:GetTerrMatter(guideParPos.X, guideParPos.Y) == rte.airID and (moCheck == rte.NoMOID or moCheck == self.ID) then
+						if SceneMan:GetTerrMatter(guideParPos.X, guideParPos.Y) == rte.airID and (moCheck == rte.NoMOID or MovableMan:GetMOFromID(moCheck).RootID == self.RootID) then
 							self.guideTable[#self.guideTable + 1] = guideParPos;
 						else
 							roughHit = true;
 							break;
 						end
-						guideParPos = guideParPos + guideParVel/self.guideAccuracy;
 					end
 					if roughHit then
 						hitPos = Vector(self.guideTable[#self.guideTable].X, self.guideTable[#self.guideTable].Y);
@@ -102,6 +104,7 @@ function Update(self)
 		end
 		if #self.guideTable > 1 and (not self.drawHitsOnly or hitPos) then
 			local screen = ActivityMan:GetActivity():ScreenOfPlayer(controller.Player);
+			local angleDirection = #self.guideTable > 2 and SceneMan:ShortestDistance(self.guideTable[#self.guideTable - 2], self.guideTable[#self.guideTable - 1], SceneMan.SceneWrapsX).AbsRadAngle or self.RotAngle + (self.HFlipped and math.pi or 0);
 			if self.skipLines > 0 then
 				for i = 1, #self.guideTable - 1 do
 					if self.skipLines == 0 or i % (self.skipLines + 1) == 0 then
@@ -110,6 +113,10 @@ function Update(self)
 				end
 			end
 			PrimitiveMan:DrawCirclePrimitive(screen, self.guideTable[#self.guideTable], self.guideRadius, self.guideColor);
+			local lineVector = Vector(-self.guideRadius, 0):RadRotate(angleDirection);
+			for i = 0, self.crossLineCount - 1 do
+				PrimitiveMan:DrawLinePrimitive(screen, self.guideTable[#self.guideTable] + lineVector:RadRotate(self.crossLineAngle) * 0.5, self.guideTable[#self.guideTable] + lineVector * 1.5, self.guideColor);
+			end
 			if self.viewCorrection > 0 then
 				local viewLength = SceneMan:ShortestDistance(actor.EyePos, actor.ViewPoint, SceneMan.SceneWrapsX).Magnitude;
 				local viewPoint = actor.ViewPoint + SceneMan:ShortestDistance(actor.ViewPoint, self.guideTable[#self.guideTable], SceneMan.SceneWrapsX):SetMagnitude(viewLength);
