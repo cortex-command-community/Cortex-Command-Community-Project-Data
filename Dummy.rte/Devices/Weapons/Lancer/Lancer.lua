@@ -12,6 +12,7 @@ function Create(self)
 	self.fireSound.low = CreateSoundContainer("Dummy Lancer Fire Sound Low", "Dummy.rte");
 	self.fireSound.medium = CreateSoundContainer("Dummy Lancer Fire Sound Medium", "Dummy.rte");
 	self.fireSound.high = CreateSoundContainer("Dummy Lancer Fire Sound High", "Dummy.rte");
+	self.bleepSound = CreateSoundContainer("Dummy Lancer Bleep", "Dummy.rte");
 end
 function Update(self)
 	if self.FiredFrame then
@@ -55,7 +56,7 @@ function Update(self)
 			self.chargeTimer:Reset();
 
 			if self.chargeCounter == self.maxCharge and not self.sound then
-				self.sound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/FullChargeBleep.flac", self.Pos);
+				self.bleepSound:Play(self.Pos);
 			end
 		end
 	end
