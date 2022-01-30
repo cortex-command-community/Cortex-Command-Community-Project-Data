@@ -244,20 +244,6 @@ GrnUziPistol Firing Sounds
 WeaponPunchLayersCannon Sounds
 GrnBowProjectileExplosion Sounds
 
-
-*******************************************************************************
- Base.rte\Sounds\Explosions
--------------------------------------------------------------------------------
-Digital Extremes: Warframe
-
-Explode1-3 - GrnBowProjectileExplosion
-CrashWoosh1-3 - GrnGalleonBarrelDrop
-CrashRubble - GrnFortressAsteroidExplosion
-
-New World Interactive: Insurgency
-
-ShipExplosion1-3 - vehicle_explode
-
 *******************************************************************************
  Ronin.rte\Devices\Explosives\MolotovCocktail\Sounds
 -------------------------------------------------------------------------------
