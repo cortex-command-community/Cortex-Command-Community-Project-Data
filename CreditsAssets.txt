@@ -1170,15 +1170,6 @@ exp_debris_metal		(Insurgency: Sandstorm)
 
 
 *******************************************************************************
-Base.rte\Sounds\Penetration\Craft\Engine
--------------------------------------------------------------------------------
-EngineGib:
-
-ArchWingMovementBurnLoop	(Warframe)
-ExplosionShortBurst		(Warframe)
-
-
-*******************************************************************************
 Base.rte\Sounds\Penetration\Armor\MetalHelmet\SteelHelm
 -------------------------------------------------------------------------------
 HelmetImpact:
