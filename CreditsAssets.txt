@@ -325,11 +325,9 @@ CrpSentExperimentalPistol Firing Sounds
 *******************************************************************************
  Techion.rte\Devices\Weapons\PulseRifle\Sounds
 -------------------------------------------------------------------------------
-Digital Extremes: Warframe
 
-CrpChainLightningRifle Reload Sounds
-RiotMoaLaser Firing Sounds
-
+Fire, ReloadStart, ReloadEnd
+	Gamemaster Audio
 
 *******************************************************************************
  Techion.rte\Devices\Weapons\NucleoSwarm\Sounds
@@ -344,11 +342,9 @@ CrpSentExperimentalPistol Firing Sounds
 *******************************************************************************
  Techion.rte\Devices\Weapons\Nucleo\Sounds
 -------------------------------------------------------------------------------
-Digital Extremes: Warframe
 
-EnergyRifle Firing Sounds
-LibrarianTrap Firing Sounds
-CephPrimary Reload Sounds
+Fire, ReloadStart, ReloadEnd
+	Gamemaster Audio
 
 
 *******************************************************************************
@@ -365,11 +361,9 @@ CrpShockRifle Sounds
 *******************************************************************************
  Techion.rte\Devices\Weapons\MicroPulsar\Sounds
 -------------------------------------------------------------------------------
-Digital Extremes: Warframe
 
-CrpMinigun Firing Sounds
-MoaLaser Firing Sounds
-CrpScopeGun Reload Sounds
+Fire, ReloadStart, ReloadEnd
+	Gamemaster Audio
 
 
 *******************************************************************************
