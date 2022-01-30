@@ -1157,19 +1157,6 @@ PlayerArrowImpactFlesh			-
 
 
 *******************************************************************************
-Base.rte\Sounds\Penetration\Craft\Generic
--------------------------------------------------------------------------------
-BodyImpact:
-
-vehicle_body_bullet_impact	(Insurgency: Sandstorm)
-
-BodyGib:
-
-RocketLauncherExplosion		(Warframe)
-exp_debris_metal		(Insurgency: Sandstorm)
-
-
-*******************************************************************************
 Base.rte\Sounds\Penetration\Armor\MetalHelmet\SteelHelm
 -------------------------------------------------------------------------------
 HelmetImpact:
