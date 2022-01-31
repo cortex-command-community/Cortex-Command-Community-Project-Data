@@ -96,15 +96,12 @@ Devices/Tools/Blowtorch/Sounds:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Devices/Weapons/Jackhammer/Sounds:
-	Fire1, Fire2, Fire3, FirstAdd1, FirstAdd2, FirstAdd3:
-		DexSybarisShotA - Digital Extremes: Warframe
-		WeaponPunchShotgunCommonOne2DA - Digital Extremes: Warframe
-		SeerFireShotA - Digital Extremes: Warframe
-		TennoHandShotgun2DTailA - Digital Extremes: Warframe
-		GrnFlameSpearFire2DA - Digital Extremes: Warframe
+	Fire1
+		Mossberg - Still North Media
+		Coll Anderson Gunfire
 		
-	ReloadEnd, ReloadStart:
-		Lanka Reload Sounds - Digital Extremes: Warframe
+	ReloadEnd, ReloadStart
+		Heckler and Koch mag in & out sounds, efx int unloading, etc. - Sonniss GDC Audio Bundle
 		
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
