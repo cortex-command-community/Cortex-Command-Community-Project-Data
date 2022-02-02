@@ -33,10 +33,10 @@ function DoainarMission:StartActivity()
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "ADoor" then
 			actor = ToADoor(actor);
-			actor.DoorMoveSound = nil;
-			actor.DoorMoveStartSound = nil;
-			actor.DoorMoveEndSound = nil;
-			actor.DoorDirectionChangeSound = nil;
+			actor.DoorMoveSound.Volume = 0;
+			actor.DoorMoveStartSound.Volume = 0;
+			actor.DoorMoveEndSound.Volume = 0;
+			actor.DoorDirectionChangeSound.Volume = 0;
 		end
 	end
 
@@ -93,7 +93,22 @@ end
 -----------------------------------------------------------------------------------------
 
 function DoainarMission:EndActivity()
-	print("END! -- DoainarMission:EndActivity()!");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
+	end
 end
 
 -----------------------------------------------------------------------------------------
@@ -127,7 +142,7 @@ function DoainarMission:UpdateActivity()
 		end
 	end
 
-	local consoleobj = 0;
+	local playerInsideConsoleArea = 0;
 	local invest2obj = 0;
 	if not (self.ActivityState == Activity.OVER) then
 		-- Iterate through all human players
@@ -146,7 +161,7 @@ function DoainarMission:UpdateActivity()
 					self:SetPlayerBrain(newBrain, player);
 					self:SwitchToActor(newBrain, player, team);
 				else
-					FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false);
+					FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, true);
 					self.braindead[player] = true;
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
@@ -173,8 +188,8 @@ function DoainarMission:UpdateActivity()
 
 							self:ResetMessageTimer(player);
 							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("Uh oh, looks like you angered the mother crab!  Kill it before it kills you!", player, 0, 5000, false);
-							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", 0, -1);
+							FrameMan:SetScreenText("Uh oh, looks like you angered the mother crab!  Kill it before it kills you!", player, 0, 7500, true);
+							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
 						end
 					end
 
@@ -183,21 +198,21 @@ function DoainarMission:UpdateActivity()
 						self.BrainHasLanded[player] = true;
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(player);
-						FrameMan:SetScreenText("Looks like there's a crab den down here.  We'll have to clear them out first.", player, 0, 5000, false);
+						FrameMan:SetScreenText("Looks like there's a crab den down here.  We'll have to clear them out first.", player, 0, 7500, true);
 					end
 
 					if not self.mamacrab and self.mamadead == false and self.aggress == true then
 						self.mamadead = true;
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(player);
-						FrameMan:SetScreenText("That was a close one.  Go finish off their den!", player, 0, 5000, false);
-						AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0, -1);
+						FrameMan:SetScreenText("That was a close one.  Go finish off their den!", player, 0, 7500, true);
+						AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", -1, -1);
 					end
 
 					if MovableMan:IsParticle(self.Sac) == false and self.sacdestroyed == false then
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(player);
-						FrameMan:SetScreenText("Looks like a cave-in happened down here.  Dig through that sand, there might be something under it.", player, 0, 5000, false);
+						FrameMan:SetScreenText("Looks like a cave-in happened down here.  Dig through that sand, there might be something under it.", player, 0, 7500, true);
 						self.sacdestroyed = true;
 					end
 
@@ -205,13 +220,26 @@ function DoainarMission:UpdateActivity()
 						if self.pitfall:IsInside(self:GetControlledActor(player).Pos) and self.downhole == false then
 							self:ResetMessageTimer(player);
 							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("What the...?  It's some kind of ancient bunker?  There seems to be a control panel inside, go see what's on it...", player, 0, 5000, false);
+							FrameMan:SetScreenText("What the...?  It's some kind of ancient bunker?  There seems to be a control panel inside, go see what's on it...", player, 0, 7500, true);
 							AudioMan:ClearMusicQueue();
-							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", 0, -1);
+							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", -1, -1);
 							self.downhole = true;
+							
+							for actor in MovableMan.Actors do
+								if actor.ClassName == "ADoor" then
+									actor = ToADoor(actor);
+									actor.DoorMoveSound.Volume = 1;
+									actor.DoorMoveStartSound.Volume = 1;
+									actor.DoorMoveEndSound.Volume = 1;
+									actor.DoorDirectionChangeSound.Volume = 1;
+								end
+							end
 						end
 						if self.consoleArea:IsInside(self:GetControlledActor(player).Pos) then
-							consoleobj = 1;
+							self:GetControlledActor(player).HUDVisible = false;
+							playerInsideConsoleArea = 1;
+						else
+							self:GetControlledActor(player).HUDVisible = true;
 						end
 					end
 
@@ -219,21 +247,10 @@ function DoainarMission:UpdateActivity()
 						invest2obj = 1;
 					end
 
-					if MovableMan:IsActor(brain) then--self.braindead[player] == false then
+					if MovableMan:IsActor(brain) and self.downhole == false and playerInsideConsoleArea == 0 then
 						self:AddObjectivePoint("Protect!", brain.AboveHUDPos + Vector(0, -8), self.PlayerTeam, GameActivity.ARROWDOWN);
 					end				
 				end
-			end
-		end
-	-- Game over, show the appropriate messages until a certain time
-	elseif not self.GameOverTimer:IsPastSimMS(self.GameOverPeriod) then
-		for player = 0, self.PlayerCount - 1 do
-			local team = self:GetTeamOfPlayer(player);
-			-- TODO: make more appropriate messages here for run out of funds endings
-			if team == self.WinnerTeam then
-				FrameMan:SetScreenText("These are cartesian coordinates...  Where could they possibly lead to?", player, 0, -1, false);
-			else
-				FrameMan:SetScreenText("Your brain has been lost!", player, 0, -1, false);
 			end
 		end
 	end
@@ -257,7 +274,7 @@ function DoainarMission:UpdateActivity()
 	end
 
 	--Reading the console
-	if consoleobj == 1 then
+	if playerInsideConsoleArea == 1 or self.WinnerTeam == self.PlayerTeam then
 		if MovableMan:IsParticle(self.litscreen) == false then
 			self.litscreen = CreateAEmitter("Lit Screen");
 			self.litscreen:EnableEmission(true);
@@ -266,11 +283,16 @@ function DoainarMission:UpdateActivity()
 		end
 		if self.deciphtimer:LeftTillSimMS(3000) > 0 then
 			self:AddObjectivePoint("Loading... " .. math.ceil(self.deciphtimer:LeftTillSimMS(3000)/1000) .. " seconds left.", Vector(1104, 600), self.PlayerTeam, GameActivity.ARROWDOWN);
-		end
-		if -self.deciphtimer:LeftTillSimMS(0) > 3000 then
+		elseif self.deciphtimer:IsPastSimMS(3000) then
+			local textTime = 5000;
+			for player = 0, self.PlayerCount - 1 do
+				FrameMan:SetScreenText("These are cartesian coordinates...  Where could they possibly lead to?", player, 0, textTime, true);
+			end
 			self.WinnerTeam = self.PlayerTeam;
 			self:ClearObjectivePoints();
-			ActivityMan:EndActivity();
+			if self.deciphtimer:IsPastSimMS(3000 + textTime) then
+				ActivityMan:EndActivity();
+			end
 		end
 	else
 		self.deciphtimer:Reset();
@@ -279,12 +301,12 @@ function DoainarMission:UpdateActivity()
 		end
 	end
 
-	if self.downhole == true and consoleobj == 0 then
+	if self.downhole == true and playerInsideConsoleArea == 0 then
 		self:AddObjectivePoint("Investigate!", Vector(1104, 600), self.PlayerTeam, GameActivity.ARROWDOWN);
 	end
 	
 	if invest2obj == 1 then
-		self:AddObjectivePoint("Get a digging tool and dig!", Vector(1390, 380), self.PlayerTeam, GameActivity.ARROWDOWN);
+		self:AddObjectivePoint("Get a digging tool and dig!", Vector(1400, 400), self.PlayerTeam, GameActivity.ARROWDOWN);
 	end
 	 --Sort the objective points
 	self:YSortObjectivePoints();
