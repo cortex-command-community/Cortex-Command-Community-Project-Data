@@ -5,7 +5,7 @@ function Create(self)
 	self.maxCharge = 10;
 	self.chargesPerSecond = self.RateOfFire/100;
 
-	self.sound = false;
+	self.bleepSoundPlayed = false;
 	self.setAngle = 0;
 	
 	self.fireSound = {};
@@ -16,9 +16,8 @@ function Create(self)
 end
 function Update(self)
 	if self.FiredFrame then
-
 		self.setAngle = self.setAngle + self.chargeCounter/(20 * (1 + self.setAngle));
-		self.sound = nil;
+		self.bleepSoundPlayed = false;
 		local actor = MovableMan:GetMOFromID(self.RootID);
 
 		local charge = math.floor(self.chargeCounter * 0.8);
@@ -55,8 +54,9 @@ function Update(self)
 			self.chargeCounter = math.min(self.chargeCounter + ((self.chargeTimer.ElapsedSimTimeMS/1000) * self.chargesPerSecond), self.maxCharge);
 			self.chargeTimer:Reset();
 
-			if self.chargeCounter == self.maxCharge and not self.sound then
+			if self.chargeCounter == self.maxCharge and self.bleepSoundPlayed == false then
 				self.bleepSound:Play(self.Pos);
+				self.bleepSoundPlayed = true;
 			end
 		end
 	end
