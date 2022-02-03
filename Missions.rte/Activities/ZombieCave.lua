@@ -30,8 +30,8 @@ function ZombieCaveMission:StartActivity()
 	-- Set up teams
 
 	-- Team 2 is always zombie
-	self.ZombieTeam = Activity.TEAM_2;
-	self.AmbusherTeam = Activity.TEAM_4;
+	self.ZombieTeam = Activity.NOTEAM;
+	self.AmbusherTeam = Activity.TEAM_2;
 
 	-- Create the zombie generators and place them in the scene
 	self.Generator1 = CreateAEmitter("Zombie Generator");
