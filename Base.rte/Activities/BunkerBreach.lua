@@ -124,7 +124,7 @@ function BunkerBreach:StartActivity()
 						actor.ToDelete = true;
 					end
 				end
-				brain = self:CreateBrainBot(team);
+				brain = self:CreateBrainBot(self.CPUTeam);
 				brain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
 				MovableMan:AddActor(brain);
 			else
