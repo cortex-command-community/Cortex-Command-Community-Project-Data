@@ -55,13 +55,11 @@ function Update(self)
 						self.maxTrajectoryPars = (self.fuzeDelay - self.fuze.ElapsedSimTimeMS - self.laserTimer.ElapsedSimTimeMS)/TimerMan.DeltaTimeMS * rte.PxTravelledPerFrame;
 					end
 					actor = ToAHuman(actor);
-					local rotationThisFrame = actor.AngularVel * TimerMan.DeltaTimeSecs;
 					local maxVel = self.projectileVelMax or (actor.FGArm.ThrowStrength + math.abs(actor.AngularVel * 0.5))/math.sqrt(math.abs(self.Mass) + 1);
 					local minVel = self.projectileVelMin or maxVel * 0.2;
 					--The following offset is as found in the source code (TODO: utilize EndThrowOffset properly instead)
 					guideParPos = actor.Pos + actor.Vel * rte.PxTravelledPerFrame + Vector((actor.FGArm.ParentOffset.X + actor.FGArm.MaxLength) * actor.FlipFactor, actor.FGArm.ParentOffset.Y - actor.FGArm.MaxLength * 0.5):RadRotate(actor:GetAimAngle(false) * actor.FlipFactor);
-					local projectileVel = minVel + (maxVel - minVel) * actor.ThrowProgress;
-					guideParVel = Vector(projectileVel, 0):RadRotate(actor.RotAngle + actor:GetAimAngle(true) + rotationThisFrame);
+					guideParVel = Vector(minVel + (maxVel - minVel) * actor.ThrowProgress, 0):RadRotate(actor:GetAimAngle(true));
 				else
 					guideParPos = self.MuzzlePos;
 					guideParVel = Vector(self.projectileVel, 0):RadRotate(actor:GetAimAngle(true));
