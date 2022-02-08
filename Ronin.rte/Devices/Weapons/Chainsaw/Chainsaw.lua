@@ -14,7 +14,7 @@ function Create(self)
 	self.length = ToMOSprite(self):GetSpriteWidth();
 
 	self.startSound = CreateSoundContainer("Ronin Chainsaw Start", "Ronin.rte");
-	self.stopSound = CreateSoundContainer("Ronin Chainsaw Stop", "Ronin.rte");
+	self.stopSound = CreateSoundContainer("Ronin Chainsaw End", "Ronin.rte");
 end
 function Update(self)
 
