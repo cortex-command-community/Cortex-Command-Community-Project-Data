@@ -59,6 +59,7 @@ function Create(self)
 	end
 end
 function Update(self)
+	self.controller = self:GetController();
 	local damaged = self.Health < self.PrevHealth - 1;
 	if self.updateTimer:IsPastSimMS(1000) or damaged then
 		self.updateTimer:Reset();
