@@ -187,6 +187,8 @@ T E C H I O N :
 	Devices/Shared/Sounds:
 		Disintegrate1
 			Sonniss GDC Audio Bundles
+		Disintegrate1
+			Sonniss GDC Audio Bundles
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
