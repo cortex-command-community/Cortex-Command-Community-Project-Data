@@ -21,10 +21,10 @@ Sounds/Explosions:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Door/Movement:
-	ChangeDirection, MoveEnd, MoveLoop, MoveStart
-		GrnCannoPodLiftLoop - Digital Extremes: Warframe
-		GrnElevatorStart - Digital Extremes: Warframe
-		GrnElevatorStop - Digital Extremes: Warframe
+	ChangeDirection, MoveEnd, MoveStart
+		Sonniss GDC Audio Bundles
+	MoveLoop
+		videvo.net
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Penetration/Armor/MetalChestPlate:
