@@ -58,9 +58,8 @@ Sounds/Penetration/Flesh/ClothedFlesh:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Penetration/MetalDoor:
-	MetalDoorGib1, MetalDoorGib2, MetalDoorGib3, MetalDoorGib4
-		GrnLootCrateOpen - Warframe
-		StorageContainerCylinderSmash - No attribution. Warframe?
+	MetalDoorGib1, MetalDoorGib2
+		Sonniss GDC Audio Bundles
 		
 	MetalDoorImpact1, MetalDoorImpact2, MetalDoorImpact3, MetalDoorImpact4, MetalDoorImpact5, MetalDoorImpact6, MetalDoorImpact7, MetalDoorImpact8, MetalDoorImpact9, MetalDoorImpact10
 		BulletImpactGenericMetal - Warframe
