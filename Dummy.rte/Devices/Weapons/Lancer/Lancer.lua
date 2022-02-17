@@ -55,8 +55,7 @@ function Update(self)
 			self.chargeTimer:Reset();
 
 			if self.chargeCounter == self.maxCharge and self.bleepSoundPlayed == false then
-				self.bleepSound:Play(self.Pos);
-				self.bleepSoundPlayed = true;
+				self.bleepSoundPlayed = self.bleepSound:Play(self.Pos);
 			end
 		end
 	end
