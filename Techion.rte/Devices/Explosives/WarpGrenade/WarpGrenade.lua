@@ -44,6 +44,10 @@ function Update(self)
 						end
 					end
 				end
+				local parent = self:GetParent();
+				if parent then
+					parent:RemoveAttachable(self, true, true);
+				end
 				if not self.holder:HasObject(self.PresetName) then
 					self.holder:AddInventoryItem(CreateTDExplosive(self.PresetName));
 				end
@@ -64,12 +68,16 @@ function Update(self)
 	elseif self:IsActivated() then
 		--Get the holder
 		if self.holder == nil or self.holder.ID == rte.NoMOID then
-			local newHolder = MovableMan:GetMOFromID(self.RootID);
+			local newHolder = self:GetRootParent();
 			if MovableMan:IsActor(newHolder) then
 				self.holder = ToActor(newHolder);
-				self.guideRadius = newHolder.Radius;
 			end
 		end
 		self.fuze = Timer();
+	end
+end
+function OnAttach(self, parent)
+	if not self.fuze then
+		self.guideRadius = self:GetRootParent().Radius;
 	end
 end
