@@ -47,7 +47,7 @@ function Update(self)
 			local moID = SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y);
 			if moID ~= rte.NoMOID and moID ~= self.ID then
 				local mo = ToMOSRotating(MovableMan:GetMOFromID(moID));
-				if self.penetrationStrength/strengthFactor >= mo.Material.StructuralIntegrity then
+				if self.penetrationStrength/strengthFactor >= mo.Material.StructuralIntegrity or math.random(self.penetrationStrength) > mo.Material.StructuralIntegrity then
 					local moAngle = -mo.RotAngle * mo.FlipFactor;
 					
 					local woundName = mo:GetEntryWoundPresetName();
