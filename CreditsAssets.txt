@@ -57,11 +57,8 @@ Sounds/Penetration/Flesh/ClothedFlesh:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Penetration/MetalDoor:
-	MetalDoorGib1, MetalDoorGib2
+	MetalDoorGib1, MetalDoorGib2, MetalDoorImpact1, MetalDoorImpact2, MetalDoorImpact3
 		Sonniss GDC Audio Bundles
-		
-	MetalDoorImpact1, MetalDoorImpact2, MetalDoorImpact3, MetalDoorImpact4, MetalDoorImpact5, MetalDoorImpact6, MetalDoorImpact7, MetalDoorImpact8, MetalDoorImpact9, MetalDoorImpact10
-		BulletImpactGenericMetal - Warframe
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Penetration/Robot/Generic:
