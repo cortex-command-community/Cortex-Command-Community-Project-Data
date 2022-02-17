@@ -38,15 +38,9 @@ Sounds/Penetration/Armor/MetalHelmet:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Penetration/Flesh/ArmoredFlesh:
-	HeadImpact1, HeadImpact2, HeadImpact3, HeadImpact4, HeadImpact5, HeadImpact6, HeadImpact7
-		PlayerBulletImpactFlesh - Warframe
-		PlayerArrowImpactFlesh - No attribution. Warframe?
-		
-	LimbImpact1, LimbImpact2, LimbImpact3, LimbImpact4, LimbImpact5, LimbImpact6 LimbImpact7
-		PlayerBulletImpactFlesh - Warframe
-		
-	TorsoImpact1, TorsoImpact2, TorsoImpact3, TorsoImpact4, TorsoImpact5, TorsoImpact6, TorsoImpact7
-		pl_heavyarmor_damagebullet - Insurgency
+	LimbImpact1, LimbImpact2
+		Sonniss GDC Audio Bundles
+		GameSounds.xyz 99Sounds Punching Percussion
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Penetration/Flesh/ClothedFlesh:
