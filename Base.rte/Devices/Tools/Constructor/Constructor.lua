@@ -124,6 +124,7 @@ function Create(self)
 	self.toAutoBuild = false;
 	self.operatedByAI = false;
 	self.cursorMoveSpeed = 2;
+	self.maxCursorDist = Vector(FrameMan.PlayerScreenWidth * 0.5 - 6, FrameMan.PlayerScreenHeight * 0.5 - 6);
 
 	-- autobuild for standard units
 	self.autoBuildList = {
@@ -426,8 +427,6 @@ function Update(self)
 		end
 
 		if self.cursor then
-		
-			actor.ViewPoint = self.cursor;
 
 			local cursorMovement = Vector();
 			local mouseControlled = ctrl:IsMouseControlled();
@@ -472,6 +471,14 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), displayColorYellow);
 			end
 			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.blockSize - 1, self.blockSize - 1), displayColorYellow);
+			
+			local dist = SceneMan:ShortestDistance(actor.ViewPoint, self.cursor, SceneMan.SceneWrapsX);
+			if math.abs(dist.X) > self.maxCursorDist.X then
+				self.cursor.X = actor.ViewPoint.X + self.maxCursorDist.X * (dist.X < 0 and -1 or 1);
+			end
+			if math.abs(dist.Y) > self.maxCursorDist.Y then
+				self.cursor.Y = actor.ViewPoint.Y + self.maxCursorDist.Y * (dist.Y < 0 and -1 or 1);
+			end
 
 			if ctrl:IsState(Controller.PIE_MENU_ACTIVE) or ctrl:IsState(Controller.ACTOR_NEXT_PREP) or ctrl:IsState(Controller.ACTOR_PREV_PREP) then
 				self.cursor = nil;
