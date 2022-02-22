@@ -20,7 +20,7 @@ Sounds/Explosions:
 		Sonniss GDC Audio Bundles
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-Sounds/Door/Movement:
+Sounds/Mechanisms/Doors:
 	ChangeDirection, MoveEnd, MoveStart
 		Sonniss GDC Audio Bundles
 	MoveLoop
