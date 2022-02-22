@@ -62,14 +62,8 @@ Sounds/Penetration/MetalDoor:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Sounds/Penetration/Robot/Generic:
-	HeadImpact1, HeadImpact2, HeadImpact3, HeadImpact4, HeadImpact5
-		metalbarrel_bullet_impact - Insurgency
-		
-	LimbImpact1, LimbImpact2, LimbImpact3, LimbImpact4
-		metalpanel_bullet_impact - Insurgency
-		
-	TorsoImpact1, TorsoImpact2, TorsoImpact3, TorsoImpact4
-		vehicle_bullet_impact - Insurgency
+	HeadImpact1, HeadImpact2, HeadImpact3, HeadImpact4,	LimbImpact1, LimbImpact2, LimbImpact3, TorsoImpact1, TorsoImpact2, TorsoImpact3
+		Soniss GDC Audio Bundles
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
