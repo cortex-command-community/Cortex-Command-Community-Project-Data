@@ -278,7 +278,7 @@ function BunkerBreach:UpdateActivity()
 		for actor in MovableMan.Actors do
 			if actor.ClassName ~= "ADoor" and actor.Health > 0 then
 				--Units will weigh in based on their Health
-				if actor.Team == self.PlayerTeam then
+				if actor.Team == self.playerTeam then
 					allyCount = allyCount + actor.Health/actor.MaxHealth;
 				elseif actor.Team == self.CPUTeam then
 					enemyCount = enemyCount + actor.Health/actor.MaxHealth;
