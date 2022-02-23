@@ -138,7 +138,7 @@ function BunkerBreach:StartActivity()
 		end
 	end
 	
-	--Make sure all human players have brains
+	--Make sure all defending human players have brains
 	if (self.defenderTeam ~= self.CPUTeam) then
 		local playerDefenderBrainsAssignedCount = 0;
 		local brainToAssignToPlayer;
@@ -151,7 +151,6 @@ function BunkerBreach:StartActivity()
 					brainToAssignToPlayer.Pos = self.defenderBrain.Pos + Vector(playerDefenderBrainsAssignedCount * 10 * self.defenderBrain.FlipFactor, 0);
 					MovableMan:AddActor(brainToAssignToPlayer);
 				end
-				
 				self:SwitchToActor(brainToAssignToPlayer, player, self.defenderTeam);
 				self:SetPlayerBrain(brainToAssignToPlayer, player);
 				self:SetObservationTarget(brainToAssignToPlayer.Pos, player);
@@ -565,8 +564,8 @@ function BunkerBreach:CreateBrainBot(team)
 		else
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
 		end
-		actor.AIMode = Actor.AIMODE_SENTRY;
-		actor.Team = team;
 	end
+	actor.AIMode = Actor.AIMODE_SENTRY;
+	actor.Team = team;
 	return actor;
 end
