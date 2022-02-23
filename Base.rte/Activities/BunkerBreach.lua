@@ -52,22 +52,38 @@ function BunkerBreach:StartActivity()
 	self.CPUSpawnTimer = Timer();
 	self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000) * rte.SpawnIntervalScale;
 
+	--Set all actors in the scene to the defending team
 	for actor in MovableMan.AddedActors do
-		--Set all actors in the scene to the defending team
 		--To-do: allow attackers to spawn near the brain?
 		if actor.Team ~= self.defenderTeam then
 			MovableMan:ChangeActorTeam(actor, self.defenderTeam);
 		end
 	end
-	--Add player brains
+	
+	--Clear wonky default scene launch text
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			local team = self:GetTeamOfPlayer(player);
-			local brain;
-			if team == self.attackerTeam then
-				brain = self:CreateBrainBot(team);
+			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+		end
+	end
+	
+	--CPU team setup
+	if self.CPUTeam ~= -1 then
+		self:SetTeamFunds(5000 * (0.5 + math.floor(self.difficultyRatio * 10)/10), self.CPUTeam);
+		if (self.CPUTeam ~= self.defenderTeam) then
+			self.CPUSpawnDelay = self.CPUSpawnDelay * 0.5;
+		end
+		self.playerTeam = self:OtherTeam(self.CPUTeam);
+	end
+		
+	
+	--Add attacker brains for human attackers
+	if self.attackerTeam ~= self.CPUTeam then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.attackerTeam then
+				local attackingBrain = self:CreateBrainBot(self:GetTeamOfPlayer(player));
+				
 				local lzX = attackerLZ:GetRandomPoint().X;
-
 				if SceneMan.SceneWrapsX then
 					if lzX < 0 then
 						lzX = lzX + SceneMan.SceneWidth;
@@ -77,87 +93,75 @@ function BunkerBreach:StartActivity()
 				else
 					lzX = math.max(math.min(lzX, SceneMan.SceneWidth - 50), 50);
 				end
-				brain.Pos = SceneMan:MovePointToGround(Vector(lzX, 0), brain.Radius * 0.5, 3);
-				MovableMan:AddActor(brain);
+				attackingBrain.Pos = SceneMan:MovePointToGround(Vector(lzX, 0), attackingBrain.Radius * 0.5, 3);
 				
-			elseif team == self.defenderTeam then
-				if SceneMan.Scene:HasArea("Brain") then
-					--Remove any existing brains and prioritize the designated area
-					for actor in MovableMan.Actors do
-						if actor.Team == team and actor:IsInGroup("Brains") then
-							actor.ToDelete = true;
-						end
-					end
-					brain = self:CreateBrainBot(team);
-					brain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
-					MovableMan:AddActor(brain);
-				else
-					--Look for brains among actors created by the deployments
-					for actor in MovableMan.AddedActors do
-						if actor.Team == team and actor:IsInGroup("Brains") then
-							if brain then
-								actor.ToDelete = true;
-							else
-								brain = actor;
-							end
-						end
-					end
-				end
-				self.defenderBrain = brain;
+				MovableMan:AddActor(attackingBrain);
+				self:SetPlayerBrain(attackingBrain, player);
+				self:SetObservationTarget(attackingBrain.Pos, player);
+				self:SetLandingZone(attackingBrain.Pos, player);
 			end
-			self:SetPlayerBrain(brain, player);
-			self:SetObservationTarget(brain.Pos, player);
-			self:SetLandingZone(brain.Pos, player);
 		end
 	end
 	
-	if self.CPUTeam ~= -1 then
-		self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-		self.CPUTechID = PresetMan:GetModuleID(self.CPUTechName);
-		self:SetTeamFunds(5000 * (0.5 + math.floor(self.difficultyRatio * 10)/10), self.CPUTeam);
-		if self.CPUTeam == self.defenderTeam then
-			local brain;
-			if SceneMan.Scene:HasArea("Brain") then
-				--Remove any existing brains and prioritize the designated area
-				for actor in MovableMan.Actors do
-					if actor.Team == team and actor:IsInGroup("Brains") then
-						actor.ToDelete = true;
-					end
-				end
-				brain = self:CreateBrainBot(self.CPUTeam);
-				brain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
-				MovableMan:AddActor(brain);
-			else
-				--Look for brains among actors created by the deployments
-				for actor in MovableMan.AddedActors do
-					if actor.Team == team and actor:IsInGroup("Brains") then
-						if brain then
-							actor.ToDelete = true;
-						else
-							brain = actor;
-						end
-					end
-				end
-			end
-			self.defenderBrain = brain;
-		else
-			--Start spawning attackers faster
-			self.CPUSpawnDelay = self.CPUSpawnDelay * 0.5;
-		end
-		self.playerTeam = self:OtherTeam(self.CPUTeam);
-	end
-	--[[To-do: figure out what this part is *actually* supposed to do
-	if SceneMan.Scene:HasArea("Brain Chamber") then
-		self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
-		--Set all useless actors, i.e. those who should guard brain in the brain chamber but their brain is in another castle
-		--to delete themselves, because otherwise they are most likely to stand there for the whole battle and waste MOs
-		for actor in MovableMan.AddedActors do
-			if not actor:HasObjectInGroup("Brains") and actor.Team == self.defenderTeam and self.BrainChamber:IsInside(actor.Pos) and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+	--Add defender brains, either using the Brain area or picking randomly from those created by deployments
+	if SceneMan.Scene:HasArea("Brain") then
+		for actor in MovableMan.Actors do
+			if actor.Team == self.defenderTeam and actor:IsInGroup("Brains") then
 				actor.ToDelete = true;
 			end
 		end
+		
+		self.defenderBrain = self:CreateBrainBot(self.defenderTeam);
+		self.defenderBrain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
+		MovableMan:AddActor(self.defenderBrain);
+	else
+		--Pick the defender brain randomly from among those created by deployments, and delete the others and clean up some of their guards
+		local deploymentBrains = {};
+		for actor in MovableMan.AddedActors do
+			if actor.Team == self.defenderTeam and actor:IsInGroup("Brains") then
+				deploymentBrains[#deploymentBrains + 1] = actor;
+			end
+		end
+		local brainIndexToChoose = math.random(1, #deploymentBrains);
+		self.defenderBrain = deploymentBrains[brainIndexToChoose];
+		table.remove(deploymentBrains, brainIndexToChoose);
+		
+		--Delete brains that weren't the chosen one, and also randomly delete most of their guards
+        self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+		for _, unchosenDeploymentBrain in pairs(deploymentBrains) do
+			unchosenDeploymentBrain.ToDelete = true;
+			for actor in MovableMan.AddedActors do
+				if actor.Team == self.defenderTeam and math.random() < 0.75 and self.BrainChamber:IsInside(actor.Pos) and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") and SceneMan:ShortestDistance(actor.Pos, self.defenderBrain.Pos, false).Magnitude > 200 then
+					actor.ToDelete = true;
+				end
+			end
+		end
 	end
-	]]--
+	
+	--Make sure all human players have brains
+	if (self.defenderTeam ~= self.CPUTeam) then
+		local playerDefenderBrainsAssignedCount = 0;
+		local brainToAssignToPlayer;
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.defenderTeam then
+				if playerDefenderBrainsAssignedCount == 0 then
+					brainToAssignToPlayer = self.defenderBrain;
+				else
+					brainToAssignToPlayer = self:CreateBrainBot(self.defenderTeam);
+					brainToAssignToPlayer.Pos = self.defenderBrain.Pos + Vector(playerDefenderBrainsAssignedCount * 10 * self.defenderBrain.FlipFactor, 0);
+					MovableMan:AddActor(brainToAssignToPlayer);
+				end
+				
+				self:SwitchToActor(brainToAssignToPlayer, player, self.defenderTeam);
+				self:SetPlayerBrain(brainToAssignToPlayer, player);
+				self:SetObservationTarget(brainToAssignToPlayer.Pos, player);
+				self:SetLandingZone(brainToAssignToPlayer.Pos, player);
+				
+				playerDefenderBrainsAssignedCount = playerDefenderBrainsAssignedCount + 1;
+			end
+		end
+	end
+	
 	self.loadouts = {"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"};
 	self.infantryLoadouts = {"Light", "Heavy", "Sniper"};
 	--Add defending units in predefined areas
@@ -222,22 +226,26 @@ function BunkerBreach:UpdateActivity()
 		return
 	end
 	
+	--Check win conditions
 	if self.checkTimer:IsPastRealTimeLimit() then
-		--Check win conditions
 		self.checkTimer:Reset();
 
 		if not MovableMan:IsActor(self.defenderBrain) then
-			local findBrain = MovableMan:GetUnassignedBrain(self.defenderTeam);
+			local findBrain = MovableMan:GetFirstBrainActor(self.defenderTeam);
 			if findBrain then
 				self.defenderBrain = findBrain;
 			else
 				self.WinnerTeam = self.attackerTeam;
-				MovableMan:KillAllEnemyActors(self.attackerTeam);
+				for actor in MovableMan.Actors do
+					if actor.Team == self.defenderTeam then
+						actor.Status = Actor.INACTIVE;
+					end
+				end
 				ActivityMan:EndActivity();
 				return
 			end
 		else
-			local players = 0;
+			local survivingAttackingPlayers = 0;
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
 					local team = self:GetTeamOfPlayer(player);
@@ -252,18 +260,23 @@ function BunkerBreach:UpdateActivity()
 							self:SetPlayerBrain(nil, player);
 						end
 					end
-					if brain then
-						players = players + 1;
+					if brain and team == self.attackerTeam and self.CPUTeam ~= self.attackerTeam then
+						survivingAttackingPlayers = survivingAttackingPlayers + 1;
 						self:SetObservationTarget(brain.Pos, player);
-					else
+					elseif not brain then
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 						FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 2000, -1, false);
 					end
 				end
 			end
-			if players == 0 then
-				self.WinnerTeam = self.CPUTeam;
+			if self.CPUTeam ~= self.attackerTeam and survivingAttackingPlayers == 0 then
+				self.WinnerTeam = self.defenderTeam;
+				for actor in MovableMan.Actors do
+					if actor.Team == self.attackerTeam then
+						actor.Status = Actor.INACTIVE;
+					end
+				end
 				ActivityMan:EndActivity();
 				return
 			end
@@ -358,7 +371,11 @@ function BunkerBreach:UpdateActivity()
 				end
 			end
 		elseif enemyCount < 1 then
-			MovableMan:KillAllEnemyActors(self.playerTeam);
+			for actor in MovableMan.Actors do
+				if actor.Team ~= self.playerTeam then
+					actor.Status = Actor.INACTIVE;
+				end
+			end
 			self.WinnerTeam = self.playerTeam;
 			self:ClearObjectivePoints();
 			ActivityMan:EndActivity();
