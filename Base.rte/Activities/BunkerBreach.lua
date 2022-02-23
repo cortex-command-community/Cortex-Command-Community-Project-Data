@@ -295,7 +295,7 @@ function BunkerBreach:UpdateActivity()
 			if self.CPUTeam == self.attackerTeam then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						FrameMan:SetScreenText("Enemy budget: " .. funds, self:ScreenOfPlayer(player), 0, 2500, false);
+						FrameMan:SetScreenText("Enemy budget: " .. math.floor(funds), self:ScreenOfPlayer(player), 0, 2500, false);
 					end
 				end
 			end
@@ -508,7 +508,7 @@ function BunkerBreach:CreateInfantry(team, loadout)
 	elseif team == self.attackerTeam then
 		actor.AIMode = Actor.AIMODE_BRAINHUNT;
 	else
-		actor.AIMode = math.random() < 0.7 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL;
+		actor.AIMode = Actor.AIMODE_SENTRY;
 	end
 	actor.Team = team;
 	return actor;
