@@ -522,10 +522,12 @@ function BunkerBreach:CreateInfantry(team, loadout)
 	elseif self.attackPos then
 		actor.AIMode = Actor.AIMODE_GOTO;
 		actor:AddAISceneWaypoint(self.attackPos);
-	elseif team == self.attackerTeam or math.random() < 0.3 then
+	elseif team == self.attackerTeam then
 		actor.AIMode = Actor.AIMODE_BRAINHUNT;
+	elseif loadout == "CQB" then
+		actor.AIMode = Actor.AIMODE_PATROL;
 	else
-		actor.AIMode = math.random() < 0.3 and Actor.AIMODE_PATROL or Actor.AIMODE_SENTRY;
+		actor.AIMode = Actor.AIMODE_SENTRY;
 	end
 	actor.Team = team;
 	return actor;
