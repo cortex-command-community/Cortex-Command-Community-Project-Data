@@ -5,7 +5,7 @@ RoninLoadouts = {["Rifleman"] = {}, ["Machinegunner"] = {}, ["CQB"] = {}, ["Gren
 RoninLoadouts["Rifleman"]["Primary"] = {"AK-47", "M16A2"};
 RoninLoadouts["Rifleman"]["Secondary"] = {".357 Magnum", "Desert Eagle"};
 RoninLoadouts["Rifleman"]["Tertiary"] = {"Luger P08", "Beretta 93R", "Shovel", "Medical Dart Gun", "Grapple Gun", "Medikit"};
-RoninLoadouts["Rifleman"]["Throwable"] = {"M67 Grenade", "M24 Potato Masher", "Molotov Cocktail"};
+RoninLoadouts["Rifleman"]["Throwable"] = {"M67 Grenade", "M24 Potato Masher", "Molotov Cocktail", "Scrambler"};
 
 RoninLoadouts["Machinegunner"]["Headgear"] = {"Soldier Helmet", "Motorcycle Helmet", "Dummy Mask", "Browncoat Mask"};
 RoninLoadouts["Machinegunner"]["Primary"] = {"M60", "Stoner 63"};
@@ -14,13 +14,13 @@ RoninLoadouts["Machinegunner"]["Tertiary"] = {"Luger P08", "Beretta 93R", "Shove
 
 RoninLoadouts["CQB"]["Headgear"] = {"Dummy Mask", "Browncoat Mask"};
 RoninLoadouts["CQB"]["Primary"] = {"Model 590", "SPAS 12"};
-RoninLoadouts["CQB"]["Secondary"] = {".357 Magnum", "Desert Eagle", "UZI", "MP5K", "Sawed-Off Shotgun"};
-RoninLoadouts["CQB"]["Tertiary"] = {"Luger P08", "Beretta 93R", "Chainsaw"};
+RoninLoadouts["CQB"]["Secondary"] = {".357 Magnum", "Desert Eagle", "UZI", "MP5K", "Sawed-Off Shotgun", "Chainsaw"};
+RoninLoadouts["CQB"]["Throwable"] = {"Molotov Cocktail", "Scrambler"};
 
 RoninLoadouts["Grenadier"]["Headgear"] = {"Soldier Helmet"};
 RoninLoadouts["Grenadier"]["Primary"] = {"RPG-7", "M79", "RPC M17"};
 RoninLoadouts["Grenadier"]["Secondary"] = {"UZI", "MP5K"};
-RoninLoadouts["Grenadier"]["Throwable"] = {"M67 Grenade", "M24 Potato Masher", "Molotov Cocktail"};
+RoninLoadouts["Grenadier"]["Throwable"] = {"M67 Grenade", "M24 Potato Masher"};
 
 RoninLoadouts["Sniper"]["Headgear"] = {"Sniper Hat"};
 RoninLoadouts["Sniper"]["Primary"] = {"Kar98k", "M1 Garand"};
