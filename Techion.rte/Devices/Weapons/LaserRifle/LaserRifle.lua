@@ -1,6 +1,7 @@
 function Create(self)
 	self.range = math.sqrt(FrameMan.PlayerScreenWidth^2 + FrameMan.PlayerScreenHeight^2)/2;
-	self.penetrationStrength = 125;
+	self.penetrationStrength = 170;
+	self.strengthVariation = 5;
 	--This value tracks the shots and varies the penetration strength to create a "resistance" effect on tougher materials
 	self.shotCounter = 0;	--TODO: Rename/describe this variable better
 	self.activity = ActivityMan:GetActivity();
@@ -42,12 +43,12 @@ function Update(self)
 			skipPx = 1;
 			local shortRay = SceneMan:CastObstacleRay(gapPos, Vector(trace.X, trace.Y):SetMagnitude(range - rayLength + skipPx), hitPos, gapPos, actor.ID, self.Team, rte.airID, skipPx);
 			gapPos = gapPos - Vector(trace.X, trace.Y):SetMagnitude(skipPx);
-			local strengthFactor = 1 + (self.shotCounter + math.min(rayLength/self.range, 1)) * RangeRand(0.7, 1.0);
+			local strengthFactor = math.max(1 - rayLength/self.range, math.random()) * (self.shotCounter + 1)/self.strengthVariation;
 			
 			local moID = SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y);
 			if moID ~= rte.NoMOID and moID ~= self.ID then
 				local mo = ToMOSRotating(MovableMan:GetMOFromID(moID));
-				if self.penetrationStrength/strengthFactor >= mo.Material.StructuralIntegrity or math.random(self.penetrationStrength) > mo.Material.StructuralIntegrity then
+				if self.penetrationStrength * strengthFactor >= mo.Material.StructuralIntegrity then
 					local moAngle = -mo.RotAngle * mo.FlipFactor;
 					
 					local woundName = mo:GetEntryWoundPresetName();
@@ -66,10 +67,10 @@ function Update(self)
 			local smoke = CreateMOSParticle("Tiny Smoke Ball 1" .. (math.random() < 0.5 and " Glow Blue" or ""), "Base.rte");
 			smoke.Pos = gapPos;
 			smoke.Vel = Vector(-trace.X, -trace.Y):SetMagnitude(math.random(3, 6)):RadRotate(RangeRand(-1.5, 1.5));
-			smoke.Lifetime = smoke.Lifetime/strengthFactor;
+			smoke.Lifetime = smoke.Lifetime * strengthFactor;
 			MovableMan:AddParticle(smoke);
 
-			local pix = CreateMOPixel("Laser Rifle Glow End " .. math.floor(strengthFactor), "Techion.rte");
+			local pix = CreateMOPixel("Laser Rifle Glow " .. math.floor(strengthFactor * 4 + 0.5), "Techion.rte");
 			pix.Pos = gapPos;
 			pix.Sharpness = self.penetrationStrength/6;
 			pix.Vel = Vector(trace.X, trace.Y):SetMagnitude(6);
@@ -86,13 +87,13 @@ function Update(self)
 			end
 			local particleCount = trace.Magnitude * RangeRand(0.4, 0.8);
 			for i = 0, particleCount do
-				local pix = CreateMOPixel("Laser Rifle Glow", "Techion.rte");
+				local pix = CreateMOPixel("Laser Rifle Glow 0", "Techion.rte");
 				pix.Pos = startPos + trace * i/particleCount;
 				pix.Vel = self.Vel;
 				MovableMan:AddParticle(pix);
 			end
 		end
-		self.shotCounter = (self.shotCounter + 1) % 3;
+		self.shotCounter = (self.shotCounter + 1) % self.strengthVariation;
 		self.cooldown:Reset();
 	end
 	if self.Magazine and self.Magazine.RoundCount > 0 then
