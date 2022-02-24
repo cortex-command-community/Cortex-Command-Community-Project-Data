@@ -332,25 +332,25 @@ function BunkerBreach:UpdateActivity()
 					local dist = Vector();
 					local searchRadius = (SceneMan.SceneWidth + SceneMan.SceneHeight) * 0.2;
 					local targetActor = MovableMan:GetClosestEnemyActor(self.CPUTeam, Vector(self.defenderBrain.Pos.X, SceneMan.SceneHeight * 0.5), searchRadius, dist);
-					if targetActor and not SceneMan:IsUnseen(targetActor.Pos.X, targetActor.Pos.Y, self.CPUTeam) then
-						self.attackPos = targetActor.Pos;
-						
-						self.CPUSpawnDelay = self.CPUSpawnDelay * 0.5;--* dist.Magnitude/searchRadius;
-						--TODO: Fix GetClosestTeamActor and use that instead
-						local closestGuard = MovableMan:GetClosestEnemyActor(targetActor.Team, targetActor.Pos, searchRadius - dist.Magnitude, Vector());
-						if closestGuard and math.random() > dist.Magnitude/searchRadius then
-							--Send a nearby alerted guard after the intruder
-							closestGuard.AIMode = Actor.AIMODE_GOTO;
-							closestGuard:SetAIMOWayPoint(targetActor);
-							self.attackPos = nil;
-							--A guard has been sent, the next unit should spawn faster
-							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.8;
+					if targetActor then
+						if SceneMan:IsUnseen(targetActor.Pos.X, targetActor.Pos.Y, self.CPUTeam) then
+							self.attackPos = targetActor.Pos;
 						else
-							self:CreateDrop(self.CPUTeam);
-							self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000 + unitRatio * 7500) * rte.SpawnIntervalScale;
-							if math.random() < 0.5 then
-								--Change target for the next attack
+							local closestGuard = MovableMan:GetClosestTeamActor(self.CPUTeam, Activity.PLAYER_NONE, targetActor.Pos, searchRadius - dist.Magnitude, Vector(), self.defenderBrain);
+							if closestGuard and closestGuard.AIMODE ~= Actor.AIMODE_GOTO then
+								--Send a nearby alerted guard after the intruder
+								closestGuard.AIMode = Actor.AIMODE_GOTO;
+								closestGuard:AddAIMOWaypoint(targetActor);
 								self.attackPos = nil;
+								--A guard has been sent, the next unit should spawn faster
+								self.CPUSpawnDelay = self.CPUSpawnDelay * 0.8;
+							else
+								self:CreateDrop(self.CPUTeam);
+								self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + unitRatio * 5000) * rte.SpawnIntervalScale;
+								if math.random() < 0.5 then
+									--Change target for the next attack
+									self.attackPos = nil;
+								end
 							end
 						end
 					else
@@ -520,11 +520,12 @@ function BunkerBreach:CreateInfantry(team, loadout)
 	if loadout == "Engineer" and self.sendGoldDiggers then
 		actor.AIMode = Actor.AIMODE_GOLDDIG;
 	elseif self.attackPos then
+		actor.AIMode = Actor.AIMODE_GOTO;
 		actor:AddAISceneWaypoint(self.attackPos);
-	elseif team == self.attackerTeam then
+	elseif team == self.attackerTeam or math.random() < 0.3 then
 		actor.AIMode = Actor.AIMODE_BRAINHUNT;
 	else
-		actor.AIMode = Actor.AIMODE_SENTRY;
+		actor.AIMode = math.random() < 0.3 and Actor.AIMODE_PATROL or Actor.AIMODE_SENTRY;
 	end
 	actor.Team = team;
 	return actor;
