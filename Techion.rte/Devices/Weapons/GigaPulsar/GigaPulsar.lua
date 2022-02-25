@@ -1,11 +1,24 @@
 function Create(self)
-	self.dinSound = false;
-
 	self.origActivationDelay = self.ActivationDelay;
-	self.origDeactivationDelay = self.DeactivationDelay;
-	self.spinTimer = Timer();
+	self.spinDownTimer = Timer();
+	self.currentlySpinningDown = false;
+	
+	self.dingSound = false;
+	self.ejectEffect = CreateAEmitter("Techion Giga Pulsar Magazine Eject Effect", "Techion.rte");
 end
 function Update(self)
+	if not self.currentlySpinningDown and not self:IsActivated() and not self:IsReloading() and self.ActiveSound:IsBeingPlayed() then
+		self.spinDownTimer:Reset();
+		self.currentlySpinningDown = true;
+		self.activationDelay = self.origActivationDelay;
+	elseif (self.currentlySpinningDown and self.spinDownTimer:IsPastSimMS(self.DeactivationDelay)) or self:IsReloading() then
+		self.ActivationDelay = self.origActivationDelay;
+		self.currentlySpinningDown = false;
+	elseif self.currentlySpinningDown and self:IsActivated() then
+		self.ActivationDelay = self.origActivationDelay * self.spinDownTimer.ElapsedSimTimeMS / self.DeactivationDelay;
+		self.currentlySpinningDown = false;
+	end
+	
 	if self.Magazine then
 		self.lastMag = self.Magazine;
 		self.dingSound = false;
@@ -18,7 +31,7 @@ function Update(self)
 				self.lastMag.Sharpness = 1;
 				self.lastMag.Vel = self.lastMag.Vel + Vector(-10 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 
-				local effect = CreateAEmitter("Techion Giga Pulsar Magazine Eject Effect", "Techion.rte");
+				local effect = self.ejectEffect:Clone();
 				effect.Pos = self.lastMag.Pos;
 				effect.RotAngle = self.RotAngle;
 				effect.HFlipped = self.HFlipped;
@@ -26,13 +39,5 @@ function Update(self)
 			end
 		end
 		self.dingSound = true;
-	end
-	if self.FiredFrame then
-		self.ActivationDelay = 0;
-		self.DeactivationDelay = self.origDeactivationDelay * 5;
-		self.spinTimer:Reset();
-	elseif self.RoundInMagCount == 0 or self.spinTimer:IsPastSimMS(self.DeactivationDelay * 0.9) then
-		self.ActivationDelay = self.origActivationDelay;
-		self.DeactivationDelay = self.origDeactivationDelay;
 	end
 end
