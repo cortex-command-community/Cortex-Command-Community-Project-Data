@@ -51,6 +51,7 @@ function BunkerBreach:StartActivity()
 	self.checkTimer:SetRealTimeLimitMS(1000);
 	self.CPUSpawnTimer = Timer();
 	self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000) * rte.SpawnIntervalScale;
+	self.CPUSearchRadius = math.sqrt(SceneMan.SceneWidth^2 + SceneMan.SceneHeight^2) * 0.5 * self.difficultyRatio;
 
 	--Set all actors in the scene to the defending team
 	for actor in MovableMan.AddedActors do
@@ -68,8 +69,8 @@ function BunkerBreach:StartActivity()
 	end
 	
 	--CPU team setup
-	if self.CPUTeam ~= -1 then
-		self:SetTeamFunds(5000 * (0.5 + math.floor(self.difficultyRatio * 10)/10), self.CPUTeam);
+	if self.CPUTeam ~= Activity.NOTEAM then
+		self:SetTeamFunds(4000 + 8000 * math.floor(self.difficultyRatio * 5)/5, self.CPUTeam);
 		if (self.CPUTeam ~= self.defenderTeam) then
 			self.CPUSpawnDelay = self.CPUSpawnDelay * 0.5;
 		end
@@ -195,8 +196,6 @@ function BunkerBreach:StartActivity()
 			end
 		end
 	end
-	self.enemyForcesCount = 0;
-	self.enemyDiggersCount = 0;
 end
 
 
@@ -314,62 +313,54 @@ function BunkerBreach:UpdateActivity()
 			if self.CPUSpawnTimer:IsPastSimMS(self.CPUSpawnDelay) then
 				self.CPUSpawnTimer:Reset();
 				
-				local unitRatio = enemyCount/math.max(allyCount, 1);
+				local enemyUnitRatio = enemyCount/math.max(allyCount, 1);
 				--Send CPU to dig for gold if funds are low and a digger hasn't recently been sent
 				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < 3 and (funds < 500 or math.random() < 0.1);
 				
 				if self.CPUTeam == self.attackerTeam then
 					if self.sendGoldDiggers then
-						self:CreateDrop(self.CPUTeam, "Engineer");
-					elseif unitRatio < 1.75 then
-						self:CreateDrop(self.CPUTeam);
-						self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + unitRatio * 5000) * rte.SpawnIntervalScale;
+						self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
+					elseif enemyUnitRatio < 1.75 then
+						self:CreateDrop(self.CPUTeam, "Any", Actor.AIMODE_BRAINHUNT);
+						self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + enemyUnitRatio * 5000) * rte.SpawnIntervalScale;
 					else
 						self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
 					end
 				elseif self.CPUTeam == self.defenderTeam then
 				
 					local dist = Vector();
-					local searchRadius = (SceneMan.SceneWidth + SceneMan.SceneHeight) * 0.2;
-					local targetActor = MovableMan:GetClosestEnemyActor(self.CPUTeam, Vector(self.defenderBrain.Pos.X, SceneMan.SceneHeight * 0.5), searchRadius, dist);
+					local targetActor = MovableMan:GetClosestEnemyActor(self.CPUTeam, Vector(self.defenderBrain.Pos.X, SceneMan.SceneHeight * 0.5), self.CPUSearchRadius, dist);
 					if targetActor then
-						if SceneMan:IsUnseen(targetActor.Pos.X, targetActor.Pos.Y, self.CPUTeam) then
-							self.attackPos = targetActor.Pos;
+						self.chokePoint = targetActor.Pos;
+						local closestGuard = MovableMan:GetClosestTeamActor(self.CPUTeam, Activity.PLAYER_NONE, targetActor.Pos, self.CPUSearchRadius - dist.Magnitude, Vector(), self.defenderBrain);
+						if closestGuard and closestGuard.AIMODE == Actor.AIMODE_PATROL then
+							--Send a nearby alerted guard after the intruder
+							closestGuard.AIMode = Actor.AIMODE_GOTO;
+							closestGuard:AddAIMOWaypoint(targetActor);
+							self.chokePoint = nil;
+							--A guard has been sent, the next unit should spawn faster
+							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.8;
 						else
-							local closestGuard = MovableMan:GetClosestTeamActor(self.CPUTeam, Activity.PLAYER_NONE, targetActor.Pos, searchRadius - dist.Magnitude, Vector(), self.defenderBrain);
-							if closestGuard and closestGuard.AIMODE ~= Actor.AIMODE_GOTO then
-								--Send a nearby alerted guard after the intruder
-								closestGuard.AIMode = Actor.AIMODE_GOTO;
-								closestGuard:AddAIMOWaypoint(targetActor);
-								self.attackPos = nil;
-								--A guard has been sent, the next unit should spawn faster
-								self.CPUSpawnDelay = self.CPUSpawnDelay * 0.8;
-							else
-								self:CreateDrop(self.CPUTeam);
-								self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + unitRatio * 5000) * rte.SpawnIntervalScale;
-								if math.random() < 0.5 then
-									--Change target for the next attack
-									self.attackPos = nil;
-								end
+							self:CreateDrop(self.CPUTeam, "Any", Actor.AIMODE_GOTO);
+							self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + enemyUnitRatio * 5000) * rte.SpawnIntervalScale;
+							if math.random() < 0.5 then
+								--Change target for the next attack
+								self.chokePoint = nil;
 							end
 						end
 					else
-						self.attackPos = nil;
-						
-						if unitRatio < 1.25 then
-							if self.sendGoldDiggers then
-								self:CreateDrop(self.CPUTeam, "Engineer");
-							else
-								self:CreateDrop(self.CPUTeam);
-							end
-							self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000 + unitRatio * 7500) * rte.SpawnIntervalScale;
+						self.chokePoint = nil;
+					
+						if self.sendGoldDiggers then
+							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
 						else
-							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
+							self:CreateDrop(self.CPUTeam, "Any", enemyUnitRatio < RangeRand(1.5, 0.5) and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL);
 						end
+						self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000 + enemyUnitRatio * 7500) * rte.SpawnIntervalScale;
 					end
 				end
 			end
-		elseif enemyCount < 1 then
+		elseif enemyCount < 0.5 then
 			for actor in MovableMan.Actors do
 				if actor.Team ~= self.playerTeam then
 					actor.Status = Actor.INACTIVE;
@@ -384,10 +375,13 @@ function BunkerBreach:UpdateActivity()
 end
 
 
-function BunkerBreach:CreateDrop(team, loadout)
+function BunkerBreach:CreateDrop(team, loadout, aiMode)
 	local tech = self:GetTeamTech(team);
 	local crabRatio = self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(tech));
 
+	if loadout == "Any" then
+		loadout = nil;
+	end
 	local craft = RandomACDropShip("Craft", tech);
 	if not craft or craft.MaxInventoryMass <= 0 then
 		--MaxMass not defined, spawn a default craft
@@ -420,6 +414,16 @@ function BunkerBreach:CreateDrop(team, loadout)
 		end
 		
 		if passenger then
+			if aiMode then
+				passenger.AIMode = aiMode;
+				if aiMode == Actor.AIMODE_GOTO then
+					if self.chokePoint then
+						passenger:AddAISceneWaypoint(self.chokePoint);
+					else
+						passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+					end
+				end
+			end
 			craft:AddInventoryItem(passenger);
 		end
 	end
@@ -517,18 +521,7 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			end
 		end
 	end
-	if loadout == "Engineer" and self.sendGoldDiggers then
-		actor.AIMode = Actor.AIMODE_GOLDDIG;
-	elseif self.attackPos then
-		actor.AIMode = Actor.AIMODE_GOTO;
-		actor:AddAISceneWaypoint(self.attackPos);
-	elseif team == self.attackerTeam then
-		actor.AIMode = Actor.AIMODE_BRAINHUNT;
-	elseif loadout == "CQB" then
-		actor.AIMode = Actor.AIMODE_PATROL;
-	else
-		actor.AIMode = Actor.AIMODE_SENTRY;
-	end
+	actor.AIMode = Actor.AIMODE_SENTRY;
 	actor.Team = team;
 	return actor;
 end
