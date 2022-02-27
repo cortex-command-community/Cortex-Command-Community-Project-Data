@@ -249,12 +249,13 @@ function BunkerBreach:UpdateActivity()
 					local team = self:GetTeamOfPlayer(player);
 					local brain = self:GetPlayerBrain(player);
 					--Look for a new brain
-					if not brain or not MovableMan:ValidMO(brain) then
+					if not brain or not MovableMan:IsActor(brain) then
 						brain = MovableMan:GetUnassignedBrain(team);
-						if brain then
+						if brain and MovableMan:IsActor(brain) then
 							self:SetPlayerBrain(brain, player);
 							self:SwitchToActor(brain, player, team);
 						else
+							brain = nil;
 							self:SetPlayerBrain(nil, player);
 						end
 					end
@@ -354,7 +355,7 @@ function BunkerBreach:UpdateActivity()
 						if self.sendGoldDiggers then
 							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
 						else
-							self:CreateDrop(self.CPUTeam, "Any", enemyUnitRatio < RangeRand(1.5, 0.5) and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL);
+							self:CreateDrop(self.CPUTeam, "Any", enemyUnitRatio > math.random() and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL);
 						end
 						self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000 + enemyUnitRatio * 7500) * rte.SpawnIntervalScale;
 					end
