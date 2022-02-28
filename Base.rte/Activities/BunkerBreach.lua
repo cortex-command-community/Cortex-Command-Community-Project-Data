@@ -474,12 +474,18 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", tech));
 			if math.random() < 0.3 then
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
+				if math.random() < 0.25 then
+					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
+				elseif math.random() < 0.35 then
+					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+				end
 			else
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
 				if math.random() < 0.3 then
 					actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
-				else
 					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+				else
+					actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
 				end
 			end
 			
