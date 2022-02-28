@@ -2629,6 +2629,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 end
 
 -- throw a grenade at the selected target
+--TODO: This behavior should effectively have the actor close in on the target if out of range!
 function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 	local ThrowTimer = Timer()
 	local aimTime = Owner.ThrowPrepTime
@@ -2839,25 +2840,18 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		end
 		-- use following sequence to attack either with a suited melee weapon or arms
 		local meleeDist = 0
-		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y)
 		
-		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) then
-			meleeDist = Owner.IndividualRadius + 25
-			startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
-		elseif Owner.armSway then
-			local arm = Owner.FGArm or Owner.BGArm
-			if arm then
-				meleeDist = arm.Radius + arm.Radius
-				startPos = arm.Pos
-			end
+		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Breaching", true) then
+			meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25)
 		end
 		if meleeDist > 0 then
+			local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos
 			local dist = SceneMan:ShortestDistance(startPos, attackPos, false)
 			if dist.Magnitude < meleeDist then
 				AI.lateralMoveState = Actor.LAT_STILL
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized
-				AI.fire = true
+				AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1)
 			else
 				AI.fire = false
 			end

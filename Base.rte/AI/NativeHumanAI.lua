@@ -727,12 +727,10 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
 
 	if IsADoor(self.Target) then 
-		if Owner:EquipNamedDevice("Heavy Digger", true) then
+		--TODO: Include other explosive weapons with varying effective ranges!
+		if Owner:EquipDeviceInGroup("Tools - Breaching", true) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 			self.NextBehaviorName = "AttackTarget"
-		elseif dist < 50 and (Owner:EquipNamedDevice("Remote Explosive", true) or Owner:EquipNamedDevice("Timed Explosive", true)) then
-			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
-			self.NextBehaviorName = "ThrowTarget"
 		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
