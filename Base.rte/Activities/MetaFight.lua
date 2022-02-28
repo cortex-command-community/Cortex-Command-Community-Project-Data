@@ -1809,8 +1809,17 @@ function MetaFight:PurchaseHeavyInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Tools - Diggers", techID)
-			if Cargo then
+			if math.random() < 0.2 then
+				if math.random() < 0.3 then
+					Cargo = RandomHDFirearm("Tools - Breaching", techID)
+					digger = 0.5
+				else
+					Cargo = RandomTDExplosive("Tools - Breaching", techID)
+				end
+				self:AddOverridePurchase(Cargo, player)
+				mass = mass + Cargo.Mass
+			else
+				Cargo = RandomHDFirearm("Tools - Diggers", techID)
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
 				digger = 1
@@ -1842,8 +1851,17 @@ function MetaFight:PurchaseMediumInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Tools - Diggers", techID)
-			if Cargo then
+			if math.random() < 0.4 then
+				if math.random() < 0.5 then
+					Cargo = RandomHDFirearm("Tools - Breaching", techID)
+					digger = 0.5
+				else
+					Cargo = RandomTDExplosive("Tools - Breaching", techID)
+				end
+				self:AddOverridePurchase(Cargo, player)
+				mass = mass + Cargo.Mass
+			else
+				Cargo = RandomHDFirearm("Tools - Diggers", techID)
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
 				digger = 1
@@ -1875,8 +1893,17 @@ function MetaFight:PurchaseLightInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Tools - Diggers", techID)
-			if Cargo then
+			if math.random() < 0.6 then
+				if math.random() < 0.7 then
+					Cargo = RandomHDFirearm("Tools - Breaching", techID)
+					digger = 0.5
+				else
+					Cargo = RandomTDExplosive("Tools - Breaching", techID)
+				end
+				self:AddOverridePurchase(Cargo, player)
+				mass = mass + Cargo.Mass
+			else
+				Cargo = RandomHDFirearm("Tools - Diggers", techID)
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
 				digger = 1
