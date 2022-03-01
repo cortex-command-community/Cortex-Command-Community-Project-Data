@@ -19,11 +19,15 @@ function Update(self)
 		MovableMan:AddParticle(explosive);
 		
 		if self.user and IsAHuman(self.user) then
-			if not self.user:HasObject("Detonator") then
-				self.user:AddInventoryItem(CreateHDFirearm("Base.rte/Detonator"));
-			end
-			if not self.user:EquipNamedDevice(self.PresetName, true) then
-				self.user:EquipNamedDevice("Detonator", true);
+			if self.user:IsPlayerControlled() then
+				if not self.user:HasObject("Detonator") then
+					self.user:AddInventoryItem(CreateHDFirearm("Base.rte/Detonator"));
+				end
+				if not self.user:EquipNamedDevice(self.PresetName, true) then
+					self.user:EquipNamedDevice("Detonator", true);
+				end
+			else
+				explosive:SetNumberValue("AutoDetonate", 1);
 			end
 		end
 		self.ToDelete = true;

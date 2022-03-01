@@ -1,6 +1,5 @@
 function Create(self)
-
-	self.alliedTeam = -1;
+	self.alliedTeam = Activity.NOTEAM;
 end
 
 function Update(self)
@@ -8,9 +7,7 @@ function Update(self)
 	local parent = self:GetRootParent();
 	if IsActor(parent) then
 		self.alliedTeam = ToActor(parent).Team;
-	end
-
-	if self:IsActivated() and self.ID == self.RootID then
+	elseif self:IsActivated() then
 
 		local mine = CreateMOSRotating("Anti Personnel Mine Active");
 		mine.Pos = self.Pos;

@@ -3,7 +3,7 @@ function Create(self)
 	self.range = self.Lifetime * self.Vel.Magnitude;
 end
 function Update(self)
-	-- Run the effect on Update() to give other particles a chance to reach the target
+	--Run the effect on Update() to give other particles a chance to reach the target
 	for i = 1 , MovableMan:GetMOIDCount() - 1 do
 		local mo = MovableMan:GetMOFromID(i);
 		if mo and mo.PinStrength == 0 then
@@ -14,10 +14,14 @@ function Update(self)
 					local massFactor = math.sqrt(1 + math.abs(mo.Mass));
 					local distFactor = 1 + dist.Magnitude * 0.1;
 					local forceVector =	dist:SetMagnitude((self.strength - strSumCheck)/distFactor);
+					if IsAttachable(mo) then
+						--Diminish transferred impulses from attachables since we are likely already targeting its' parent
+						forceVector = forceVector * math.abs(1 - ToAttachable(mo).JointStiffness);
+					end
 					mo.Vel = mo.Vel + forceVector/massFactor;
 					mo.AngularVel = mo.AngularVel - forceVector.X/(massFactor + math.abs(mo.AngularVel));
-					mo:AddForce(forceVector * massFactor, Vector());
-					-- Add some additional points damage to actors
+					mo:AddImpulseForce(forceVector * massFactor, Vector());
+					--Add some additional points of damage to actors
 					if IsActor(mo) then
 						local actor = ToActor(mo);
 						local impulse = (forceVector.Magnitude * self.strength/massFactor) - actor.ImpulseDamageThreshold;

@@ -1,15 +1,18 @@
 function Create(self)
 	self.origActivationDelay = self.ActivationDelay;
-	self.origDeactivationDelay = self.DeactivationDelay;
-	self.spinTimer = Timer();
+	self.spinDownTimer = Timer();
+	self.currentlySpinningDown = false;
 end
 function Update(self)
-	if self.FiredFrame then
-		self.ActivationDelay = 0;
-		self.DeactivationDelay = self.origDeactivationDelay * 9;
-		self.spinTimer:Reset();
-	elseif self.RoundInMagCount == 0 or self.spinTimer:IsPastSimMS(self.DeactivationDelay * 0.9) then
+	if not self.currentlySpinningDown and not self:IsActivated() and not self:IsReloading() and self.ActiveSound:IsBeingPlayed() then
+		self.spinDownTimer:Reset();
+		self.currentlySpinningDown = true;
+		self.activationDelay = self.origActivationDelay;
+	elseif (self.currentlySpinningDown and self.spinDownTimer:IsPastSimMS(self.DeactivationDelay)) or self:IsReloading() then
 		self.ActivationDelay = self.origActivationDelay;
-		self.DeactivationDelay = self.origDeactivationDelay;
+		self.currentlySpinningDown = false;
+	elseif self.currentlySpinningDown and self:IsActivated() then
+		self.ActivationDelay = self.origActivationDelay * self.spinDownTimer.ElapsedSimTimeMS / self.DeactivationDelay;
+		self.currentlySpinningDown = false;
 	end
 end

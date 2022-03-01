@@ -34,6 +34,8 @@ function Update(self)
 			if self.Magazine then
 				-- Double tapping crouch retrieves the hook
 				if self.Magazine.Scale == 1 then
+					self.StanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
+					self.SharpStanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
 					if controller and controller:IsState(Controller.BODY_CROUCH) then
 						if self.canTap then
 							controller:SetState(Controller.BODY_CROUCH, false);
@@ -73,8 +75,6 @@ function Update(self)
 		else
 			self:Deactivate();
 		end
-		self.StanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
-		self.SharpStanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
 		if self.Magazine then
 			self.Magazine.RoundCount = 1;
 			self.Magazine.Scale = 1;

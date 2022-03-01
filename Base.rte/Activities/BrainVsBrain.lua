@@ -815,18 +815,23 @@ end
 
 -- Get any Actor from the CPU's native tech
 function BrainvsBrain:CreateRandomInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors", self.TechName[team])
+	local Passenger = RandomAHuman("Actors", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.TechName[team]))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		if math.random() < 0.4 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			end
-		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]))
+		local rand = math.random();
+		if rand < 0.25 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+		elseif rand < 0.50 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+		elseif rand < 0.75 then
+			Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.TechName[team]));
+		else
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+		if math.random() < 0.05 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -837,13 +842,18 @@ function BrainvsBrain:CreateRandomInfantry(team, mode)
 end
 
 function BrainvsBrain:CreateLightInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Light", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+		local rand = math.random();
+		if rand < 0.5 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+		elseif rand < 0.8 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -855,7 +865,7 @@ end
 
 function BrainvsBrain:CreateDefender(team)
 	local name = self.TechName[team] or "Dummy"
-	local	Passenger = RandomAHuman("Actors - Light", name)
+	local Passenger = RandomAHuman("Actors - Light", name)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", name))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", name))
@@ -872,19 +882,25 @@ function BrainvsBrain:CreateDefender(team)
 end
 
 function BrainvsBrain:CreateHeavyInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.TechName[team]))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			if math.random() < 0.4 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
+			if math.random() < 0.25 then
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+			elseif math.random() < 0.35 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+			if math.random() < 0.3 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.TechName[team]));
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+			end
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -895,27 +911,18 @@ function BrainvsBrain:CreateHeavyInfantry(team, mode)
 end
 
 function BrainvsBrain:CreateMediumInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
-	end
-end
-
-function BrainvsBrain:CreateScoutInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Light", self.TechName[team])
-	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
-		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+		end
+		if math.random() < 0.5 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -925,17 +932,20 @@ function BrainvsBrain:CreateScoutInfantry(team, mode)
 	end
 end
 
-function BrainvsBrain:CreateSniper(team, mode)
-	local	Passenger
-	if math.random() < 0.7 then
-		Passenger = RandomAHuman("Actors - Light", self.TechName[team])
-	else
-		Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
-	end
-	
+function BrainvsBrain:CreateScoutInfantry(team, mode)
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.TechName[team]))
+		if math.random() < 0.15 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.TechName[team]))
+		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		else
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
+		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO
@@ -947,21 +957,23 @@ end
 function BrainvsBrain:CreateEngineer(team, mode)
 	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
-		Passenger:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
+		if math.random() < 0.7 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+			local rand = math.random();
+			if rand < 0.2 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.TechName[team]));
+			elseif rand < 0.4 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.TechName[team]));
+			end
+		end
+		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]));
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOLDDIG
-		Passenger.Team = team
-		return Passenger
-	end
-end
-
-function BrainvsBrain:CreateAntiAir(team, mode)
-	local Passenger = RandomACrab("Anti-Air", self.TechName[team])
-	if Passenger then
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_SENTRY
 		Passenger.Team = team
 		return Passenger
 	end

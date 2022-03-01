@@ -6,7 +6,7 @@ function Create(self)
 			trace = trace * (-1);
 		end
 		local moid = SceneMan:CastMORay(self.Pos, trace, rte.NoMOID, -2, rte.airID, true, 1);
-		if moid > 0 and moid < rte.NoMOID then
+		if moid ~= rte.NoMOID then
 			local hitPos = Vector();
 			SceneMan:CastFindMORay(self.Pos, trace, moid, hitPos, rte.airID, true, 1);
 			local target = ToMOSRotating(MovableMan:GetMOFromID(moid));

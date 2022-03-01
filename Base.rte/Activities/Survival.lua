@@ -210,7 +210,11 @@ function Survival:UpdateActivity()
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 					if math.random() < 0.5 then
-						passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
+						passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName));
+					elseif math.random() < 0.8 then
+						passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+					else
+						passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.CPUTechName));
 					end
 				end
 				-- Set AI mode and team so it knows who and what to fight for!

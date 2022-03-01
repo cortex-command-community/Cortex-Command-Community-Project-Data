@@ -3,16 +3,23 @@ function Create(self)
 	--Set the crate to gib after delivering the cargo
 	self.GibTimer:SetSimTimeLimitMS((1 + self.InventorySize) * 600);
 	--Choose a random horizontal direction
-	local randomDirection = math.random() > 0.5 and 1 or -1;
+	local randomDirection = 0;
+	--If velocity was pre-defined before spawning, don't randomize horizontal velocity or position
+	if self.Vel.X == 0 then
+		randomDirection = math.random() < 0.5 and 1 or -1;
+		--Try not to fly off the edge in non-wrapping scenes
+		if not SceneMan.SceneWrapsX then
+			randomDirection = self.Pos.X > (SceneMan.SceneWidth - 100) and -1 or (self.Pos.X < 100 and 1 or randomDirection);
+		end
+		self.AngularVel = -randomDirection * math.random(10);
+	else
+		self.AngularVel = -self.Vel.X;
+	end
 	--Randomize velocities
 	self.RotAngle = RangeRand(0, math.pi * 2);
-	self.Pos = Vector(self.Pos.X - randomDirection * math.random(99), self.Pos.Y);
-	--Try not to fly off the edge in non-wrapping scenes
-	if not SceneMan.SceneWrapsX then
-		randomDirection = self.Pos.X > (SceneMan.SceneWidth - 99) and -1 or (self.Pos.X < 99 and 1 or randomDirection);
-	end
-	self.AngularVel = -randomDirection * math.random(1, 10);
-	self.Vel = Vector(randomDirection * math.random(1, 20), math.min(10 + 10 * 1500/SceneMan.SceneHeight, 100));
+	self.Pos = Vector(self.Pos.X - randomDirection * math.random(100), self.Pos.Y);
+	local velocity = Vector(randomDirection * math.random(10), math.min(10 + 10 * 1500/SceneMan.SceneHeight, 100));
+	self.Vel = self.Vel + velocity:SetMagnitude(math.max(velocity.Magnitude - self.Vel.Magnitude, 0));
 end
 function Update(self)
 	--Apply damage to the actors inside based on impulse forces

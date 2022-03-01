@@ -2,6 +2,7 @@ function Create(self)
 	self.origStanceOffset = Vector(0, 8);
 	self.origSharpStanceOffset = Vector(4, 6);
 	self.minimumRoF = self.RateOfFire * 0.5;
+	self.angleOffset = 0;
 
 	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag", "Scrap Metal", "Flesh Scraps"};
 	self.collectSound = CreateSoundContainer("Device Switch", "Base.rte");
@@ -13,43 +14,52 @@ function Create(self)
 	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 end
 function Update(self)
-	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
-	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset);
-	--Revert rotation
-	if self.InheritedRotAngleOffset > 0 then
-		self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
-	end
+	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
+	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
+	
 	local parent = self:GetRootParent();
 	if parent and IsActor(parent) then
 		parent = ToActor(parent);
+		local controller = parent:GetController();
 		local resource = parent:GetNumberValue("RoninShovelResource");
-
+		if parent:IsPlayerControlled() and controller:IsState(Controller.AIM_SHARP) and (not controller:IsMouseControlled() or controller.AnalogAim.Magnitude > 0.9) then
+			self.InheritedRotAngleOffset = math.min(self.InheritedRotAngleOffset + (0.0003 * self.RateOfFire), self.angleSize * 2);
+		else
+			self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
+		end
+		self.SupportOffset = Vector(-self.InheritedRotAngleOffset * 5, 2);
 		if self.FiredFrame then
-			self.InheritedRotAngleOffset = self.angleSize;
-			local particleCount = 3;
-			local fireVec = Vector(60 * self.FlipFactor, 0):RadRotate(self.RotAngle):RadRotate(0.2 * self.FlipFactor);
+			local offsetMultiplier = math.max(self.InheritedRotAngleOffset, 1);
+			local particleCount = 5/offsetMultiplier;
+			local overhead = self.InheritedRotAngleOffset > self.angleSize * 0.5;
+			local fireVec = Vector((50 + 10 * offsetMultiplier) * self.FlipFactor, 0):RadRotate(self.RotAngle + 0.2 * self.FlipFactor);
 			for i = 1, particleCount do
 				--Lua-generated particles that can chip stone
 				local dig = CreateMOPixel("Particle Ronin Shovel 2", "Ronin.rte");
-				dig.Pos = self.MuzzlePos;
-				dig.Vel = Vector(55 * self.FlipFactor, 0):RadRotate(self.RotAngle + (-0.3 + i * 0.2) * self.FlipFactor);
+				dig.Pos = self.Pos;
+				dig.Vel = Vector(math.random(50, 60) * self.FlipFactor, 0):RadRotate(self.RotAngle + (-0.4 + i * 0.2) * self.FlipFactor);
 				MovableMan:AddParticle(dig);
 			end
-			local trace = fireVec * rte.PxTravelledPerFrame;
+			local trace = (fireVec * rte.PxTravelledPerFrame):RadRotate(-self.InheritedRotAngleOffset * 1.4 * self.FlipFactor);
 			--Play a radical sound if a MO is met
-			local moCheck = SceneMan:CastMORay(self.MuzzlePos, trace, self.ID, self.Team, 0, false, 1);
+			local moCheck = SceneMan:CastMORay(self.Pos, trace, self.ID, self.Team, 0, false, 1);
 			if moCheck ~= rte.NoMOID then
 				self.hitSound:Play(self.MuzzlePos);
+				local spread = 0.4/offsetMultiplier;
+				particleCount = 3 * offsetMultiplier;
 				for i = 1, particleCount do
-					local damagePar = CreateMOPixel("Smack Particle", "Base.rte");
-					damagePar.Pos = self.MuzzlePos;
-					damagePar.Vel = Vector(fireVec.X, fireVec.Y):RadRotate((-0.8 + i * 0.4) * self.FlipFactor);
+					local damagePar = CreateMOPixel("Smack Particle Light", "Base.rte");
+					damagePar.Pos = self.Pos;
+					damagePar.Vel = Vector(fireVec.X, fireVec.Y):RadRotate((-spread * 2 + i * spread - self.InheritedRotAngleOffset * 1.4) * self.FlipFactor);
 					damagePar.Team = self.Team;
 					damagePar.IgnoresTeamHits = true;
-					damagePar.Mass = damagePar.Mass * RangeRand(0.5, 1.0);
+					
+					damagePar.Mass = math.sqrt(self:GetParent().Mass + self.Mass);
+					damagePar.Sharpness = self.Sharpness * RangeRand(0.5, 1.0);
+					
 					MovableMan:AddParticle(damagePar);
 				end
-			elseif resource < 10 then
+			elseif not overhead and resource < 10 then
 				--Gather materials and turn them into sandbags
 				local rayCount = 3;
 				local hits = 0;
@@ -72,6 +82,7 @@ function Update(self)
 					end
 				end
 			end
+			self.InheritedRotAngleOffset = overhead and -0.1 or self.angleSize;
 		end
 		--This trick disables the collision for the weapon while the Magazine has no collision but looks exactly the same
 		self.Scale = 0;
