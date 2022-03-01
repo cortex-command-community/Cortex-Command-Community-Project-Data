@@ -6,7 +6,8 @@ function RoninCreateSandbag(actor)
 			actor:AddInventoryItem(CreateThrownDevice("Ronin.rte/Sandbag"));
 			actor:EquipNamedDevice("Sandbag", true);
 		else
-			AudioMan:PlaySound("Base.rte/Sounds/GUIs/UserError.flac", actor.Pos);
+			local errorSound = CreateSoundContainer("Error", "Base.rte");
+			errorSound:Play(actor.Pos, actor:GetController().Player);
 		end
 	end
 end

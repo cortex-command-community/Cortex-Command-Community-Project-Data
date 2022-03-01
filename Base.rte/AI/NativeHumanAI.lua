@@ -558,18 +558,14 @@ function NativeHumanAI:Update(Owner)
 					self.useMedikit = Owner:EquipNamedDevice("Medikit", true)
 				else
 					self.useMedikit = false
-					if not self.scatter and Owner.AIMode == Actor.AIMODE_SENTRY then
+					if not self.isPlayerOwned and Owner.AIMode == Actor.AIMODE_SENTRY then
 						Owner.AIMode = Actor.AIMODE_PATROL
-						self.scatter = true
 					end
 				end
 			else
 				if self.useMedikit == true then	
 					self.useMedikit = false
 					Owner:EquipFirearm(true)
-					if self.scatter and Owner.Health == Owner.MaxHealth then
-						self.scatter = false
-					end
 				end
 				if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
 					self.AlarmTimer:Reset()
@@ -731,15 +727,16 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
 
 	if IsADoor(self.Target) then 
-		if Owner:EquipNamedDevice("Heavy Digger", true) then
+		--TODO: Include other explosive weapons with varying effective ranges!
+		if Owner:EquipDeviceInGroup("Tools - Breaching", true) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 			self.NextBehaviorName = "AttackTarget"
-		elseif Owner:EquipNamedDevice("Timed Explosive", true) then
-			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
-			self.NextBehaviorName = "ThrowTarget"
 		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
+		else	--Cannot harm this door!
+			self.Target = nil
+			return
 		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
