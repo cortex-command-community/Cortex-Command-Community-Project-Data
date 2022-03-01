@@ -17,15 +17,13 @@ function Create(self)
 		table.insert(self.trailPar, particle);
 	end
 	self.endPar = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow");
-
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 end
 function Update(self)
 	if not self.ToDelete then
 		for i = 1, self.trailParCount do
 			if self.trailPar[i] and MovableMan:IsParticle(self.trailPar[i]) then
-				self.trailPar[i].Pos = self.Pos + Vector(RangeRand(-0.5, 0.5), RangeRand(-0.5, 0.5)) - Vector(self.lastVel.X, self.lastVel.Y):SetMagnitude(math.min(self.lastVel.Magnitude, self.trailLength + 1) * i/self.trailParCount);
-				self.trailPar[i].Vel = Vector(self.lastVel.X, self.lastVel.Y);
+				self.trailPar[i].Pos = self.Pos + Vector(RangeRand(-0.5, 0.5), RangeRand(-0.5, 0.5)) - Vector(self.PrevVel.X, self.PrevVel.Y):SetMagnitude(math.min(self.PrevVel.Magnitude, self.trailLength + 1) * i/self.trailParCount);
+				self.trailPar[i].Vel = Vector(self.PrevVel.X, self.PrevVel.Y);
 				self.trailPar[i].Lifetime = self.Age + math.random(20, 40);
 			end
 		end
@@ -33,7 +31,6 @@ function Update(self)
 	if self.Vel.Magnitude < 4 then
 		self.ToDelete = true;
 	end
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 end
 function Destroy(self)
 	self.endPar.Pos = Vector(self.Pos.X, self.Pos.Y) + Vector(self.Vel.X, self.Vel.Y) * 0.16;

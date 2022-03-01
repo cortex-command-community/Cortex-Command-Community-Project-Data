@@ -325,12 +325,14 @@ function WaveDefense:UpdateActivity()
 			if playertally < 1 then
 				self.WinnerTeam = self.CPUTeam
 				ActivityMan:EndActivity()
-				
-				AudioMan:ClearMusicQueue();
-				AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-				AudioMan:QueueSilence(10);
-				AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
-				
+
+				-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+				if not self:IsPaused() then
+					AudioMan:ClearMusicQueue();
+					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+					AudioMan:QueueSilence(10);
+					AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+				end
 				return
 			end
 			
@@ -556,12 +558,13 @@ end
 function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 	local Craft = RandomACDropShip("Craft", self.AI.Tech)	-- Pick a craft to deliver with
 	if Craft then
-		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		-- The max allowed weight of this craft's cargo
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -595,8 +598,7 @@ function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 					break
 				end
 			end
@@ -615,25 +617,30 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 	local Craft, actorsInCargo
 	if math.random() < 0.6 then
 		Craft = RandomACDropShip("Craft", self.AI.Tech)
-    if Craft.MaxPassengers < 2 then
-      actorsInCargo = 1
-    elseif Craft.MaxPassengers > 2 then
-      actorsInCargo = math.random(2, Craft.MaxPassengers)
-    else
-      actorsInCargo = 2
-    end
+	    if Craft.MaxPassengers < 2 then
+	      actorsInCargo = 1
+	    elseif Craft.MaxPassengers > 2 then
+	      actorsInCargo = math.random(2, Craft.MaxPassengers)
+	    else
+	      actorsInCargo = 2
+	    end
 	else
 		Craft = RandomACRocket("Craft", self.AI.Tech)
 		actorsInCargo = Craft.MaxPassengers
 	end
 	
 	if Craft then
-		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		-- The max allowed weight of this craft's cargo
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -657,8 +664,7 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -683,11 +689,16 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -709,8 +720,7 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -735,11 +745,16 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -761,8 +776,7 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 					break
 				end
 			end
@@ -780,11 +794,12 @@ function WaveDefense:CreateBombDrop(bombPosX)
 	local Craft = RandomACDropShip("Craft", self.AI.Tech)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
@@ -794,8 +809,7 @@ function WaveDefense:CreateBombDrop(bombPosX)
 		for _ = 3, 5 do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.AI.Tech))
 			
-			-- Stop adding bombs when exceeding the weight limit
-			if Craft.Mass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+			if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
 				break
 			end
 		end
@@ -841,18 +855,23 @@ end
 
 -- Get any Actor from the CPU's native tech
 function WaveDefense:CreateRandomInfantry()
-	local	Passenger = RandomAHuman("Actors", self.AI.Tech)
+	local Passenger = RandomAHuman("Any", self.AI.Tech)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI.Tech))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
 		
-		if math.random() < 0.4 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
-			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
-			end
-		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI.Tech))
+		local rand = math.random();
+		if rand < 0.25 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
+		elseif rand < 0.50 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
+		elseif rand < 0.75 then
+			Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.AI.Tech));
+		else
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+		if math.random() < 0.05 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -863,13 +882,18 @@ function WaveDefense:CreateRandomInfantry()
 end
 
 function WaveDefense:CreateLightInfantry()
-	local	Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
 		
-		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
+		local rand = math.random();
+		if rand < 0.5 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
+		elseif rand < 0.8 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -880,19 +904,25 @@ function WaveDefense:CreateLightInfantry()
 end
 
 function WaveDefense:CreateHeavyInfantry()
-	local	Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.AI.Tech))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
 		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
-			if math.random() < 0.4 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
+			if math.random() < 0.25 then
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
+			elseif math.random() < 0.35 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI.Tech))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
+			if math.random() < 0.3 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.AI.Tech));
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
+			end
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -903,10 +933,19 @@ function WaveDefense:CreateHeavyInfantry()
 end
 
 function WaveDefense:CreateMediumInfantry()
-	local	Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
+		
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
+		else
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
+		end
+		if math.random() < 0.5 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
@@ -918,8 +957,20 @@ end
 function WaveDefense:CreateEngineer()
 	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech))
-		Passenger:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
+		if math.random() < 0.7 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
+			local rand = math.random();
+			if rand < 0.2 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.AI.Tech));
+			elseif rand < 0.4 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI.Tech));
+			end
+		end
+		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI.Tech));
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = Actor.AIMODE_GOLDDIG
@@ -929,14 +980,18 @@ function WaveDefense:CreateEngineer()
 end
 
 function WaveDefense:CreateScoutInfantry()
-	local	Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
 	if Passenger then
+		if math.random() < 0.15 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.AI.Tech))
+		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
 		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
-		else
+		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
+		else
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -967,23 +1022,13 @@ function WaveDefense:EnforceMOIDLimit()
 			table.insert(Prune, Item)
 		end
 		
-		for Act in MovableMan.Actors do
-			if not Act:HasObjectInGroup("Brains") then
-				table.insert(Prune, Act)
-			end
-		end
-		
 		-- Sort the tables so we delete the oldest object first
 		table.sort(Prune, function(A, B) return A.Age < B.Age end)
 		
 		while true do
 			local Object = table.remove(Prune)
 			if Object then
-				if Object:IsDevice() then
-					Object.ToSettle = true
-				else
-					Object.Health = 0
-				end
+				Object.ToSettle = true
 				
 				ids = ids - Object.MOIDFootprint
 				if ids < 1 then

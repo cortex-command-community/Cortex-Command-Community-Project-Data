@@ -2,6 +2,8 @@ function Create(self)
 	self.pullTimer = Timer();
 	self.loaded = false;
 	self.rotFactor = math.pi;
+	
+	self.cockSound = CreateSoundContainer("Chamber Round", "Base.rte");
 end
 function Update(self)
 	local parent;
@@ -16,10 +18,9 @@ function Update(self)
 		self.rotFactor = math.pi;
 	end
 	if parent and not self.loaded and self.RoundInMagCount > 0 and not self.reloadCycle then
-		self:Deactivate();
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
-				AudioMan:PlaySound("Base.rte/Sounds/Devices/ChamberRound.flac", self.Pos);
+				self.cockSound:Play(self.Pos);
 				self.playedSound = true;
 			end
 			if self.shell then

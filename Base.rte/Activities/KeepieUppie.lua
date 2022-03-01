@@ -62,18 +62,21 @@ end
 
 
 function KeepieUppie:EndActivity()
-	-- Play sad music if no humans are left
-	if self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	else
-		-- But if humans are left, then play happy music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 end
 

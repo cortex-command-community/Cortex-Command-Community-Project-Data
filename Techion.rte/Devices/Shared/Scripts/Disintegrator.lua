@@ -3,6 +3,8 @@ function Create(self)
 	self.effectSpeed = 0.01;
 	self.setScale = 1;
 	self.minScale = 0.1;
+
+	self.disintegrationSound = CreateSoundContainer("Disintegration Sound", "Techion.rte");
 	
 	local target;
 	local strength = math.random(self.PinStrength * 0.5, self.PinStrength);
@@ -35,7 +37,7 @@ function Create(self)
 			end
 		end
 		--Elaborate effect resistance strength calculations based on various Actor values
-		local resistance = ((actor.Mass + size + actor.Material.StructuralIntegrity) * 0.3 + (actor.TotalWoundLimit - actor.TotalWoundCount) + actor.Health) * 0.5;
+		local resistance = ((actor.Mass + size + actor.Material.StructuralIntegrity) * 0.3 + (actor.GibWoundLimit - actor.WoundCount) + actor.Health) * 0.5;
 		if resistance - strength < 0 then
 			--Leave this Actor alone if it already has a disintegrator particle assigned to it
 			if ToActor(target):NumberValueExists("ToDisintegrate") then
@@ -48,12 +50,12 @@ function Create(self)
 					self.target = ToACrab(target);
 				end
 				self.target.Health = self.target.Health - self.target.MaxHealth;
-				self.target:RemoveAnyRandomWounds(self.target.TotalWoundCount + 1);
+				self.target:RemoveWounds(self.target.WoundCount + 1);
 				self.target.MissionCritical = true;	--This ensures that the target Actor doesn't settle during the effect
 				self.target.HitsMOs = false;
 				self.target.AngularVel = self.target.AngularVel * 0.5 - self.target.Vel.X + self.target.FlipFactor;
-				
-				AudioMan:PlaySound("Techion.rte/Devices/Shared/Sounds/Disintegrate".. math.random(3) ..".flac", self.target.Pos);
+
+				self.disintegrationSound:Play(self.target.Pos);
 			end
 			--Flag this actor as being hit by a disintegrator particle
 			ToActor(target):SetNumberValue("ToDisintegrate", ToActor(target):GetNumberValue("ToDisintegrate") + 1);
@@ -96,7 +98,6 @@ function Update(self)
 			table.insert(parts, mo);
 			local totalAttSize = mo.Radius;
 			local inverseScale = 1 - self.setScale;
-			mo:RemoveWounds(1);
 
 			for att in mo.Attachables do
 				table.insert(parts, att);

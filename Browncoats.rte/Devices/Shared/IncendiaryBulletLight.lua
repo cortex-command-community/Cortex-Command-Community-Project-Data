@@ -17,7 +17,7 @@ function Update(self)
 	if math.random() < 0.5 then
 		local particle = CreateMOPixel("Ground Fire Burn Particle");
 		particle.Pos = Vector(self.Pos.X, self.Pos.Y) - Vector(self.Vel.X, self.Vel.Y) * rte.PxTravelledPerFrame * math.random();
-		particle.Vel = self.Vel * RangeRand(0.5, 1.0) + Vector(math.random(10), 0):RadRotate(math.random() * 6.28);
+		particle.Vel = self.Vel * RangeRand(0.5, 1.0) + Vector(math.random(10), 0):RadRotate(math.random() * math.pi * 2);
 		particle.Lifetime = particle.Lifetime * RangeRand(0.5, 1.0);
 		particle.Sharpness = particle.Sharpness * RangeRand(0.1, 1.0);
 		particle.Team = self.Team;

@@ -30,7 +30,8 @@ function ZombieCaveMission:StartActivity()
 	-- Set up teams
 
 	-- Team 2 is always zombie
-	self.ZombieTeam = Activity.TEAM_2;
+	self.ZombieTeam = Activity.NOTEAM;
+	self.AmbusherTeam = Activity.TEAM_2;
 
 	-- Create the zombie generators and place them in the scene
 	self.Generator1 = CreateAEmitter("Zombie Generator");
@@ -153,18 +154,21 @@ end
 
 
 function ZombieCaveMission:EndActivity()
-	-- Play sad music if no humans are left
-	if self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	else
-		-- But if humans are left, then play happy music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 end
 
@@ -204,6 +208,7 @@ function ZombieCaveMission:UpdateActivity()
 							if MovableMan:IsActor(newBrain) then
 								self:SwitchToActor(newBrain, player, team);
 							end
+							self:GetBanner(GUIBanner.RED, player):ClearText();
 						else				
 							FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false);
 							self.braindead[player] = true;
@@ -370,8 +375,7 @@ function ZombieCaveMission:UpdateActivity()
 					self:AddObjectivePoint("Load into a ship!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
 					self:AddObjectivePoint("KILL!", actor.AboveHUDPos, self.ZombieTeam, GameActivity.ARROWDOWN);
 				end
-			end
-			if actor:HasObjectInGroup("Brains") then
+			elseif actor:HasObjectInGroup("Brains") then
 				self:AddObjectivePoint("Protect!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
 				self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.ZombieTeam, GameActivity.ARROWDOWN);
 			end
@@ -419,8 +423,8 @@ function ZombieCaveMission:UpdateActivity()
 			ship2.Pos.X = 2300;
 			ship1.Pos.Y = 0;
 			ship2.Pos.Y = -50;
-			ship1.Team = self.ZombieTeam;
-			ship2.Team = self.ZombieTeam;
+			ship1.Team = self.AmbusherTeam;
+			ship2.Team = self.AmbusherTeam;
 			
 			-- Let the spawn into the world, passing ownership
 			MovableMan:AddActor(ship1);
@@ -434,7 +438,7 @@ function ZombieCaveMission:UpdateActivity()
 	-- Any ronin guys who reach the innermost cave, should go brain hunt afterward
 	if self.CurrentFightStage == self.FightStage.AMBUSH then
 		for actor in MovableMan.Actors do
-			if actor.Team == self.ZombieTeam and self.artifactArea:IsInside(actor.Pos) then
+			if actor.Team == self.AmbusherTeam and self.artifactArea:IsInside(actor.Pos) then
 				actor.AIMode = Actor.AIMODE_BRAINHUNT;
 			end
 		end

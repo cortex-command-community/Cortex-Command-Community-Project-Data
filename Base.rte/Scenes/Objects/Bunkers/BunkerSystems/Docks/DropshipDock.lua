@@ -13,8 +13,8 @@ function Update(self)
 		--Disable collisions with the ship
 		self.craft:SetWhichMOToNotHit(self, 100);
 		--Pin the ship and pull it nicely into the docking unit.
-		local dist = SceneMan:ShortestDistance(self.craft.Pos, self.Pos + Vector(0, self.craft.Radius / 2), SceneMan.SceneWrapsX);
-		self.craft.Vel = self.craft.Vel * 0.9 + dist / (3 + self.craft.Vel.Magnitude);
+		local dist = SceneMan:ShortestDistance(self.craft.Pos, self.Pos + Vector(0, ToMOSprite(self.craft):GetSpriteHeight() * 0.5), SceneMan.SceneWrapsX);
+		self.craft.Vel = self.craft.Vel * 0.9 + dist/(3 + self.craft.Vel.Magnitude);
 		self.craft.AngularVel = self.craft.AngularVel * 0.9 - self.craft.RotAngle * 3;
 		
 		if self.craft.Status < Actor.DYING then
@@ -23,8 +23,8 @@ function Update(self)
 		--Heal the craft.
 		if self.healTimer:IsPastSimMS(self.craft.Mass) then
 			self.healTimer:Reset();
-			if self.craft.TotalWoundCount > 0 then
-				self.craft.Health = math.min(self.craft.Health + self.craft:RemoveAnyRandomWounds(1), self.craft.MaxHealth);
+			if self.craft.WoundCount > 0 then
+				self.craft:RemoveWounds(1);
 			elseif self.craft.Health < self.craft.MaxHealth then
 				self.craft.Health = math.min(self.craft.Health + 1, self.craft.MaxHealth);
 			end

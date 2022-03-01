@@ -86,18 +86,21 @@ end
 
 
 function Harvester:EndActivity()
-	-- Play sad music if no humans are left
-	if self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	else
-		-- But if humans are left, then play happy music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 end
 
@@ -186,9 +189,25 @@ function Harvester:UpdateActivity()
 				ship = RandomACRocket("Any", self.CPUTechName);
 				actorsInCargo = math.min(ship.MaxPassengers, 2)
 			end
+
+			-- The max allowed weight of this craft plus cargo
+			local shipMaxMass = ship.MaxInventoryMass
+			if shipMaxMass < 0 then
+				shipMaxMass = math.huge
+			elseif shipMaxMass < 1 then
+				if Craft.ClassName == "ACDropship" then
+					DeleteEntity(ship);
+					Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+				else
+					DeleteEntity(ship)
+					Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+				end
+				shipMaxMass = ship.MaxInventoryMass
+			end
+			local totalInventoryMass = 0
 			
 			ship.Team = self.CPUTeam;
-			
+
 			-- Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
 				-- Get any Actor from the CPU's native tech
@@ -211,9 +230,10 @@ function Harvester:UpdateActivity()
 				passenger.Team = self.CPUTeam;
 
 				-- Check that we can afford to buy and to carry the weight of this passenger
-				if ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3) <= self:GetTeamFunds(self.CPUTeam) and (ship.Mass + passenger.Mass) <= ship.MaxMass then
+				if ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3) <= self:GetTeamFunds(self.CPUTeam) and (passenger.Mass + totalInventoryMass) <= shipMaxMass then
 					-- Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
+					totalInventoryMass = totalInventoryMass + passenger.Mass
 					passenger = nil;
 				else
 					-- Nope; just delete the nixed passenger and stop adding new ones

@@ -28,7 +28,7 @@ function Update(self)
 				MovableMan:AddParticle(effect);
 				effect:GibThis();
 
-				self.holder.Pos = self.Pos + Vector(0, -self.holder.Radius * 1.5);
+				self.holder.Pos = self.Pos + Vector(0, -self.holder.Radius * 0.5);
 				self.holder:FlashWhite(200);
 				--Telefrag! Kill actors if you teleport directly on top of them
 				for actor in MovableMan.Actors do
@@ -43,6 +43,10 @@ function Update(self)
 							end
 						end
 					end
+				end
+				local parent = self:GetParent();
+				if parent then
+					parent:RemoveAttachable(self, true, true);
 				end
 				if not self.holder:HasObject(self.PresetName) then
 					self.holder:AddInventoryItem(CreateTDExplosive(self.PresetName));
@@ -63,12 +67,17 @@ function Update(self)
 		end
 	elseif self:IsActivated() then
 		--Get the holder
-		if (self.holder and self.holder.ID == rte.NoMOID) or self.holder == nil then
-			local newHolder = MovableMan:GetMOFromID(self.RootID);
+		if self.holder == nil or self.holder.ID == rte.NoMOID then
+			local newHolder = self:GetRootParent();
 			if MovableMan:IsActor(newHolder) then
 				self.holder = ToActor(newHolder);
 			end
 		end
 		self.fuze = Timer();
+	end
+end
+function OnAttach(self, parent)
+	if not self.fuze then
+		self.guideRadius = self:GetRootParent().Radius;
 	end
 end

@@ -134,18 +134,21 @@ end
 
 
 function SkirmishDefense:EndActivity()
-	-- Play sad music if no humans are left
-	if self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	else
-		-- But if humans are left, then play happy music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 end
 
@@ -580,11 +583,12 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 	local Craft = RandomACDropShip("Craft", self.AI[Team].TechID)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -617,8 +621,7 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -651,11 +654,16 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -679,8 +687,7 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -705,11 +712,16 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -731,8 +743,7 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -757,11 +768,16 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = Team
@@ -783,8 +799,7 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -833,11 +848,12 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 	local Craft = RandomACDropShip("Craft", self.AI[Team].TechID)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
@@ -850,8 +866,7 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 				Craft:AddInventoryItem(Payload)
 			end
 			
-			-- Stop adding bombs when exceeding the weight limit
-			if Craft.Mass > craftMaxMass then 
+			if Craft.InventoryMass > craftMaxMass then
 				break
 			end
 		end
@@ -878,18 +893,23 @@ end
 
 -- Get any Actor from the CPU's native tech
 function SkirmishDefense:CreateRandomInfantry(Team)
-	local	Passenger = RandomAHuman("Actors", self.AI[Team].TechID)
+	local Passenger = RandomAHuman("Actors", self.AI[Team].TechID)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI[Team].TechID))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
-		if math.random() < 0.4 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
-			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
-			end
-		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI[Team].TechID))
+		local rand = math.random();
+		if rand < 0.25 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID));
+		elseif rand < 0.50 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
+		elseif rand < 0.75 then
+			Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.AI[Team].TechID));
+		else
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+		if math.random < 0.05 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI[Team].TechID));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -900,13 +920,18 @@ function SkirmishDefense:CreateRandomInfantry(Team)
 end
 
 function SkirmishDefense:CreateLightInfantry(Team)
-	local	Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
+	local Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
-		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
+		local rand = math.random();
+		if rand < 0.5 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID));
+		elseif rand < 0.8 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI[Team].TechID));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -917,19 +942,25 @@ function SkirmishDefense:CreateLightInfantry(Team)
 end
 
 function SkirmishDefense:CreateHeavyInfantry(Team)
-	local	Passenger = RandomAHuman("Actors - Heavy", self.AI[Team].TechID)
+	local Passenger = RandomAHuman("Actors - Heavy", self.AI[Team].TechID)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.AI[Team].TechID))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
-			if math.random() < 0.4 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID));
+			if math.random() < 0.25 then
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID));
+			elseif math.random() < 0.35 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
+			if math.random() < 0.3 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.AI[Team].TechID));
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
+			end
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -940,10 +971,19 @@ function SkirmishDefense:CreateHeavyInfantry(Team)
 end
 
 function SkirmishDefense:CreateMediumInfantry(Team)
-	local	Passenger = RandomAHuman("Actors - Heavy", self.AI[Team].TechID)
+	local Passenger = RandomAHuman("Actors - Heavy", self.AI[Team].TechID)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
+		
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
+		else
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID));
+		end
+		if math.random() < 0.5 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
@@ -955,8 +995,20 @@ end
 function SkirmishDefense:CreateEngineer(Team)
 	local Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
-		Passenger:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
+		if math.random() < 0.7 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
+			local rand = math.random();
+			if rand < 0.2 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.AI[Team].TechID));
+			elseif rand < 0.4 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI[Team].TechID));
+			end
+		end
+		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI[Team].TechID));
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = Actor.AIMODE_GOLDDIG
@@ -969,7 +1021,7 @@ function SkirmishDefense:CreateBreachInfantry(Team)
 	local Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
-		Passenger:AddInventoryItem(CreateHDFirearm("Heavy Digger", "Base.rte"))
+		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI[Team].TechID))
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
@@ -979,14 +1031,18 @@ function SkirmishDefense:CreateBreachInfantry(Team)
 end
 
 function SkirmishDefense:CreateScoutInfantry(Team)
-	local	Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
+	local Passenger = RandomAHuman("Actors - Light", self.AI[Team].TechID)
 	if Passenger then
+		if math.random() < 0.15 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.AI[Team].TechID))
+		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
 		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
-		else
+		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
+		else
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID))
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!

@@ -154,6 +154,8 @@ function HumanBehaviors.CalculateThreatLevel(MO, Owner)
 		else
 			priority = priority + 0.3
 		end
+	elseif MO.ClassName == "ADoor" then
+		priority = priority * 0.3
 	end
 	
 	return priority - MO.Health / 500	-- prioritize damaged targets
@@ -166,12 +168,12 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 	local canSupress = not AI.flying and Owner.FirearmIsReady and Owner.EquippedItem:HasObjectInGroup("Weapons - Explosive")
 	for Event in MovableMan.AlarmEvents do
 		if Event.Team ~= Owner.Team then	-- caused by some other team's activities - alarming!
-			loudness = Owner.AimDistance + FrameMan.PlayerScreenWidth * 0.6 * Owner.Perceptiveness * Event.Range	-- adjust the audible range to the screen resolution
+			loudness = Owner.AimDistance + Owner.Perceptiveness * Event.Range
 			AlarmVec = SceneMan:ShortestDistance(Owner.EyePos, Event.ScenePos, false)	-- see how far away the alarm situation is
 			if AlarmVec.Largest < loudness then	-- only react if the alarm is within hearing range
 				-- if our relative position to the alarm location is the same, don't repeat the signal
 				-- check if we have line of sight to the alarm point
-				if (not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false).Largest > 10) then
+				if (not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false).Magnitude > 25) then
 					AI.LastAlarmVec = AlarmVec
 					
 					if AlarmVec.Largest < 100 then
@@ -179,11 +181,12 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 						if SceneMan:CastStrengthSumRay(Owner.EyePos, Event.ScenePos, 4, rte.grassID) < 100 then
 							AI.AlarmPos = Vector(Event.ScenePos.X, Event.ScenePos.Y)
 						end
-					elseif not SceneMan:CastStrengthRay(Owner.EyePos, AlarmVec, 6, Vector(), 8, rte.grassID, true)	then
+					elseif not SceneMan:CastStrengthRay(Owner.EyePos, AlarmVec, 6, Vector(), 8, rte.grassID, true) then
 						AI.AlarmPos = Vector(Event.ScenePos.X, Event.ScenePos.Y)
 					end
 					
 					if AI.AlarmPos then
+						Owner:SetAlarmPoint(AI.AlarmPos)
 						AI:CreateFaceAlarmBehavior(Owner)
 						return true
 					end
@@ -203,9 +206,7 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 					if ID ~= rte.NoMOID then
 						local FoundMO = MovableMan:GetMOFromID(ID)
 						if FoundMO then
-							if ID ~= FoundMO.RootID then
-								FoundMO = MovableMan:GetMOFromID(FoundMO.RootID)
-							end
+							FoundMO = FoundMO:GetRootParent()
 							
 							if not FoundMO.EquippedItem or not FoundMO.EquippedItem:HasObjectInGroup("Weapons - Explosive") then
 								FoundMO = nil	-- don't shoot at without weapons or actors using tools
@@ -627,7 +628,7 @@ end
 function HumanBehaviors.GoldDig(AI, Owner, Abort)
 	-- make sure our weapon have ammo before we start to dig, just in case we encounter an enemy while digging
 	if Owner.EquippedItem and (Owner.FirearmNeedsReload or Owner.FirearmIsEmpty) and Owner.EquippedItem:HasObjectInGroup("Weapons") then
-		Owner:ReloadFirearm()
+		Owner:ReloadFirearms()
 		
 		repeat
 			local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
@@ -935,10 +936,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	local itemsFound = 0
 	for Item in MovableMan.Items do	-- store all HeldDevices of the correct type and within a certain range in a table
 		local HD = ToHeldDevice(Item)
-		if HD and not HD:IsActivated() and HD.Vel.Largest < 3 and
-			SceneMan:ShortestDistance(Owner.Pos, HD.Pos, false).Largest < minDist and
-			not SceneMan:IsUnseen(HD.Pos.X, HD.Pos.Y, Owner.Team)
-		then
+		if HD and HD:IsPickupableBy(Owner) and not HD:IsActivated() and HD.Vel.Largest < 3 and SceneMan:ShortestDistance(Owner.Pos, HD.Pos, SceneMan.SceneWrapsX).Largest < minDist and not SceneMan:IsUnseen(HD.Pos.X, HD.Pos.Y, Owner.Team) then
 			table.insert(Devices, HD)
 			itemsFound = itemsFound + 1
 		end
@@ -1176,7 +1174,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}}
 	
 	while true do
-		if Owner.Vel.Largest > 2 then
+		if (Owner.Vel + Owner.PrevVel).Magnitude > 3 then
 			StuckTimer:Reset()
 		end
 		
@@ -1221,6 +1219,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil
 			WptList = nil -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
+			StuckTimer:Reset()
 			if AI.jump then
 				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false
@@ -1238,11 +1237,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 			else
 				if PosRand() < 0.2 then
-					if AI.lateralMoveState == Actor.LAT_LEFT then
-						nextLatMove = Actor.LAT_RIGHT
-					else
-						nextLatMove = Actor.LAT_LEFT
-					end
+					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT
 				end
 				
 				-- refuelling done
@@ -1669,21 +1664,21 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							
 							if Waypoint then	-- move towards the waypoint
 								-- control horizontal movement
-								if Owner.FGLeg or Owner.BGLeg then
-									if not AI.flying then
-										if CurrDist.X < -3 then
-											nextLatMove = Actor.LAT_LEFT
-										elseif CurrDist.X > 3 then
-											nextLatMove = Actor.LAT_RIGHT
-										else
-											nextLatMove = Actor.LAT_STILL
+								if not AI.flying then
+									if CurrDist.X < -3 then
+										nextLatMove = Actor.LAT_LEFT
+									elseif CurrDist.X > 3 then
+										nextLatMove = Actor.LAT_RIGHT
+									else
+										nextLatMove = Actor.LAT_STILL
+									end
+									if not (Owner.FGLeg and Owner.BGLeg) then
+										if CurrDist.X * Owner.FlipFactor > 5 and -CurrDist.Y > math.abs(CurrDist.X) then
+											AI.flying = true
+										elseif not AI.jump then
+											AI.proneState = AHuman.GOPRONE
 										end
 									end
-								elseif ((CurrDist.X < -5 and Owner.HFlipped) or (CurrDist.X > 5 and not Owner.HFlipped)) and math.abs(Owner.Vel.X) < 1 then
-									-- no legs, jump forward
-									AI.jump = true
-								elseif not AI.jump then
-									AI.proneState = AHuman.GOPRONE
 								end
 								
 								if Waypoint.Type == "right" then
@@ -2113,10 +2108,12 @@ function HumanBehaviors.GoProne(AI, Owner, TargetPos, targetID)
 	end
 	
 	AI.proneState = AHuman.PRONE
-	if Dist.X > 0 then
-		AI.lateralMoveState = Actor.LAT_RIGHT
-	else
-		AI.lateralMoveState = Actor.LAT_LEFT
+	if not Owner.EquippedBGItem then
+		if Dist.X > 0 then
+			AI.lateralMoveState = Actor.LAT_RIGHT
+		else
+			AI.lateralMoveState = Actor.LAT_LEFT
+		end
 	end
 	
 	return true
@@ -2124,21 +2121,21 @@ end
 
 -- get the projectile properties from the magazine
 function HumanBehaviors.GetProjectileData(Owner)
-	local Weapon = ToHDFirearm(Owner.EquippedItem)
-	local Round = Weapon.Magazine.NextRound
-	local Projectile = Round.NextParticle
-	local PrjDat = {MagazineName=Weapon.Magazine.PresetName}
-	
-	if Round.IsEmpty then	-- set default values if there is no particle
+	local PrjDat = {MagazineName = ""}
+	local Weapon, Round, Projectile
+	if Owner.EquippedItem and IsHDFirearm(Owner.EquippedItem) then
+		Weapon = ToHDFirearm(Owner.EquippedItem)
+		if Weapon.Magazine then
+			Round = Weapon.Magazine.NextRound
+			Projectile = Round.NextParticle
+			PrjDat.MagazineName = Weapon.Magazine.PresetName
+		end
+	end
+	if Round == nil or Round.IsEmpty then	-- set default values if there is no particle
 		PrjDat.g = 0
 		PrjDat.vel = 100
 		PrjDat.rng = math.huge
 	else
-		PrjDat.blast = Weapon:GetAIBlastRadius() -- check if this weapon have a blast radius
-		if PrjDat.blast > 0 then
-			PrjDat.exp = true	-- set this for legacy reasons
-		end
-		
 		-- find muzzle velocity
 		PrjDat.vel = Weapon:GetAIFireVel()
 		-- half of the theoretical upper limit for the total amount of material strength this weapon can destroy in 250ms
@@ -2149,6 +2146,12 @@ function HumanBehaviors.GetProjectileData(Owner)
 		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs	-- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel)
 		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg
+		
+		PrjDat.blast = Weapon:GetAIBlastRadius()
+		if PrjDat.blast > 0 or Weapon:IsInGroup("Weapons - Explosive") then
+			PrjDat.exp = true	-- set this for legacy reasons
+			PrjDat.pen = PrjDat.pen + 100
+		end
 		
 		-- estimate theoretical max range with ...
 		local lifeTime = Weapon:GetAIBulletLifeTime()
@@ -2318,7 +2321,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 						aimTarget = Dist.AbsRadAngle
 						AI.canHitTarget = true
 						if Owner.InventorySize > 0 then	-- we have more things in the inventory
-							if range < 60 and Owner:HasObjectInGroup("Tools - Diggers") then
+							if range < 60 and (Owner:HasObjectInGroup("Tools - Diggers") or Owner:HasObjectInGroup("Weapons - Melee")) then
 								AI:CreateHtHBehavior(Owner)
 								break
 							elseif Owner:EquipLoadedFirearmInGroup("Any", "Weapons - Explosive", true) then
@@ -2533,6 +2536,10 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 			if Owner.EquippedItem and ToHeldDevice(Owner.EquippedItem):IsReloading() then
 				ShootTimer:Reset()
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).Normalized
+				if AI.lateralMoveState == Actor.LAT_STILL then
+					AI.proneState = AHuman.PRONE
+					--AI.Ctrl:SetState(Controller.BODY_CROUCH, true)
+				end
 			elseif Owner:EquipFirearm(true) then
 				local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame, just in case the magazine is replenished by another script
 				if _abrt then return true end
@@ -2566,7 +2573,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 					-- we might have a different weapon equipped now check if FirearmIsEmpty again
 					if Owner.FirearmIsEmpty then
 						-- TODO: check if ducking is appropriate while reloading (when we can make the actor stand up reliably)
-						Owner:ReloadFirearm()
+						Owner:ReloadFirearms()
 						
 						-- increase the TargetLostTimer limit so we don't end this behavior before the reload is finished
 						if Owner.EquippedItem and IsHDFirearm(Owner.EquippedItem) then
@@ -2615,13 +2622,14 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 	end
 	
 	if Owner.FirearmIsEmpty then
-		Owner:ReloadFirearm()
+		Owner:ReloadFirearms()
 	end
 	
 	return true
 end
 
 -- throw a grenade at the selected target
+--TODO: This behavior should effectively have the actor close in on the target if out of range!
 function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 	local ThrowTimer = Timer()
 	local aimTime = Owner.ThrowPrepTime
@@ -2713,7 +2721,7 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 									end
 								elseif MO.ClassName == "ACrab" then
 									AI.Target = ToACrab(MO)
-									local Legs = AI.Target.LFGLeg or AI.Target.LFGLeg or AI.Target.LBGLeg or AI.Target.RFGLeg	-- the legs
+									local Legs = AI.Target.LeftFGLeg or AI.Target.RightFGLeg or AI.Target.LeftBGLeg or AI.Target.RightFGLeg	-- the legs
 									if Legs then
 										AimPoint = Legs.Pos
 									end
@@ -2742,14 +2750,21 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 					if Owner.ThrowableIsReady then
 						local Grenade = ToThrownDevice(Owner.EquippedItem)
 						if Grenade then
-							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, Grenade.MaxThrowVel)
+							local maxThrowVel = Grenade.MaxThrowVel
+							local minThrowVel = Grenade.MinThrowVel
+							if maxThrowVel == 0 then
+								maxThrowVel = Owner.FGArm.ThrowStrength + math.abs(Owner.AngularVel * 0.5) * math.cos(Owner.RotAngle)/math.sqrt(math.abs(Grenade.Mass) + 1)
+								minThrowVel = maxThrowVel * 0.2
+							end
+							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, maxThrowVel)
 							if aim then
+								aim = aim - Owner.RotAngle
 								ThrowTimer:Reset()
 								aimTime = Owner.ThrowPrepTime * RangeRand(0.9, 1.1)
 								local maxAim = aim
 								
 								-- try again with an average throw vel
-								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (Grenade.MaxThrowVel+Grenade.MinThrowVel)/2)
+								aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, (maxThrowVel + minThrowVel) * 0.5)
 								if aim then
 									aimTime = Owner.ThrowPrepTime * RangeRand(0.45, 0.55)
 								else
@@ -2825,25 +2840,18 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		end
 		-- use following sequence to attack either with a suited melee weapon or arms
 		local meleeDist = 0
-		local startPos = Vector(Owner.EyePos.X, Owner.EyePos.Y)
 		
-		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) then
-			meleeDist = Owner.Radius + 25
-			startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
-		elseif Owner.armSway then
-			local arm = Owner.FGArm or Owner.BGArm
-			if arm then
-				meleeDist = arm.Radius + arm.Radius
-				startPos = arm.Pos
-			end
+		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Breaching", true) then
+			meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25)
 		end
 		if meleeDist > 0 then
+			local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos
 			local dist = SceneMan:ShortestDistance(startPos, attackPos, false)
 			if dist.Magnitude < meleeDist then
 				AI.lateralMoveState = Actor.LAT_STILL
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized
-				AI.fire = true
+				AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1)
 			else
 				AI.fire = false
 			end
@@ -3054,7 +3062,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 			
 			ShootTimer:Reset()
 			if Owner.FirearmIsEmpty then
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 			end
 			
 			break -- stop this behavior when the mag is empty

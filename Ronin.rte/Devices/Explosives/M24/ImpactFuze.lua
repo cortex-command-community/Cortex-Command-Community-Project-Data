@@ -1,6 +1,6 @@
 function Create(self)
 	self.fuzeDelay = 3500;
-	self.fuzeDecreaseIncrement = 100;
+	self.fuzeDecreaseIncrement = 200;
 end
 function Update(self)
 	if self.fuze then

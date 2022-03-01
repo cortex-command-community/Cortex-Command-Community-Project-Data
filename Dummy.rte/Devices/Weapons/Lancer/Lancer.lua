@@ -5,14 +5,19 @@ function Create(self)
 	self.maxCharge = 10;
 	self.chargesPerSecond = self.RateOfFire/100;
 
-	self.sound = false;
+	self.bleepSoundPlayed = false;
 	self.setAngle = 0;
+	
+	self.fireSound = {};
+	self.fireSound.low = CreateSoundContainer("Dummy Lancer Fire Sound Low", "Dummy.rte");
+	self.fireSound.medium = CreateSoundContainer("Dummy Lancer Fire Sound Medium", "Dummy.rte");
+	self.fireSound.high = CreateSoundContainer("Dummy Lancer Fire Sound High", "Dummy.rte");
+	self.bleepSound = CreateSoundContainer("Dummy Lancer Bleep", "Dummy.rte");
 end
 function Update(self)
 	if self.FiredFrame then
-
 		self.setAngle = self.setAngle + self.chargeCounter/(20 * (1 + self.setAngle));
-		self.sound = nil;
+		self.bleepSoundPlayed = false;
 		local actor = MovableMan:GetMOFromID(self.RootID);
 
 		local charge = math.floor(self.chargeCounter * 0.8);
@@ -40,8 +45,8 @@ function Update(self)
 			smokePar.IgnoresTeamHits = true;
 			MovableMan:AddParticle(smokePar);
 		end
-		local sound = self.chargeCounter > highCharge and "High" or (self.chargeCounter < lowCharge and "Low" or "Medium");
-		AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/Fire".. sound ..".flac", self.MuzzlePos);
+		local sound = self.chargeCounter > highCharge and self.fireSound.high or (self.chargeCounter < lowCharge and self.fireSound.low or self.fireSound.medium);
+		sound:Play(self.MuzzlePos);
 
 		self.chargeCounter = 1;
 	else
@@ -49,8 +54,8 @@ function Update(self)
 			self.chargeCounter = math.min(self.chargeCounter + ((self.chargeTimer.ElapsedSimTimeMS/1000) * self.chargesPerSecond), self.maxCharge);
 			self.chargeTimer:Reset();
 
-			if self.chargeCounter == self.maxCharge and not self.sound then
-				self.sound = AudioMan:PlaySound("Dummy.rte/Devices/Weapons/Lancer/Sounds/FullChargeBleep.flac", self.Pos);
+			if self.chargeCounter == self.maxCharge and self.bleepSoundPlayed == false then
+				self.bleepSoundPlayed = self.bleepSound:Play(self.Pos);
 			end
 		end
 	end

@@ -2,7 +2,6 @@ function Create(self)
 
 	self.alliedTeam = -1;
 	self.lastAngle = self.RotAngle;
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 	
 	self.deployRange = 100;
 	
@@ -12,7 +11,6 @@ end
 function Update(self)
 
 	self.lastAngle = self.RotAngle;
-	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 
 	if not self:GetParent() then
 		if self.alliedTeam == -1 then
@@ -34,7 +32,7 @@ function Update(self)
 			for i = 1, self.mineCount do
 				local mine = CreateMOSRotating("Anti Personnel Mine Active");
 				mine.Pos = self.Pos;
-				mine.Vel = self.Vel/2 + Vector(self.Vel.X, self.Vel.Y):RadRotate(spread * 0.6 - (spread * (i/self.mineCount)) + RangeRand(-0.1, 0.1)):SetMagnitude(20);
+				mine.Vel = self.Vel * 0.5 + Vector(self.Vel.X, self.Vel.Y):RadRotate(spread * 0.6 - (spread * (i/self.mineCount)) + RangeRand(-0.1, 0.1)):SetMagnitude(20);
 				mine.Sharpness = self.alliedTeam;
 				MovableMan:AddParticle(mine);
 				self:GibThis();
@@ -44,24 +42,25 @@ function Update(self)
 end
 
 function Destroy(self)
+	if MovableMan:ValidMO(self) then
+		local gibA = CreateMOSRotating("Cluster Mine Bomb Gib A");
+		gibA.Pos = self.Pos;
+		gibA.Vel = self.Vel;
+		gibA.RotAngle = self.lastAngle;
+		MovableMan:AddParticle(gibA);
 
-	local gibA = CreateMOSRotating("Cluster Mine Bomb Gib A");
-	gibA.Pos = self.Pos;
-	gibA.Vel = self.Vel;
-	gibA.RotAngle = self.lastAngle;
-	MovableMan:AddParticle(gibA);
+		local gibB = CreateMOSRotating("Cluster Mine Bomb Gib B");
+		gibB.Pos = self.Pos + Vector(1, -3):RadRotate(self.lastAngle);
+		gibB.Vel = self.Vel + Vector(0, 20):RadRotate(self.lastAngle);
+		gibB.AngularVel = 10;
+		gibB.RotAngle = self.lastAngle;
+		MovableMan:AddParticle(gibB);
 
-	local gibB = CreateMOSRotating("Cluster Mine Bomb Gib B");
-	gibB.Pos = self.Pos + Vector(1, -3):RadRotate(self.lastAngle);
-	gibB.Vel = self.Vel + Vector(0, 20):RadRotate(self.lastAngle);
-	gibB.AngularVel = 10;
-	gibB.RotAngle = self.lastAngle;
-	MovableMan:AddParticle(gibB);
-
-	local gibC = CreateMOSRotating("Cluster Mine Bomb Gib C");
-	gibC.Pos = self.Pos + Vector(1, 3):RadRotate(self.lastAngle);
-	gibC.Vel = self.Vel + Vector(0, -20):RadRotate(self.lastAngle);
-	gibC.AngularVel = -10;
-	gibC.RotAngle = self.lastAngle;
-	MovableMan:AddParticle(gibC);
+		local gibC = CreateMOSRotating("Cluster Mine Bomb Gib C");
+		gibC.Pos = self.Pos + Vector(1, 3):RadRotate(self.lastAngle);
+		gibC.Vel = self.Vel + Vector(0, -20):RadRotate(self.lastAngle);
+		gibC.AngularVel = -10;
+		gibC.RotAngle = self.lastAngle;
+		MovableMan:AddParticle(gibC);
+	end
 end

@@ -13,16 +13,21 @@ function Update(self)
 		local explosive = CreateMOSRotating(self.PresetName .. " Active");
 		explosive.Pos = self.Pos;
 		explosive.Vel = self.Vel;
-		explosive.RotAngle = self.Vel.AbsRadAngle;
+		explosive.RotAngle = self.Vel.AbsRadAngle + (self.HFlipped and math.pi * self.FlipFactor or 0);
+		explosive.HFlipped = self.HFlipped;
 		explosive.Sharpness = self.alliedTeam;
 		MovableMan:AddParticle(explosive);
 		
 		if self.user and IsAHuman(self.user) then
-			if not self.user:HasObject("Detonator") then
-				self.user:AddInventoryItem(CreateHDFirearm("Base.rte/Detonator"));
-			end
-			if not self.user:EquipNamedDevice(self.PresetName, true) then
-				self.user:EquipNamedDevice("Detonator", true);
+			if self.user:IsPlayerControlled() then
+				if not self.user:HasObject("Detonator") then
+					self.user:AddInventoryItem(CreateHDFirearm("Base.rte/Detonator"));
+				end
+				if not self.user:EquipNamedDevice(self.PresetName, true) then
+					self.user:EquipNamedDevice("Detonator", true);
+				end
+			else
+				explosive:SetNumberValue("AutoDetonate", 1);
 			end
 		end
 		self.ToDelete = true;

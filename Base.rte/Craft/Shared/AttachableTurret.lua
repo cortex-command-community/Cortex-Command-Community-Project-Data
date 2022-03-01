@@ -15,8 +15,13 @@ end
 function Update(self)
 	local parent = self:GetParent();
 	if parent then
+		--Aim away from parent according to offset
+		self.InheritedRotAngleOffset = (math.pi * 0.5 * self.verticalFactor + self.ParentOffset.AbsRadAngle)/(1 + self.verticalFactor) - self.rotation;
 		if IsActor(parent) then
 			parent = ToActor(parent);
+			if parent.Status ~= Actor.STABLE then
+				return;
+			end
 			local controller = parent:GetController();
 				
 			if controller:IsState(Controller.MOVE_RIGHT) then
@@ -26,7 +31,7 @@ function Update(self)
 				self.rotation = self.rotation - self.turnSpeed;
 			end
 			--Spread / tighten aim when moving up / down
-			if controller:IsState(Controller.MOVE_DOWN) then
+			if controller:IsState(Controller.MOVE_DOWN) and self.ParentOffset.X ~= 0 then
 				self.verticalFactor = self.verticalFactor - self.turnSpeed;
 			end
 		end
@@ -40,9 +45,6 @@ function Update(self)
 		else
 			self.verticalFactor = 0;
 		end
-		--Aim directly away from parent
-		local posTrace = SceneMan:ShortestDistance(parent.Pos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(self.searchRange * 0.5);
-		self.RotAngle = (1.57 * self.verticalFactor + posTrace.AbsRadAngle + (parent.HFlipped and math.pi or 0))/(1 + self.verticalFactor) - self.rotation;
 		if self.areaMode then	--Area Mode
 			local aimPos = self.Pos + Vector((self.searchRange * 0.5), 0):RadRotate(self.RotAngle);
 			--Debug: visualize aim area
@@ -57,8 +59,7 @@ function Update(self)
 				end
 				--Check that the target isn't obscured by terrain
 				local aimTrace = SceneMan:ShortestDistance(self.Pos, aimTarget.Pos, SceneMan.SceneWrapsX);
-				local terrCheck = SceneMan:CastStrengthRay(self.Pos, aimTrace, 30, Vector(), 5, 0, SceneMan.SceneWrapsX);
-				if terrCheck == false then
+				if not SceneMan:CastStrengthRay(self.Pos, aimTrace, 30, Vector(), 5, 0, SceneMan.SceneWrapsX) then
 					self.RotAngle = aimTrace.AbsRadAngle;
 					--Debug: visualize aim trace
 					if self.showAim then

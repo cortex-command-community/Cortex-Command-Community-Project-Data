@@ -7,7 +7,7 @@ function Create(self)
 
 	self.initFuse = math.random(4000, 5000);
 	self.clusterCount = 8;
-	self.clusterFuse = 1200;
+	self.clusterFuse = 1000;
 end
 function Update(self)
 	if not self.fuseTriggered then
@@ -41,7 +41,7 @@ function Update(self)
 			for i = 1, self.clusterCount do
 				local minibomb = CreateAEmitter("Imperatus Scatter Bomb Piece");
 				minibomb.Pos = self.Pos;
-				minibomb.Sharpness = self.clusterFuse + (self.clusterFuse/20) * i;
+				minibomb.Sharpness = self.clusterFuse + 75 * i;
 				if #self.angleList > 0 then
 					minibomb.Vel = Vector(10 + math.random(10), 0):RadRotate(self.angleList[math.random(#self.angleList)] + RangeRand(-0.1, 0.1));
 				else

@@ -26,7 +26,7 @@ function Update(self)
 			local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 			if moCheck ~= rte.NoMOID then
 				local actor = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-				if MovableMan:IsActor(actor) and actor.Team ~= self.Team then
+				if MovableMan:IsActor(actor) and actor.Team ~= self.Team and actor.Radius > radius then
 					self:GibThis();
 					break;
 				end

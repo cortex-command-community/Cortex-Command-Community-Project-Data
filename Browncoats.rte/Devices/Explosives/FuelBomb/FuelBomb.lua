@@ -3,7 +3,7 @@ function Create(self)
 	self.explodeTimer = Timer();
 	self.partList = {};
 
-	self.explodeTime = 2000;
+	self.explodeTime = 1500;
 	self.numOfParticles = 40;
 	self.particlesPerOil = 5;
 
@@ -45,13 +45,12 @@ function Update(self)
 			if self.partList[i] and MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
 				if self.explodeTimer:IsPastSimMS(self.explodeTime + self.partList[i].queue) then
 					local fire = CreatePEmitter("Flame ".. math.random(2) .." Hurt");
-					fire.Pos = Vector(self.partList[i].Pos.X, self.partList[i].Pos.Y);
-					fire.Vel = self.Vel;
 					if self.partList[i].target and self.partList[i].target.ID ~= rte.NoMOID and not self.partList[i].target.ToDelete then
-						fire.Pos = self.partList[i].target.Pos + self.partList[i].stickPos;
-						fire.Vel = Vector(-self.partList[i].stickPos.X, -self.partList[i].stickPos.Y);
-						fire.Sharpness = self.partList[i].target.ID * 0.001;
+						fire.Pos = self.partList[i].target.Pos + self.partList[i].stickOffset;
+						fire.Vel = Vector(-self.partList[i].stickOffset.X, -self.partList[i].stickOffset.Y):SetMagnitude(3);
 					else
+						fire.Pos = Vector(self.partList[i].Pos.X, self.partList[i].Pos.Y);
+						fire.Vel = self.Vel;
 						fire.Lifetime = math.random(1500, 3000);
 					end
 					MovableMan:AddParticle(fire);
@@ -87,7 +86,7 @@ function Update(self)
 
 					if math.random() < 0.01 then
 						self.partList[i].Vel = self.partList[i].target.Vel;
-						self.partList[i].Pos = self.partList[i].target.Pos - Vector(self.partList[i].stickPos.X, self.partList[i].stickPos.Y):RadRotate(self.partList[i].target.RotAngle - self.partList[i].targetStickAngle);
+						self.partList[i].Pos = self.partList[i].target.Pos + Vector(self.partList[i].stickOffset.X, self.partList[i].stickOffset.Y):RadRotate(self.partList[i].target.RotAngle - self.partList[i].targetStickAngle);
 					end
 				else
 					self.partList[i].target = nil;
@@ -102,7 +101,7 @@ function Update(self)
 
 							self.partList[i].targetStickAngle = mo.RotAngle;
 
-							self.partList[i].stickPos = SceneMan:ShortestDistance(self.partList[i].Pos, mo.Pos, SceneMan.SceneWrapsX) * 0.8;
+							self.partList[i].stickOffset = SceneMan:ShortestDistance(mo.Pos, self.partList[i].Pos, SceneMan.SceneWrapsX) * 0.8;
 						end
 					end
 				end

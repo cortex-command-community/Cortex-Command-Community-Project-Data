@@ -1,26 +1,30 @@
 function Create(self)
 	self.origActivationDelay = self.ActivationDelay;
-	self.origDeactivationDelay = self.DeactivationDelay;
+	self.spinDownTimer = Timer();
+	self.currentlySpinningDown = false;
+	
 	self.maxRateOfFire = self.RateOfFire;
 	self.minRateOfFire = self.maxRateOfFire * 0.5;
 	self.RateOfFire = self.minRateOfFire;
 	self.increasePerShot = 1.05;
 	self.decreasePerFrame = 0.99;
-	self.spinTimer = Timer();
 end
 function Update(self)
+	if not self.currentlySpinningDown and not self:IsActivated() and not self:IsReloading() and self.ActiveSound:IsBeingPlayed() then
+		self.spinDownTimer:Reset();
+		self.currentlySpinningDown = true;
+		self.activationDelay = self.origActivationDelay;
+	elseif (self.currentlySpinningDown and self.spinDownTimer:IsPastSimMS(self.DeactivationDelay)) or self:IsReloading() then
+		self.ActivationDelay = self.origActivationDelay;
+		self.currentlySpinningDown = false;
+	elseif self.currentlySpinningDown and self:IsActivated() then
+		self.ActivationDelay = self.origActivationDelay * self.spinDownTimer.ElapsedSimTimeMS / self.DeactivationDelay;
+		self.currentlySpinningDown = false;
+	end
+
 	if self.FiredFrame then
 		self.RateOfFire = math.min(self.RateOfFire * self.increasePerShot, self.maxRateOfFire);
-		self.ActivationDelay = 0;
-		self.DeactivationDelay = self.origDeactivationDelay * 9;
-		self.spinTimer:Reset();
-	else
-		if not self:IsActivated() then
-			self.RateOfFire = math.max(self.RateOfFire * self.decreasePerFrame, self.minRateOfFire);
-		end
-		if self.RoundInMagCount == 0 or self.spinTimer:IsPastSimMS(self.DeactivationDelay * 0.9) then
-			self.ActivationDelay = self.origActivationDelay;
-			self.DeactivationDelay = self.origDeactivationDelay;
-		end
+	elseif not self:IsActivated() then
+		self.RateOfFire = math.max(self.RateOfFire * self.decreasePerFrame, self.minRateOfFire);
 	end
 end

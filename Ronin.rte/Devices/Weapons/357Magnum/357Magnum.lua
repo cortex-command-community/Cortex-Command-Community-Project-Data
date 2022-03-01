@@ -26,7 +26,7 @@ function Update(self)
 					self:Deactivate();
 					self.triggerPulled = true;
 
-					self.origStanceOffset = Vector(8, 5);	
+					self.StanceOffset = Vector(8, 5);	
 					self:SetNumberValue("CowboyMode", 3);	--Begin draw phase
 				end
 			else
@@ -49,7 +49,7 @@ function Update(self)
 
 			if self:GetNumberValue("CowboyMode") == 1 then		--Setup phase
 				self.RateOfFire = self.rof * self.rofBoost;
-				self.origStanceOffset = Vector(3, 10);
+				self.StanceOffset = Vector(3, 10);
 				self:SetNumberValue("CowboyMode", 2);		--Setup done
 
 				self.drawGunAngle = 1.4;
@@ -71,9 +71,9 @@ function Update(self)
 			end
 			if self:IsReloading() then
 				self.RotAngle = self.prevAngle + (self.FlipFactor * 0.42 * self.drawGunSpeed);
-				local spinOffset = Vector(-2 * self.FlipFactor, -2);
 				self.JointOffset = Vector(2, 2);
-				self.Pos = self.Pos - spinOffset + spinOffset:RadRotate(self.RotAngle);
+				local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
+				self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-self.RotAngle);
 				self.prevAngle = self.RotAngle;
 				self:SetNumberValue("CowboyMode", 5);
 			else
@@ -90,7 +90,7 @@ function Update(self)
 		self:SetDualWieldable(true);
 		self.RateOfFire = self.rof;	
 		self.JointOffset = Vector(-2, 3);
-		self.origStanceOffset = Vector(12, 0);
+		self.StanceOffset = Vector(12, 0);
 		self.drawGunAngle = 0;
 	end
 end

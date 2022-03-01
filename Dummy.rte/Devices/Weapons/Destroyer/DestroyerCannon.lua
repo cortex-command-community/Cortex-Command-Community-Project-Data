@@ -43,7 +43,7 @@ function Update(self)
 			if self:DoneReloading() then
 				self:Deactivate();
 			end
-			if self:IsActivated() then
+			if self:IsActivated() and not self.forceFire then
 				self:Deactivate();
 				
 				if self.activeSound:IsBeingPlayed() then
@@ -59,7 +59,7 @@ function Update(self)
 					--CPU actor will release the beam at full power
 					local parent = self:GetRootParent();
 					if parent and IsActor(parent) and not ToActor(parent):IsPlayerControlled() then
-						ToActor(parent):GetController():SetState(Controller.WEAPON_FIRE, false);
+						self.forceFire = true;
 					end
 				end
 				self.Magazine.RoundCount = math.ceil(self.charge * 100);
@@ -87,6 +87,8 @@ function Update(self)
 		
 		self.charge = 0;
 		self.activeSound:Stop();
+		
+		self.forceFire = false;
 	end
 end
 function Destroy(self)

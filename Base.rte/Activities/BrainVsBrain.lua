@@ -265,18 +265,21 @@ end
 
 
 function BrainvsBrain:EndActivity()
-	-- Play sad music if no humans are left
-	if self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	else
-		-- But if humans are left, then play happy music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 end
 
@@ -380,12 +383,12 @@ function BrainvsBrain:UpdateActivity()
 				
 				if red_players < 1 and green_players > 0 then
 					self.WinnerTeam = Activity.TEAM_2
-					MovableMan:KillAllActors(self.WinnerTeam)
+					MovableMan:KillAllEnemyActors(self.WinnerTeam)
 					ActivityMan:EndActivity()
 					return
 				elseif green_players < 1 and red_players > 0 then
 					self.WinnerTeam = Activity.TEAM_1
-					MovableMan:KillAllActors(self.WinnerTeam)
+					MovableMan:KillAllEnemyActors(self.WinnerTeam)
 					ActivityMan:EndActivity()
 					return
 				elseif green_players < 1 and red_players < 1 then
@@ -537,11 +540,12 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 	local Craft = RandomACDropShip("Craft", self.TechName[self.CPUTeam])	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -565,8 +569,7 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -593,11 +596,16 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -621,8 +629,7 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -649,11 +656,16 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -675,8 +687,7 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -703,11 +714,16 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -729,8 +745,7 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then 
 					break
 				end
 			end
@@ -749,11 +764,12 @@ function BrainvsBrain:CreateBombDrop(bombPosX)
 	local Craft = RandomACDropShip("Craft", self.CPUTechID)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
@@ -763,8 +779,7 @@ function BrainvsBrain:CreateBombDrop(bombPosX)
 		for _ = 1, math.random(3, 6) do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.CPUTechID))
 			
-			-- Stop adding bombs when exceeding the weight limit
-			if Craft.Mass > craftMaxMass then 
+			if Craft.InventoryMass > craftMaxMass then 
 				break
 			end
 		end
@@ -800,18 +815,23 @@ end
 
 -- Get any Actor from the CPU's native tech
 function BrainvsBrain:CreateRandomInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors", self.TechName[team])
+	local Passenger = RandomAHuman("Actors", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.TechName[team]))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		if math.random() < 0.4 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			if math.random() < 0.5 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			end
-		elseif math.random() < 0.5 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]))
+		local rand = math.random();
+		if rand < 0.25 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+		elseif rand < 0.50 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+		elseif rand < 0.75 then
+			Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.TechName[team]));
+		else
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+		if math.random() < 0.05 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -822,13 +842,18 @@ function BrainvsBrain:CreateRandomInfantry(team, mode)
 end
 
 function BrainvsBrain:CreateLightInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Light", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+		local rand = math.random();
+		if rand < 0.5 then
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+		elseif rand < 0.8 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -840,7 +865,7 @@ end
 
 function BrainvsBrain:CreateDefender(team)
 	local name = self.TechName[team] or "Dummy"
-	local	Passenger = RandomAHuman("Actors - Light", name)
+	local Passenger = RandomAHuman("Actors - Light", name)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", name))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", name))
@@ -857,19 +882,25 @@ function BrainvsBrain:CreateDefender(team)
 end
 
 function BrainvsBrain:CreateHeavyInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.TechName[team]))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
-			if math.random() < 0.4 then
-				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
+			if math.random() < 0.25 then
+				Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+			elseif math.random() < 0.35 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+			if math.random() < 0.3 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.TechName[team]));
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+			end
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -880,27 +911,18 @@ function BrainvsBrain:CreateHeavyInfantry(team, mode)
 end
 
 function BrainvsBrain:CreateMediumInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
-	end
-end
-
-function BrainvsBrain:CreateScoutInfantry(team, mode)
-	local	Passenger = RandomAHuman("Actors - Light", self.TechName[team])
-	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
-		
-		if math.random() < 0.6 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
+		end
+		if math.random() < 0.5 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
@@ -910,17 +932,20 @@ function BrainvsBrain:CreateScoutInfantry(team, mode)
 	end
 end
 
-function BrainvsBrain:CreateSniper(team, mode)
-	local	Passenger
-	if math.random() < 0.7 then
-		Passenger = RandomAHuman("Actors - Light", self.TechName[team])
-	else
-		Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
-	end
-	
+function BrainvsBrain:CreateScoutInfantry(team, mode)
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.TechName[team]))
+		if math.random() < 0.15 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.TechName[team]))
+		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		else
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
+		end
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO
@@ -932,21 +957,23 @@ end
 function BrainvsBrain:CreateEngineer(team, mode)
 	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
-		Passenger:AddInventoryItem(CreateHDFirearm("Medium Digger", "Base.rte"))
+		if math.random() < 0.7 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
+		else
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
+			local rand = math.random();
+			if rand < 0.2 then
+				Passenger:AddInventoryItem(RandomHeldDevice("Shields", self.TechName[team]));
+			elseif rand < 0.4 then
+				Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.TechName[team]));
+			end
+		end
+		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]));
 		
 		-- Set AI mode and team so it knows who and what to fight for!
 		Passenger.AIMode = mode or Actor.AIMODE_GOLDDIG
-		Passenger.Team = team
-		return Passenger
-	end
-end
-
-function BrainvsBrain:CreateAntiAir(team, mode)
-	local Passenger = RandomACrab("Anti-Air", self.TechName[team])
-	if Passenger then
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_SENTRY
 		Passenger.Team = team
 		return Passenger
 	end

@@ -44,7 +44,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 					FoundMO = ToACRocket(FoundMO)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
-				elseif FoundMO.ClassName == "ADoor" and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
+				elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then
 					FoundMO = ToActor(FoundMO)
@@ -79,7 +79,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 		if AI.ReloadTimer:IsPastSimMS(8000) then	-- check if we need to reload
 			AI.ReloadTimer:Reset()
 			if Owner.FirearmNeedsReload then
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 			end
 		end
 	end
@@ -89,8 +89,9 @@ end
 function CrabBehaviors.Sentry(AI, Owner, Abort)
 	local sweepUp = true
 	local sweepDone = false
-	local maxAng = Owner.AimRange
-	local minAng = -maxAng
+	-- to-do: refer to upper/lower limits!
+	local maxAng = Owner.AimRange--Owner.AimRangeUpperLimit
+	local minAng = -maxAng--Owner.AimRangeLowerLimit
 	local aim
 	
 	if AI.OldTargetPos then	-- try to reacquire an old target
@@ -535,7 +536,7 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 			
 			ShootTimer:Reset()
 			if Owner.FirearmIsEmpty then
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 				aimError = RangeRand(-0.14, 0.14) * AI.aimSkill
 				aimTime = RangeRand(220, 330) * AI.aimSpeed + 50
 				if Owner.FirearmActivationDelay > 0 then
@@ -680,7 +681,7 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 			AI.fire = false
 			
 			if Owner.FirearmIsEmpty then
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 			end
 			
 			break -- stop this behavior when the mag is empty

@@ -85,18 +85,21 @@ end
 
 
 function Survival:EndActivity()
-	-- Play sad music if no humans are left
-	if self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	else
-		-- But if humans are left, then play happy music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 end
 
@@ -207,7 +210,11 @@ function Survival:UpdateActivity()
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
 					if math.random() < 0.5 then
-						passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
+						passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTechName));
+					elseif math.random() < 0.8 then
+						passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+					else
+						passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.CPUTechName));
 					end
 				end
 				-- Set AI mode and team so it knows who and what to fight for!
@@ -215,7 +222,7 @@ function Survival:UpdateActivity()
 				passenger.Team = self.CPUTeam;
 
 				-- Check that we can afford to buy and to carry the weight of this passenger
-				if ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3) <= self:GetTeamFunds(self.CPUTeam) and (ship.Mass + passenger.Mass) <= ship.MaxMass then
+				if ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3) <= self:GetTeamFunds(self.CPUTeam) and passenger.Mass <= ship.MaxInventoryMass then
 					-- Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
 					passenger = nil;

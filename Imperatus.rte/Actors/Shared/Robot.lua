@@ -1,46 +1,19 @@
 function Create(self)
-	self.inputLagMS = self:NumberValueExists("InputLagMS") and self:GetNumberValue("InputLagMS") or 100;
+	self.walkSpeed = self:GetLimbPathSpeed(1);
 end
 function Update(self)
-	if self.controller:IsState(Controller.MOVE_RIGHT) then
-		if self.moveTimer then
-			if self.moveTimer:IsPastSimMS(self.inputLagMS) then
-				self.moveTo = 1;
-				self.moveTimer:Reset();
-			else
-				self.controller:SetState(Controller.MOVE_RIGHT, false);
-			end
-		else
-			self.moveTimer = Timer();
-			self.controller:SetState(Controller.MOVE_RIGHT, self.HFlipped);
+	if self.Health > 0 then
+		local walkSpeedScalar = 2.3;
+		local legs = {self.FGLeg, self.BGLeg};
+		for _, leg in pairs(legs) do
+			walkSpeedScalar = walkSpeedScalar - (leg and leg.Frame/leg.FrameCount or 1.1);
 		end
-	end
-	if self.controller:IsState(Controller.MOVE_LEFT) then
-		if self.moveTimer then
-			if self.moveTimer:IsPastSimMS(self.inputLagMS) then
-				self.moveTo = -1;
-				self.moveTimer:Reset();
-			else
-				self.controller:SetState(Controller.MOVE_LEFT, false);
-			end
-		else
-			self.moveTimer = Timer();
-			self.controller:SetState(Controller.MOVE_LEFT, not self.HFlipped);
+		self:SetLimbPathSpeed(1, self.walkSpeed * walkSpeedScalar);
+		--[[Display health as relative to physical damage? (to-do this in source instead)
+		if self.Head and (self.FGArm or self.BGArm or self.FGLeg or self.BGLeg) then
+			local limbs = {self.Head, self.FGArm, self.BGArm, self.FGLeg, self.BGLeg};
+			self.Health = self.MaxHealth * (1 - self.WoundCount/self:GetGibWoundLimit(true, false, false)) * #limbs/5;
 		end
-	end
-	if self.moveTo then
-		self.controller:SetState((self.moveTo == 1 and Controller.MOVE_RIGHT or Controller.MOVE_LEFT), true);
-		if self.moveTimer then
-			if self.moveTimer:IsPastSimMS(self.inputLagMS) then
-				self.moveTimer = nil;
-				self.moveTo = nil;
-			end
-		else
-			self.moveTimer = Timer();
-		end
-	end
-	if self.Head then
-		local inheritAngleRatio = 4;
-		self.Head.RotAngle = (self.Head.RotAngle * inheritAngleRatio + self.RotAngle)/(1 + inheritAngleRatio);
+		]]--
 	end
 end

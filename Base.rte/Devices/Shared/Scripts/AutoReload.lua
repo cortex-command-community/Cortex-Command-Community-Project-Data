@@ -1,8 +1,5 @@
 function Update(self)
-	if self.RoundInMagCount == 0 then
-		local actor = MovableMan:GetMOFromID(self.RootID);
-		if MovableMan:IsActor(actor) then
-			self:Reload();
-		end
+	if self.RoundInMagCount == 0 and IsActor(self:GetRootParent()) then
+		self:Reload();
 	end
 end

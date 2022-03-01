@@ -242,18 +242,21 @@ end
 
 
 function Siege:EndActivity()
-	-- Play sad music if no humans are left
-	if self:HumanBrainCount() == 0 then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
-	else
-		-- But if humans are left, then play happy music!
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
+	if not self:IsPaused() then
+		-- Play sad music if no humans are left
+		if self:HumanBrainCount() == 0 then
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		else
+			-- But if humans are left, then play happy music!
+			AudioMan:ClearMusicQueue();
+			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
+			AudioMan:QueueSilence(10);
+			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+		end
 	end
 end
 
@@ -331,7 +334,7 @@ function Siege:UpdateActivity()
 		
 		if players < 1 then
 			self.WinnerTeam = self.CPUTeam
-			MovableMan:KillAllActors(self.WinnerTeam)
+			MovableMan:KillAllEnemyActors(self.WinnerTeam)
 			ActivityMan:EndActivity()
 			return
 		end
@@ -441,7 +444,7 @@ function Siege:UpdateActivity()
 		
 		if troops < 2 then
 			self.WinnerTeam = self.PlayerTeam
-			MovableMan:KillAllActors(self.WinnerTeam)
+			MovableMan:KillAllEnemyActors(self.WinnerTeam)
 			ActivityMan:EndActivity()
 			return
 		end
@@ -470,11 +473,12 @@ function Siege:CreateHeavyDrop(xPosLZ, techName)
 	local Craft = RandomACDropShip("Craft", techName)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -494,8 +498,7 @@ function Siege:CreateHeavyDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -513,11 +516,12 @@ function Siege:CreateSWATDrop(xPosLZ, techName)
 	local Craft = RandomACDropShip("Craft", techName)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -531,8 +535,7 @@ function Siege:CreateSWATDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass * 0.75 then 
+				if Craft.InventoryMass > craftMaxMass * 0.75 then 
 					break
 				end
 			end
@@ -551,11 +554,12 @@ function Siege:CreateArtilleryDrop(xPosLZ, techName)
 	local Craft = RandomACDropShip("Craft", techName)	-- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -568,8 +572,7 @@ function Siege:CreateArtilleryDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -594,11 +597,16 @@ function Siege:CreateMediumDrop(xPosLZ, techName)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -618,8 +626,7 @@ function Siege:CreateMediumDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -644,11 +651,16 @@ function Siege:CreateLightDrop(xPosLZ, techName)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -666,8 +678,7 @@ function Siege:CreateLightDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -692,11 +703,16 @@ function Siege:CreateEngineerDrop(xPosLZ, techName)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -710,8 +726,7 @@ function Siege:CreateEngineerDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -737,11 +752,16 @@ function Siege:CreateScoutDrop(xPosLZ, techName)
 	
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
-		local craftMaxMass = Craft.MaxMass
+		local craftMaxMass = Craft.MaxInventoryMass
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge
 		elseif craftMaxMass < 1 then
-			craftMaxMass = Craft.Mass + 400	-- MaxMass not defined
+			if Craft.ClassName == "ACDropship" then
+				Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+			else
+				Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+			end
+			craftMaxMass = Craft.MaxInventoryMass
 		end
 		
 		Craft.Team = self.CPUTeam
@@ -759,8 +779,7 @@ function Siege:CreateScoutDrop(xPosLZ, techName)
 				
 				Craft:AddInventoryItem(Passenger)
 				
-				-- Stop adding actors when exceeding the weight limit
-				if Craft.Mass > craftMaxMass then 
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end

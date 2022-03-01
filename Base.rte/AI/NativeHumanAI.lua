@@ -18,7 +18,6 @@ function NativeHumanAI:Create(Owner)
 
 	Members.squadShoot = false
 	Members.useMedikit = false
-	Members.scatter = false
 
 	-- timers
 	Members.AirTimer = Timer()
@@ -251,6 +250,7 @@ function NativeHumanAI:Update(Owner)
 	-- look for targets
 	local FoundMO, HitPoint = self.SpotTargets(self, Owner, self.skill)	
 	if FoundMO then
+		--TODO: decide whether to attack based on the material strength of found MO
 		if self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
 			self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y)
 			self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false)
@@ -278,8 +278,7 @@ function NativeHumanAI:Update(Owner)
 					FoundMO = ToACRocket(FoundMO)
 				elseif FoundMO.ClassName == "ACDropShip" then
 					FoundMO = ToACDropShip(FoundMO)
-				elseif FoundMO.ClassName == "ADoor" and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached()
-				and (Owner:EquipNamedDevice("Heavy Digger", true) or (Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity)) then
+				elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
 					FoundMO = ToADoor(FoundMO)
 				elseif FoundMO.ClassName == "Actor" then
 					FoundMO = ToActor(FoundMO)
@@ -318,13 +317,14 @@ function NativeHumanAI:Update(Owner)
 		if self.ReloadTimer:IsPastSimMS(8000) then	-- check if we need to reload
 			if Owner.FirearmNeedsReload then
 				self.ReloadTimer:Reset()
-				Owner:ReloadFirearm()
+				Owner:ReloadFirearms()
 			elseif not HumanBehaviors.EquipPreferredWeapon(self, Owner) then	-- make sure we equip a preferred or a primary weapon if we have one
 				self.ReloadTimer:Reset()
 			end
 		end
 	end
-
+	
+	self.squadShoot = false
 	if Owner.MOMoveTarget then
 		-- make the last waypoint marker stick to the MO we are following
 		if MovableMan:ValidMO(Owner.MOMoveTarget) then
@@ -346,67 +346,76 @@ function NativeHumanAI:Update(Owner)
 					end
 					
 					if Leader then
-						if Leader.EquippedItem and SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest < (Leader.Height + Owner.Height) * 0.5 then
+						local dist = SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest
+						local radius = (Leader.Height + Owner.Height) * 0.5
+						if dist < radius then
+							local copyControls = {Controller.MOVE_LEFT, Controller.MOVE_RIGHT, Controller.BODY_JUMPSTART, Controller.BODY_JUMP, Controller.BODY_CROUCH}
+							for _, control in pairs(copyControls) do
+								local state = Leader:GetController():IsState(control)
+								self.Ctrl:SetState(control, state)
+							end
+							if Leader.EquippedItem then
 
-							if IsHDFirearm(Leader.EquippedItem) then
+								if IsHDFirearm(Leader.EquippedItem) then
 
-								local LeaderWeapon = ToHDFirearm(Leader.EquippedItem)
-								if LeaderWeapon:IsWeapon() then
-									local AimDelta = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false)
-									self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Leader.ViewPoint+AimDelta, false).Normalized
-									self.deviceState = AHuman.POINTING
+									local LeaderWeapon = ToHDFirearm(Leader.EquippedItem)
+									if LeaderWeapon:IsWeapon() then
+										local AimDelta = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false)
+										self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Leader.ViewPoint + AimDelta, false).Normalized
+										self.deviceState = AHuman.POINTING
 
-									-- check if the SL is shooting and if we have a similar weapon
-									if Owner.FirearmIsReady then
-										self.deviceState = AHuman.AIMING
-									
-										if IsHDFirearm(Owner.EquippedItem) and Leader:GetController():IsState(Controller.WEAPON_FIRE) then
-											local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
-											if OwnerWeapon:IsTool() then
-												-- try equipping a weapon
-												if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
-													Owner:EquipFirearm(true)
-												end
-											elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
-												OwnerWeapon:CompareTrajectories(LeaderWeapon) < math.max(100, OwnerWeapon:GetAIBlastRadius())
-											then
-												-- slightly displace full-auto shots to diminish stacking sounds and create a more dense fire rate
-												if OwnerWeapon.FullAuto then
-													if math.random() < 0.3 then
+										-- check if the SL is shooting and if we have a similar weapon
+										if Owner.FirearmIsReady then
+											self.deviceState = AHuman.AIMING
+										
+											if IsHDFirearm(Owner.EquippedItem) and Leader:GetController():IsState(Controller.WEAPON_FIRE) then
+												local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
+												if OwnerWeapon:IsTool() then
+													-- try equipping a weapon
+													if Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+														Owner:EquipFirearm(true)
+													end
+												elseif LeaderWeapon:GetAIBlastRadius() >= OwnerWeapon:GetAIBlastRadius() * 0.5 and
+													OwnerWeapon:CompareTrajectories(LeaderWeapon) < math.max(100, OwnerWeapon:GetAIBlastRadius())
+												then
+													-- slightly displace full-auto shots to diminish stacking sounds and create a more dense fire rate
+													if OwnerWeapon.FullAuto then
+														if math.random() < 0.3 then
+															self.Target = nil
+															self.squadShoot = true
+														end
+													else
 														self.Target = nil
 														self.squadShoot = true
 													end
-												else
-													self.Target = nil
-													self.squadShoot = true
 												end
+											else
+												self.squadShoot = false
 											end
+										else
+											if Owner.FirearmIsEmpty then
+												Owner:ReloadFirearms()
+											elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
+												Owner:EquipFirearm(true)
+											end
+										end
+									end
+								elseif IsTDExplosive(Leader.EquippedItem) and Leader:IsPlayerControlled() then
+									-- throw grenades in unison with squad
+									if ToTDExplosive(Leader.EquippedItem):HasObjectInGroup("Bombs - Grenades") and Owner:HasObjectInGroup("Bombs - Grenades") then
+
+										self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false).Normalized
+										self.deviceState = AHuman.POINTING
+
+										if Leader:GetController():IsState(Controller.WEAPON_FIRE) then
+
+											Owner:EquipDeviceInGroup("Bombs - Grenades", true)
+
+											self.Target = nil
+											self.squadShoot = true
 										else
 											self.squadShoot = false
 										end
-									else
-										if Owner.FirearmIsEmpty then
-											Owner:ReloadFirearm()
-										elseif Owner.InventorySize > 0 and not Owner:EquipDeviceInGroup("Weapons - Primary", true) then
-											Owner:EquipFirearm(true)
-										end
-									end
-								end
-							elseif IsTDExplosive(Leader.EquippedItem) and Leader:IsPlayerControlled() then
-								-- throw grenades in unison with squad
-								if ToTDExplosive(Leader.EquippedItem):HasObjectInGroup("Bombs - Grenades") and Owner:HasObjectInGroup("Bombs - Grenades") then
-
-									self.Ctrl.AnalogAim = SceneMan:ShortestDistance(Leader.Pos, Leader.ViewPoint, false).Normalized
-									self.deviceState = AHuman.POINTING
-
-									if Leader:GetController():IsState(Controller.WEAPON_FIRE) then
-
-										Owner:EquipDeviceInGroup("Bombs - Grenades", true)
-
-										self.Target = nil
-										self.squadShoot = true
-									else
-										self.squadShoot = false
 									end
 								end
 							end
@@ -549,9 +558,8 @@ function NativeHumanAI:Update(Owner)
 					self.useMedikit = Owner:EquipNamedDevice("Medikit", true)
 				else
 					self.useMedikit = false
-					if self.scatter ~= true and Owner.AIMode == Actor.AIMODE_SENTRY then
+					if not self.isPlayerOwned and Owner.AIMode == Actor.AIMODE_SENTRY then
 						Owner.AIMode = Actor.AIMODE_PATROL
-						self.scatter = true
 					end
 				end
 			else
@@ -718,9 +726,18 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	
 	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
 
-	if self.Target and IsADoor(self.Target) and Owner:EquipNamedDevice("Heavy Digger", true) then
-		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
-		self.NextBehaviorName = "AttackTarget"
+	if IsADoor(self.Target) then 
+		--TODO: Include other explosive weapons with varying effective ranges!
+		if Owner:EquipDeviceInGroup("Tools - Breaching", true) then
+			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
+			self.NextBehaviorName = "AttackTarget"
+		elseif Owner.FirearmIsReady and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > (self.Target.Door or self.Target).Material.StructuralIntegrity then
+			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
+			self.NextBehaviorName = "ShootTarget"
+		else	--Cannot harm this door!
+			self.Target = nil
+			return
+		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
 	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
@@ -737,7 +754,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM()) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 150 then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 250 then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 		self.NextBehaviorName = "AttackTarget"
 	else	-- unarmed or far away
@@ -749,10 +766,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			
 			return
 		else -- there are probably no weapons around here (in the vicinity of an area adjacent to a location)
-			if self.Target and MovableMan:ValidMO(self.Target) and 
-				not (self.isPlayerOwned and Owner.AIMode == Actor.AIMODE_SENTRY) and
-				(self.Target.ClassName == "AHuman" or self.Target.ClassName == "ACrab")
-			then
+			if not (self.isPlayerOwned and Owner.AIMode == Actor.AIMODE_SENTRY) and (self.Target.ClassName == "AHuman" or self.Target.ClassName == "ACrab") then
 				self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 				self.NextBehaviorName = "AttackTarget"
 			else
@@ -773,7 +787,7 @@ end
 
 -- force the use of a digger when attacking
 function NativeHumanAI:CreateHtHBehavior(Owner)					-- has to be digger, not just "tool"
-	if Owner.AIMode ~= Actor.AIMODE_SQUAD and self.Target and Owner:HasObjectInGroup("Tools - Diggers") then	--Owner:EquipDiggingTool(true) then
+	if Owner.AIMode ~= Actor.AIMODE_SQUAD and self.Target and (Owner:HasObjectInGroup("Tools - Diggers") or Owner:HasObjectInGroup("Weapons - Melee")) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 		self.NextBehaviorName = "AttackTarget"
 		self.NextCleanup = function(AI)
@@ -791,7 +805,7 @@ function NativeHumanAI:CreateSuppressBehavior(Owner)
 		self.NextBehaviorName = "ShootArea"
 	else
 		if Owner.FirearmIsEmpty then
-			Owner:ReloadFirearm()
+			Owner:ReloadFirearms()
 		end
 		
 		return
