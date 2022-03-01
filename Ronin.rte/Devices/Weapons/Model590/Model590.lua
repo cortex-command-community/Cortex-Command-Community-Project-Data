@@ -19,7 +19,7 @@ function Update(self)
 	if not self.loaded and self.RoundInMagCount > 0 and not self.reloadCycle then
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
-				self.cockSound:Play(self.Pos);
+				--self.cockSound:Play(self.Pos);	--TODO: Separate the cocking sound from FireSound
 				self.playedSound = true;
 			end
 			if self.shell then

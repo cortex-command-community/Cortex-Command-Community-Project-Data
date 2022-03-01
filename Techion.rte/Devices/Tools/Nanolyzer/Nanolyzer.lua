@@ -69,7 +69,7 @@ function Update(self)
 				local targetMO = MovableMan:GetMOFromID(ToMOSRotating(initMO).RootID);
 				local dustTarget;
 
-				if targetMO and targetMO.ClassName ~= "ADoor" then
+				if targetMO then
 					local resistance = math.sqrt(targetMO.Radius + math.abs(targetMO.Mass) + targetMO.Material.StructuralIntegrity + 1);
 					if IsActor(targetMO) then
 						local actor = ToActor(targetMO);

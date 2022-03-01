@@ -15,6 +15,7 @@ function Create(self)
 	end
 	--Equip loadout actors with random weapons
 	if not self:NumberValueExists("Equipped") then
+		local headgear;
 		if string.find(self.PresetName, "Ronin") then
 			local loadoutName = string.gsub(self.PresetName, "Ronin ", "");
 			if RoninLoadouts[loadoutName] then
@@ -32,20 +33,18 @@ function Create(self)
 					self:AddInventoryItem(CreateTDExplosive(unit["Throwable"][math.random(#unit["Throwable"])], "Ronin.rte"));
 				end
 				if unit["Headgear"] and self.Head then
-					self.Head:AddAttachable(CreateAttachable("Ronin ".. unit["Headgear"][math.random(#unit["Headgear"])]));
+					headgear = CreateAttachable("Ronin ".. unit["Headgear"][math.random(#unit["Headgear"])]);
+					self.Head:AddAttachable(headgear);
 				end
 			end
-		elseif math.random() < 0.01 then
-			local headgear = CreateAttachable("Ronin Crab Helmet", "Ronin.rte");
-			if headgear and self.Head then
-				self.Head:AddAttachable(headgear);
-			end
-		elseif self.PresetName == "Raider" then
-			local headgear = CreateAttachable("Ronin ".. RoninLoadouts["Machinegunner"]["Headgear"][math.random(#RoninLoadouts["Machinegunner"]["Headgear"])]);
-			if headgear and self.Head then
-				self.Head:AddAttachable(headgear);
-			end
-		elseif self.Head then
+		elseif math.random() < 0.01 and self.Head then
+			headgear = CreateAttachable("Ronin Crab Helmet", "Ronin.rte");
+			self.Head:AddAttachable(headgear);
+		elseif self.PresetName == "Raider" and self.Head then
+			headgear = CreateAttachable("Ronin ".. RoninLoadouts["Machinegunner"]["Headgear"][math.random(#RoninLoadouts["Machinegunner"]["Headgear"])]);
+			self.Head:AddAttachable(headgear);
+		end
+		if not headgear and self.Head then
 			if self.face == 1 then	--"Mia"
 				self.DeathSound.Pitch = 1.2;
 				self.PainSound.Pitch = 1.2;
@@ -60,11 +59,13 @@ function Create(self)
 	end
 end
 function Update(self)
-	if self.updateTimer:IsPastSimMS(1000) then
+	self.controller = self:GetController();
+	local damaged = self.Health < self.PrevHealth - 1;
+	if self.updateTimer:IsPastSimMS(1000) or damaged then
 		self.updateTimer:Reset();
 		self.aggressive = self.Health < (self.MaxHealth * 0.5);
 		if self.Head then
-			if self.aggressive or (self.controller and self.controller:IsState(Controller.WEAPON_FIRE)) then
+			if self.aggressive or damaged or (self.controller and self.controller:IsState(Controller.WEAPON_FIRE)) then
 				self.Head.Frame = self.face + (self.Head.FrameCount * 0.5);
 			else
 				self.Head.Frame = self.face;

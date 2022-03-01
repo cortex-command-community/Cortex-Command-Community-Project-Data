@@ -6,7 +6,7 @@ function Create(self)
     self.maxAmplitude = math.floor(1 + math.sqrt(self.Vel.Magnitude) + 0.5);
     
     --Wavelength of the wave.
-    self.flaceLength = math.floor(5 + math.sqrt(self.Vel.Magnitude) + 0.5);
+    self.flaceLength = math.floor(3 + math.sqrt(self.Vel.Magnitude) + 0.5);
 	
 	--Track intersecting beams
 	self.lastAmplitude = 1;
@@ -89,7 +89,7 @@ function Update(self)
 		end
 		if i % self.damageInterval == 0 then
 			--Check for a target.
-			local moRay = SceneMan:CastMORay(upPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 3);
+			local moRay = SceneMan:CastMORay(upPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 2);
 			if moRay ~= rte.NoMOID then
 				--Add the damage particle.
 				for i = 1, self.damageStrength do
@@ -124,7 +124,7 @@ function Update(self)
 		if i % self.damageInterval == 0 then
 			local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
 			--Check for a target.
-			local moRay = SceneMan:CastMORay(downPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 3);
+			local moRay = SceneMan:CastMORay(downPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 2);
 			if moRay ~= rte.NoMOID then
 				--Add the damage particles.
 				local mo = MovableMan:GetMOFromID(moRay);

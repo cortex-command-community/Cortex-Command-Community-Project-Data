@@ -50,98 +50,118 @@ function BunkerBreach:StartActivity()
 	self.checkTimer = Timer();
 	self.checkTimer:SetRealTimeLimitMS(1000);
 	self.CPUSpawnTimer = Timer();
-	self.CPUSpawnDelay = (45000 - self.difficultyRatio * 30000) * rte.SpawnIntervalScale;
-	self.IntruderAlertTimer = Timer();
-	self.IntruderDisbatchDelay = 5000;
+	self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000) * rte.SpawnIntervalScale;
+	self.CPUSearchRadius = math.sqrt(SceneMan.SceneWidth^2 + SceneMan.SceneHeight^2) * 0.5 * self.difficultyRatio;
 
+	--Set all actors in the scene to the defending team
 	for actor in MovableMan.AddedActors do
-		--Set all actors in the scene to the defending team
 		--To-do: allow attackers to spawn near the brain?
 		if actor.Team ~= self.defenderTeam then
 			MovableMan:ChangeActorTeam(actor, self.defenderTeam);
 		end
 	end
-	--Add player brains
+	
+	--Clear wonky default scene launch text
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			local team = self:GetTeamOfPlayer(player);
-			local brain = self:CreateBrainBot(team);
-			if brain then
-				if team == self.attackerTeam then
-					local lzX = attackerLZ:GetRandomPoint().X;
-
-					-- make sure we are inside the scene
-					if SceneMan.SceneWrapsX then
-						if lzX < 0 then
-							lzX = lzX + SceneMan.SceneWidth;
-						elseif lzX >= SceneMan.SceneWidth then
-							lzX = lzX - SceneMan.SceneWidth;
-						end
-					else
-						lzX = math.max(math.min(lzX, SceneMan.SceneWidth - 50), 50);
-					end
-					brain.Pos = SceneMan:MovePointToGround(Vector(lzX, 0), brain.Radius * 0.5, 3);
-					MovableMan:AddActor(brain);
-					
-				elseif team == self.defenderTeam then
-					if SceneMan.Scene:HasArea("Brain") then
-						brain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
-						MovableMan:AddActor(brain);
-					else
-						--Look for a brain among actors created by the deployments
-						for actor in MovableMan.AddedActors do
-							if actor.Team == team and actor:IsInGroup("Brains") then
-								brain = actor;
-							end
-						end
-					end
-					self.defenderBrain = brain;
-				end
-				self:SetPlayerBrain(brain, player);
-				self:SetObservationTarget(brain.Pos, player);
-				self:SetLandingZone(brain.Pos, player);
-			end
+			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 		end
 	end
 	
-	if self.CPUTeam ~= -1 then
-		self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-		self.CPUTechID = PresetMan:GetModuleID(self.CPUTechName);
-		self:SetTeamFunds(math.ceil((3000 + self.Difficulty * 50) * rte.StartingFundsScale), self.CPUTeam);
-		if self.CPUTeam == self.defenderTeam then
-			if SceneMan.Scene:HasArea("Brain") then
-				self.defenderBrain = self:CreateBrainBot(self.CPUTeam);
-				if self.defenderBrain then
-					self.defenderBrain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
-					MovableMan:AddActor(self.defenderBrain);
-				end
-			else
-				--Look for a brain among actors created by the deployments
-				for actor in MovableMan.AddedActors do
-					if actor.Team == self.CPUTeam and actor:IsInGroup("Brains") then
-						self.defenderBrain = actor;
-						break;
-					end
-				end
-			end
-		else
-			--Start spawning attackers faster
+	--CPU team setup
+	if self.CPUTeam ~= Activity.NOTEAM then
+		self:SetTeamFunds(4000 + 8000 * math.floor(self.difficultyRatio * 5)/5, self.CPUTeam);
+		if (self.CPUTeam ~= self.defenderTeam) then
 			self.CPUSpawnDelay = self.CPUSpawnDelay * 0.5;
 		end
 		self.playerTeam = self:OtherTeam(self.CPUTeam);
 	end
-	--[[To-do: figure out what this part is *actually* supposed to do
-	if SceneMan.Scene:HasArea("Brain Chamber") then
-		self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
-		--Set all useless actors, i.e. those who should guard brain in the brain chamber but their brain is in another castle
-		--to delete themselves, because otherwise they are most likely to stand there for the whole battle and waste MOs
-		for actor in MovableMan.AddedActors do
-			if not actor:HasObjectInGroup("Brains") and actor.Team == self.defenderTeam and self.BrainChamber:IsInside(actor.Pos) and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-				actor.ToDelete = true;
+		
+	
+	--Add attacker brains for human attackers
+	if self.attackerTeam ~= self.CPUTeam then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.attackerTeam then
+				local attackingBrain = self:CreateBrainBot(self:GetTeamOfPlayer(player));
+				
+				local lzX = attackerLZ:GetRandomPoint().X;
+				if SceneMan.SceneWrapsX then
+					if lzX < 0 then
+						lzX = lzX + SceneMan.SceneWidth;
+					elseif lzX >= SceneMan.SceneWidth then
+						lzX = lzX - SceneMan.SceneWidth;
+					end
+				else
+					lzX = math.max(math.min(lzX, SceneMan.SceneWidth - 50), 50);
+				end
+				attackingBrain.Pos = SceneMan:MovePointToGround(Vector(lzX, 0), attackingBrain.Radius * 0.5, 3);
+				
+				MovableMan:AddActor(attackingBrain);
+				self:SetPlayerBrain(attackingBrain, player);
+				self:SetObservationTarget(attackingBrain.Pos, player);
+				self:SetLandingZone(attackingBrain.Pos, player);
 			end
 		end
 	end
-	]]--
+	
+	--Add defender brains, either using the Brain area or picking randomly from those created by deployments
+	if SceneMan.Scene:HasArea("Brain") then
+		for actor in MovableMan.Actors do
+			if actor.Team == self.defenderTeam and actor:IsInGroup("Brains") then
+				actor.ToDelete = true;
+			end
+		end
+		
+		self.defenderBrain = self:CreateBrainBot(self.defenderTeam);
+		self.defenderBrain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
+		MovableMan:AddActor(self.defenderBrain);
+	else
+		--Pick the defender brain randomly from among those created by deployments, and delete the others and clean up some of their guards
+		local deploymentBrains = {};
+		for actor in MovableMan.AddedActors do
+			if actor.Team == self.defenderTeam and actor:IsInGroup("Brains") then
+				deploymentBrains[#deploymentBrains + 1] = actor;
+			end
+		end
+		local brainIndexToChoose = math.random(1, #deploymentBrains);
+		self.defenderBrain = deploymentBrains[brainIndexToChoose];
+		table.remove(deploymentBrains, brainIndexToChoose);
+		
+		--Delete brains that weren't the chosen one, and also randomly delete most of their guards
+        self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+		for _, unchosenDeploymentBrain in pairs(deploymentBrains) do
+			unchosenDeploymentBrain.ToDelete = true;
+			for actor in MovableMan.AddedActors do
+				if actor.Team == self.defenderTeam and math.random() < 0.75 and self.BrainChamber:IsInside(actor.Pos) and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") and SceneMan:ShortestDistance(actor.Pos, self.defenderBrain.Pos, false).Magnitude > 200 then
+					actor.ToDelete = true;
+				end
+			end
+		end
+	end
+	
+	--Make sure all defending human players have brains
+	if (self.defenderTeam ~= self.CPUTeam) then
+		local playerDefenderBrainsAssignedCount = 0;
+		local brainToAssignToPlayer;
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.defenderTeam then
+				if playerDefenderBrainsAssignedCount == 0 then
+					brainToAssignToPlayer = self.defenderBrain;
+				else
+					brainToAssignToPlayer = self:CreateBrainBot(self.defenderTeam);
+					brainToAssignToPlayer.Pos = self.defenderBrain.Pos + Vector(playerDefenderBrainsAssignedCount * 10 * self.defenderBrain.FlipFactor, 0);
+					MovableMan:AddActor(brainToAssignToPlayer);
+				end
+				self:SwitchToActor(brainToAssignToPlayer, player, self.defenderTeam);
+				self:SetPlayerBrain(brainToAssignToPlayer, player);
+				self:SetObservationTarget(brainToAssignToPlayer.Pos, player);
+				self:SetLandingZone(brainToAssignToPlayer.Pos, player);
+				
+				playerDefenderBrainsAssignedCount = playerDefenderBrainsAssignedCount + 1;
+			end
+		end
+	end
+	
 	self.loadouts = {"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"};
 	self.infantryLoadouts = {"Light", "Heavy", "Sniper"};
 	--Add defending units in predefined areas
@@ -204,117 +224,151 @@ function BunkerBreach:UpdateActivity()
 		return
 	end
 	
+	--Check win conditions
 	if self.checkTimer:IsPastRealTimeLimit() then
-		--Check win conditions
 		self.checkTimer:Reset();
 
 		if not MovableMan:IsActor(self.defenderBrain) then
-			local findBrain = MovableMan:GetUnassignedBrain(self.defenderTeam);
+			local findBrain = MovableMan:GetFirstBrainActor(self.defenderTeam);
 			if findBrain then
 				self.defenderBrain = findBrain;
 			else
 				self.WinnerTeam = self.attackerTeam;
-				MovableMan:KillAllEnemyActors(self.attackerTeam);
+				for actor in MovableMan.Actors do
+					if actor.Team == self.defenderTeam then
+						actor.Status = Actor.INACTIVE;
+					end
+				end
 				ActivityMan:EndActivity();
 				return
 			end
 		else
-			local players = 0;
+			local survivingAttackingPlayers = 0;
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
 					local team = self:GetTeamOfPlayer(player);
 					local brain = self:GetPlayerBrain(player);
 					--Look for a new brain
-					if not brain or not MovableMan:ValidMO(brain) then
+					if not brain or not MovableMan:IsActor(brain) then
 						brain = MovableMan:GetUnassignedBrain(team);
-						if brain then
+						if brain and MovableMan:IsActor(brain) then
 							self:SetPlayerBrain(brain, player);
 							self:SwitchToActor(brain, player, team);
 						else
+							brain = nil;
 							self:SetPlayerBrain(nil, player);
 						end
 					end
-					if brain then
-						players = players + 1;
+					if brain and team == self.attackerTeam and self.CPUTeam ~= self.attackerTeam then
+						survivingAttackingPlayers = survivingAttackingPlayers + 1;
 						self:SetObservationTarget(brain.Pos, player);
-					else
+					elseif not brain then
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 						FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 2000, -1, false);
 					end
 				end
 			end
-			if players == 0 then
-				self.WinnerTeam = self.CPUTeam;
+			if self.CPUTeam ~= self.attackerTeam and survivingAttackingPlayers == 0 then
+				self.WinnerTeam = self.defenderTeam;
+				for actor in MovableMan.Actors do
+					if actor.Team == self.attackerTeam then
+						actor.Status = Actor.INACTIVE;
+					end
+				end
 				ActivityMan:EndActivity();
 				return
 			end
 		end
 	end
-	
+	self:ClearObjectivePoints();
 	if self.CPUTeam ~= -1 then
 		local funds = self:GetTeamFunds(self.CPUTeam);
+		local enemyCount = 0;
+		local allyCount = 0;
+		local diggerCount = 0;
+		for actor in MovableMan.Actors do
+			if actor.ClassName ~= "ADoor" and actor.Health > 0 then
+				--Units will weigh in based on their Health
+				if actor.Team == self.playerTeam then
+					allyCount = allyCount + actor.Health/actor.MaxHealth;
+				elseif actor.Team == self.CPUTeam then
+					enemyCount = enemyCount + actor.Health/actor.MaxHealth;
+					if actor:HasObjectInGroup("Tools - Diggers") and actor.AIMode == Actor.AIMODE_GOLDDIG then
+						diggerCount = diggerCount + 1;
+					end
+					if funds < 0 and self.CPUTeam == self.attackerTeam then
+						self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.playerTeam, GameActivity.ARROWDOWN)
+					end
+				end
+			end
+		end
 		if funds > 0 then
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:SetScreenText("Enemy budget: " .. funds, self:ScreenOfPlayer(player), 0, 2500, false);
+			if self.CPUTeam == self.attackerTeam then
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					if self:PlayerActive(player) and self:PlayerHuman(player) then
+						FrameMan:SetScreenText("Enemy budget: " .. math.floor(funds), self:ScreenOfPlayer(player), 0, 2500, false);
+					end
 				end
 			end
 			if self.CPUSpawnTimer:IsPastSimMS(self.CPUSpawnDelay) then
 				self.CPUSpawnTimer:Reset();
 				
-				local moRatio = (MovableMan:GetTeamMOIDCount(self.CPUTeam) + 1)/(MovableMan:GetTeamMOIDCount(self.playerTeam) + 1);
-			
+				local enemyUnitRatio = enemyCount/math.max(allyCount, 1);
+				--Send CPU to dig for gold if funds are low and a digger hasn't recently been sent
+				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < 3 and (funds < 500 or math.random() < 0.1);
+				
 				if self.CPUTeam == self.attackerTeam then
-					if funds < 500 then
-						self:CreateDrop(self.CPUTeam, "Engineer");
-					elseif moRatio < 1.75 then
-						self:CreateDrop(self.CPUTeam);
-						self.CPUSpawnDelay = (45000 - self.difficultyRatio * 30000 + moRatio * 15000) * rte.SpawnIntervalScale;
+					if self.sendGoldDiggers then
+						self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
+					elseif enemyUnitRatio < 1.75 then
+						self:CreateDrop(self.CPUTeam, "Any", Actor.AIMODE_BRAINHUNT);
+						self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + enemyUnitRatio * 5000) * rte.SpawnIntervalScale;
 					else
 						self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
 					end
 				elseif self.CPUTeam == self.defenderTeam then
 				
 					local dist = Vector();
-					local searchRadius = SceneMan.SceneWidth * 0.3;
-					local targetActor = MovableMan:GetClosestEnemyActor(self.CPUTeam, Vector(self.defenderBrain.Pos.X, SceneMan.SceneHeight * 0.5), searchRadius, dist);
-					if targetActor and not SceneMan:IsUnseen(targetActor.Pos.X, targetActor.Pos.Y, self.CPUTeam) then
-						self.attackPos = targetActor.Pos;
-						
-						self.CPUSpawnDelay = self.CPUSpawnDelay * 0.5;--* dist.Magnitude/searchRadius;
-						--TODO: Fix GetClosestTeamActor and use that instead
-						local closestGuard = MovableMan:GetClosestEnemyActor(targetActor.Team, targetActor.Pos, searchRadius - dist.Magnitude, Vector());
-						if closestGuard and math.random() > dist.Magnitude/searchRadius and closestGuard.AIMode == Actor.AIMODE_SENTRY and closestGuard:GetAlarmPoint() ~= Vector() then
+					local targetActor = MovableMan:GetClosestEnemyActor(self.CPUTeam, Vector(self.defenderBrain.Pos.X, SceneMan.SceneHeight * 0.5), self.CPUSearchRadius, dist);
+					if targetActor then
+						self.chokePoint = targetActor.Pos;
+						local closestGuard = MovableMan:GetClosestTeamActor(self.CPUTeam, Activity.PLAYER_NONE, targetActor.Pos, self.CPUSearchRadius - dist.Magnitude, Vector(), self.defenderBrain);
+						if closestGuard and closestGuard.AIMODE == Actor.AIMODE_PATROL then
 							--Send a nearby alerted guard after the intruder
 							closestGuard.AIMode = Actor.AIMODE_GOTO;
-							closestGuard:SetAIMOWayPoint(targetActor);
-							self.attackPos = nil;
+							closestGuard:AddAIMOWaypoint(targetActor);
+							self.chokePoint = nil;
 							--A guard has been sent, the next unit should spawn faster
 							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.8;
 						else
-							self:CreateDrop(self.CPUTeam);
-							self.CPUSpawnDelay = (60000 - self.difficultyRatio * 30000 + moRatio * 15000) * rte.SpawnIntervalScale;
+							self:CreateDrop(self.CPUTeam, "Any", Actor.AIMODE_GOTO);
+							self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + enemyUnitRatio * 5000) * rte.SpawnIntervalScale;
 							if math.random() < 0.5 then
 								--Change target for the next attack
-								self.attackPos = nil;
+								self.chokePoint = nil;
 							end
 						end
 					else
-						self.attackPos = nil;
-						
-						if moRatio < 1.25 then
-							self:CreateDrop(self.CPUTeam);
-							self.CPUSpawnDelay = (60000 - self.difficultyRatio * 30000 + moRatio * 15000) * rte.SpawnIntervalScale;
+						self.chokePoint = nil;
+					
+						if self.sendGoldDiggers then
+							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
 						else
-							self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
+							self:CreateDrop(self.CPUTeam, "Any", enemyUnitRatio > math.random() and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL);
 						end
+						self.CPUSpawnDelay = (40000 - self.difficultyRatio * 20000 + enemyUnitRatio * 7500) * rte.SpawnIntervalScale;
 					end
 				end
 			end
-		elseif MovableMan:GetTeamMOIDCount(self.CPUTeam) < 5 then
-			MovableMan:KillAllEnemyActors(self.playerTeam);
+		elseif enemyCount < 0.5 then
+			for actor in MovableMan.Actors do
+				if actor.Team ~= self.playerTeam then
+					actor.Status = Actor.INACTIVE;
+				end
+			end
 			self.WinnerTeam = self.playerTeam;
+			self:ClearObjectivePoints();
 			ActivityMan:EndActivity();
 			return
 		end
@@ -322,12 +376,14 @@ function BunkerBreach:UpdateActivity()
 end
 
 
-function BunkerBreach:CreateDrop(team, loadout)
+function BunkerBreach:CreateDrop(team, loadout, aiMode)
 	local tech = self:GetTeamTech(team);
-	local craft;
 	local crabRatio = self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(tech));
 
-	craft = RandomACDropShip("Craft", tech);
+	if loadout == "Any" then
+		loadout = nil;
+	end
+	local craft = RandomACDropShip("Craft", tech);
 	if not craft or craft.MaxInventoryMass <= 0 then
 		--MaxMass not defined, spawn a default craft
 		craft = RandomACDropShip("Craft", "Base.rte");
@@ -344,8 +400,9 @@ function BunkerBreach:CreateDrop(team, loadout)
 		xPos = math.random(100, SceneMan.SceneWidth - 100);
 	end
 	craft.Pos = Vector(xPos, -30);
+	local passengerCount = math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers);
 	
-	for i = 1, craft.MaxPassengers do
+	for i = 1, passengerCount do
 
 		if craft.InventoryMass > craft.MaxInventoryMass then 
 			break;
@@ -358,10 +415,15 @@ function BunkerBreach:CreateDrop(team, loadout)
 		end
 		
 		if passenger then
-			if self.attackPos then
-				passenger:AddAISceneWaypoint(self.attackPos);
-			else
-				passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+			if aiMode then
+				passenger.AIMode = aiMode;
+				if aiMode == Actor.AIMODE_GOTO then
+					if self.chokePoint then
+						passenger:AddAISceneWaypoint(self.chokePoint);
+					else
+						passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+					end
+				end
 			end
 			craft:AddInventoryItem(passenger);
 		end
@@ -397,10 +459,13 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-			if math.random() < 0.6 then
+			local rand = math.random();
+			if rand < 0.5 then
 				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
-			else
+			elseif rand < 0.8 then
 				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+			else
+				actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", tech));
 			end
 			
 		elseif loadout == "Heavy" then
@@ -409,12 +474,18 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", tech));
 			if math.random() < 0.3 then
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
+				if math.random() < 0.25 then
+					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
+				elseif math.random() < 0.35 then
+					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+				end
 			else
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
 				if math.random() < 0.3 then
 					actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
-				else
 					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+				else
+					actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
 				end
 			end
 			
@@ -436,10 +507,13 @@ function BunkerBreach:CreateInfantry(team, loadout)
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
 			else
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-				if math.random() < 0.3 then
+				local rand = math.random();
+				if rand < 0.2 then
 					actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
-				else
+				elseif rand < 0.4 then
 					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+				else
+					actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", tech));
 				end
 			end
 			actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", tech));
@@ -460,13 +534,7 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			end
 		end
 	end
-	if loadout == "Engineer" then
-		actor.AIMode = Actor.AIMODE_GOLDDIG;
-	elseif team == self.attackerTeam then
-		actor.AIMode = Actor.AIMODE_BRAINHUNT;
-	else
-		actor.AIMode = math.random() < 0.7 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL;
-	end
+	actor.AIMode = Actor.AIMODE_SENTRY;
 	actor.Team = team;
 	return actor;
 end
@@ -494,17 +562,19 @@ end
 
 function BunkerBreach:CreateBrainBot(team)
 	local tech = self:GetTeamTech(team);
-	local actor = RandomAHuman("Brains", tech);
-	if actor then
+	local actor;
+	if tech ~= -1 and team == self.attackerTeam then
+		actor = PresetMan:GetLoadout("Infantry Brain", tech, false);
+	else
+		actor = RandomAHuman("Brains", tech);
 		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
 		if team == self.attackerTeam then
 			actor:AddInventoryItem(CreateHDFirearm("Constructor", "Base.rte"));
 		else
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
 		end
-		actor.AIMode = Actor.AIMODE_SENTRY;
-		actor.Team = team;
-		return actor;
 	end
-	return nil;
+	actor.AIMode = Actor.AIMODE_SENTRY;
+	actor.Team = team;
+	return actor;
 end
