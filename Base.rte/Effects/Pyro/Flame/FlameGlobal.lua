@@ -21,13 +21,13 @@ function Update(self)
 				flame.ToSettle = false;
 				flame.Throttle = flame.Throttle - TimerMan.DeltaTimeMS/flame.Lifetime;
 				
-				if GlobalFlameManagement.Flames[i].target and GlobalFlameManagement.Flames[i].target.ID ~= rte.NoMOID and not GlobalFlameManagement.Flames[i].target.ToDelete then
+				if GlobalFlameManagement.Flames[i].target and MovableMan:ValidMO(GlobalFlameManagement.Flames[i].target) and GlobalFlameManagement.Flames[i].target.ID ~= rte.NoMOID and not GlobalFlameManagement.Flames[i].target.ToDelete then
 					flame.Vel = GlobalFlameManagement.Flames[i].target.Vel;
 					flame.Pos = GlobalFlameManagement.Flames[i].target.Pos + Vector(GlobalFlameManagement.Flames[i].stickOffset.X, GlobalFlameManagement.Flames[i].stickOffset.Y):RadRotate(GlobalFlameManagement.Flames[i].target.RotAngle - GlobalFlameManagement.Flames[i].targetStickAngle);
 					local actor = GlobalFlameManagement.Flames[i].target:GetRootParent();
 					if MovableMan:IsActor(actor) then
 						actor = ToActor(actor);
-						actor.Health = actor.Health - (GlobalFlameManagement.Flames[i].target.DamageMultiplier + flame.Throttle)/(actor.Mass * 0.5 + GlobalFlameManagement.Flames[i].target.Material.StructuralIntegrity * 0.75);
+						actor.Health = actor.Health - math.max(GlobalFlameManagement.Flames[i].target.DamageMultiplier * (flame.Throttle + 1), 0.1)/(actor.Mass * 0.7 + GlobalFlameManagement.Flames[i].target.Material.StructuralIntegrity);
 						--Stop, drop and roll!
 						flame.Lifetime = flame.Lifetime - math.abs(actor.AngularVel);
 					end
@@ -64,6 +64,7 @@ function Update(self)
 										flame.Lifetime = flame.Lifetime + nearbyFlame[n].Lifetime * 0.5;
 										flame.Throttle = flame.Throttle + nearbyFlame[n].Throttle + 1;
 										flame.Pos = flame.Pos + dist * 0.5;
+										flame.Vel = flame.Vel - Vector(0, 1 + flame.Throttle):RadRotate(RangeRand(-1, 1));
 										nearbyFlame[n].ToDelete = true;
 										--[[To-do: spawn a new, bigger flame particle altogether?
 										local newFlame = CreatePEmitter("Big Flame", "Base.rte");
@@ -90,9 +91,9 @@ function Update(self)
 								MovableMan:AddParticle(particle);
 							end
 						end
-						if GlobalFlameManagement.Flames[i].deleteDelay and flame.Age > GlobalFlameManagement.Flames[i].deleteDelay then
-							flame.ToDelete = true;
-						end
+					end
+					if GlobalFlameManagement.Flames[i].deleteDelay and flame.Age > GlobalFlameManagement.Flames[i].deleteDelay then
+						flame.ToDelete = true;
 					end
 				end
 			else

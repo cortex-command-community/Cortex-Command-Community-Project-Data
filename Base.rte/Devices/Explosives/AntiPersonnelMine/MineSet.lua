@@ -71,7 +71,7 @@ function Update(self)
 			self.RotAngle = self.faceDirection - (math.pi * 0.5);
 			self.PinStrength = self.GibImpulseLimit;
 			self.actionPhase = 1;
-			self.activateSound:Play();
+			self.activateSound:Play(self.Pos);
 			self.delayTimer:Reset();
 		end
 

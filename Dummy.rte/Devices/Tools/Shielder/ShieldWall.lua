@@ -5,6 +5,10 @@ function Create(self)
 	MovableMan:AddParticle(self.glow);
 	self.glowID = self.glow.UniqueID;
 	
+	self.soundEffect = CreateSoundContainer("Shielder Wall Sound", "Dummy.rte");
+	self.soundEffect.Pos = self.Pos;
+	self.soundEffect:Play();
+	
 	self.AngularVel = 0;
 end
 function Update(self)
@@ -32,5 +36,8 @@ end
 function Destroy(self)
 	if self.glow then
 		self.glow.ToDelete = true;
+	end
+	if self.soundEffect then
+		self.soundEffect:Stop();
 	end
 end

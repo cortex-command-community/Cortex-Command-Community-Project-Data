@@ -51,19 +51,14 @@ function MetaFight:BrainCheck()
 									ActivityMan:EndActivity();
 								end
 							end
-							-- This whole loser team is done for, so self-destruct all of its actors
+							
+							-- This whole loser team is done for, so swap its doors to the winner's team, and self-destruct all of its other actors.
 							for actor in MovableMan.Actors do
-								if actor.Team == team then
-									if IsAHuman(actor) and ToAHuman(actor).Head then
-										ToAHuman(actor).Head:GibThis();
-									-- Doors don't get destroyed, they just change teams to the winner
-									elseif IsADoor(actor) then
-										actor.Team = self.WinnerTeam;
-									else
-										actor:GibThis();
-									end
+								if actor.Team == team and IsADoor(actor) then
+									actor.Team = self.WinnerTeam;
 								end
 							end
+							MovableMan:KillAllTeamActors(team);
 							-- Finally, deactive the player entirely -	no don't this is done in AutoResolveOffensive if needed
 --							self:DeactivatePlayer(player);
 						end
@@ -211,7 +206,9 @@ function MetaFight:StartActivity()
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:GetTeamOfPlayer(player) == team then
 					-- Any team with a player that has a brain resident in the scene are DEFENDERS
-					if SceneMan.Scene:GetResidentBrain(player) then
+					local residentBrain = SceneMan.Scene:GetResidentBrain(player);
+					if residentBrain then
+						ToActor(residentBrain).AIMode = Actor.AIMODE_SENTRY;
 						self.InvadingTeam[team] = false;
 					end
 					-- Disable the tactical team management on any team that has ANY human players on it - the humans get full control
@@ -580,10 +577,8 @@ function MetaFight:StartActivity()
 						value = value * 0.5	-- This actor is left-over from previous battles
 					end
 					
-					-- Further reduce value if actors are badly damaged in terms of wounds
-					if Act.WoundCount / Act.GibWoundLimit > 0.5 then
-						value = value * 0.5
-					end
+					-- Further reduce value if actors are damaged
+					value = value * Act.Health/Act.MaxHealth;
 					
 					-- Reduce value if actors are out of base
 					if self.MetabaseArea then
@@ -596,12 +591,15 @@ function MetaFight:StartActivity()
 					if IsAHuman(Act) then
 						local human = ToAHuman(Act)
 						if human then
-							if human.FGArm == 0 or human.BGArm == 0 or human.FGLeg == 0 or human.BGLeg == 0 then
-								value = 0
+							local limbs = {human.FGArm, human.BGArm, human.FGLeg, human.BGLeg}
+							for _, limb in pairs(limbs) do
+								if limb == nil then
+									value = value * 0.5
+								end
 							end
 							
-							if human:IsInventoryEmpty() and human.EquippedItem == 0 then
-								value = 0
+							if human:IsInventoryEmpty() and human.EquippedItem == nil and human.EquippedBGItem == nil then
+								value = value * 0.5
 							end
 						end
 					end
@@ -989,7 +987,7 @@ function MetaFight:UpdateActivity()
 			-- Find LZs for the AI teams
 			self:DesignateLZs()
 			self.AI.SpawnTimer:Reset()
-			self.AI.SpawnTimer:SetSimTimeLimitMS(20000)	-- give the brains some time to land before spawning units
+			self.AI.SpawnTimer:SetSimTimeLimitMS(20000 - 10000 * (self.Difficulty/GameActivity.MAXDIFFICULTY));
 			
 			-- Spawn escort when attacking bunkers
 			if self.hasDefender then
@@ -1025,14 +1023,13 @@ function MetaFight:UpdateActivity()
 					-- Give all existing team actors appropriate AI orders
 					for actor in MovableMan.Actors do
 						if actor.Team == team and not actor:StringValueExists("ScriptControlled") then
+							-- The brain should try to dig itself into the ground to fortify itself against counterattack
+							if actor:IsInGroup("Brains") then
+								actor.AIMode = Actor.AIMODE_GOLDDIG;
+								break;
 							-- Actors start in sentry mode, send them towards the enemy target
-							if actor.AIMode == Actor.AIMODE_SENTRY then
-								-- The brain should try to dig itself into the ground to fortify itself against counterattack
-								if actor:IsInGroup("Brains") then
-									actor.AIMode = Actor.AIMODE_GOLDDIG;
-									break;
-								-- Not a brain, so can it go hunt the enemy brain?
-								elseif not actor:IsInGroup("Anti-Air") then
+							elseif actor.AIMode == Actor.AIMODE_SENTRY then
+								if not actor:IsInGroup("Anti-Air") then
 									if target then
 										actor.AIMode = Actor.AIMODE_GOTO
 										actor:ClearAIWaypoints();
@@ -1812,8 +1809,17 @@ function MetaFight:PurchaseHeavyInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Tools - Diggers", techID)
-			if Cargo then
+			if math.random() < 0.2 then
+				if math.random() < 0.3 then
+					Cargo = RandomHDFirearm("Tools - Breaching", techID)
+					digger = 0.5
+				else
+					Cargo = RandomTDExplosive("Tools - Breaching", techID)
+				end
+				self:AddOverridePurchase(Cargo, player)
+				mass = mass + Cargo.Mass
+			else
+				Cargo = RandomHDFirearm("Tools - Diggers", techID)
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
 				digger = 1
@@ -1845,8 +1851,17 @@ function MetaFight:PurchaseMediumInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Tools - Diggers", techID)
-			if Cargo then
+			if math.random() < 0.4 then
+				if math.random() < 0.5 then
+					Cargo = RandomHDFirearm("Tools - Breaching", techID)
+					digger = 0.5
+				else
+					Cargo = RandomTDExplosive("Tools - Breaching", techID)
+				end
+				self:AddOverridePurchase(Cargo, player)
+				mass = mass + Cargo.Mass
+			else
+				Cargo = RandomHDFirearm("Tools - Diggers", techID)
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
 				digger = 1
@@ -1878,8 +1893,17 @@ function MetaFight:PurchaseLightInfantry(player, techID)
 		end
 		
 		if math.random() < rte.DiggersRate then
-			Cargo = RandomHDFirearm("Tools - Diggers", techID)
-			if Cargo then
+			if math.random() < 0.6 then
+				if math.random() < 0.7 then
+					Cargo = RandomHDFirearm("Tools - Breaching", techID)
+					digger = 0.5
+				else
+					Cargo = RandomTDExplosive("Tools - Breaching", techID)
+				end
+				self:AddOverridePurchase(Cargo, player)
+				mass = mass + Cargo.Mass
+			else
+				Cargo = RandomHDFirearm("Tools - Diggers", techID)
 				self:AddOverridePurchase(Cargo, player)
 				mass = mass + Cargo.Mass
 				digger = 1

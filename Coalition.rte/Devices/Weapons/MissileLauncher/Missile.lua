@@ -2,12 +2,12 @@ function Create(self)
 
 	self.turnStrength = 5;
 	self.lifeTimer = Timer();
+	self.targetSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
 	
 	if self:NumberValueExists("TargetID") then
 		local mo = MovableMan:GetMOFromID(self:GetNumberValue("TargetID"));
 		if mo and IsMOSRotating(mo) then
 			self.target = ToMOSRotating(mo);
-			self.targetSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
 			self.targetSound:Play(self.Pos);
 		end
 	end

@@ -137,6 +137,7 @@ function MaginotMission:UpdateActivity()
 						if MovableMan:IsActor(newBrain) then
 							self:SwitchToActor(newBrain, player, team)
 						end
+						self:GetBanner(GUIBanner.RED, player):ClearText();
 					else
 						FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false)
 						self.braindead[player] = true

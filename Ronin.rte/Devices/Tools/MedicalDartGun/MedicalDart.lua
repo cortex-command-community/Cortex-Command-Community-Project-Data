@@ -7,7 +7,6 @@ function OnCollideWithMO(self, mo, rootMO)
 	if not self.target then
 		local trajectoryScalar = math.abs(math.cos(self.RotAngle - self.Vel.AbsRadAngle));
 		
-		local rayHitPos = Vector();
 		local dots = math.sqrt(self.PrevVel.Magnitude);
 		local trace = Vector((self.PrevVel.Magnitude * rte.PxTravelledPerFrame + self.width) * trajectoryScalar * self.FlipFactor, 0):RadRotate(self.PrevRotAngle);
 		for i = 1, dots do

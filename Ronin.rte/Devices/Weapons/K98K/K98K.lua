@@ -20,7 +20,7 @@ function Update(self)
 		if self.pullTimer:IsPastSimMS(15000/self.RateOfFire) then
 			if not self.playedSound then
 				parent:GetController():SetState(Controller.AIM_SHARP, false);
-				self.boltPullSound:Play(self.Pos);
+				--self.boltPullSound:Play(self.Pos);	--TODO: Separate the bolt pull sound from FireSound
 				self.playedSound = true;
 			end
 			if self.shell then
