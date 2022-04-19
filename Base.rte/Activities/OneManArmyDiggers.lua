@@ -247,8 +247,11 @@ function OneManArmy:UpdateActivity()
 			
 			-- Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
-				-- Get any Actor from the CPU's native tech
-				local passenger = RandomAHuman("Actors - " .. (self.Difficulty > 75 and "Heavy" or "Light"), self.CPUTechName);
+				local passenger = RandomAHuman("Actors - " .. ((self.Difficulty > 75 and math.random() > 0.5) and "Heavy" or "Light"), self.CPUTechName);
+				if passenger.ModuleID ~= PresetMan:GetModuleID(self.CPUTechName) then
+					passenger = RandomAHuman("Actors", self.CPUTechName);
+				end
+				
 				passenger:AddInventoryItem(CreateHDFirearm("Light Digger", "Base.rte"));
 				
 				-- Set AI mode and team so it knows who and what to fight for!

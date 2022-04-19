@@ -293,9 +293,13 @@ function OneManArmy:UpdateActivity()
 				local passenger = nil;
 				if math.random() >= self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTechName)) then
 					passenger = RandomAHuman("Actors - Light", self.CPUTechName);
+					if passenger.ModuleID ~= PresetMan:GetModuleID(self.CPUTechName) then
+						passenger = RandomAHuman("Actors", self.CPUTechName);
+					end
 				else
 					passenger = RandomACrab("Actors - Mecha", self.CPUTechName);
 				end
+				
 				--Equip it with tools and guns if it's a humanoid
 				if IsAHuman(passenger) then
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName));
