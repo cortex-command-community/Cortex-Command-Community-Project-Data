@@ -881,7 +881,7 @@ end
 
 function WaveDefense:CreateLightInfantry()
 	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech);
-	if Passenger.ModuleID ~= self.AI.TechID) then
+	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
 	
@@ -906,7 +906,7 @@ end
 
 function WaveDefense:CreateHeavyInfantry()
 	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech);
-	if Passenger.ModuleID ~= self.AI.TechID) then
+	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
 	
@@ -938,7 +938,7 @@ end
 
 function WaveDefense:CreateMediumInfantry()
 	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech);
-	if Passenger.ModuleID ~= self.AI.TechID) then
+	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
 	
@@ -963,7 +963,7 @@ end
 
 function WaveDefense:CreateEngineer()
 	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech);
-	if Passenger.ModuleID ~= self.AI.TechID) then
+	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
 	
@@ -991,7 +991,7 @@ end
 
 function WaveDefense:CreateScoutInfantry()
 	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech);
-	if Passenger.ModuleID ~= self.AI.TechID) then
+	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
 	
