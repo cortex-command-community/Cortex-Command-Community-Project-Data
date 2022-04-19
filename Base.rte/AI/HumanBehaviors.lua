@@ -2001,9 +2001,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 		end
 		
 		-- movement commands
-		if (AI.Target and AI.BehaviorName ~= "AttackTarget") or
-			(Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm"))
-		then
+		if (AI.Target and AI.BehaviorName ~= "AttackTarget") or (Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm")) then
 			if Owner.aggressive then	-- the aggressive behavior setting makes the AI pursue waypoint at all times
 				AI.lateralMoveState = nextLatMove
 			else
