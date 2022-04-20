@@ -554,7 +554,7 @@ function BunkerBreach:CreateCrab(team, loadout)
 		loadout = "Mecha";
 	end
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
-	if self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(techID)) > 0 then
+	if self:GetCrabToHumanSpawnRatio(techID) > 0 then
 		local actor;
 		if math.random() < 0.5 then
 			actor = PresetMan:GetLoadout(loadout, techID, false);
