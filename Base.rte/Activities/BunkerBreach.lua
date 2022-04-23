@@ -46,6 +46,7 @@ function BunkerBreach:StartActivity()
 	end
 
 	self.difficultyRatio = self.Difficulty/Activity.MAXDIFFICULTY;
+	self.CPUMaxDiggerCount = math.floor(self.difficultyRatio * 5);
 	-- Timers
 	self.checkTimer = Timer();
 	self.checkTimer:SetRealTimeLimitMS(1000);
@@ -316,11 +317,11 @@ function BunkerBreach:UpdateActivity()
 				
 				local enemyUnitRatio = enemyCount/math.max(allyCount, 1);
 				--Send CPU to dig for gold if funds are low and a digger hasn't recently been sent
-				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < 3 and (funds < 500 or math.random() < 0.1);
+				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < self.CPUMaxDiggerCount and (funds < 500 or math.random() < 0.1);
 				
 				if self.CPUTeam == self.attackerTeam then
 					if self.sendGoldDiggers then
-						self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
+						self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG, self.CPUMaxDiggerCount - diggerCount);
 					elseif enemyUnitRatio < 1.75 then
 						self:CreateDrop(self.CPUTeam, "Any", Actor.AIMODE_BRAINHUNT);
 						self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + enemyUnitRatio * 5000) * rte.SpawnIntervalScale;
@@ -353,7 +354,7 @@ function BunkerBreach:UpdateActivity()
 						self.chokePoint = nil;
 					
 						if self.sendGoldDiggers then
-							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
+							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG, self.CPUMaxDiggerCount - diggerCount);
 						else
 							self:CreateDrop(self.CPUTeam, "Any", enemyUnitRatio > math.random() and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL);
 						end
@@ -376,7 +377,7 @@ function BunkerBreach:UpdateActivity()
 end
 
 
-function BunkerBreach:CreateDrop(team, loadout, aiMode)
+function BunkerBreach:CreateDrop(team, loadout, aiMode, optionalPassengerCount)
 	local tech = self:GetTeamTech(team);
 	local crabRatio = self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(tech));
 
@@ -400,10 +401,9 @@ function BunkerBreach:CreateDrop(team, loadout, aiMode)
 		xPos = math.random(100, SceneMan.SceneWidth - 100);
 	end
 	craft.Pos = Vector(xPos, -30);
-	local passengerCount = math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers);
 	
+	local passengerCount = optionalPassengerCount == nil and math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers) or optionalPassengerCount;
 	for i = 1, passengerCount do
-
 		if craft.InventoryMass > craft.MaxInventoryMass then 
 			break;
 		end
@@ -442,6 +442,7 @@ function BunkerBreach:CreateInfantry(team, loadout)
 		--Do not attempt creating Infantry out of a Mecha loadout!
 		return self:CreateCrab(team, loadout);
 	end
+	
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
 	local actor;
 	if math.random() < 0.5 then	--Pick a unit from the loadout presets occasionally
@@ -553,6 +554,7 @@ function BunkerBreach:CreateCrab(team, loadout)
 	if loadout == nil then
 		loadout = "Mecha";
 	end
+	
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
 	if self:GetCrabToHumanSpawnRatio(techID) > 0 then
 		local actor;
