@@ -69,6 +69,21 @@ function SkirmishDefense:StartActivity()
 		end
 	end
 	
+	-- If there's only one Human team, set all existing doors to that team
+	local soleHumanTeam = -1;
+	for team = 0, Activity.MAXTEAMCOUNT - 1 do
+		if self:TeamActive(team) and not self:TeamIsCPU(team) then
+			soleHumanTeam = soleHumanTeam == -1 and team or false;
+		end
+	end
+	if soleHumanTeam ~= false and soleHumanTeam >= 0 then
+		for actor in MovableMan.AddedActors do
+			if actor.Team ~= soleHumanTeam and actor.ClassName == "ADoor" then
+				MovableMan:ChangeActorTeam(actor, soleHumanTeam);
+			end
+		end
+	end
+	
 	-- Initialize the AI
 	local CPUTeams = {};	
 	self.AI = {}
