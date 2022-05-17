@@ -562,27 +562,46 @@ end
 
 -- input: the team # that is looking for a target to bomb
 function LandingZoneMap:FindBombTarget(team)
-	local Targets = {}
+	local minimumDistanceRequiredFromEnemyBrain = 500;
+
+	local enemyBrainPositions = {}
+	local gameActivity = ActivityMan:GetActivity()
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if gameActivity:PlayerActive(player) and gameActivity:GetTeamOfPlayer(player) ~= team then
+			local brain = gameActivity:GetPlayerBrain(player);
+			if brain and MovableMan:IsActor(brain) and brain.Team ~= team then
+				table.insert(enemyBrainPositions, brain.Pos.X);
+			end
+		end
+	end
+	
+	local bombTargets = {};
 	for x, score in pairs(self.BombTargets[team]) do
 		if score > 1.5 then
-			if self.BombHistory[x] then
-				table.insert(Targets, {score=score+self.BombHistory[x], X=x})
-			else
-				table.insert(Targets, {score=score, X=x})
+			for _, enemyBrainPositionX in pairs(enemyBrainPositions) do
+				if SceneMan:ShortestDistance(Vector(x, 0), Vector(enemyBrainPositionX, 0), SceneMan.SceneWrapsX).Magnitude >= minimumDistanceRequiredFromEnemyBrain then
+					if self.BombHistory[x] then
+						table.insert(bombTargets, {score=score+self.BombHistory[x], X=x});
+					else
+						table.insert(bombTargets, {score=score, X=x});
+					end
+				end
 			end
 		end
 	end
 	
 	for x, value in pairs(self.BombHistory) do
-		self.BombHistory[x] = value * 0.7
+		self.BombHistory[x] = value * 0.7;
 	end
 	
-	if #Targets > 0 then
+	--TODO don't pick an LZ within some reasonable distance of a brain
+	
+	if #bombTargets > 0 then
 		-- pick one of the best LZs
-		local TargetLZ = self:SelectLZ(Targets, 5)
+		local TargetLZ = self:SelectLZ(bombTargets, 5);
 		if TargetLZ then
-			self.BombHistory[TargetLZ.X] = -2	-- punish this position in the future so we don't bomb the same place again right away
-			return TargetLZ.X
+			self.BombHistory[TargetLZ.X] = -2;	-- punish this position in the future so we don't bomb the same place again right away
+			return TargetLZ.X;
 		end
 	end
 end
