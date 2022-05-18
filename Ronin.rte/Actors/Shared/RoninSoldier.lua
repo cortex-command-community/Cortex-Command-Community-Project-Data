@@ -1,16 +1,18 @@
 function Create(self)
 	self.updateTimer = Timer();
-	if not self:NumberValueExists("Identity") then
-		self.face = math.random(0, (self.Head.FrameCount * 0.5) - 1);
-		if self.Head then
-			self.Head.Frame = self.face;
-		end
-		self:SetNumberValue("Identity", self.face);
-		self:SetGoldValue(self:GetGoldValue(0, 1, 1) * 0.4);
-	else
-		self.face = self:GetNumberValue("Identity");
-		if self.Head then
-			self.Head.Frame = self.face;
+	if self.Head then
+		if not self:NumberValueExists("Identity") then
+			self.face = math.random(0, (self.Head.FrameCount * 0.5) - 1);
+			if self.Head then
+				self.Head.Frame = self.face;
+			end
+			self:SetNumberValue("Identity", self.face);
+			self:SetGoldValue(self:GetGoldValue(0, 1, 1) * 0.4);
+		else
+			self.face = self:GetNumberValue("Identity");
+			if self.Head then
+				self.Head.Frame = self.face;
+			end
 		end
 	end
 	--Equip loadout actors with random weapons
