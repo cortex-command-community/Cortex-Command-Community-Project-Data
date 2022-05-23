@@ -908,7 +908,7 @@ function SkirmishDefense:CreateRandomInfantry(Team)
 		else
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
-		if math.random < 0.05 then
+		if math.random() < 0.05 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI[Team].TechID));
 		end
 		
