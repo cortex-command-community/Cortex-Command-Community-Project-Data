@@ -22,12 +22,13 @@ function NativeDropShipAI:Create(Owner)
 	end
 	
 	-- The drop ship tries to hover this many pixels above the ground
+	Members.savedHoverHeightModifier = Owner.HoverHeightModifier;
 	if Members.AIMode == Actor.AIMODE_BRAINHUNT then
-		Members.hoverAlt = Owner.Radius * 1.7
+		Members.hoverAlt = Owner.Radius * 1.7 + Owner.HoverHeightModifier;
 	elseif Members.AIMode == Actor.AIMODE_BOMB then
-		Members.hoverAlt = Owner.Radius * 6
+		Members.hoverAlt = Owner.Radius * 6 + Owner.HoverHeightModifier;
 	else
-		Members.hoverAlt = Owner.Radius * 2
+		Members.hoverAlt = Owner.Diameter + Owner.HoverHeightModifier;
 	end
 	
 	-- The controllers
@@ -49,7 +50,19 @@ end
 function NativeDropShipAI:Update(Owner)
 	local Ctrl = Owner:GetController()
 	
-	if Owner.AIMode ~= self.LastAIMode then	-- We have new orders
+	local hoverHeightModifierChanged = self.savedHoverHeightModifier ~= Owner.HoverHeightModifier;
+	if hoverHeightModifierChanged then
+		self.savedHoverHeightModifier = Owner.HoverHeightModifier;
+		if Owner.AIMode == Actor.AIMODE_BRAINHUNT then
+			self.hoverAlt = Owner.Radius * 1.7 + Owner.HoverHeightModifier;
+		elseif Owner.AIMode == Actor.AIMODE_BOMB then
+			self.hoverAlt = Owner.Radius * 6 + Owner.HoverHeightModifier;
+		else
+			self.hoverAlt = Owner.Diameter + Owner.HoverHeightModifier;
+		end
+	end
+	
+	if hoverHeightModifierChanged or Owner.AIMode ~= self.LastAIMode then
 		self.LastAIMode = Owner.AIMode
 		
 		if Owner.AIMode == Actor.AIMODE_RETURN then
@@ -78,9 +91,10 @@ function NativeDropShipAI:Update(Owner)
 			if (Owner.Pos - Wpt).Largest > 1 then
 				self.Waypoint = Wpt
 			else
-				local WptL = SceneMan:MovePointToGround(Owner.Pos-Vector(Owner.Radius, 0), self.hoverAlt, 12)
-				local WptC = SceneMan:MovePointToGround(Owner.Pos, self.hoverAlt, 12)
-				local WptR = SceneMan:MovePointToGround(Owner.Pos+Vector(Owner.Radius, 0), self.hoverAlt, 12)
+				local startingHeight = hoverHeightModifierChanged and Owner.Radius * 1.25 or math.max(Owner.Radius * 1.25, Owner.Pos.Y);
+				local WptL = SceneMan:MovePointToGround(Vector(-Owner.Radius, startingHeight), self.hoverAlt, 12)
+				local WptC = SceneMan:MovePointToGround(Vector(0, startingHeight), self.hoverAlt, 12)
+				local WptR = SceneMan:MovePointToGround(Vector(Owner.Radius, startingHeight), self.hoverAlt, 12)
 				self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y))
 			end
 			
@@ -114,9 +128,10 @@ function NativeDropShipAI:Update(Owner)
 				self.Waypoint.X = FuturePos.X
 				self.Waypoint.Y = -500
 			else
-				local WptL = SceneMan:MovePointToGround(Owner.Pos-Vector(Owner.Radius, 0), self.hoverAlt, 12)
-				local WptC = SceneMan:MovePointToGround(Owner.Pos, self.hoverAlt, 12)
-				local WptR = SceneMan:MovePointToGround(Owner.Pos+Vector(Owner.Radius, 0), self.hoverAlt, 12)
+				local startingHeight = math.max(Owner.Radius * 1.25, Owner.Pos.Y);
+				local WptL = SceneMan:MovePointToGround(Vector(-Owner.Radius, startingHeight), self.hoverAlt, 12)
+				local WptC = SceneMan:MovePointToGround(Vector(0, startingHeight), self.hoverAlt, 12)
+				local WptR = SceneMan:MovePointToGround(Vector(Owner.Radius, startingHeight), self.hoverAlt, 12)
 				self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y))
 			end
 		end
