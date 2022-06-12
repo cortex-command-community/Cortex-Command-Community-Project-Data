@@ -32,6 +32,9 @@ function Test:StartActivity()
 		end
 	end
 	
+	self.doorMessageTimer = Timer();
+	self.doorMessageTimer:SetSimTimeLimitMS(5000);
+	self.allDoorsOpened = false;
 end
 
 -----------------------------------------------------------------------------------------
@@ -55,9 +58,24 @@ end
 -----------------------------------------------------------------------------------------
 
 function Test:UpdateActivity()
-	if self.ActivityState == Activity.EDITING then
-		-- Game is in editing or other modes, so open all does and reset the game running timer
-		MovableMan:OpenAllDoors(true, Activity.NOTEAM)
-		-- self.StartTimer:Reset()
+	if self.doorMessageTimer then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				FrameMan:SetScreenText("NOTE: You can press ALT + 1 to open or close all doors", player, 0, -1, false);
+			end
+		end
+		if self.doorMessageTimer:IsPastSimTimeLimit() then
+			self.doorMessageTimer = nil;
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				if self:PlayerActive(player) and self:PlayerHuman(player) then
+					FrameMan:ClearScreenText(player);
+				end
+			end
+		end
+	end
+
+	if UInputMan.FlagAltState and UInputMan:KeyPressed(28) then
+		MovableMan:OpenAllDoors(not self.allDoorsOpened, Activity.NOTEAM);
+		self.allDoorsOpened = not self.allDoorsOpened;
 	end
 end
