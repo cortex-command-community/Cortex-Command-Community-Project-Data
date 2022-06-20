@@ -4,7 +4,10 @@ This is where you can find the community's plans for Cortex Command's future. Th
 ***
 
 # Installing the Game
-If you just want to play the latest version of the game you can get it from our [website](https://cortex-command-community.github.io), and you can get mods from our [mod portal](https://cccp.mod.io).
+If you just want to play the latest version of the game you can get it from our [website](https://cortex-command-community.github.io).
+
+# Getting Mods
+You can get mods from our [mod portal](https://cccp.mod.io).
 
 ***
 
