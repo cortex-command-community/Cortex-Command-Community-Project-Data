@@ -1,3 +1,11 @@
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsAHuman(rootParent) then
+		local humanRootParent = ToAHuman(rootParent);
+		humanRootParent.PieMenu:GetFirstPieSliceByPresetName("Ronin Shovel Fill Sandbag PieSlice").Enabled = humanRootParent:GetNumberValue("RoninShovelResource") >= 10;
+	end
+end
+
 function Create(self)
 	self.origStanceOffset = Vector(0, 8);
 	self.origSharpStanceOffset = Vector(4, 6);
@@ -12,7 +20,11 @@ function Create(self)
 
 	self.lastVel = Vector(50 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+	
+	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
+	OnAttach(self);
 end
+
 function Update(self)
 	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
 	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
@@ -123,11 +135,4 @@ function Update(self)
 	end
 	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
 	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
-end
-function OnAttach(self, newParent)
-	local rootParent = self:GetRootParent();
-	if IsAHuman(rootParent) then
-		local humanRootParent = ToAHuman(rootParent);
-		humanRootParent.PieMenu:GetFirstPieSliceByPresetName("Ronin Shovel Fill Sandbag PieSlice").Enabled = humanRootParent:GetNumberValue("RoninShovelResource") >= 10;
-	end
 end

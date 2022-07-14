@@ -1,13 +1,13 @@
-function OnPieMenu(item)
-	if item and IsHDFirearm(item) and item.PresetName == "GL-01 Magmaul" then
-		item = ToHDFirearm(item);
-		if item.Magazine then
-			--Remove corresponding pie slices if mode is already active
-			if item.Magazine.PresetName == "Magazine GL-1 Fuel" then
-				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Fuel Bomb", "MagmaulFuelGrenade");
-			elseif item.Magazine.PresetName == "Magazine GL-1 Fire" then
-				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Fire Bomb", "MagmaulFireGrenade");
-			end
-		end
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsActor(rootParent) then
+		local magazinePresetName = self.Magazine and self.Magazine.PresetName or self:GetNextMagazineName();
+		local pieSliceToAddPresetName = magazinePresetName == "Magazine GL-1 Fuel" and "Magmaul Fire Bomb" or "Magmaul Fuel Bomb";
+		ToActor(rootParent).PieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
 	end
+end
+
+function Create(self)
+	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
+	OnAttach(self);
 end

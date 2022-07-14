@@ -1,13 +1,13 @@
-function OnPieMenu(item)
-	if item and IsHDFirearm(item) and item.PresetName == "M79" then
-		item = ToHDFirearm(item);
-		if item.Magazine then
-			--Remove corresponding pie slices if mode is already active
-			if item.Magazine.PresetName == "Magazine Ronin M79 Grenade Launcher Impact" then
-				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Turn Off Failsafe", "M79GrenadeLauncherFailsafeOff");
-			elseif item.Magazine.PresetName == "Magazine Ronin M79 Grenade Launcher Bounce" then
-				ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Turn On Failsafe", "M79GrenadeLauncherFailsafeOn")
-			end
-		end
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsActor(rootParent) then
+		local magazinePresetName = self.Magazine and self.Magazine.PresetName or self:GetNextMagazineName();
+		local pieSliceToAddPresetName = magazinePresetName == "Magazine Ronin M79 Grenade Launcher Bounce" and "M79 Turn Off Failsafe" or "M79 Turn On Failsafe";
+		ToActor(rootParent).PieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
 	end
+end
+
+function Create(self)
+	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
+	OnAttach(self);
 end

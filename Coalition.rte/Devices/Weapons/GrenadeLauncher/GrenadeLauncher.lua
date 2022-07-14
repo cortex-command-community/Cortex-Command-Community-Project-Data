@@ -1,19 +1,38 @@
-function OnPieMenu(item)
-	if item and IsHDFirearm(item) and item.PresetName == "Grenade Launcher" then
-		item = ToHDFirearm(item);
-		local mode = item:GetStringValue("GrenadeMode");
-		--Remove corresponding pie slices if mode is already active
-		if mode == "Impact" then
-			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Impact Mode", "GrenadeLauncherImpact");
-		elseif mode == "Bounce" then
-			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Bounce Mode", "GrenadeLauncherBounce");
-		elseif mode == "Remote" then
-			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Remote Mode", "GrenadeLauncherRemote");
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsActor(rootParent) then
+		local subPieMenuPieSlice = ToActor(rootParent).PieMenu:GetFirstPieSliceByPresetName("Coalition Grenade Launcher Options");
+		if subPieMenuPieSlice ~= nil then
+			local grenadeLauncherSubPieMenu = subPieMenuPieSlice.SubPieMenu;
+			if grenadeLauncherSubPieMenu ~= nil then
+				self.impactModePieSlice = grenadeLauncherSubPieMenu:GetFirstPieSliceByPresetName("Coalition Grenade Launcher Impact Mode");
+				self.bounceModePieSlice = grenadeLauncherSubPieMenu:GetFirstPieSliceByPresetName("Coalition Grenade Launcher Bounce Mode");
+				self.remoteModePieSlice = grenadeLauncherSubPieMenu:GetFirstPieSliceByPresetName("Coalition Grenade Launcher Remote Mode");
+				self.removeGrenadesPieSlice = grenadeLauncherSubPieMenu:GetFirstPieSliceByPresetName("Coalition Grenade Launcher Remove Grenades");
+				self.detonateGrenadesPieSlice = grenadeLauncherSubPieMenu:GetFirstPieSliceByPresetName("Coalition Grenade Launcher Detonate Grenades");
+			end
 		end
-		if item:GetNumberValue("CoalitionRemoteGrenades") == 0 then
-			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Detonate Grenades", "GrenadeLauncherRemoteDetonate");
-			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Remove Grenades", "GrenadeLauncherRemoteDelete");
-		end
+	end
+end
+
+function WhilePieMenuOpen(self, pieMenu)
+	local grenadeMode = self:GetStringValue("GrenadeMode");
+	if self.impactModePieSlice ~= nil then
+		self.impactModePieSlice.Enabled = not grenadeMode ~= "Impact";
+	end
+	if self.bounceModePieSlice ~= nil then
+		self.bounceModePieSlice.Enabled = grenadeMode ~= "Bounce";
+	end
+	if self.remoteModePieSlice ~= nil then
+		self.remoteModePieSlice.Enabled = grenadeMode ~= "Remote";
+	end
+	
+	local grenadeCount = self:GetNumberValue("CoalitionRemoteGrenades");
+	if self.removeGrenadesPieSlice ~= nil then
+		self.removeGrenadesPieSlice.Enabled = grenadeCount > 0;
+	end
+	if self.detonateGrenadesPieSlice ~= nil then
+		self.detonateGrenadesPieSlice.Enabled = grenadeCount > 0;
 	end
 end
 
@@ -21,6 +40,15 @@ function Create(self)
 	self.grenadeTableA = {};
 	self.grenadeTableB = {};
 	self.maxActiveGrenades = 12;
+	
+	self.impactModePieSlice = nil;
+	self.bounceModePieSlice = nil;
+	self.remoteModePieSlice = nil;
+	self.removeGrenadesPieSlice = nil;
+	self.detonateGrenadesPieSlice = nil;
+	
+	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
+	OnAttach(self);
 end
 
 function Update(self)
