@@ -736,7 +736,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
-	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
+	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner:EquipFirearm(true) then
@@ -747,7 +747,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
 		end
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM()) then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 250 then

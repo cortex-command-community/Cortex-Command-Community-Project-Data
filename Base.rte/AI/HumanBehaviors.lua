@@ -2748,10 +2748,9 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 					if Owner.ThrowableIsReady then
 						local Grenade = ToThrownDevice(Owner.EquippedItem)
 						if Grenade then
-							local maxThrowVel = Grenade.MaxThrowVel
+							local maxThrowVel = Grenade:GetCalculatedMaxThrowVelIncludingArmThrowStrength();
 							local minThrowVel = Grenade.MinThrowVel
-							if maxThrowVel == 0 then
-								maxThrowVel = Owner.FGArm.ThrowStrength + math.abs(Owner.AngularVel * 0.5) * math.cos(Owner.RotAngle)/math.sqrt(math.abs(Grenade.Mass) + 1)
+							if minThrowVel == 0 then
 								minThrowVel = maxThrowVel * 0.2
 							end
 							aim = HumanBehaviors.GetGrenadeAngle(AimPoint, Vector(), Grenade.MuzzlePos, maxThrowVel)
