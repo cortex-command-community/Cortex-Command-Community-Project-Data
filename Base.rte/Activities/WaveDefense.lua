@@ -846,19 +846,18 @@ end
 function WaveDefense:CreateCrab()
 	local Passenger = RandomACrab("Actors - Mecha", self.AI.Tech)
 	if Passenger then
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
-		Passenger.Team = self.CPUTeam
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+		Passenger.Team = self.CPUTeam;
+		return Passenger;
 	end
 end
 
 -- Get any Actor from the CPU's native tech
 function WaveDefense:CreateRandomInfantry()
-	local Passenger = RandomAHuman("Any", self.AI.Tech)
+	local Passenger = RandomAHuman("Any", self.AI.Tech);
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI.Tech))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI.Tech));
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
 		
 		local rand = math.random();
 		if rand < 0.25 then
@@ -874,18 +873,21 @@ function WaveDefense:CreateRandomInfantry()
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
-		Passenger.Team = self.CPUTeam
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+		Passenger.Team = self.CPUTeam;
+		return Passenger;
 	end
 end
 
 function WaveDefense:CreateLightInfantry()
-	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech);
+	if Passenger.ModuleID ~= self.AI.TechID then
+		Passenger = RandomAHuman("Actors", self.AI.TechID);
+	end
+	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
 		
 		local rand = math.random();
 		if rand < 0.5 then
@@ -896,17 +898,20 @@ function WaveDefense:CreateLightInfantry()
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
-		Passenger.Team = self.CPUTeam
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+		Passenger.Team = self.CPUTeam;
+		return Passenger;
 	end
 end
 
 function WaveDefense:CreateHeavyInfantry()
-	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech);
+	if Passenger.ModuleID ~= self.AI.TechID then
+		Passenger = RandomAHuman("Actors", self.AI.TechID);
+	end
+	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.AI.Tech))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.AI.Tech));
 		
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
@@ -925,18 +930,21 @@ function WaveDefense:CreateHeavyInfantry()
 			end
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
-		Passenger.Team = self.CPUTeam
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+		Passenger.Team = self.CPUTeam;
+		return Passenger;
 	end
 end
 
 function WaveDefense:CreateMediumInfantry()
-	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Heavy", self.AI.Tech);
+	if Passenger.ModuleID ~= self.AI.TechID then
+		Passenger = RandomAHuman("Actors", self.AI.TechID);
+	end
+	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
 		
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
@@ -947,15 +955,18 @@ function WaveDefense:CreateMediumInfantry()
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
-		Passenger.Team = self.CPUTeam
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+		Passenger.Team = self.CPUTeam;
+		return Passenger;
 	end
 end
 
 function WaveDefense:CreateEngineer()
-	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech);
+	if Passenger.ModuleID ~= self.AI.TechID then
+		Passenger = RandomAHuman("Actors", self.AI.TechID);
+	end
+	
 	if Passenger then
 		if math.random() < 0.7 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
@@ -972,15 +983,18 @@ function WaveDefense:CreateEngineer()
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI.Tech));
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_GOLDDIG
-		Passenger.Team = self.CPUTeam
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_GOLDDIG;
+		Passenger.Team = self.CPUTeam;
+		return Passenger;
 	end
 end
 
 function WaveDefense:CreateScoutInfantry()
-	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech)
+	local Passenger = RandomAHuman("Actors - Light", self.AI.Tech);
+	if Passenger.ModuleID ~= self.AI.TechID then
+		Passenger = RandomAHuman("Actors", self.AI.TechID);
+	end
+	
 	if Passenger then
 		if math.random() < 0.15 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.AI.Tech))
@@ -994,10 +1008,9 @@ function WaveDefense:CreateScoutInfantry()
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_BRAINHUNT
-		Passenger.Team = self.CPUTeam
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
+		Passenger.Team = self.CPUTeam;
+		return Passenger;
 	end
 end
 

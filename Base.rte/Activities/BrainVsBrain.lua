@@ -796,29 +796,26 @@ end
 function BrainvsBrain:CreateCrab(team, mode)
 	local Passenger = RandomACrab("Actors - Mecha", self.TechName[team])
 	if Passenger then
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
 function BrainvsBrain:CreateTurret(team, mode)
 	local Passenger = RandomACrab("Turret", self.TechName[team])
 	if Passenger then
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_SENTRY
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_SENTRY;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
--- Get any Actor from the CPU's native tech
 function BrainvsBrain:CreateRandomInfantry(team, mode)
 	local Passenger = RandomAHuman("Actors", self.TechName[team])
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.TechName[team]))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.TechName[team]));
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		
 		local rand = math.random();
 		if rand < 0.25 then
@@ -834,18 +831,21 @@ function BrainvsBrain:CreateRandomInfantry(team, mode)
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
 function BrainvsBrain:CreateLightInfantry(team, mode)
-	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
+	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+		Passenger = RandomAHuman("Actors", self.TechName[team]);
+	end
+	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		
 		local rand = math.random();
 		if rand < 0.5 then
@@ -856,35 +856,40 @@ function BrainvsBrain:CreateLightInfantry(team, mode)
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
 function BrainvsBrain:CreateDefender(team)
-	local name = self.TechName[team] or "Dummy"
-	local Passenger = RandomAHuman("Actors - Light", name)
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
+	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+		Passenger = RandomAHuman("Actors", self.TechName[team]);
+	end
+	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", name))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", name))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		
 		if math.random() < 0.2 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", name))
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = Actor.AIMODE_SENTRY
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = Actor.AIMODE_SENTRY;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
 function BrainvsBrain:CreateHeavyInfantry(team, mode)
-	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team]);
+	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+		Passenger = RandomAHuman("Actors", self.TechName[team]);
+	end
+	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.TechName[team]))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.TechName[team]));
 		
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
@@ -903,18 +908,21 @@ function BrainvsBrain:CreateHeavyInfantry(team, mode)
 			end
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
 function BrainvsBrain:CreateMediumInfantry(team, mode)
-	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team]);
+	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+		Passenger = RandomAHuman("Actors", self.TechName[team]);
+	end
+	
 	if Passenger then
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]))
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
@@ -925,20 +933,23 @@ function BrainvsBrain:CreateMediumInfantry(team, mode)
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
 function BrainvsBrain:CreateScoutInfantry(team, mode)
-	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
+	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+		Passenger = RandomAHuman("Actors", self.TechName[team]);
+	end
+	
 	if Passenger then
 		if math.random() < 0.15 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.TechName[team]))
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.TechName[team]));
 		end
-		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
+		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
@@ -947,15 +958,18 @@ function BrainvsBrain:CreateScoutInfantry(team, mode)
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
 		end
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOTO
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end
 
 function BrainvsBrain:CreateEngineer(team, mode)
-	local Passenger = RandomAHuman("Actors - Light", self.TechName[team])
+	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
+	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+		Passenger = RandomAHuman("Actors", self.TechName[team]);
+	end
+	
 	if Passenger then
 		if math.random() < 0.7 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
@@ -972,9 +986,8 @@ function BrainvsBrain:CreateEngineer(team, mode)
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]));
 		
-		-- Set AI mode and team so it knows who and what to fight for!
-		Passenger.AIMode = mode or Actor.AIMODE_GOLDDIG
-		Passenger.Team = team
-		return Passenger
+		Passenger.AIMode = mode or Actor.AIMODE_GOLDDIG;
+		Passenger.Team = team;
+		return Passenger;
 	end
 end

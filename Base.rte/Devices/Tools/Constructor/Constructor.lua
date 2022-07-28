@@ -558,8 +558,8 @@ function Update(self)
 								end
 								local terrainObject = CreateTerrainObject(name); 
 								terrainObject.Pos = pos;
-								SceneMan:AddTerrainObject(terrainObject);
-								
+								SceneMan:AddSceneObject(terrainObject);
+
 								didBuild = true;
 								totalCost = 1 - strengthRatio;
 							end

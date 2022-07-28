@@ -68,6 +68,6 @@ end
 function Destroy(self)
 	--If this MO is somehow deleted, a new background sprite will indicate the destruction of the ladder
 	if self.gib then
-		SceneMan:AddTerrainObject(self.gib);
+		SceneMan:AddSceneObject(self.gib);
 	end
 end

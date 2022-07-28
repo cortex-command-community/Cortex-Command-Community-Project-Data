@@ -46,6 +46,7 @@ function BunkerBreach:StartActivity()
 	end
 
 	self.difficultyRatio = self.Difficulty/Activity.MAXDIFFICULTY;
+	self.CPUMaxDiggerCount = math.floor(self.difficultyRatio * 5);
 	-- Timers
 	self.checkTimer = Timer();
 	self.checkTimer:SetRealTimeLimitMS(1000);
@@ -316,11 +317,11 @@ function BunkerBreach:UpdateActivity()
 				
 				local enemyUnitRatio = enemyCount/math.max(allyCount, 1);
 				--Send CPU to dig for gold if funds are low and a digger hasn't recently been sent
-				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < 3 and (funds < 500 or math.random() < 0.1);
+				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < self.CPUMaxDiggerCount and (funds < 500 or math.random() < 0.1);
 				
 				if self.CPUTeam == self.attackerTeam then
 					if self.sendGoldDiggers then
-						self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
+						self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG, self.CPUMaxDiggerCount - diggerCount);
 					elseif enemyUnitRatio < 1.75 then
 						self:CreateDrop(self.CPUTeam, "Any", Actor.AIMODE_BRAINHUNT);
 						self.CPUSpawnDelay = (30000 - self.difficultyRatio * 15000 + enemyUnitRatio * 5000) * rte.SpawnIntervalScale;
@@ -353,7 +354,7 @@ function BunkerBreach:UpdateActivity()
 						self.chokePoint = nil;
 					
 						if self.sendGoldDiggers then
-							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG);
+							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG, self.CPUMaxDiggerCount - diggerCount);
 						else
 							self:CreateDrop(self.CPUTeam, "Any", enemyUnitRatio > math.random() and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL);
 						end
@@ -376,7 +377,7 @@ function BunkerBreach:UpdateActivity()
 end
 
 
-function BunkerBreach:CreateDrop(team, loadout, aiMode)
+function BunkerBreach:CreateDrop(team, loadout, aiMode, optionalPassengerCount)
 	local tech = self:GetTeamTech(team);
 	local crabRatio = self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(tech));
 
@@ -400,10 +401,9 @@ function BunkerBreach:CreateDrop(team, loadout, aiMode)
 		xPos = math.random(100, SceneMan.SceneWidth - 100);
 	end
 	craft.Pos = Vector(xPos, -30);
-	local passengerCount = math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers);
 	
+	local passengerCount = optionalPassengerCount == nil and math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers) or optionalPassengerCount;
 	for i = 1, passengerCount do
-
 		if craft.InventoryMass > craft.MaxInventoryMass then 
 			break;
 		end
@@ -442,93 +442,103 @@ function BunkerBreach:CreateInfantry(team, loadout)
 		--Do not attempt creating Infantry out of a Mecha loadout!
 		return self:CreateCrab(team, loadout);
 	end
-	local tech = self:GetTeamTech(team);
+	
+	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
 	local actor;
 	if math.random() < 0.5 then	--Pick a unit from the loadout presets occasionally
 		if loadout == "Light" then
-			actor = PresetMan:GetLoadout("Infantry " .. (math.random() < 0.7 and "Light" or "CQB"), tech, false);
+			actor = PresetMan:GetLoadout("Infantry " .. (math.random() < 0.7 and "Light" or "CQB"), techID, false);
 		elseif loadout == "Heavy" then
-			actor = PresetMan:GetLoadout("Infantry " .. (math.random() < 0.7 and "Heavy" or "Grenadier"), tech, false);
+			actor = PresetMan:GetLoadout("Infantry " .. (math.random() < 0.7 and "Heavy" or "Grenadier"), techID, false);
 		else
-			actor = PresetMan:GetLoadout("Infantry " .. loadout, tech, false);
+			actor = PresetMan:GetLoadout("Infantry " .. loadout, techID, false);
 		end
 	end
 	if not actor then
 		if loadout == "Light" then
-			actor = RandomAHuman("Actors - Light", tech);
+			actor = RandomAHuman("Actors - Light", techID);
+			if actor.ModuleID ~= techID then
+				actor = RandomAHuman("Actors", techID);
+			end
 			
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 			local rand = math.random();
 			if rand < 0.5 then
-				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
+				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
 			elseif rand < 0.8 then
 				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			else
-				actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", tech));
+				actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", techID));
 			end
 			
 		elseif loadout == "Heavy" then
-			actor = RandomAHuman("Actors - Heavy", tech);
+			actor = RandomAHuman("Actors - Heavy", techID);
+			if actor.ModuleID ~= techID then
+				actor = RandomAHuman("Actors", techID);
+			end
 			
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", tech));
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techID));
 			if math.random() < 0.3 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
 				if math.random() < 0.25 then
-					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
+					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
 				elseif math.random() < 0.35 then
 					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 				end
 			else
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 				if math.random() < 0.3 then
-					actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
+					actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
 					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 				else
-					actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+					actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 				end
 			end
 			
 		elseif loadout == "Sniper" then
-			actor = RandomAHuman("Actors", tech);
+			actor = RandomAHuman("Actors", techID);
 			
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", tech));
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", techID));
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 			if math.random() < 0.3 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 			else
 				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
 			
 		elseif loadout == "Engineer" then
-			actor = RandomAHuman("Actors - Light", tech);
+			actor = RandomAHuman("Actors - Light", techID);
+			if actor.ModuleID ~= techID then
+				actor = RandomAHuman("Actors", techID);
+			end
 			
 			if math.random() < 0.7 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
 			else
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 				local rand = math.random();
 				if rand < 0.2 then
-					actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
+					actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
 				elseif rand < 0.4 then
 					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 				else
-					actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", tech));
+					actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", techID));
 				end
 			end
-			actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", tech));
+			actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techID));
 		else
-			actor = RandomAHuman("Actors", tech);
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", tech));
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+			actor = RandomAHuman("Actors", techID);
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", techID));
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 			
 			local rand = math.random();
 			if rand < 0.25 then
-				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
+				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
 			elseif rand < 0.50 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 			elseif rand < 0.75 then
-				actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
+				actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
 			else
 				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
@@ -544,13 +554,14 @@ function BunkerBreach:CreateCrab(team, loadout)
 	if loadout == nil then
 		loadout = "Mecha";
 	end
-	local tech = self:GetTeamTech(team);
-	if self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(tech)) > 0 then
+	
+	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
+	if self:GetCrabToHumanSpawnRatio(techID) > 0 then
 		local actor;
 		if math.random() < 0.5 then
-			actor = PresetMan:GetLoadout(loadout, tech, false);
+			actor = PresetMan:GetLoadout(loadout, techID, false);
 		else
-			actor = loadout == "Turret" and RandomACrab("Actors - Turrets", tech) or RandomACrab("Actors - Mecha", tech);
+			actor = loadout == "Turret" and RandomACrab("Actors - Turrets", techID) or RandomACrab("Actors - Mecha", techID);
 		end
 		actor.Team = team;
 		return actor;
@@ -561,17 +572,17 @@ end
 
 
 function BunkerBreach:CreateBrainBot(team)
-	local tech = self:GetTeamTech(team);
+	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
 	local actor;
-	if tech ~= -1 and team == self.attackerTeam then
-		actor = PresetMan:GetLoadout("Infantry Brain", tech, false);
+	if techID ~= -1 and team == self.attackerTeam then
+		actor = PresetMan:GetLoadout("Infantry Brain", techID, false);
 	else
-		actor = RandomAHuman("Brains", tech);
-		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
+		actor = RandomAHuman("Brains", techID);
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
 		if team == self.attackerTeam then
 			actor:AddInventoryItem(CreateHDFirearm("Constructor", "Base.rte"));
 		else
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 		end
 	end
 	actor.AIMode = Actor.AIMODE_SENTRY;
