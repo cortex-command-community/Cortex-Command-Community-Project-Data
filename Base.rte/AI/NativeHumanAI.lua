@@ -264,9 +264,7 @@ function NativeHumanAI:Update(Owner)
 					then
 						self.Target = nil	-- stop shooting
 					end
-				elseif FoundMO.ClassName ~= "ADoor" and
-					SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).Magnitude < Owner.Diameter + FoundMO.Diameter
-				then
+				elseif FoundMO.ClassName ~= "ADoor" and SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).Magnitude < Owner.Diameter + FoundMO.Diameter then
 					self.BlockingMO = FoundMO	-- this MO is blocking our path
 				end
 			else
@@ -289,9 +287,7 @@ function NativeHumanAI:Update(Owner)
 				if FoundMO and FoundMO.Status < Actor.INACTIVE then
 					if self.Target then
 						-- check if this MO should be targeted instead
-						if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > 
-							HumanBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5
-						then
+						if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5 then
 							self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y)
 							self.Target = FoundMO
 							self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false)	-- this is the distance vector from the target center to the point we hit with our ray
@@ -726,7 +722,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	
 	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
 
-	if IsADoor(self.Target) then 
+	if IsADoor(self.Target) and Owner.AIMode ~= Actor.AIMODE_SQUAD then
 		--TODO: Include other explosive weapons with varying effective ranges!
 		if Owner:EquipDeviceInGroup("Tools - Breaching", true) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
@@ -740,7 +736,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
-	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
+	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner:EquipFirearm(true) then
@@ -751,7 +747,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget)
 			self.NextBehaviorName = "ShootTarget"
 		end
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem).MaxThrowVel * GetPPM()) then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 250 then

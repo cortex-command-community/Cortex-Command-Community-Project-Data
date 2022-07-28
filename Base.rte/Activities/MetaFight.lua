@@ -1246,6 +1246,9 @@ function MetaFight:SearchLZ(player)
 					local Craft = RandomACDropShip("Craft", MetaPlayer.NativeTechModule)
 					if Craft then
 						local Passenger = RandomAHuman("Actors - Light", MetaPlayer.NativeTechModule)
+						if Passenger.ModuleID ~= MetaPlayer.NativeTechModule then
+							Passenger = RandomAHuman("Actors", MetaPlayer.NativeTechModule);
+						end
 						if Passenger then
 							Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", MetaPlayer.NativeTechModule))
 							Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", MetaPlayer.NativeTechModule))
@@ -1791,7 +1794,11 @@ end
 function MetaFight:PurchaseHeavyInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Actors - Heavy", techID)
+	local Cargo = RandomAHuman("Actors - Heavy", techID)
+	if Cargo.ModuleID ~= techID then
+		Cargo = RandomAHuman("Actors", techID);
+	end
+	
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
@@ -1839,7 +1846,11 @@ end
 function MetaFight:PurchaseMediumInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Actors - Heavy", techID)
+	local Cargo = RandomAHuman("Actors - Heavy", techID)
+	if Cargo.ModuleID ~= techID then
+		Cargo = RandomAHuman("Actors", techID);
+	end
+	
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
@@ -1881,7 +1892,11 @@ end
 function MetaFight:PurchaseLightInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Actors - Light", techID)
+	local Cargo = RandomAHuman("Actors - Light", techID)
+	if Cargo.ModuleID ~= techID then
+		Cargo = RandomAHuman("Actors", techID);
+	end
+	
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
@@ -1923,7 +1938,11 @@ end
 function MetaFight:PurchaseScoutInfantry(player, techID)
 	local mass = 0
 	local digger = 0
-	local	Cargo = RandomAHuman("Actors - Light", techID)
+	local Cargo = RandomAHuman("Actors - Light", techID)
+	if Cargo.ModuleID ~= techID then
+		Cargo = RandomAHuman("Actors", techID);
+	end
+	
 	if Cargo then
 		self:AddOverridePurchase(Cargo, player)
 		mass = mass + Cargo.Mass
@@ -1950,7 +1969,11 @@ end
 -----------------------------------------------
 -- Functions for creating random actors
 function MetaFight:CreateHeavyInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Actors - Heavy", techID)
+	local Passenger = RandomAHuman("Actors - Heavy", techID)
+	if Passenger.ModuleID ~= techID then
+		Passenger = RandomAHuman("Actors", techID);
+	end
+	
 	if Passenger then
 		Passenger.AIMode = mode
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techID))
@@ -1970,7 +1993,11 @@ function MetaFight:CreateHeavyInfantry(mode, techID)
 end
 
 function MetaFight:CreateMediumInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Actors - Heavy", techID)
+	local Passenger = RandomAHuman("Actors - Heavy", techID)
+	if Passenger.ModuleID ~= techID then
+		Passenger = RandomAHuman("Actors", techID);
+	end
+	
 	if Passenger then
 		Passenger.AIMode = mode
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
@@ -1985,7 +2012,11 @@ function MetaFight:CreateMediumInfantry(mode, techID)
 end
 
 function MetaFight:CreateLightInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Actors - Light", techID)
+	local Passenger = RandomAHuman("Actors - Light", techID)
+	if Passenger.ModuleID ~= techID then
+		Passenger = RandomAHuman("Actors", techID);
+	end
+	
 	if Passenger then
 		Passenger.AIMode = mode
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID))
@@ -2000,7 +2031,11 @@ function MetaFight:CreateLightInfantry(mode, techID)
 end
 
 function MetaFight:CreateScoutInfantry(mode, techID)
-	local	Passenger = RandomAHuman("Actors - Light", techID)
+	local Passenger = RandomAHuman("Actors - Light", techID)
+	if Passenger.ModuleID ~= techID then
+		Passenger = RandomAHuman("Actors", techID);
+	end
+	
 	if Passenger then
 		Passenger.AIMode = mode
 		if math.random() < 0.6 then
