@@ -17,7 +17,7 @@ function FragileUnitsScript:MakeFragile(actor)
 		actor.GibWoundLimit = 1;
 		for att in actor.Attachables do
 			att.GibWoundLimit = 1;
-			if not IsAEmitter(att) then
+			if not IsAEmitter(att) and not IsArm(att) and not IsTurret(att) then
 				att.JointStrength = 1;
 			end
 		end
