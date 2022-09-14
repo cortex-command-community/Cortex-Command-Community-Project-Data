@@ -26,16 +26,16 @@ function Create(self)
 				local firearms = {unit["Primary"], unit["Secondary"], unit["Tertiary"]};
 				for class = 1, #firearms do
 					if firearms[class] then
-						local firearm = CreateHDFirearm(firearms[class][math.random(#firearms[class])], "Ronin.rte");
+						local firearm = CreateHDFirearm(firearms[class][math.random(#firearms[class])], self.ModuleName);
 						firearm:SetGoldValue(firearm:GetGoldValue(0, 1, 1) * 0.6);
 						self:AddInventoryItem(firearm);
 					end
 				end
 				if unit["Throwable"] then
-					self:AddInventoryItem(CreateTDExplosive(unit["Throwable"][math.random(#unit["Throwable"])], "Ronin.rte"));
+					self:AddInventoryItem(CreateTDExplosive(unit["Throwable"][math.random(#unit["Throwable"])], self.ModuleName));
 				end
 				if unit["Headgear"] and self.Head then
-					headgear = CreateAttachable("Ronin ".. unit["Headgear"][math.random(#unit["Headgear"])]);
+					headgear = CreateAttachable("Ronin ".. unit["Headgear"][math.random(#unit["Headgear"])], self.ModuleName);
 					self.Head:AddAttachable(headgear);
 				end
 			end
@@ -43,18 +43,18 @@ function Create(self)
 			headgear = CreateAttachable("Ronin Crab Helmet", "Ronin.rte");
 			self.Head:AddAttachable(headgear);
 		elseif self.PresetName == "Raider" and self.Head then
-			headgear = CreateAttachable("Ronin ".. RoninLoadouts["Machinegunner"]["Headgear"][math.random(#RoninLoadouts["Machinegunner"]["Headgear"])]);
+			headgear = CreateAttachable("Ronin ".. RoninLoadouts["Machinegunner"]["Headgear"][math.random(#RoninLoadouts["Machinegunner"]["Headgear"])], self.ModuleName);
 			self.Head:AddAttachable(headgear);
 		end
 		if not headgear and self.Head then
 			if self.face == 1 then	--"Mia"
 				self.DeathSound.Pitch = 1.2;
 				self.PainSound.Pitch = 1.2;
-				self.Head:AddAttachable(CreateAttachable("Ronin Black Hair"));
+				self.Head:AddAttachable(CreateAttachable("Ronin Black Hair", self.ModuleName));
 			elseif self.face == 4 then	--"Sandra"
 				self.DeathSound.Pitch = 1.2;
 				self.PainSound.Pitch = 1.2;
-				self.Head:AddAttachable(CreateAttachable("Ronin Blonde Hair"));
+				self.Head:AddAttachable(CreateAttachable("Ronin Blonde Hair", self.ModuleName));
 			end
 		end
 		self:SetNumberValue("Equipped", 1);
