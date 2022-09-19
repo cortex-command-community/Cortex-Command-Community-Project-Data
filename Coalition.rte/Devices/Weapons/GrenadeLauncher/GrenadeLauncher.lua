@@ -18,7 +18,7 @@ end
 function WhilePieMenuOpen(self, pieMenu)
 	local grenadeMode = self:GetStringValue("GrenadeMode");
 	if self.impactModePieSlice ~= nil then
-		self.impactModePieSlice.Enabled = not grenadeMode ~= "Impact";
+		self.impactModePieSlice.Enabled = grenadeMode ~= "Impact";
 	end
 	if self.bounceModePieSlice ~= nil then
 		self.bounceModePieSlice.Enabled = grenadeMode ~= "Bounce";
