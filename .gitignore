@@ -49,10 +49,8 @@ luac.out
 
 .vs/
 _Screenshots/
-Base.rte/Settings.ini
+Data/Base.rte/Settings.ini
 Benchmark.rte/
-Scenes.rte/
-Metagames.rte/
 DedicatedServerDebug.bat
 
 allegro.log
