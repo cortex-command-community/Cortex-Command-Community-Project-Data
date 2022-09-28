@@ -1,10 +1,10 @@
-function RoninRPGSwitchAmmo(actor)
-	local gun = ToAHuman(actor).EquippedItem;
-	if gun and actor:HasObject("Shovel") then
+function RoninRPGSwitchAmmo(pieMenu, pieSlice, pieMenuOwner)
+	local gun = pieMenuOwner.EquippedItem;
+	if gun and pieMenuOwner:HasObject("Shovel") then
 		local gun = ToHDFirearm(gun);
 		local magSwitchName = "Magazine Ronin Shovel Shot";
 		if gun.Magazine == nil or gun.Magazine.PresetName ~= magSwitchName then
-			actor:RemoveInventoryItem("Shovel");
+			pieMenuOwner:RemoveInventoryItem("Shovel");
 			gun:SetNextMagazineName(magSwitchName);
 			gun:Reload();
 		end

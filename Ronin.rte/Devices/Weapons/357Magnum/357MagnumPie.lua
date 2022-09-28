@@ -1,5 +1,5 @@
-function CowboyMode(actor)
-	local gun = ToAHuman(actor).EquippedItem;
+function CowboyMode(pieMenu, pieSlice, pieMenuOwner)
+	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		gun = ToHDFirearm(gun);
 		if gun:NumberValueExists("CowboyMode") then
