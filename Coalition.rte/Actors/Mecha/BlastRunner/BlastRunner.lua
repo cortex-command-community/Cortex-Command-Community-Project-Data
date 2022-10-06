@@ -1,11 +1,3 @@
-function BlastRunnerDetonate(actor)
-	local explosion = CreateMOSRotating("Particle Blast Runner Explosion");
-	explosion.Pos = actor.Pos;
-	MovableMan:AddParticle(explosion);
-	actor.ToDelete = true;
-	explosion:GibThis();
-end
-
 function Update(self)
 --[[
 	if self:GetController():IsState(Controller.WEAPON_FIRE) then

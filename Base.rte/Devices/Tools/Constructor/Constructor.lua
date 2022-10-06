@@ -1,12 +1,15 @@
-
-function OnPieMenu(item)
-	if item and IsHDFirearm(item) and item.PresetName == "Constructor" then
-		item = ToHDFirearm(item);
-		if item:GetStringValue("ConstructorMode") == "Spray" then
-			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Spray Mode", "ConstructorSprayMode");
-		else
-			ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Dig Mode", "ConstructorDigMode");
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsActor(rootParent) then
+		local pieMenu = ToActor(rootParent).PieMenu;
+		local subPieMenuPieSlice = pieMenu:GetFirstPieSliceByPresetName("Constructor Options");
+		if subPieMenuPieSlice ~= nil then
+			pieMenu = subPieMenuPieSlice.SubPieMenu;
 		end
+	
+		local mode = self:GetStringValue("ConstructorMode");
+		local pieSliceToAddPresetName = mode == "Dig" and "Constructor Spray Mode" or "Constructor Dig Mode";
+		pieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
 	end
 end
 
@@ -199,6 +202,8 @@ function Create(self)
 				Vector(1, -1), 
 			};
 
+	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
+	OnAttach(self);
 end
 
 function Update(self)
