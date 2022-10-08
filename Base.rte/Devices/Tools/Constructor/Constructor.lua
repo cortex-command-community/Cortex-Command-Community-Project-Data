@@ -202,8 +202,10 @@ function Create(self)
 				Vector(1, -1), 
 			};
 
-	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
-	OnAttach(self);
+	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety. Need the safety check for its existence cause, for some reason, it can not exist in the metagame.
+	if OnAttach then
+		OnAttach(self);
+	end
 end
 
 function Update(self)
