@@ -22,7 +22,9 @@ function Create(self)
 	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 	
 	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
-	OnAttach(self);
+	if OnAttach then
+		OnAttach(self);
+	end
 end
 
 function Update(self)
