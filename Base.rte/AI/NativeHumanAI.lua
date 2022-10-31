@@ -52,7 +52,8 @@ function NativeHumanAI:Create(Owner)
 	-- the native AI assume the jetpack cannot be destroyed
 	if Owner.Jetpack then
 		if not Members.isPlayerOwned then
-			Owner.Jetpack.Throttle = 0.15	-- increase jetpack strength slightly to compensate for AI ineptitude
+			-- increase jetpack strength slightly to compensate for AI ineptitude
+			Owner.Jetpack.Throttle = 0.25
 		end
 		
 		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs
