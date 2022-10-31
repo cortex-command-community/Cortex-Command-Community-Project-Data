@@ -1371,8 +1371,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									local angleDegrees = angleRadians * (180 / math.pi);
 
 									-- We only crawl it it's quite flat, otherwise climb
-									local crawlThreshold = 30
-									if angleDegrees <= crawlThreshold and Owner.Head and Owner.Head:IsAttached() then
+									local crawlThresholdDegrees = 30
+									if angleDegrees <= crawlThresholdDegrees and Owner.Head and Owner.Head:IsAttached() then
 										local topHeadPos = Owner.Head.Pos - Vector(0, Owner.Head.Radius*0.7)
 										
 										-- first check up to the top of the head, and then from there forward
