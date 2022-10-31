@@ -1239,13 +1239,13 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 			else
-				-- Try swapping direction, with a 20% random chance per frame while we're stuck
-				if PosRand() < 0.2 then
+				-- Try swapping direction, with a 15% random chance per frame while we're stuck
+				if PosRand() < 0.15 then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT
 				end
 
-				-- Try swapping prone/unprone, with a 10% random chance per frame while we're stuck
-				if PosRand() < 0.1 then
+				-- Try swapping prone/unprone, with a 5% random chance per frame while we're stuck
+				if PosRand() < 0.05 then
 					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE;
 				end
 				
