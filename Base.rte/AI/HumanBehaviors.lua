@@ -1360,15 +1360,20 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								
 								if digState == AHuman.NOTDIGGING and AI.deviceState ~= AHuman.DIGGING then
 									-- if our path isn't blocked enough to dig, but the headroom is too little, start crawling to get through
-									local Heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5)
+									local heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5)
 									
-									-- don't crawl if it's too steep, climb then instead
-									if math.abs(Heading.X) > math.abs(Heading.Y) and Owner.Head and Owner.Head:IsAttached() then
-										local TopHeadPos = Owner.Head.Pos - Vector(0, Owner.Head.Radius*0.7)
+									local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X));
+									local angleDegrees = angleRadians * (180 / math.pi);
+									print(angleDegrees)
+
+									-- We only crawl it it's quite flat, otherwise climb
+									local crawlThreshold = 30
+									if angleDegrees <= crawlThreshold and Owner.Head and Owner.Head:IsAttached() then
+										local topHeadPos = Owner.Head.Pos - Vector(0, Owner.Head.Radius*0.7)
 										
 										-- first check up to the top of the head, and then from there forward
-										if SceneMan:CastStrengthRay(Owner.Pos, TopHeadPos - Owner.Pos, 5, Free, 4, rte.doorID, true) or
-												SceneMan:CastStrengthRay(TopHeadPos, Heading, 5, Free, 4, rte.doorID, true)
+										if SceneMan:CastStrengthRay(Owner.Pos, topHeadPos - Owner.Pos, 5, Free, 4, rte.doorID, true) or
+												SceneMan:CastStrengthRay(topHeadPos, heading, 5, Free, 4, rte.doorID, true)
 										then
 											AI.proneState = AHuman.PRONE
 										else
