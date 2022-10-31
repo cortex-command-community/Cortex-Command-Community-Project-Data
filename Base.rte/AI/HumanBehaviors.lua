@@ -1364,7 +1364,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									
 									local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X));
 									local angleDegrees = angleRadians * (180 / math.pi);
-									print(angleDegrees)
 
 									-- We only crawl it it's quite flat, otherwise climb
 									local crawlThreshold = 30
