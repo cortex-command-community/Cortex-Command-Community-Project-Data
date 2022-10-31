@@ -1156,7 +1156,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	
 	local NoLOSTimer = Timer()
 	NoLOSTimer:SetSimTimeLimitMS(1000)
-	
+
 	local StuckTimer = Timer()
 	StuckTimer:SetSimTimeLimitMS(3000)
 	
@@ -1174,7 +1174,10 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}}
 	
 	while true do
-		if (Owner.Vel + Owner.PrevVel).Magnitude > 3 then
+		-- Reset our stuck timer if we're moving
+		-- We average out velocity from this and last frame, for a little hysteresis
+		local stuckThreshold = 3.5 -- pixels per second of movement we need to be considered not stuck
+		if (Owner.Vel + Owner.PrevVel):MagnitudeIsGreaterThan(stuckThreshold * 2) then
 			StuckTimer:Reset()
 		end
 		
@@ -1219,7 +1222,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil
 			WptList = nil -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
-			StuckTimer:Reset()
+			-- We intentionally don't reset the stuck timer here, we want the ai to keep trying until it gets unstuck
 			if AI.jump then
 				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false
@@ -1236,6 +1239,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 			else
+				-- Try swapping direction, with a 20% random chance per frame while we're stuck
 				if PosRand() < 0.2 then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT
 				end
