@@ -1246,7 +1246,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 				-- Try swapping prone/unprone, with a 5% random chance per frame while we're stuck
 				if PosRand() < 0.05 then
-					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE;
+					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE
 				end
 				
 				-- refuelling done
@@ -1367,8 +1367,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									-- if our path isn't blocked enough to dig, but the headroom is too little, start crawling to get through
 									local heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5)
 									
-									local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X));
-									local angleDegrees = angleRadians * (180 / math.pi);
+									local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X))
+									local angleDegrees = angleRadians * (180 / math.pi)
 
 									-- We only crawl it it's quite flat, otherwise climb
 									local crawlThresholdDegrees = 30
@@ -2761,7 +2761,7 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 					if Owner.ThrowableIsReady then
 						local Grenade = ToThrownDevice(Owner.EquippedItem)
 						if Grenade then
-							local maxThrowVel = Grenade:GetCalculatedMaxThrowVelIncludingArmThrowStrength();
+							local maxThrowVel = Grenade:GetCalculatedMaxThrowVelIncludingArmThrowStrength()
 							local minThrowVel = Grenade.MinThrowVel
 							if minThrowVel == 0 then
 								minThrowVel = maxThrowVel * 0.2
