@@ -370,7 +370,7 @@ function Siege:UpdateActivity()
 					end
 				elseif deployType == 2 then
 					safePosX = self.InvaderLZ:GetRandomPoint().X
-				elseif  deployType == 3 and self.Perimeter then
+				elseif deployType == 3 and self.Perimeter then
 					safePosX = self.Perimeter:GetRandomPoint().X
 					swatDrop = true
 				end

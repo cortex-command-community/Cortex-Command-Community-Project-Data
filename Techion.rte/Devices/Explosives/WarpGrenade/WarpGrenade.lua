@@ -17,11 +17,11 @@ function Update(self)
 		if self.fuze:IsPastSimMS(self.fuzeDelay) then
 
 			local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
-            effect.Pos = self.Pos;
-            MovableMan:AddParticle(effect);
-            effect:GibThis();
+			effect.Pos = self.Pos;
+			MovableMan:AddParticle(effect);
+			effect:GibThis();
 
-            if MovableMan:IsActor(self.holder) then
+			if MovableMan:IsActor(self.holder) then
 
 				local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
 				effect.Pos = self.holder.Pos;
@@ -52,13 +52,13 @@ function Update(self)
 					self.holder:AddInventoryItem(CreateTDExplosive(self.PresetName));
 				end
 				self.ToDelete = true;
-            else
+			else
 				self:GibThis();
 			end
 		elseif self.ToDelete then
 			if MovableMan:IsActor(self.holder) then
 				local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
-          		effect.Pos = self.holder.Pos;
+				effect.Pos = self.holder.Pos;
 				MovableMan:AddParticle(effect);
 				effect:GibThis();
 

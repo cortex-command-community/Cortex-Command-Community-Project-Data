@@ -11,8 +11,8 @@ end
 
 function CoalitionCrackdown:StartActivity()
 	print("START! -- CoalitionCrackdown:StartActivity()!");
-    for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-        if self:PlayerActive(player) and self:PlayerHuman(player) then
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
 		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -41,11 +41,11 @@ function CoalitionCrackdown:StartActivity()
 end
 
 function CoalitionCrackdown:PauseActivity(pause)
-    	print("PAUSE! -- CoalitionCrackdown:PauseActivity()!");
+		print("PAUSE! -- CoalitionCrackdown:PauseActivity()!");
 end
 
 function CoalitionCrackdown:EndActivity()
-    	print("END! -- CoalitionCrackdown:EndActivity()!");
+		print("END! -- CoalitionCrackdown:EndActivity()!");
 end
 
 

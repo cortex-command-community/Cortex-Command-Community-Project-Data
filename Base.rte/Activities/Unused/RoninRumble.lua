@@ -10,8 +10,8 @@ end
 
 function RoninRumble:StartActivity()
 	print("START! -- RoninRumble:StartActivity()!");
-    for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-        if self:PlayerActive(player) and self:PlayerHuman(player) then
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
 		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -40,11 +40,11 @@ function RoninRumble:StartActivity()
 end
 
 function RoninRumble:PauseActivity(pause)
-    	print("PAUSE! -- RoninRumble:PauseActivity()!");
+		print("PAUSE! -- RoninRumble:PauseActivity()!");
 end
 
 function RoninRumble:EndActivity()
-    	print("END! -- RoninRumble:EndActivity()!");
+		print("END! -- RoninRumble:EndActivity()!");
 end
 
 

@@ -129,7 +129,7 @@ function BunkerBreach:StartActivity()
 		table.remove(deploymentBrains, brainIndexToChoose);
 
 		--Delete brains that weren't the chosen one, and also randomly delete most of their guards
-        self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+		self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
 		for _, unchosenDeploymentBrain in pairs(deploymentBrains) do
 			unchosenDeploymentBrain.ToDelete = true;
 			for actor in MovableMan.AddedActors do

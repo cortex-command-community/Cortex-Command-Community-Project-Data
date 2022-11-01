@@ -10,8 +10,8 @@ end
 
 function Dummies:StartActivity()
 	print("START! -- Dummies:StartActivity()!");
-    for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-        if self:PlayerActive(player) and self:PlayerHuman(player) then
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
 		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -38,11 +38,11 @@ function Dummies:StartActivity()
 end
 
 function Dummies:PauseActivity(pause)
-    	print("PAUSE! -- Dummies:PauseActivity()!");
+		print("PAUSE! -- Dummies:PauseActivity()!");
 end
 
 function Dummies:EndActivity()
-    	print("END! -- Dummies:EndActivity()!");
+		print("END! -- Dummies:EndActivity()!");
 end
 
 

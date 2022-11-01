@@ -1,46 +1,46 @@
 function Create(self)
-    -- Make sure the teleporter list exists.
-    if teleporterlista == nil then
+	-- Make sure the teleporter list exists.
+	if teleporterlista == nil then
 		teleporterlista = {};
-    end
+	end
 
-    -- List for storing who can teleport.
-    if cantele == nil then
+	-- List for storing who can teleport.
+	if cantele == nil then
 		cantele = {};
-    end
+	end
 
-    -- Add self to teleporter list.
-    teleporterlista[#teleporterlista + 1] = self;
+	-- Add self to teleporter list.
+	teleporterlista[#teleporterlista + 1] = self;
 
-    -- Stores where on the teleporter list this teleporter is.  Used for assigning a partner.
-    self.listnum = #teleporterlista;
+	-- Stores where on the teleporter list this teleporter is.  Used for assigning a partner.
+	self.listnum = #teleporterlista;
 
-    -- Initialize delay timer if it doesn't exist yet.
-    if cantele[self.listnum] == nil then
+	-- Initialize delay timer if it doesn't exist yet.
+	if cantele[self.listnum] == nil then
 		cantele[self.listnum] = Timer();
-    else
-    -- Otherwise, reset it.
+	else
+	-- Otherwise, reset it.
 		cantele[self.listnum]:Reset();
-    end
+	end
 
-    -- This variable stores which teleporter is this one's "partner", or the one that is linked to it.
-    self.partner = nil;
+	-- This variable stores which teleporter is this one's "partner", or the one that is linked to it.
+	self.partner = nil;
 
-    -- How long it takes between teleports.
+	-- How long it takes between teleports.
 	self.portSpeed = 0.5;
 	self.porttimemax = 1500;
-    self.porttime = self.porttimemax;
+	self.porttime = self.porttimemax;
 
-    -- Timer to count how long since the last teleportation.
-    self.porttimer = Timer();
+	-- Timer to count how long since the last teleportation.
+	self.porttimer = Timer();
 
-    -- How long since creation.
-    self.creationtimer = Timer();
+	-- How long since creation.
+	self.creationtimer = Timer();
 end
 
 function Update(self)
-    -- A delay so that all teleporters will have been placed by the time the code activates.
-    if self.creationtimer:IsPastSimMS(1000) and ActivityMan:GetActivity().ActivityState ~= Activity.EDITING then
+	-- A delay so that all teleporters will have been placed by the time the code activates.
+	if self.creationtimer:IsPastSimMS(1000) and ActivityMan:GetActivity().ActivityState ~= Activity.EDITING then
 		-- Check if the teleporter is linked yet.
 		if MovableMan:IsParticle(self.partner) == false then
 			-- If not, try to assign a partner.
@@ -85,11 +85,11 @@ function Update(self)
 				self.porttime = self.porttimemax;
 			end
 		end
-    end
+	end
 	self.SpriteAnimDuration = self.porttime;
 end
 
 function Destroy(self)
-    -- Remove self from teleporter list.
-    teleporterlista[self.listnum] = nil;
+	-- Remove self from teleporter list.
+	teleporterlista[self.listnum] = nil;
 end

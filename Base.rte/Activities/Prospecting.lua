@@ -17,7 +17,7 @@ function Prospecting:StartActivity()
 	self.ScanStage = { PRESCAN = 0, SCANNING = 1, POSTSCAN = 2, SCANSTAGECOUNT = 3 };
 	self.CurrentScanStage = self.ScanStage.PRESCAN;
 	self.ScanPosX = { [Activity.TEAM_1] = -1, [Activity.TEAM_2] = -1, [Activity.TEAM_3] = -1, [Activity.TEAM_4] = -1 };
-	self.ScanTimer =  { [Activity.TEAM_1] = Timer(), [Activity.TEAM_2] = Timer(), [Activity.TEAM_3] = Timer(), [Activity.TEAM_4] = Timer() };
+	self.ScanTimer = { [Activity.TEAM_1] = Timer(), [Activity.TEAM_2] = Timer(), [Activity.TEAM_3] = Timer(), [Activity.TEAM_4] = Timer() };
 	self.ScanTimer[Activity.TEAM_1]:Reset();
 	self.ScanTimer[Activity.TEAM_2]:Reset();
 	self.ScanTimer[Activity.TEAM_3]:Reset();

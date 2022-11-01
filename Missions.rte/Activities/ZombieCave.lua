@@ -290,7 +290,7 @@ function ZombieCaveMission:UpdateActivity()
 	end
 
 	local genOuterEnabled = self.CurrentFightStage >= self.FightStage.OUTERCAVE;
-	local genInnerEnabled = playerInCave or self.Generator2 ==  nil;
+	local genInnerEnabled = playerInCave or self.Generator2 == nil;
 
 	-- OUTER CAVE BATTLE
 	-- See if the outer generator is still alive

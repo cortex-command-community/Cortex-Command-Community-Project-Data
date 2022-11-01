@@ -1,45 +1,45 @@
 function Create(self)
-    --Range of the shot.
-    self.range = 600;
+	--Range of the shot.
+	self.range = 600;
 
-    --Amplitude of the wave.
-    self.maxAmplitude = math.floor(1 + math.sqrt(self.Vel.Magnitude) + 0.5);
+	--Amplitude of the wave.
+	self.maxAmplitude = math.floor(1 + math.sqrt(self.Vel.Magnitude) + 0.5);
 
-    --Wavelength of the wave.
-    self.flaceLength = math.floor(3 + math.sqrt(self.Vel.Magnitude) + 0.5);
+	--Wavelength of the wave.
+	self.flaceLength = math.floor(3 + math.sqrt(self.Vel.Magnitude) + 0.5);
 
 	--Track intersecting beams
 	self.lastAmplitude = 1;
 
-    --Speed of the wave (pixels per second).
-    self.speed = self.Vel.Magnitude * 10;
+	--Speed of the wave (pixels per second).
+	self.speed = self.Vel.Magnitude * 10;
 
-    --Speed of damage particles.
-    self.damageSpeed = 50 + self.Vel.Magnitude * 0.1;
+	--Speed of damage particles.
+	self.damageSpeed = 50 + self.Vel.Magnitude * 0.1;
 
-    --Maximum strength for material penetration (both MOs and terrain).
-    self.strengthThreshold = 50 + self.Vel.Magnitude * 0.3;
+	--Maximum strength for material penetration (both MOs and terrain).
+	self.strengthThreshold = 50 + self.Vel.Magnitude * 0.3;
 
-    --Direction of the wave.
-    self.direction = Vector(self.Vel.X, self.Vel.Y);
-    self.direction:SetMagnitude(1);
-    self.up = Vector(self.direction.X, self.direction.Y);
-    self.up:RadRotate(math.pi * 0.5);
+	--Direction of the wave.
+	self.direction = Vector(self.Vel.X, self.Vel.Y);
+	self.direction:SetMagnitude(1);
+	self.up = Vector(self.direction.X, self.direction.Y);
+	self.up:RadRotate(math.pi * 0.5);
 
-    --Interval at which to create damage particles.
-    self.damageInterval = 3;
+	--Interval at which to create damage particles.
+	self.damageInterval = 3;
 
-    --Timer for the wave.
-    self.timer = Timer();
+	--Timer for the wave.
+	self.timer = Timer();
 
-    --The last starting position along the line.
-    self.lastI = 0;
+	--The last starting position along the line.
+	self.lastI = 0;
 
-    --Count MO and terrain hits.
-    self.hits = 0;
+	--Count MO and terrain hits.
+	self.hits = 0;
 
-    --Amount of damage pixels.
-    self.damageStrength = math.floor(math.sqrt(self.Vel.Magnitude * 0.1) + 0.5);
+	--Amount of damage pixels.
+	self.damageStrength = math.floor(math.sqrt(self.Vel.Magnitude * 0.1) + 0.5);
 
 	--Disintegration strength.
 	self.disintegrationStrength = 50;
@@ -47,29 +47,29 @@ end
 
 function Update(self)
 
-    local endPoint = self.timer.ElapsedSimTimeS * self.speed;
-    if endPoint > self.range then
-        endPoint = self.range;
-        self.ToDelete = true;
-    else
-        self.ToDelete = false;
-        self.ToSettle = false;
-    end
-    endPoint = math.floor(endPoint);
+	local endPoint = self.timer.ElapsedSimTimeS * self.speed;
+	if endPoint > self.range then
+		endPoint = self.range;
+		self.ToDelete = true;
+	else
+		self.ToDelete = false;
+		self.ToSettle = false;
+	end
+	endPoint = math.floor(endPoint);
 
-    --Draw out the path.
-    for i = self.lastI, endPoint, 1 do
-        local amplitude = math.sin((i/self.flaceLength) * 2 * math.pi) * self.maxAmplitude;
-        local waveOffset = Vector(self.up.X, self.up.Y);
-        waveOffset:SetMagnitude(amplitude);
+	--Draw out the path.
+	for i = self.lastI, endPoint, 1 do
+		local amplitude = math.sin((i/self.flaceLength) * 2 * math.pi) * self.maxAmplitude;
+		local waveOffset = Vector(self.up.X, self.up.Y);
+		waveOffset:SetMagnitude(amplitude);
 
-        local linePos = self.Pos + Vector(self.direction.X, self.direction.Y):SetMagnitude(i * 2);
-        local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
-        local upPos = linePos + waveOffset;
-        local downPos = linePos - waveOffset * 0.2;
+		local linePos = self.Pos + Vector(self.direction.X, self.direction.Y):SetMagnitude(i * 2);
+		local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
+		local upPos = linePos + waveOffset;
+		local downPos = linePos - waveOffset * 0.2;
 
-        --Cancel the beam if there's a terrain collision.
-        local trace = Vector(fireVector.X, fireVector.Y):SetMagnitude(self.damageSpeed * 0.1);
+		--Cancel the beam if there's a terrain collision.
+		local trace = Vector(fireVector.X, fireVector.Y):SetMagnitude(self.damageSpeed * 0.1);
 
 		local strSumRay = SceneMan:CastStrengthSumRay(downPos, downPos + trace, 1, 160);
 		self.hits = self.hits + math.sqrt(strSumRay);
@@ -164,19 +164,19 @@ function Update(self)
 		self.lastAmplitude = amplitude;
 		if self.hits > self.strengthThreshold then
 
-            local effect = CreateAEmitter("Techion.rte/Dihelical Cannon Impact Particle");
-            effect.Pos = linePos - Vector(self.direction.X, self.direction.Y):SetMagnitude(2);
+			local effect = CreateAEmitter("Techion.rte/Dihelical Cannon Impact Particle");
+			effect.Pos = linePos - Vector(self.direction.X, self.direction.Y):SetMagnitude(2);
 			effect.Team = self.Team;
 			effect.IgnoresTeamHits = true;
-            MovableMan:AddParticle(effect);
+			MovableMan:AddParticle(effect);
 
-            self.ToDelete = true;
+			self.ToDelete = true;
 			break;
 		else
 			self.hits = self.hits * 0.9;
 		end
 		self.flaceLength = self.flaceLength * (1 + 0.05/self.flaceLength);
 		self.maxAmplitude = self.flaceLength * 0.5;
-    end
-    self.lastI = endPoint;
+	end
+	self.lastI = endPoint;
 end

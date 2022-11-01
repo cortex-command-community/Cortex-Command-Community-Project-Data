@@ -49,7 +49,7 @@ function Update(self)
 					if checkPos.X > SceneMan.SceneWidth then
 						checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y);
 					elseif checkPos.X < 0 then
-						checkPos = Vector(SceneMan.SceneWidth + checkPos.X,  checkPos.Y);
+						checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 					end
 				end
 				local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);

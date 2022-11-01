@@ -617,13 +617,13 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 	local Craft, actorsInCargo
 	if math.random() < 0.6 then
 		Craft = RandomACDropShip("Craft", self.AI.Tech)
-	    if Craft.MaxPassengers < 2 then
-	      actorsInCargo = 1
-	    elseif Craft.MaxPassengers > 2 then
-	      actorsInCargo = math.random(2, Craft.MaxPassengers)
-	    else
-	      actorsInCargo = 2
-	    end
+		if Craft.MaxPassengers < 2 then
+			actorsInCargo = 1
+		elseif Craft.MaxPassengers > 2 then
+			actorsInCargo = math.random(2, Craft.MaxPassengers)
+		else
+			actorsInCargo = 2
+		end
 	else
 		Craft = RandomACRocket("Craft", self.AI.Tech)
 		actorsInCargo = Craft.MaxPassengers

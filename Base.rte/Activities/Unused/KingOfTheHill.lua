@@ -44,11 +44,11 @@ function KingOfTheHill:StartActivity()
 end
 
 function KingOfTheHill:PauseActivity(pause)
-    	print("PAUSE! -- KingOfTheHill:PauseActivity()!");
+		print("PAUSE! -- KingOfTheHill:PauseActivity()!");
 end
 
 function KingOfTheHill:EndActivity()
-    	print("END! -- KingOfTheHill:EndActivity()!");
+		print("END! -- KingOfTheHill:EndActivity()!");
 end
 
 
