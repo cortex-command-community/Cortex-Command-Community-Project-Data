@@ -1367,6 +1367,9 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									-- if our path isn't blocked enough to dig, but the headroom is too little, start crawling to get through
 									local heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5)
 									
+									-- This gets the angle of the heading vector relative to flat (i.e, straight along the X axis)
+									-- This gives a range of [0, 90]
+									-- 0 is pointing straight left/right, and 90 is pointing straight up/down.
 									local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X))
 									local angleDegrees = angleRadians * (180 / math.pi)
 
