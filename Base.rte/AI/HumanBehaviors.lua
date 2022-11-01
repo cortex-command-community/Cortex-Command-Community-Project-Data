@@ -1156,7 +1156,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	
 	local NoLOSTimer = Timer()
 	NoLOSTimer:SetSimTimeLimitMS(1000)
-	
+
 	local StuckTimer = Timer()
 	StuckTimer:SetSimTimeLimitMS(3000)
 	
@@ -1174,7 +1174,10 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}}
 	
 	while true do
-		if (Owner.Vel + Owner.PrevVel).Magnitude > 3 then
+		-- Reset our stuck timer if we're moving
+		-- We average out velocity from this and last frame, for a little hysteresis
+		local stuckThreshold = 3.5 -- pixels per second of movement we need to be considered not stuck
+		if (Owner.Vel + Owner.PrevVel):MagnitudeIsGreaterThan(stuckThreshold * 2) then
 			StuckTimer:Reset()
 		end
 		
@@ -1219,7 +1222,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil
 			WptList = nil -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
-			StuckTimer:Reset()
+			-- We intentionally don't reset the stuck timer here, we want the ai to keep trying until it gets unstuck
 			if AI.jump then
 				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false
@@ -1236,8 +1239,14 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 			else
-				if PosRand() < 0.2 then
+				-- Try swapping direction, with a 15% random chance per frame while we're stuck
+				if PosRand() < 0.15 then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT
+				end
+
+				-- Try swapping prone/unprone, with a 5% random chance per frame while we're stuck
+				if PosRand() < 0.05 then
+					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE
 				end
 				
 				-- refuelling done
@@ -1356,15 +1365,22 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								
 								if digState == AHuman.NOTDIGGING and AI.deviceState ~= AHuman.DIGGING then
 									-- if our path isn't blocked enough to dig, but the headroom is too little, start crawling to get through
-									local Heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5)
+									local heading = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):SetMagnitude(Owner.Height*0.5)
 									
-									-- don't crawl if it's too steep, climb then instead
-									if math.abs(Heading.X) > math.abs(Heading.Y) and Owner.Head and Owner.Head:IsAttached() then
-										local TopHeadPos = Owner.Head.Pos - Vector(0, Owner.Head.Radius*0.7)
+									-- This gets the angle of the heading vector relative to flat (i.e, straight along the X axis)
+									-- This gives a range of [0, 90]
+									-- 0 is pointing straight left/right, and 90 is pointing straight up/down.
+									local angleRadians = math.abs(math.atan2(-(heading.X * heading.Y), heading.X * heading.X))
+									local angleDegrees = angleRadians * (180 / math.pi)
+
+									-- We only crawl it it's quite flat, otherwise climb
+									local crawlThresholdDegrees = 30
+									if angleDegrees <= crawlThresholdDegrees and Owner.Head and Owner.Head:IsAttached() then
+										local topHeadPos = Owner.Head.Pos - Vector(0, Owner.Head.Radius*0.7)
 										
 										-- first check up to the top of the head, and then from there forward
-										if SceneMan:CastStrengthRay(Owner.Pos, TopHeadPos - Owner.Pos, 5, Free, 4, rte.doorID, true) or
-												SceneMan:CastStrengthRay(TopHeadPos, Heading, 5, Free, 4, rte.doorID, true)
+										if SceneMan:CastStrengthRay(Owner.Pos, topHeadPos - Owner.Pos, 5, Free, 4, rte.doorID, true) or
+												SceneMan:CastStrengthRay(topHeadPos, heading, 5, Free, 4, rte.doorID, true)
 										then
 											AI.proneState = AHuman.PRONE
 										else
@@ -2748,7 +2764,7 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 					if Owner.ThrowableIsReady then
 						local Grenade = ToThrownDevice(Owner.EquippedItem)
 						if Grenade then
-							local maxThrowVel = Grenade:GetCalculatedMaxThrowVelIncludingArmThrowStrength();
+							local maxThrowVel = Grenade:GetCalculatedMaxThrowVelIncludingArmThrowStrength()
 							local minThrowVel = Grenade.MinThrowVel
 							if minThrowVel == 0 then
 								minThrowVel = maxThrowVel * 0.2
