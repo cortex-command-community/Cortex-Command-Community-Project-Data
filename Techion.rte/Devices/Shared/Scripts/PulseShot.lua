@@ -3,7 +3,7 @@ function Create(self)
 	self.EffectRotAngle = self.Vel.AbsRadAngle;
 	--Check backward (second argument) on the first frame as the projectile might be bouncing off something immediately
 	PulsarDissipate(self, true);
-	
+
 	self.trailPar = CreateMOPixel(self.PresetName .. " Trail Glow", "Techion.rte");
 	self.trailPar.Pos = self.Pos - (self.Vel * rte.PxTravelledPerFrame);
 	self.trailPar.Vel = self.Vel * 0.1;
@@ -33,7 +33,7 @@ function PulsarDissipate(self, inverted)
 	local skipPx = math.sqrt(self.Vel.Magnitude) * 0.5;
 
 	local moid = SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx) >= 0 and SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y) or self.HitWhatMOID;
-	
+
 	if moid ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(moid);
 		if mo then
@@ -62,7 +62,7 @@ function PulsarDissipate(self, inverted)
 		self.explosion.Team = self.Team;
 		self.explosion.Vel = offset;
 		MovableMan:AddParticle(self.explosion);
-		
+
 		self.TrailLength = 0;
 		self.ToDelete = true;
 	end

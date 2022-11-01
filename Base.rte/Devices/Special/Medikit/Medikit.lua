@@ -1,6 +1,6 @@
 function Create(self)
 	self.baseStrength = 10;
-	
+
 	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
 	self.errorSound = CreateSoundContainer("Error", "Base.rte");
 end

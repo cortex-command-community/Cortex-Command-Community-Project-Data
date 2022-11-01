@@ -4,11 +4,11 @@ function Create(self)
 	self.tapCounter = 0;
 	self.didTap = false;
 	self.canTap = false;
-	
+
 	self.tapTime = 200;
 	self.tapAmount = 2;
 	self.guide = false;
-	
+
 	self.arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
 end
 

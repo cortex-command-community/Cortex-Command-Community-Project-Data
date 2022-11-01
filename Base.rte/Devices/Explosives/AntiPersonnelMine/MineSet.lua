@@ -30,7 +30,7 @@ function Create(self)
 	self.checkDelayExtension = 0.1;
 	self.detonateThreshold = 15;
 	self.detonateDelay = 200;
-	
+
 	self.activateSound = CreateSoundContainer("Mine Activate", "Base.rte");
 	self.detonateSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
 end
@@ -76,7 +76,7 @@ function Update(self)
 		end
 
 	elseif self.actionPhase == 1 then
-	
+
 		self.Vel = self.PinStrength == 0 and self.Vel or Vector();
 
 		if self.blinkTimer:IsPastSimMS(500) then
@@ -91,13 +91,13 @@ function Update(self)
 				self.Frame = ((self.alliedTeam + 1) * 2) + 1;
 			end
 		end
-		
+
 		if self.delayTimer:IsPastSimMS(self.checkDelay) then
 			self.checkDelay = self.checkDelay + self.checkDelayExtension;
-			
+
 			self.detectionAngleTurn = self.detectionAngleTurn + math.rad(self.detectionTurnSpeed);
 			local detectionAngle = self.faceDirection + (math.sin(self.detectionAngleTurn) * math.rad(self.detectionAngleDegrees * 0.5));
-			
+
 			self.delayTimer:Reset();
 
 			local rayHitPos = Vector();

@@ -1,9 +1,9 @@
 function Create(self)
 	self.charge = 0;
-	
+
 	self.minFireVel = 10;
 	self.maxFireVel = 50;
-	
+
 	self.chargeDelay = 1000;
 
 	self.animTimer = Timer();
@@ -30,7 +30,7 @@ function Update(self)
 					effect.Pos = self.MuzzlePos;
 					effect.Vel = self.Vel * 0.5;
 					MovableMan:AddParticle(effect);
-					
+
 					local damagePar = CreateMOPixel("Dummy.rte/Destroyer Emission Particle 2");
 					damagePar.Pos = self.MuzzlePos;
 					damagePar.Vel = self.Vel * 0.5 + Vector(math.random(5) * (1 + self.charge), 0):RadRotate(6.28 * math.random());
@@ -45,7 +45,7 @@ function Update(self)
 			end
 			if self:IsActivated() and not self.forceFire then
 				self:Deactivate();
-				
+
 				if self.activeSound:IsBeingPlayed() then
 					self.activeSound.Pos = self.Pos;
 					self.activeSound.Pitch = self.charge;
@@ -84,10 +84,10 @@ function Update(self)
 		par.Pos = self.MuzzlePos;
 		par.Vel = Vector((self.minFireVel + (self.maxFireVel - self.minFireVel) * self.charge) * self.FlipFactor, 0):RadRotate(self.RotAngle);
 		MovableMan:AddParticle(par);
-		
+
 		self.charge = 0;
 		self.activeSound:Stop();
-		
+
 		self.forceFire = false;
 	end
 end

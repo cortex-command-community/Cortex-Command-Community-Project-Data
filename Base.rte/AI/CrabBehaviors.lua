@@ -7,7 +7,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 		AI.Ctrl:SetState(Controller.AIM_SHARP, true)
 		viewAngDeg = 20 * Owner.Perceptiveness
 	end
-	
+
 	local HitPoint
 	local FoundMO = Owner:LookForMOs(viewAngDeg, rte.grassID, false)
 	if FoundMO then
@@ -18,7 +18,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 			FoundMO = nil	-- target hidden behind the fog
 		end
 	end
-	
+
 	if FoundMO then
 		if AI.Target and MovableMan:ValidMO(AI.Target) and FoundMO.ID == AI.Target.ID then	-- found the same target
 			AI.TargetOffset = SceneMan:ShortestDistance(AI.Target.Pos, HitPoint, false)
@@ -51,7 +51,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 				else
 					FoundMO = nil
 				end
-				
+
 				if FoundMO then
 					if AI.Target then
 						-- check if this MO should be targeted instead
@@ -75,7 +75,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 			AI.Target = nil	-- the target has been out of sight for too long, ignore it
 			AI:CreatePinBehavior(Owner) -- keep aiming in the direction of the target for a short time
 		end
-		
+
 		if AI.ReloadTimer:IsPastSimMS(8000) then	-- check if we need to reload
 			AI.ReloadTimer:Reset()
 			if Owner.FirearmNeedsReload then
@@ -93,14 +93,14 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 	local maxAng = Owner.AimRange--Owner.AimRangeUpperLimit
 	local minAng = -maxAng--Owner.AimRangeLowerLimit
 	local aim
-	
+
 	if AI.OldTargetPos then	-- try to reacquire an old target
 		local Dist = SceneMan:ShortestDistance(Owner.EyePos, AI.OldTargetPos, false)
 		AI.OldTargetPos = nil
-		if (Dist.X < 0 and Owner.HFlipped) or (Dist.X > 0 and not Owner.HFlipped) then	-- we are facing the target	
+		if (Dist.X < 0 and Owner.HFlipped) or (Dist.X > 0 and not Owner.HFlipped) then	-- we are facing the target
 			AI.deviceState = ACrab.AIMING
 			AI.Ctrl.AnalogAim = Dist.Normalized
-			
+
 			for _ = 1, 30 do
 				local _ai, _ownr, _abrt = coroutine.yield()	-- aim here for ~0.5s
 				if _abrt then return true end
@@ -111,12 +111,12 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 			local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 			if _abrt then return true end
 		end
-		
+
 		Owner:AddAISceneWaypoint(Vector(Owner.Pos.X, 0))
 		Owner:UpdateMovePath()
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
-		
+
 		-- face the direction of the first waypoint
 		for WptPos in Owner.MovePath do
 			local Dist = SceneMan:ShortestDistance(Owner.Pos, WptPos, false)
@@ -127,14 +127,14 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 				AI.SentryFacing = true
 				AI.Ctrl.AnalogAim = Dist.Normalized
 			end
-			
+
 			break
 		end
 	end
-	
+
 	while true do	-- start by looking forward
 		aim = Owner:GetAimAngle(false)
-		
+
 		if sweepUp then
 			if aim < maxAng/3 then
 				AI.Ctrl:SetState(Controller.AIM_UP, false)
@@ -159,16 +159,16 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 				end
 			end
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	if Owner.HFlipped ~= AI.SentryFacing then
 		Owner.HFlipped = AI.SentryFacing	-- turn to the direction we have been order to guard
 		return true	-- restart this behavior
 	end
-	
+
 	while true do	-- look down
 		aim = Owner:GetAimAngle(false)
 		if aim > minAng then
@@ -176,15 +176,15 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 		else
 			break
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	local Hit = Vector()
 	local NoObstacle = {}
 	AI.deviceState = ACrab.AIMING
-	
+
 	while true do	-- scan the area for obstacles
 		aim = Owner:GetAimAngle(false)
 		if aim < maxAng then
@@ -192,30 +192,30 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 		else
 			break
 		end
-		
+
 		-- save the angle to a table if there is no obstacle
 		if not SceneMan:CastStrengthRay(Owner.EyePos, Vector(60, 0):RadRotate(Owner:GetAimAngle(true)), 5, Hit, 2, 0, true) then
 			table.insert(NoObstacle, aim)	-- TODO: don't use a table for this
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	local SharpTimer = Timer()
 	local aimTime = 2000
 	local angDiff = 1
 	AI.deviceState = ACrab.POINTING
-	
+
 	if #NoObstacle > 1 then	-- only aim where we know there are no obstacles, e.g. out of a gun port
 		minAng = NoObstacle[1] * 0.95
 		maxAng = NoObstacle[#NoObstacle] * 0.95
 		angDiff = 1 / math.max(math.abs(maxAng - minAng), 0.1)	-- sharp aim longer from a small aiming window
 	end
-	
+
 	while true do
 		aim = Owner:GetAimAngle(false)
-		
+
 		if sweepUp then
 			if aim < maxAng then
 				if aim < maxAng/5 and aim > minAng/5 and PosRand() > 0.3 then
@@ -237,10 +237,10 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 				sweepUp = true
 			end
 		end
-		
+
 		if SharpTimer:IsPastSimMS(aimTime) then
 			SharpTimer:Reset()
-			
+
 			if AI.deviceState == ACrab.AIMING then
 				aimTime = RangeRand(1000, 3000)
 				AI.deviceState = ACrab.POINTING
@@ -248,17 +248,17 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 				aimTime = RangeRand(6000, 12000) * angDiff
 				AI.deviceState = ACrab.AIMING
 			end
-			
+
 			if Owner.HFlipped ~= AI.SentryFacing then
 				Owner.HFlipped = AI.SentryFacing	-- turn to the direction we have been order to guard
 				break	-- restart this behavior
 			end
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	return true
 end
 
@@ -268,37 +268,37 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 		if SceneMan:ShortestDistance(Owner:GetLastAIWaypoint(), Owner.Pos, false).Largest < Owner.Height * 0.15 then
 			Owner:ClearAIWaypoints()
 			Owner:ClearMovePath()
-			
+
 			if Owner.AIMode == Actor.AIMODE_GOTO then
 				AI.SentryFacing = Owner.HFlipped	-- guard this direction
 				AI.SentryPos = Vector(Owner.Pos.X, Owner.Pos.Y) -- guard this point
 				Owner.AIMode = Actor.AIMODE_SENTRY
 			end
-			
+
 			AI:CreateSentryBehavior(Owner)
-			
+
 			return true
 		end
 	end
-	
+
 	local UpdatePathTimer = Timer()
 	UpdatePathTimer:SetSimTimeLimitMS(5000)
-	
+
 	local StuckTimer = Timer()
 	StuckTimer:SetSimTimeLimitMS(2000)
-	
+
 	local WptList, Waypoint, Dist, CurrDist
-	
+
 	while true do
 		while AI.Target and Owner.FirearmIsReady do	-- don't move around if we have something to shoot at
 			local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 			if _abrt then return true end
 		end
-		
+
 		if Owner.Vel:MagnitudeIsGreaterThan(2) then
 			StuckTimer:Reset()
 		end
-		
+
 		if Owner.MOMoveTarget then	-- make the last waypoint marker stick to the MO we are following
 			if MovableMan:ValidMO(Owner.MOMoveTarget) then
 				Owner:RemoveMovePathEnd()
@@ -307,7 +307,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 				Owner.MOMoveTarget = nil
 			end
 		end
-		
+
 		if UpdatePathTimer:IsPastSimTimeLimit() then
 			UpdatePathTimer:Reset()
 			AI.deviceState = AHuman.STILL
@@ -335,7 +335,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 								AI.lateralMoveState = Actor.LAT_STILL
 								local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 								if _abrt then return true end
-								
+
 								if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 									Trace = SceneMan:ShortestDistance(Owner.Pos, Owner.MOMoveTarget.Pos, false)
 									if Trace.Largest > Owner.Height * 0.7 + Owner.MOMoveTarget.Radius then
@@ -356,10 +356,10 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 							AI.SentryPos = Vector(Owner.Pos.X, Owner.Pos.Y) -- guard this point
 							AI:CreateSentryBehavior(Owner)
 						end
-						
+
 						Owner:ClearAIWaypoints()
 						Owner:ClearMovePath()
-						
+
 						break
 					end
 				end
@@ -375,7 +375,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 						Waypoint = nil
 					end
 				end
-				
+
 				if Waypoint then
 					CurrDist = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false)
 					if CurrDist.X < -3 then
@@ -394,45 +394,45 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 			Owner:DrawWaypoints(true)
 			local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 			if _abrt then return true end
-			
+
 			for WptPos in Owner.MovePath do	-- skip any waypoint too close to the previous one
 				if SceneMan:ShortestDistance(TmpList[#TmpList].Pos, WptPos, false):MagnitudeIsGreaterThan(10) then
 					table.insert(TmpList, {Pos=WptPos})
 				end
 			end
-			
+
 			if #TmpList < 3 then
 				Dist = nil
 				if TmpList[2] then
 					Dist = SceneMan:ShortestDistance(TmpList[2].Pos, Owner.Pos, false)
 				end
-				
+
 				-- already at the target
 				if not Dist or Dist:MagnitudeIsLessThan(25) then
 					Owner:ClearMovePath()
 					break
 				end
 			end
-			
+
 			local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 			if _abrt then return true end
-			
+
 			WptList = TmpList
-			
+
 			-- create the move path seen on the screen
 			Owner:ClearMovePath()
 			for _, Wpt in pairs(TmpList) do
 				Owner:AddToMovePathEnd(Wpt.Pos)
 			end
 		end
-		
+
 		if AI.BlockingMO then
 			if not MovableMan:ValidMO(AI.BlockingMO) or
 				SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false):MagnitudeIsGreaterThan((Owner.Diameter + AI.BlockingMO.Diameter)*1.2)
 			then
 				AI.BlockingMO = nil
 				AI.teamBlockState = Actor.NOTBLOCKED
-				
+
 				if Owner.AIMode == Actor.AIMODE_BRAINHUNT and AI.FollowingActor then
 					AI.FollowingActor = nil
 					break	-- end this behavior
@@ -447,11 +447,11 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 			end
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	return true
 end
 
@@ -461,14 +461,14 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 	if not MovableMan:ValidMO(AI.Target) then
 		return true
 	end
-	
+
 	AI.ReloadTimer:Reset()
 	AI.TargetLostTimer:Reset()
 	AI.TargetLostTimer:SetSimTimeLimitMS(1500)
-	
+
 	local LOSTimer = Timer()
 	LOSTimer:SetSimTimeLimitMS(450)
-	
+
 	local TargetAvgVel = Vector(AI.Target.Vel.X, AI.Target.Vel.Y)
 	local ShootTimer = Timer()
 	local aimTime = RangeRand(440, 590) * AI.aimSpeed + 150
@@ -476,17 +476,17 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 	local AimPoint = Vector(AI.Target.Pos.X, AI.Target.Pos.Y)
 	local f1, f2 = 0.5, 0.5 -- aim noise filter
 	local openFire = 0
-	
+
 	-- spin up asap
 	if Owner.FirearmActivationDelay > 0 then
 		aimTime = math.max(50*AI.aimSpeed, aimTime-Owner.FirearmActivationDelay)
 	end
-	
-	while true do		
-		if Owner.FirearmIsReady then		
+
+	while true do
+		if Owner.FirearmIsReady then
 			AI.deviceState = ACrab.AIMING
 			local Dist = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false)
-			
+
 			if Owner.HFlipped then
 				if Dist.X > 0 then
 					Owner.HFlipped = false
@@ -494,7 +494,7 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 			elseif Dist.X < 0 then
 				Owner.HFlipped = true
 			end
-			
+
 			-- add some filtered noise to the aim
 			local aim = Owner:GetAimAngle(true)
 			local aimTarget = Dist.AbsRadAngle + aimError
@@ -509,7 +509,7 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 			elseif angDiff < -math.pi then
 				angDiff = angDiff + math.pi * 2
 			end
-			
+
 			local angChange = math.max(math.min(angDiff*(0.12/AI.aimSkill), 0.3), -0.3)
 			if (angDiff > 0 and angChange > angDiff) or
 				 (angDiff < 0 and angChange < angDiff)
@@ -517,10 +517,10 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 				angChange = angDiff
 			end
 			AI.Ctrl.AnalogAim = Vector(1,0):RadRotate(aim-angChange)
-			
+
 			if ShootTimer:IsPastSimMS(aimTime) then
 				aimError = aimError * RangeRand(0.96, 0.99)
-				
+
 				-- open fire if our aim overlap the target
 				local overlap = AI.Target.Diameter * math.max(AI.aimSkill, 0.4)
 				if ToHDFirearm(Owner.EquippedItem).FullAuto then
@@ -533,7 +533,7 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 			end
 		else
 			AI.deviceState = ACrab.POINTING
-			
+
 			ShootTimer:Reset()
 			if Owner.FirearmIsEmpty then
 				Owner:ReloadFirearms()
@@ -546,15 +546,15 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 				break -- no firearm available
 			end
 		end
-		
+
 		if LOSTimer:IsPastSimTimeLimit() then
 			LOSTimer:Reset()
-			
+
 			if AimPoint and (not AI.isPlayerOwned or not SceneMan:IsUnseen(AimPoint.X, AimPoint.Y, Owner.Team)) then
 				-- periodically check that we can see the target
 				local Dist = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false)
 				local viewLen = SceneMan:ShortestDistance(Owner.EyePos, Owner.ViewPoint, false).Magnitude + FrameMan.PlayerScreenWidth * 0.55	-- TODO: get AimDistance and SharpLength from the ini
-				
+
 				if Dist:MagnitudeIsLessThan(viewLen) then
 					local ID = SceneMan:CastMORay(Owner.EyePos, Dist, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, false, 9)
 					if ID ~= rte.NoMOID and (ID == AI.Target.ID or (MovableMan:GetMOFromID(ID)).RootID == AI.Target.ID) then
@@ -563,21 +563,21 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 				end
 			end
 		end
-		
+
 		if openFire > 0 then
 			AI.fire = true
 		else
 			AI.fire = false
 		end
-		
+
 		openFire = openFire - 1
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
-		
+
 		if not AI.Target or AI.Target:IsDead() then
 			AI.Target = nil
-			
+
 			-- the target is gone, try to find another right away
 			local ClosestEnemy = MovableMan:GetClosestEnemyActor(Owner.Team, AimPoint, 200, Vector())
 			if ClosestEnemy and not ClosestEnemy:IsDead() then
@@ -588,7 +588,7 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 				else
 					ClosestEnemy = nil
 				end
-				
+
 				if ClosestEnemy then
 					-- check if the target is inside our "screen"
 					local ViewDist = SceneMan:ShortestDistance(Owner.ViewPoint, ClosestEnemy.Pos, false)
@@ -605,19 +605,19 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 					end
 				end
 			end
-			
+
 			-- no new target found
 			if not AI.Target then
 				break
 			end
 		end
-		
+
 		-- make target data smoother
 		TargetAvgVel = TargetAvgVel * 0.2 + AI.Target.Vel * 0.8
 		AimPoint = AimPoint * 0.6 + (AI.Target.Pos + AI.TargetOffset) * 0.4
 		AI.TargetOffset = AI.TargetOffset * 0.98	-- move the aim point towards the target center
 	end
-	
+
 	return true
 end
 
@@ -626,19 +626,19 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 	if not MovableMan:ValidMO(AI.UnseenTarget) then
 		return true
 	end
-	
+
 	local StartPos = Vector(AI.UnseenTarget.Pos.X, AI.UnseenTarget.Pos.Y)
 
 	-- aim at the target in case we can see it when sharp aiming
 	Owner:SetAimAngle(SceneMan:ShortestDistance(Owner.EyePos, StartPos, false).AbsRadAngle)
 	AI.deviceState = ACrab.AIMING
-	
+
 	-- aim for ~250ms
 	for _ = 1, 15 do
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	local AimPoint
 	for _ = 1, 5 do	-- try up to five times to find a target area that is resonably close to the target
 		AimPoint = StartPos + Vector(RangeRand(-100, 100), RangeRand(-100, 50))
@@ -647,29 +647,29 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 		elseif AimPoint.X < 0 then
 			AimPoint.X = AimPoint.X + SceneMan.SceneWidth
 		end
-		
+
 		-- check if we can fire at the AimPoint
 		local Trace = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false)
 		local rayLenght = SceneMan:CastObstacleRay(Owner.EyePos, Trace, Vector(), Vector(), rte.NoMOID, Owner.IgnoresWhichTeam, rte.grassID, 11)
 		if Trace.Magnitude * 0.67 < rayLenght then
 			break	-- the AimPoint is close enough to the target, start shooting
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	local CheckTargetTimer = Timer()
 	local ShootTimer = Timer()
 	local aimTime = RangeRand(200, 500) * AI.aimSpeed
 	local aimError = RangeRand(-0.3, 0.3) * AI.aimSkill
 	local aim = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false).AbsRadAngle
-	
+
 	while true do
 		if Owner.FirearmIsReady then
 			AI.deviceState = ACrab.AIMING
 			AI.Ctrl.AnalogAim = Vector(1,0):RadRotate(aim+aimError+RangeRand(-0.01, 0.01)*AI.aimSkill)
-			
+
 			if ShootTimer:IsPastSimMS(aimTime) then
 				AI.fire = true
 				aimError = aimError * RangeRand(0.982, 0.995)
@@ -679,17 +679,17 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 		else
 			AI.deviceState = ACrab.POINTING
 			AI.fire = false
-			
+
 			if Owner.FirearmIsEmpty then
 				Owner:ReloadFirearms()
 			end
-			
+
 			break -- stop this behavior when the mag is empty
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
-		
+
 		if AI.UnseenTarget and CheckTargetTimer:IsPastSimMS(400) then
 			if MovableMan:ValidMO(AI.UnseenTarget) and (AI.UnseenTarget.ClassName == "AHuman" or AI.UnseenTarget.ClassName == "ACrab") then
 				CheckTargetTimer:Reset()
@@ -701,14 +701,14 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 					elseif enemyAim < 0 then
 						enemyAim = enemyAim + math.pi*2
 					end
-					
+
 					local angDiff = SceneMan:ShortestDistance(AI.UnseenTarget.Pos, Owner.Pos, false).AbsRadAngle - enemyAim
 					if angDiff > math.pi then	-- the difference between two angles can never be larger than pi
 						angDiff = angDiff - math.pi*2
 					elseif angDiff < -math.pi then
 						angDiff = angDiff + math.pi*2
 					end
-					
+
 					if math.abs(angDiff) < 0.5 then
 						-- this actor is shooting in our direction
 						AimPoint = AI.UnseenTarget.Pos + SceneMan:ShortestDistance(AI.UnseenTarget.Pos, AimPoint, false) / 2 + Vector(RangeRand(-40, 40)*AI.aimSkill, RangeRand(-40, 40)*AI.aimSkill)
@@ -721,7 +721,7 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 			end
 		end
 	end
-	
+
 	return true
 end
 

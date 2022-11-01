@@ -13,14 +13,14 @@ function Update(self)
 		--TODO: use 'pairs' instead?
 		for i = 1, #GlobalFlameManagement.Flames do
 			if GlobalFlameManagement.Flames[i] and GlobalFlameManagement.Flames[i].particle and MovableMan:ValidMO(GlobalFlameManagement.Flames[i].particle) then
-			
+
 				flameCount = flameCount + 1;
-		
+
 				local flame = GlobalFlameManagement.Flames[i].particle;
 				local ageRatio = flame.Age/flame.Lifetime;
 				flame.ToSettle = false;
 				flame.Throttle = flame.Throttle - TimerMan.DeltaTimeMS/flame.Lifetime;
-				
+
 				if GlobalFlameManagement.Flames[i].target and MovableMan:ValidMO(GlobalFlameManagement.Flames[i].target) and GlobalFlameManagement.Flames[i].target.ID ~= rte.NoMOID and not GlobalFlameManagement.Flames[i].target.ToDelete then
 					flame.Vel = GlobalFlameManagement.Flames[i].target.Vel;
 					flame.Pos = GlobalFlameManagement.Flames[i].target.Pos + Vector(GlobalFlameManagement.Flames[i].stickOffset.X, GlobalFlameManagement.Flames[i].stickOffset.Y):RadRotate(GlobalFlameManagement.Flames[i].target.RotAngle - GlobalFlameManagement.Flames[i].targetStickAngle);
@@ -41,13 +41,13 @@ function Update(self)
 								local mo = MovableMan:GetMOFromID(moCheck);
 								if mo and (flame.Team == Activity.NOTEAM or mo.Team ~= flame.Team) then
 									GlobalFlameManagement.Flames[i].target = ToMOSRotating(mo);
-									
+
 									GlobalFlameManagement.Flames[i].isShort = true;
 									GlobalFlameManagement.Flames[i].deleteDelay = math.random(flame.Lifetime);
-									
-									GlobalFlameManagement.Flames[i].targetStickAngle = mo.RotAngle;	
+
+									GlobalFlameManagement.Flames[i].targetStickAngle = mo.RotAngle;
 									GlobalFlameManagement.Flames[i].stickOffset = SceneMan:ShortestDistance(mo.Pos, flame.Pos, SceneMan.SceneWrapsX) * 0.8;
-									
+
 									flame.GlobalAccScalar = 0.9;
 								end
 							elseif flame.GlobalAccScalar < 0.5 and GlobalFlameManagement.Flames[i].isShort and math.random() < 0.2 and SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then

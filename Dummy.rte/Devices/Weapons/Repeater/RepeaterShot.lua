@@ -8,10 +8,10 @@ function Create(self)
 		local particle = CreateMOPixel("Dummy Repeater Trail Glow");
 		particle.Pos = self.Pos;
 		particle.Sharpness = particle.Sharpness/i;
-		
+
 		particle.Team = self.Team;
 		particle.IgnoresTeamHits = true;
-		
+
 		particle.Lifetime = 100;
 		MovableMan:AddParticle(particle);
 		table.insert(self.trailPar, particle);

@@ -1,6 +1,6 @@
 function Create(self)
 	self.muzzleSmokeSize = self:NumberValueExists("MuzzleSmokeSize") and self:GetNumberValue("MuzzleSmokeSize") or self.Mass * 0.5;
-	
+
 	self.muzzleSmokeCountMax = self.muzzleSmokeSize;
 	self.muzzleSmokeCountMin = math.ceil(self.muzzleSmokeCountMax * 0.5);
 	self.muzzleSmokeVel = math.sqrt(self.muzzleSmokeSize) * 5;

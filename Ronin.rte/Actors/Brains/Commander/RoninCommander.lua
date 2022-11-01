@@ -44,9 +44,9 @@ function Create(self)
 			local aimAng = self:GetAimAngle(false);
 			local vertical = math.abs(math.cos(aimAng))/vel;
 			local strength = power * math.min(self.Health/self.MaxHealth, 1);
-			
+
 			local jumpVec =	Vector((power + strength/vel) * flip, -(power * 0.5 + (strength * 0.3)) * vertical):RadRotate(aimAng * self.FlipFactor);
-			
+
 			self.Vel = self.Vel + jumpVec/mass;
 			self.AngularVel = self.AngularVel - (1/angVel * vertical) * flip * math.cos(self.RotAngle);
 			self.Status = Actor.UNSTABLE;

@@ -5,7 +5,7 @@ NativeHumanAI = {}
 
 function NativeHumanAI:Create(Owner)
 	local Members = {}
-	
+
 	Members.lateralMoveState = Actor.LAT_STILL
 	Members.proneState = AHuman.NOTPRONE
 	Members.jumpState = AHuman.NOTJUMPING
@@ -26,13 +26,13 @@ function NativeHumanAI:Create(Owner)
 	Members.BlockedTimer = Timer()
 	Members.SquadShootTimer = Timer()
 	Members.SquadShootDelay = math.random(50,100)
-	
+
 	Members.AlarmTimer = Timer()
 	Members.AlarmTimer:SetSimTimeLimitMS(400)
-	
+
 	Members.TargetLostTimer = Timer()
 	Members.TargetLostTimer:SetSimTimeLimitMS(1000)
-	
+
 	-- set shooting skill
 	Members.aimSpeed, Members.aimSkill, Members.skill = HumanBehaviors.GetTeamShootingSkill(Owner.Team)
 	-- default to enhanced AI if AI skill has been set high enough
@@ -41,26 +41,26 @@ function NativeHumanAI:Create(Owner)
 	else
 		Members.SpotTargets = HumanBehaviors.LookForTargets
 	end
-	
+
 	-- check if this team is controlled by a human
 	if ActivityMan:GetActivity():IsHumanTeam(Owner.Team) then
 		Members.isPlayerOwned = true
 		Members.PlayerInterferedTimer = Timer()
 		Members.PlayerInterferedTimer:SetSimTimeLimitMS(500)
 	end
-	
+
 	-- the native AI assume the jetpack cannot be destroyed
 	if Owner.Jetpack then
 		if not Members.isPlayerOwned then
 			-- increase jetpack strength slightly to compensate for AI ineptitude
 			Owner.Jetpack.Throttle = 0.25
 		end
-		
+
 		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs
 		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5
 		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.JetTimeTotal*0.99)	-- in milliseconds
 	end
-	
+
 	setmetatable(Members, self)
 	self.__index = self
 	return Members
@@ -68,14 +68,14 @@ end
 
 function NativeHumanAI:Update(Owner)
 	self.Ctrl = Owner:GetController()
-	
+
 	if self.isPlayerOwned then
 		if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
 			-- Tell the coroutines to abort to avoid memory leaks
 			if self.Behavior then
 				local msg, done = coroutine.resume(self.Behavior, self, Owner, true)
-			end			
-		
+			end
+
 			self.Behavior = nil	-- remove the current behavior
 			self.BehaviorName = nil
 			if self.BehaviorCleanup then
@@ -86,21 +86,21 @@ function NativeHumanAI:Update(Owner)
 			-- Tell the coroutines to abort to avoid memory leaks
 			if self.GoToBehavior then
 				local msg, done = coroutine.resume(self.GoToBehavior, self, Owner, true)
-			end	
-			
+			end
+
 			self.GoToBehavior = nil
 			self.GoToName = nil
 			if self.GoToCleanup then
 				self.GoToCleanup(self)
 				self.GoToCleanup = nil
 			end
-			
+
 			self.Target = nil
 			self.UnseenTarget = nil
 			self.OldTargetPos = nil
 			self.PickupHD = nil
 			self.BlockingMO = nil
-			
+
 			self.fire = false
 			self.canHitTarget = false
 			self.jump = false
@@ -113,89 +113,89 @@ function NativeHumanAI:Update(Owner)
 			self.deviceState = AHuman.STILL
 			self.lastAIMode = Actor.AIMODE_NONE
 			self.teamBlockState = Actor.NOTBLOCKED
-			
+
 			if Owner.EquippedItem then
 				self.PlayerPreferredHD = Owner.EquippedItem:GetModuleAndPresetName()
 			else
 				self.PlayerPreferredHD = nil
 			end
 		end
-		
+
 		self.PlayerInterferedTimer:Reset()
 	end
-	
+
 	if self.Target and not MovableMan:ValidMO(self.Target) then
 		self.Target = nil
 	end
-	
+
 	if self.UnseenTarget and not MovableMan:ValidMO(self.UnseenTarget) then
 		self.UnseenTarget = nil
 	end
-	
+
 	-- switch to the next behavior, if available
 	if self.NextBehavior then
 		if self.BehaviorCleanup then
 			self.BehaviorCleanup(self)
 		end
-		
+
 		-- Tell the coroutines to abort to avoid memory leaks
 		if self.Behavior then
 			local msg, done = coroutine.resume(self.Behavior, self, Owner, true)
-		end		
-		
+		end
+
 		self.Behavior = self.NextBehavior
 		self.BehaviorCleanup = self.NextCleanup
 		self.BehaviorName = self.NextBehaviorName
-		
+
 		self.NextBehavior = nil
 		self.NextCleanup = nil
 		self.NextBehaviorName = nil
 	end
-	
+
 	-- switch to the next GoTo behavior, if available
 	if self.NextGoTo then
 		if self.GoToCleanup then
 			self.GoToCleanup(self)
 		end
-		
+
 		-- Tell the coroutines to abort to avoid memory leaks
 		if self.GoToBehavior then
 			local msg, done = coroutine.resume(self.GoToBehavior, self, Owner, true)
 		end
-		
+
 		self.GoToBehavior = self.NextGoTo
 		self.GoToCleanup = self.NextGoToCleanup
 		self.GoToName = self.NextGoToName
-		
+
 		self.NextGoTo = nil
 		self.NextGoToCleanup = nil
 		self.NextGoToName = nil
 	end
-	
+
 	-- check if the AI mode has changed or if we need a new behavior
 	if Owner.AIMode ~= self.lastAIMode or not(self.Behavior or self.GoToBehavior) then
 		-- Tell the coroutines to abort to avoid memory leaks
 		if self.Behavior then
 			local msg, done = coroutine.resume(self.Behavior, self, Owner, true)
-		end		
-	
+		end
+
 		self.Behavior = nil
 		if self.BehaviorCleanup then
 			self.BehaviorCleanup(self)	-- stop the current behavior
 			self.BehaviorCleanup = nil
 		end
-		
+
 		-- Tell the coroutines to abort to avoid memory leaks
 		if self.GoToBehavior then
 			local msg, done = coroutine.resume(self.GoToBehavior, self, Owner, true)
-		end			
-		
+		end
+
 		self.GoToBehavior = nil
 		if self.GoToCleanup then
 			self.GoToCleanup(self)
 			self.GoToCleanup = nil
 		end
-		
+
 		-- select a new behavior based on AI mode
 		if Owner.AIMode == Actor.AIMODE_GOTO or Owner.AIMode == Actor.AIMODE_SQUAD then
 			self:CreateGoToBehavior(Owner)
@@ -210,18 +210,18 @@ function NativeHumanAI:Update(Owner)
 				self.SentryFacing = Owner.HFlipped	-- store the direction in which we should be looking
 				self.SentryPos = Vector(Owner.Pos.X, Owner.Pos.Y)	-- store the pos on which we should be standing
 			end
-			
+
 			self:CreateSentryBehavior(Owner)
 		end
-		
+
 		self.lastAIMode = Owner.AIMode
 	end
-	
-	
+
+
 	-- check if the feet reach the ground
 	if self.AirTimer:IsPastSimMS(120) then
 		self.AirTimer:Reset()
-		
+
 		local Origin = {}
 		if Owner.FGFoot then
 			table.insert(Origin, Vector(Owner.FGFoot.Pos.X, Owner.FGFoot.Pos.Y) + Vector(0, 4))
@@ -244,12 +244,12 @@ function NativeHumanAI:Update(Owner)
 		if self.groundContact < 0 then
 			self.flying = true
 		end
-		
+
 		Owner:EquipShieldInBGArm()	-- try to equip a shield
 	end
-	
+
 	-- look for targets
-	local FoundMO, HitPoint = self.SpotTargets(self, Owner, self.skill)	
+	local FoundMO, HitPoint = self.SpotTargets(self, Owner, self.skill)
 	if FoundMO then
 		--TODO: decide whether to attack based on the material strength of found MO
 		if self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
@@ -282,7 +282,7 @@ function NativeHumanAI:Update(Owner)
 				else
 					FoundMO = nil
 				end
-				
+
 				if FoundMO and FoundMO.Status < Actor.INACTIVE then
 					if self.Target then
 						-- check if this MO should be targeted instead
@@ -318,14 +318,14 @@ function NativeHumanAI:Update(Owner)
 			end
 		end
 	end
-	
+
 	self.squadShoot = false
 	if Owner.MOMoveTarget then
 		-- make the last waypoint marker stick to the MO we are following
 		if MovableMan:ValidMO(Owner.MOMoveTarget) then
 			Owner:RemoveMovePathEnd()
 			Owner:AddToMovePathEnd(Owner.MOMoveTarget.Pos)
-			
+
 			if Owner.AIMode == Actor.AIMODE_SQUAD then
 				-- look where the SL looks, if not moving
 				if not self.jump and self.lateralMoveState == Actor.LAT_STILL then
@@ -339,7 +339,7 @@ function NativeHumanAI:Update(Owner)
 							Leader = nil
 						end
 					end
-					
+
 					if Leader then
 						local dist = SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest
 						local radius = (Leader.Height + Owner.Height) * 0.5
@@ -362,7 +362,7 @@ function NativeHumanAI:Update(Owner)
 										-- check if the SL is shooting and if we have a similar weapon
 										if Owner.FirearmIsReady then
 											self.deviceState = AHuman.AIMING
-										
+
 											if IsHDFirearm(Owner.EquippedItem) and Leader:GetController():IsState(Controller.WEAPON_FIRE) then
 												local OwnerWeapon = ToHDFirearm(Owner.EquippedItem)
 												if OwnerWeapon:IsTool() then
@@ -425,7 +425,7 @@ function NativeHumanAI:Update(Owner)
 			if self.GoToName == "GoToWpt" then
 				self:CreateGoToBehavior(Owner)
 			end
-			
+
 			-- if we are in AIMODE_SQUAD the leader just got killed
 			if Owner.AIMode == Actor.AIMODE_SQUAD then
 				Owner:ClearMovePath()
@@ -444,7 +444,7 @@ function NativeHumanAI:Update(Owner)
 			self:CreateGoToBehavior(Owner)
 		end
 	end
-	
+
 	if self.squadShoot then
 		-- cycle semi-auto weapons on and off so the AI will shoot even if the player only press and hold the trigger
 		if Owner.FirearmIsSemiAuto and self.SquadShootTimer:IsPastSimMS(Owner.FirearmActivationDelay+self.SquadShootDelay) then
@@ -460,7 +460,7 @@ function NativeHumanAI:Update(Owner)
 				ConsoleMan:PrintString(Owner.PresetName .. " " .. self.GoToName .. " error:\n" .. done)	-- print the error message
 				done = true
 			end
-			
+
 			if done then
 				self.GoToBehavior = nil
 				self.GoToName = nil
@@ -474,7 +474,7 @@ function NativeHumanAI:Update(Owner)
 				(self.jump and Owner.Vel.Y > 6)
 			then
 				self.jump = true
-				
+
 				-- try falling straight down
 				if not self.Target then
 					if Owner.Vel.X > 2 then
@@ -492,7 +492,7 @@ function NativeHumanAI:Update(Owner)
 		else
 			self.jump = false
 		end
-		
+
 		-- run the selected behavior and delete it if it returns true
 		if self.Behavior then
 			local msg, done = coroutine.resume(self.Behavior, self, Owner, false)
@@ -500,7 +500,7 @@ function NativeHumanAI:Update(Owner)
 				ConsoleMan:PrintString(Owner.PresetName .. " behavior " .. self.BehaviorName .. " error:\n" .. done)	-- print the error message
 				done = true
 			end
-			
+
 			if done then
 				self.Behavior = nil
 				self.BehaviorName = nil
@@ -508,10 +508,10 @@ function NativeHumanAI:Update(Owner)
 					self.BehaviorCleanup(self)
 					self.BehaviorCleanup = nil
 				end
-				
+
 				if not self.NextBehavior and not self.PickupHD and self.PickUpTimer:IsPastSimMS(10000) then
 					self.PickUpTimer:Reset()
-					
+
 					if not Owner:EquipFirearm(false) then
 						self:CreateGetWeaponBehavior(Owner)
 					elseif Owner.AIMode ~= Actor.AIMODE_SENTRY and not Owner:EquipDiggingTool(false) then
@@ -520,7 +520,7 @@ function NativeHumanAI:Update(Owner)
 				end
 			end
 		end
-		
+
 		-- there is a HeldDevice we want to pick up
 		if self.PickupHD then
 			if not MovableMan:IsDevice(self.PickupHD) or self.PickupHD.ID ~= self.PickupHD.RootID then
@@ -529,11 +529,11 @@ function NativeHumanAI:Update(Owner)
 				self.Ctrl:SetState(Controller.WEAPON_PICKUP, true)
 			end
 		end
-		
+
 		-- listen and react to AlarmEvents and AlarmPoints
 		local AlarmPoint = Owner:GetAlarmPoint()
 		if AlarmPoint.Largest > 0 then
-			if not self.Target and not self.UnseenTarget then	
+			if not self.Target and not self.UnseenTarget then
 				self.AlarmPos = Vector(AlarmPoint.X, AlarmPoint.Y)
 				self:CreateFaceAlarmBehavior(Owner)
 			else
@@ -558,7 +558,7 @@ function NativeHumanAI:Update(Owner)
 					end
 				end
 			else
-				if self.useMedikit == true then	
+				if self.useMedikit == true then
 					self.useMedikit = false
 					Owner:EquipFirearm(true)
 				end
@@ -568,7 +568,7 @@ function NativeHumanAI:Update(Owner)
 			end
 		end
 	end
-	
+
 	if self.teamBlockState == Actor.IGNORINGBLOCK then
 		if self.BlockedTimer:IsPastSimMS(10000) then
 			self.teamBlockState = Actor.NOTBLOCKED
@@ -583,14 +583,14 @@ function NativeHumanAI:Update(Owner)
 	else
 		self.BlockedTimer:Reset()
 	end
-	
+
 	-- controller states
 	if self.squadShoot then
 		self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.squadShoot))
 	else
 		self.Ctrl:SetState(Controller.WEAPON_FIRE, (self.fire or self.useMedikit))
 	end
-	
+
 	if self.deviceState == AHuman.AIMING then
 		self.Ctrl:SetState(Controller.AIM_SHARP, true)
 	end
@@ -607,7 +607,7 @@ function NativeHumanAI:Update(Owner)
 	else
 		self.jumpState = AHuman.NOTJUMPING
 	end
-	
+
 	if Owner.Jetpack then
 		if self.jumpState == AHuman.PREJUMP then
 			self.Ctrl:SetState(Controller.BODY_JUMPSTART, true)	-- try to trigger a burst
@@ -615,13 +615,13 @@ function NativeHumanAI:Update(Owner)
 			self.Ctrl:SetState(Controller.BODY_JUMP, true)	-- trigger normal jetpack emission
 		end
 	end
-	
+
 	if self.proneState == AHuman.GOPRONE then
 		self.proneState = AHuman.PRONE
 	elseif self.proneState == AHuman.PRONE then
 		self.Ctrl:SetState(Controller.BODY_CROUCH, true)
 	end
-	
+
 	if self.lateralMoveState == Actor.LAT_LEFT then
 		self.Ctrl:SetState(Controller.MOVE_LEFT, true)
 	elseif self.lateralMoveState == Actor.LAT_RIGHT then
@@ -650,10 +650,10 @@ function NativeHumanAI:CreateSentryBehavior(Owner)
 				self.PickUpTimer:Reset()
 				self:CreateGetWeaponBehavior(Owner)
 			end
-			
+
 			return
 		end
-		
+
 		self.NextBehavior = coroutine.create(HumanBehaviors.Sentry)	-- replace "HumanBehaviors.Sentry" with the function name of your own sentry behavior
 		self.NextCleanup = nil
 		self.NextBehaviorName = "Sentry"
@@ -672,10 +672,10 @@ function NativeHumanAI:CreateGoldDigBehavior(Owner)
 			self.PickUpTimer:Reset()
 			self:CreateGetToolBehavior(Owner)
 		end
-		
+
 		return
 	end
-	
+
 	self.NextBehavior = coroutine.create(HumanBehaviors.GoldDig)
 	self.NextCleanup = nil
 	self.NextBehaviorName = "GoldDig"
@@ -718,7 +718,7 @@ end
 function NativeHumanAI:CreateAttackBehavior(Owner)
 	self.ReloadTimer:Reset()
 	self.TargetLostTimer:Reset()
-	
+
 	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
 
 	if IsADoor(self.Target) and Owner.AIMode ~= Actor.AIMODE_SQUAD then
@@ -739,7 +739,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget)
 		self.NextBehaviorName = "ThrowTarget"
 	elseif Owner:EquipFirearm(true) then
-		if Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then   
+		if Owner.EquippedItem:HasObjectInGroup("Weapons - Melee") then
 			self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget)
 			self.NextBehaviorName = "AttackTarget"
 		else
@@ -758,7 +758,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			self.NextBehavior = coroutine.create(HumanBehaviors.WeaponSearch)
 			self.NextBehaviorName = "WeaponSearch"
 			self.NextCleanup = nil
-			
+
 			return
 		else -- there are probably no weapons around here (in the vicinity of an area adjacent to a location)
 			if not (self.isPlayerOwned and Owner.AIMode == Actor.AIMODE_SENTRY) and (self.Target.ClassName == "AHuman" or self.Target.ClassName == "ACrab") then
@@ -770,7 +770,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			end
 		end
 	end
-	
+
 	self.NextCleanup = function(AI)
 		AI.fire = false
 		AI.canHitTarget = false
@@ -802,10 +802,10 @@ function NativeHumanAI:CreateSuppressBehavior(Owner)
 		if Owner.FirearmIsEmpty then
 			Owner:ReloadFirearms()
 		end
-		
+
 		return
 	end
-	
+
 	self.NextCleanup = function(AI)
 		AI.fire = false
 		AI.UnseenTarget = nil
@@ -836,7 +836,7 @@ function NativeHumanAI:CreatePinBehavior(Owner)
 	else
 		return
 	end
-	
+
 	self.NextCleanup = function(AI)
 		self.OldTargetPos = nil
 	end

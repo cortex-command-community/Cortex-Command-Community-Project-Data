@@ -12,7 +12,7 @@ function Update(self)
 		part.HFlipped = self.HFlipped;
 		part.Vel = self.Vel;
 		MovableMan:AddParticle(part);
-		
+
 		self.ToDelete = true;
 
 	elseif self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then

@@ -22,7 +22,7 @@ function Harvester:StartActivity()
 			end
 		end
 	end
-	
+
 	-- Select a tech for the CPU player
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 	self.ESpawnTimer = Timer();
@@ -31,7 +31,7 @@ function Harvester:StartActivity()
 	self.Fog = true;
 
 	self.HarvesterTimer = Timer();
-	
+
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
 		self.goldNeeded = 1000;
 		self.goldDisplay = "one thousand";
@@ -69,15 +69,15 @@ function Harvester:StartActivity()
 		self.BaseSpawnTime = 7500;
 		self.RandomSpawnTime = 4000;
 	end
-	
+
 	-- CPU Funds are unlimited
 	self:SetTeamFunds(1000000, self.CPUTeam);
 
 	self.StartTimer = Timer();
 	self.StartingGold = nil;
-	
+
 	self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime)) * rte.SpawnIntervalScale;
-	
+
 	-- Take scene ownership
 	for actor in MovableMan.AddedActors do
 		actor.Team = Activity.TEAM_1
@@ -111,7 +111,7 @@ function Harvester:UpdateActivity()
 		if self.StartingGold == nil then
 			self.StartingGold = self:GetTeamFunds(Activity.TEAM_1);
 		end
-	
+
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
@@ -120,10 +120,10 @@ function Harvester:UpdateActivity()
 				else
 					FrameMan:SetScreenText("Dig up " .. self.goldDisplay .. " oz of gold!", player, 333, 5000, true);
 				end
-			
+
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
-				
+
 				-- If player brain is dead then try to find another, maybe he just entered craft
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					local newBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -146,15 +146,15 @@ function Harvester:UpdateActivity()
 						ActivityMan:EndActivity();
 					end
 				end
-				
+
 				--Check if the player has won.
 				if self:GetTeamFunds(Activity.TEAM_1) - self.StartingGold > self.goldNeeded then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You dug up all the gold!", player, 333, -1, false);
-					
+
 					self.WinnerTeam = Activity.TEAM_1;
-					
+
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
 						if actor.Team ~= self.WinnerTeam then
@@ -166,16 +166,16 @@ function Harvester:UpdateActivity()
 				end
 			end
 		end
-		
+
 		if self.Fog and self:GetFogOfWarEnabled() then
 			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1))
 			self.Fog = false;
-		end		
-		
+		end
+
 		--Spawn the AI.
 		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 			local ship, actorsInCargo
-			
+
 			if math.random() < 0.5 then
 				-- Set up the ship to deliver this stuff
 				ship = RandomACDropShip("Any", self.CPUTechName);
@@ -205,7 +205,7 @@ function Harvester:UpdateActivity()
 				shipMaxMass = ship.MaxInventoryMass
 			end
 			local totalInventoryMass = 0
-			
+
 			ship.Team = self.CPUTeam;
 
 			-- Set the ship up with a cargo of a few armed and equipped actors
@@ -241,16 +241,16 @@ function Harvester:UpdateActivity()
 					-- but since we're so sure we don't need it, might as well go ahead and do it here right away
 					DeleteEntity(passenger);
 					passenger = nil;
-					
+
 					if i < 2 then	-- Don't deliver empty craft
 						DeleteEntity(ship);
 						ship = nil;
 					end
-					
+
 					break;
 				end
 			end
-			
+
 			if ship then
 				-- Set the spawn point of the ship from orbit
 				if self.playertally == 1 then

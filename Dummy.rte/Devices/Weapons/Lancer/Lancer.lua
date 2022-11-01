@@ -7,7 +7,7 @@ function Create(self)
 
 	self.bleepSoundPlayed = false;
 	self.setAngle = 0;
-	
+
 	self.fireSound = {};
 	self.fireSound.low = CreateSoundContainer("Dummy Lancer Fire Sound Low", "Dummy.rte");
 	self.fireSound.medium = CreateSoundContainer("Dummy Lancer Fire Sound Medium", "Dummy.rte");
@@ -35,7 +35,7 @@ function Update(self)
 
 		local highCharge = self.maxCharge * 0.7;
 		local lowCharge = self.maxCharge * 0.3;
-		
+
 		for i = 1, self.chargeCounter do
 			local size = i > lowCharge and (i > highCharge and "" or "Small ") or "Tiny ";
 			local smokePar = CreateMOSParticle(size .. "Smoke Ball 1 Glow Yellow");

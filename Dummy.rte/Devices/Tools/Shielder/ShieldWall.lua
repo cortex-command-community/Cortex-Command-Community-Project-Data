@@ -4,11 +4,11 @@ function Create(self)
 	self.glow.EffectRotAngle = self.RotAngle;
 	MovableMan:AddParticle(self.glow);
 	self.glowID = self.glow.UniqueID;
-	
+
 	self.soundEffect = CreateSoundContainer("Shielder Wall Sound", "Dummy.rte");
 	self.soundEffect.Pos = self.Pos;
 	self.soundEffect:Play();
-	
+
 	self.AngularVel = 0;
 end
 function Update(self)

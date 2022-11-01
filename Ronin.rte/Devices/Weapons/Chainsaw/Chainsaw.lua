@@ -9,7 +9,7 @@ function Create(self)
 	self.actTimer = Timer();
 	self.activated = false;
 	self.actDelay = 200;
-	
+
 	self.dismemberStrength = 250;
 	self.length = ToMOSprite(self):GetSpriteWidth();
 
@@ -27,7 +27,7 @@ function Update(self)
 		turn = math.abs(self.lastAngle - parent:GetAimAngle(false));
 
 		self.InheritedRotAngleOffset = -(-0.8 + math.sin(self.rotFactor) * 0.4);
-		
+
 		self.Scale = 1;
 		if self.Magazine then
 			if self:IsActivated() then
@@ -100,7 +100,7 @@ function Update(self)
 		elseif self.fired == true then
 			self.Scale = 1;
 			self.fired = false;
-			
+
 			self.stopSound:Play(self.Pos);
 
 			if self.Magazine.RoundCount == 0 then

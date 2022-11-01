@@ -1,7 +1,7 @@
 package.loaded.Constants = nil; require("Constants");
 
 function Prospecting:SceneTest()
-	
+
 end
 
 -----------------------------------------------------------------------------------------
@@ -10,9 +10,9 @@ end
 
 function Prospecting:StartActivity()
 	print("START! -- Prospecting:StartActivity()!");
-	
+
 	self.ActivityState = Activity.STARTING;
-	
+
 	-- Orbit Scene Scanning vars
 	self.ScanStage = { PRESCAN = 0, SCANNING = 1, POSTSCAN = 2, SCANSTAGECOUNT = 3 };
 	self.CurrentScanStage = self.ScanStage.PRESCAN;
@@ -23,7 +23,7 @@ function Prospecting:StartActivity()
 	self.ScanTimer[Activity.TEAM_3]:Reset();
 	self.ScanTimer[Activity.TEAM_4]:Reset();
 	self.ScanEndPos = Vector();
-	
+
 	self.CPUBrain = nil;
 	self.CPUTeam = Activity.TEAM_2;
 	self.braindead = {};
@@ -32,7 +32,7 @@ function Prospecting:StartActivity()
 			self.braindead[player] = false;
 		end
 	end
-	
+
 	-- Set up the unseen layers
 	SceneMan:MakeAllUnseen(Vector(25, 25), Activity.TEAM_1);
 	SceneMan:LoadUnseenLayer("Base.rte/Scenes/UnseenTest.png", Activity.TEAM_2);
@@ -64,7 +64,7 @@ function Prospecting:UpdateActivity()
 	if (self.ActivityState == Activity.STARTING) then
 		local scanMessage = "Scanning...";
 		local messageBlink = 500;
-		
+
 		-- Wait a sec first before starting to scan, so player can get what's going on
 		if self.CurrentScanStage == self.ScanStage.PRESCAN then
 			scanMessage = "Preparing to scan site from orbit";
@@ -110,7 +110,7 @@ function Prospecting:UpdateActivity()
 			if self.ScanPosX[Activity.TEAM_1] > SceneMan.Scene.Width and self.ScanPosX[Activity.TEAM_2] > SceneMan.Scene.Width then
 				self.CurrentScanStage = self.ScanStage.POSTSCAN;
 			end
-			
+
 		-- After scan, pause for a second before moving on to gameplay
 		elseif self.CurrentScanStage == self.ScanStage.POSTSCAN then
 			if self.ScanTimer[Activity.TEAM_1]:IsPastRealMS(2500) and self.ScanTimer[Activity.TEAM_2]:IsPastRealMS(2500) then
@@ -128,7 +128,7 @@ function Prospecting:UpdateActivity()
 				messageBlink = 0;
 			end
 		end
-		
+
 		-- Display the scanning text on all players' screens
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -157,7 +157,7 @@ function Prospecting:UpdateActivity()
 
 					-- See if the player has a brain
 					local brain = self:GetPlayerBrain(player);
-					
+
 					-- Before the player has even had a brain in the scene, so they can't be called braindead yet
 					if not self:PlayerHadBrain(player) then
 						local foundBrain = MovableMan:GetFirstBrainActor(team);

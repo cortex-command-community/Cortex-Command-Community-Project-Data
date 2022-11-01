@@ -29,7 +29,7 @@ end
 
 function WaveDefense:StartActivity()
 	collectgarbage("collect")
-	
+
 	-- Get player team
 	self.playerTeam = Activity.TEAM_1
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -38,33 +38,33 @@ function WaveDefense:StartActivity()
 			break	-- All players are on the same team
 		end
 	end
-	
+
 	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam)
 	self:CheckBrains()
 	self.triggerWaveInit = true
-	
+
 	-- Set all actors defined in the ini-file to sentry mode
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
 			actor.AIMode = Actor.AIMODE_SENTRY
 		end
 	end
-	
+
 	-- Initialize the AI
 	if self.CPUTeam ~= Activity.NOTEAM then
 		self.wave = 1
 		self.wavesDefeated = 0
-		
+
 		self.AI = {}
 		self.AI.SpawnTimer = Timer()
 		self.AI.BombTimer = Timer()
 		self.AI.HuntTimer = Timer()
 		self.AI.EngineerTimer = Timer()
-		
+
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-		self.AI.LZmap = require("Activities/LandingZoneMap") --self.AI.LZmap = dofile("Base.rte/Activities/LandingZoneMap.lua")	
+		self.AI.LZmap = require("Activities/LandingZoneMap") --self.AI.LZmap = dofile("Base.rte/Activities/LandingZoneMap.lua")
 		self.AI.LZmap:Initialize({self.CPUTeam})
-		
+
 		-- Store data about player teams: self.AI.OnPlayerTeam[Act.Team] is true if "Act" is an enemy to the AI
 		self.AI.OnPlayerTeam = {}
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -73,17 +73,17 @@ function WaveDefense:StartActivity()
 			end
 		end
 	end
-	
+
 	self.StartTimer = Timer()
 	self.NextWaveTimer = Timer()
 	self.PrepareForNextWaveTimer = Timer()
 	self.PrepareForNextWaveTimer:SetRealTimeLimitMS(30000)
-	
+
 	-- Take scene ownership
 	for actor in MovableMan.AddedActors do
 		actor.Team = self.playerTeam
 	end
-	
+
 	self.Fog = self:GetFogOfWarEnabled()
 end
 
@@ -94,19 +94,19 @@ function WaveDefense:InitWave()
 	self.AI.timeToEngineer = (60000 - 300 * self.Difficulty) * math.random(0.55, 1.15)	-- From 60s to 30s
 	self.AI.baseSpawnTime = 9000 - 40 * self.Difficulty		-- From 9s to 5s
 	self.AI.randomSpawnTime = 6000 - 30 * self.Difficulty		-- From 6s to 3s
-	
+
 	self.AI.SpawnTimer:Reset()
 	self.AI.BombTimer:Reset()
 	self.AI.HuntTimer:Reset()
 	self.AI.EngineerTimer:Reset()
-	
+
 	self.AI.Tech = self:GetTeamTech(self.CPUTeam);	-- Select a tech for the CPU player
 	gPrevAITech = self.AI.Tech	-- Store the AI tech in a global so we don't pick the same tech again next round
 	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech)
-	
+
 	local lastWavePlayerValue = self.AI.playerValue
 	self.AI.playerValue = self:GetTeamFunds(self.playerTeam)	-- The gold value of the players
-	
+
 	for Act in MovableMan.AddedActors do
 		if Act.Team == self.playerTeam then
 			self.AI.playerValue = self.AI.playerValue + Act:GetTotalValue(0, 1)
@@ -115,7 +115,7 @@ function WaveDefense:InitWave()
 			end
 		end
 	end
-	
+
 	for Act in MovableMan.Actors do
 		if Act.Team == self.playerTeam then
 			self.AI.playerValue = self.AI.playerValue + Act:GetTotalValue(0, 1)
@@ -124,41 +124,41 @@ function WaveDefense:InitWave()
 			end
 		end
 	end
-	
+
 	if self.AI.lastWaveValue then
 		-- TODO: figure out how much gold we need to defeat the player based on previous waves
-		
+
 		local handicap = 0
 		if self.AI.playerValue > lastWavePlayerValue then
 			handicap = handicap + (self.AI.playerValue - lastWavePlayerValue) * 0.5
 		end
-		
+
 		if self.AI.playerValue > self.AI.lastWaveValue * 0.7 then
 			handicap = handicap + 100 + 6 * self.Difficulty
 		end
-		
+
 		self.AI.lastWaveValue = 37 * self.Difficulty + self.wave * (4*self.Difficulty+1000) + handicap
 	else
 		self.AI.lastWaveValue = 37 * self.Difficulty + 900	-- AI team gold: from 1k to 5k
 	end
-	
-	self:SetTeamFunds(self.AI.lastWaveValue, self.CPUTeam)	
+
+	self:SetTeamFunds(self.AI.lastWaveValue, self.CPUTeam)
 end
 
 function WaveDefense:UpdateActivity()
 	if self.ActivityState == Activity.OVER then
 		return
 	end
-	
+
 	if self.ActivityState == Activity.EDITING then
 		-- Game is in editing or other modes, so open all doors
 		MovableMan:OpenAllDoors(true, Activity.NOTEAM)
-		
+
 		-- Remove fog
 		if self.Fog then
 			SceneMan:RevealUnseenBox(0, 0, SceneMan.SceneWidth-1, SceneMan.SceneHeight-1, self.playerTeam)
 		end
-		
+
 		-- Make sure all actors are in sentry mode
 		for Act in MovableMan.AddedActors do
 			if Act.Team == self.playerTeam and (Act.AIMode == Actor.AIMODE_PATROL or Act.AIMode == Actor.AIMODE_BRAINHUNT) then
@@ -175,18 +175,18 @@ function WaveDefense:UpdateActivity()
 					FrameMan:SetScreenText("The next wave arrive in "..time.." seconds. Press [Space] to enter edit mode.", player, 0, 100, false)
 				end
 			end
-			
+
 			if UInputMan:KeyPressed(75) then	-- spacebar
 				self.prepareForNextWave = false
 				self.ActivityState = Activity.EDITING
-				
+
 				-- Remove control of the actors during edit mode
 				for Act in MovableMan.Actors do
 					if Act.Team == self.playerTeam then
 						Act:GetController().InputMode = Controller.CIM_DISABLED
 					end
 				end
-				
+
 				-- Remove and refund the player's brains (otherwise edit mode does not work)
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -196,7 +196,7 @@ function WaveDefense:UpdateActivity()
 							MovableMan:RemoveActor(Brain)
 						end
 					end
-					
+
 					-- Award some gold for defeateing the wave
 					self:ChangeTeamFunds((500-5.5*self.Difficulty)*rte.StartingFundsScale, self.playerTeam)
 				end
@@ -209,16 +209,16 @@ function WaveDefense:UpdateActivity()
 			self:CheckBrains()
 			self:InitWave()
 			self:EnforceMOIDLimit()
-			
+
 			-- Give back control of the actors
 			for Act in MovableMan.Actors do
 				if Act.Team == self.playerTeam then
 					Act:GetController().InputMode = Controller.CIM_AI
 				end
 			end
-			
+
 			MovableMan:OpenAllDoors(false, Activity.NOTEAM)	-- Close all doors after placing brains so our fortresses are secure
-			
+
 			-- Add fog
 			if self.Fog then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -226,13 +226,13 @@ function WaveDefense:UpdateActivity()
 						SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(player))
 					end
 				end
-				
+
 				for team = 0, Activity.MAXTEAMCOUNT - 1 do
 					if self:TeamActive(team) and self:TeamIsCPU(team) then
 						SceneMan:MakeAllUnseen(Vector(65, 65), team)
 					end
 				end
-				
+
 				for Act in MovableMan.AddedActors do
 					if Act.ClassName ~= "ADoor" then
 						for ang = 0, math.pi*2, 0.15 do
@@ -240,7 +240,7 @@ function WaveDefense:UpdateActivity()
 						end
 					end
 				end
-				
+
 				for Act in MovableMan.Actors do
 					if Act.ClassName ~= "ADoor" then
 						for ang = 0, math.pi*2, 0.15 do
@@ -250,7 +250,7 @@ function WaveDefense:UpdateActivity()
 				end
 			end
 		end
-		
+
 		-- Clear all objective markers, they get re-added each frame
 		self:ClearObjectivePoints()
 		-- Keep track of which teams we have set objective points for already, since multiple players can be on the same team
@@ -264,7 +264,7 @@ function WaveDefense:UpdateActivity()
 				end
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player)
-				
+
 				-- If player brain is dead then try to find another, maybe he just entered craft
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					local newBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -298,14 +298,14 @@ function WaveDefense:UpdateActivity()
 								end
 							end
 						end
-						
+
 						setTeam[team] = true
 						teamtally = teamtally + 1
 					end
 				end
 			end
 		end
-		
+
 		-- Win/Lose Conditions player vs player
 		if self.wavesDefeated >= self.wave then
 			if self.NextWaveTimer:IsPastRealMS(3000) then
@@ -335,16 +335,16 @@ function WaveDefense:UpdateActivity()
 				end
 				return
 			end
-			
+
 			self.AI.LZmap:Update()	-- Update info about landing zones and player actors
-			
+
 			-- Check if any AI actors have reached their destination
 			if self.AI.HuntTimer:IsPastSimMS(8000) then
 				self.AI.HuntTimer:Reset()
-				
-				for Act in MovableMan.Actors do 
+
+				for Act in MovableMan.Actors do
 					if Act.Team == self.CPUTeam and Act.AIMode ~= Actor.AIMODE_GOLDDIG and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab") then
-						if (Act.AIMode == Actor.AIMODE_GOTO and SceneMan:ShortestDistance(Act:GetLastAIWaypoint(), Act.Pos, false).Largest < 100) or 
+						if (Act.AIMode == Actor.AIMODE_GOTO and SceneMan:ShortestDistance(Act:GetLastAIWaypoint(), Act.Pos, false).Largest < 100) or
 							Act.AIMode == Actor.AIMODE_SENTRY or Act.Age > 60000
 						then
 							-- Destination reached: hunt for the brain
@@ -353,16 +353,16 @@ function WaveDefense:UpdateActivity()
 					end
 				end
 			end
-			
+
 			-- The AI have money to buy units
 			if self:GetTeamFunds(self.CPUTeam) > 0 then
-				if MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then 
+				if MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 					if self.AI.SpawnTimer:IsPastSimMS(self.AI.timeToSpawn) then
 						if self.AI.AttackPos then	-- Search for a LZ from where to attack the target
 							local easyPathLZx, easyPathLZobst, closeLZx, closeLZobst = self.AI.LZmap:FindLZ(self.CPUTeam, self.AI.AttackPos)
 							if easyPathLZx then	-- Search done
 								self.AI.SpawnTimer:Reset()
-								
+
 								local xPosLZ, obstacleHeight
 								if closeLZobst < 25 and easyPathLZobst < 25 then
 									if math.random() < 0.5 then
@@ -384,7 +384,7 @@ function WaveDefense:UpdateActivity()
 										obstacleHeight = easyPathLZobst
 									end
 								end
-								
+
 								if obstacleHeight > 200 and math.random() < 0.4 then
 									-- This target is very difficult to reach: cancel this attack and search for another target again soon
 									self.AI.timeToSpawn = 500
@@ -392,7 +392,7 @@ function WaveDefense:UpdateActivity()
 									self.AI.AttackPos = nil
 								else
 									self.AI.timeToSpawn = (self.AI.baseSpawnTime + math.random(self.AI.randomSpawnTime)) * rte.SpawnIntervalScale
-									
+
 									if obstacleHeight < 30 then
 										self:CreateHeavyDrop(xPosLZ, self.AI.AttackPos)
 									elseif obstacleHeight < 100 then
@@ -401,12 +401,12 @@ function WaveDefense:UpdateActivity()
 										self:CreateLightDrop(xPosLZ, self.AI.AttackPos)
 									else
 										self:CreateScoutDrop(xPosLZ, self.AI.AttackPos)
-										
+
 										-- This target is very difficult to reach: change target for the next attack
 										self.AI.AttackTarget = nil
 										self.AI.AttackPos = nil
 									end
-									
+
 									if not MovableMan:IsActor(self.AI.AttackTarget) or math.random() < 0.4 then
 										-- Change target for the next attack
 										self.AI.AttackTarget = nil
@@ -419,7 +419,7 @@ function WaveDefense:UpdateActivity()
 						else	-- Select a player actor as a target for the next attack
 							local safePosX = self.AI.LZmap:FindSafeLZ(self.CPUTeam) or math.random(SceneMan.SceneWidth-1)
 							local TargetActors = {}
-							
+
 							for Act in MovableMan.Actors do
 								if self.AI.OnPlayerTeam[Act.Team] and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab" or Act.ClassName == "Actor") then
 									local distance = 20 * (SceneMan:ShortestDistance(Vector(safePosX, Act.Pos.Y), Act.Pos, false).Largest / SceneMan.SceneWidth)
@@ -427,11 +427,11 @@ function WaveDefense:UpdateActivity()
 									if Act:HasObjectInGroup("Brains") then
 										distance = distance * 0.8	-- Increase the likelihood of targeting the brain
 									end
-									
+
 									table.insert(TargetActors, {Act=Act, score=distance})
 								end
 							end
-							
+
 							self.AI.AttackTarget = self:SelectTarget(TargetActors)
 							if self.AI.AttackTarget then
 								self.AI.AttackPos = Vector(self.AI.AttackTarget.Pos.X, self.AI.AttackTarget.Pos.Y)
@@ -443,7 +443,7 @@ function WaveDefense:UpdateActivity()
 						end
 					elseif self.AI.EngineerTimer:IsPastSimMS(self.AI.timeToEngineer) then
 						self.AI.EngineerTimer:Reset()
-						
+
 						if not self.AI.Engineer or not MovableMan:IsActor(self.AI.Engineer) then
 							local digPosX = self.AI.LZmap:FindSafeLZ(self.CPUTeam)
 							if digPosX then
@@ -451,17 +451,17 @@ function WaveDefense:UpdateActivity()
 								if Craft then
 									Craft.Team = self.CPUTeam
 									Craft.Pos = Vector(digPosX, -30)	-- Set the spawn point of the craft
-									
+
 									self.AI.Engineer = self:CreateEngineer()
 									if self.AI.Engineer then
 										Craft:AddInventoryItem(self.AI.Engineer)
-										
+
 										-- Subtract the total value of the craft+cargo from the CPU team's funds
 										self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI.TechID, 3), self.CPUTeam)
-										
+
 										-- Spawn the Craft onto the scene
 										MovableMan:AddActor(Craft)
-										
+
 										-- Wait a bit longer until the next check
 										self.AI.timeToEngineer = self.AI.timeToEngineer * 1.1
 									end
@@ -469,11 +469,11 @@ function WaveDefense:UpdateActivity()
 							end
 						end
 					end
-					
+
 					if self.AI.BombTimer:IsPastSimMS(self.AI.timeToBomb) then
 						self.AI.BombTimer:Reset()
 						self.AI.timeToBomb = math.random(20, 30) * 1000
-						
+
 						if math.random() < self.AI.bombChance then
 							local bombPosX = self.AI.LZmap:FindBombTarget(self.CPUTeam)
 							if bombPosX then
@@ -492,18 +492,18 @@ function WaveDefense:UpdateActivity()
 			else	-- The AI is out of gold
 				local enemyPresent = false
 				local objectives = 0
-				for Act in MovableMan.Actors do 
+				for Act in MovableMan.Actors do
 					if Act.Team == self.CPUTeam and not Act:IsDead() then
 						if Act.ClassName ~= "ADoor" then
 							enemyPresent = true
-							
+
 							-- Add objective points
 							if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
 								objectives = objectives + 1
 								if objectives > 3 then
 									break
 								end
-								
+
 								for team = self.playerTeam, Activity.TEAM_4 do
 									self:AddObjectivePoint("Destroy!", Act.AboveHUDPos, team, GameActivity.ARROWDOWN)
 								end
@@ -511,13 +511,13 @@ function WaveDefense:UpdateActivity()
 						end
 					end
 				end
-				
+
 				-- No AI actors left, remove the CPU-Team
 				if not enemyPresent then
 					self.wavesDefeated = self.wavesDefeated + 1
 					self.NextWaveTimer:Reset()
 				end
-			end			
+			end
 		end
 	end
 end
@@ -526,17 +526,17 @@ end
 function WaveDefense:SelectTarget(TargetActors)
 	if #TargetActors > 1 then
 		table.sort(TargetActors, function(A, B) return A.score < B.score end)	-- Actors closer to the surface first
-		
+
 		local temperature = 5	-- a higher temperature means less random selection
 		local sum = 0
 		local worstScore = TargetActors[#TargetActors].score
-		
+
 		-- normalize the score
 		for i, Data in pairs(TargetActors) do
 			TargetActors[i].chance = 1 - Data.score / worstScore
 			sum = sum + math.exp(temperature*TargetActors[i].chance)
 		end
-		
+
 		-- use Softmax to pick one of the n best LZs
 		if sum > 0 then
 			local pick = math.random() * sum
@@ -548,7 +548,7 @@ function WaveDefense:SelectTarget(TargetActors)
 				end
 			end
 		end
-		
+
 		return TargetActors[1].Act
 	elseif #TargetActors == 1 then
 		return TargetActors[1].Act
@@ -566,10 +566,10 @@ function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		local passengers
 		if Craft.MaxPassengers < 2 then
 			passengers = 1
@@ -578,7 +578,7 @@ function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 		else
 			passengers = 2
 		end
-		
+
 		local crabRatio = self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.AI.Tech))
 		for _ = 1, passengers do
 			local Passenger
@@ -589,24 +589,24 @@ function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 			else
 				Passenger = self:CreateRandomInfantry()
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
+
 				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI.TechID, 3), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -628,7 +628,7 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 		Craft = RandomACRocket("Craft", self.AI.Tech)
 		actorsInCargo = Craft.MaxPassengers
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft's cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -642,10 +642,10 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, actorsInCargo do
 			local Passenger
 			if RangeRand(-5, 125) < self.Difficulty then
@@ -655,24 +655,24 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 			else
 				Passenger = self:CreateLightInfantry()
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
-				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI.TechID, 3), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -686,7 +686,7 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 	else
 		Craft = RandomACRocket("Craft", self.AI.Tech)
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -700,10 +700,10 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, Craft.MaxPassengers do
 			local Passenger
 			if RangeRand(10, 200) < self.Difficulty then
@@ -711,24 +711,24 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 			else
 				Passenger = self:CreateLightInfantry()
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
-				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI.TechID, 3), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -742,7 +742,7 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 	else
 		Craft = RandomACRocket("Craft", self.AI.Tech)
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -756,10 +756,10 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, Craft.MaxPassengers do
 			local Passenger
 			if math.random() < 0.35 then
@@ -767,24 +767,24 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 			else
 				Passenger = self:CreateScoutInfantry()
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
-				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+
+				if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI.TechID, 3), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -801,22 +801,22 @@ function WaveDefense:CreateBombDrop(bombPosX)
 			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(bombPosX, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 3, 5 do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.AI.Tech))
-			
-			if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then 
+
+			if Craft.InventoryMass > craftMaxMass or Craft:GetTotalValue(self.AI.TechID, 3) > self:GetTeamFunds(self.CPUTeam) then
 				break
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI.TechID, 3), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -827,16 +827,16 @@ function WaveDefense:CreateTrollDrop(bombPosX)
 	if Craft then
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(bombPosX, -30)	-- Set the spawn point of the craft
-		
+
 		local Passenger = CreateAHuman("Culled Clone", "Base.rte")
 		if Passenger then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.AI.Tech))
 			Craft:AddInventoryItem(Passenger)
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI.TechID, 3), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -858,7 +858,7 @@ function WaveDefense:CreateRandomInfantry()
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI.Tech));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
-		
+
 		local rand = math.random();
 		if rand < 0.25 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
@@ -872,7 +872,7 @@ function WaveDefense:CreateRandomInfantry()
 		if math.random() < 0.05 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
@@ -884,11 +884,11 @@ function WaveDefense:CreateLightInfantry()
 	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
-		
+
 		local rand = math.random();
 		if rand < 0.5 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
@@ -897,7 +897,7 @@ function WaveDefense:CreateLightInfantry()
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
@@ -909,10 +909,10 @@ function WaveDefense:CreateHeavyInfantry()
 	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.AI.Tech));
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
 			if math.random() < 0.25 then
@@ -929,7 +929,7 @@ function WaveDefense:CreateHeavyInfantry()
 				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
 			end
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
@@ -941,11 +941,11 @@ function WaveDefense:CreateMediumInfantry()
 	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
 		else
@@ -954,7 +954,7 @@ function WaveDefense:CreateMediumInfantry()
 		if math.random() < 0.5 then
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
@@ -966,7 +966,7 @@ function WaveDefense:CreateEngineer()
 	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
-	
+
 	if Passenger then
 		if math.random() < 0.7 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
@@ -982,7 +982,7 @@ function WaveDefense:CreateEngineer()
 			end
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI.Tech));
-		
+
 		Passenger.AIMode = Actor.AIMODE_GOLDDIG;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
@@ -994,20 +994,20 @@ function WaveDefense:CreateScoutInfantry()
 	if Passenger.ModuleID ~= self.AI.TechID then
 		Passenger = RandomAHuman("Actors", self.AI.TechID);
 	end
-	
+
 	if Passenger then
 		if math.random() < 0.15 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.AI.Tech))
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech))
 		else
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech))
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
@@ -1022,7 +1022,7 @@ function WaveDefense:GetPlayerMOIDCount()
 			playerMOID = playerMOID + Act.MOIDFootprint
 		end
 	end
-	
+
 	return playerMOID
 end
 
@@ -1034,15 +1034,15 @@ function WaveDefense:EnforceMOIDLimit()
 		for Item in MovableMan.Items do
 			table.insert(Prune, Item)
 		end
-		
+
 		-- Sort the tables so we delete the oldest object first
 		table.sort(Prune, function(A, B) return A.Age < B.Age end)
-		
+
 		while true do
 			local Object = table.remove(Prune)
 			if Object then
 				Object.ToSettle = true
-				
+
 				ids = ids - Object.MOIDFootprint
 				if ids < 1 then
 					break

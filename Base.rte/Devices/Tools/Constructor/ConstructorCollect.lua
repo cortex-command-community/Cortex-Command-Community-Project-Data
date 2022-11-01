@@ -1,7 +1,7 @@
 function Create(self)
 
 	self.speed = self.Vel.Magnitude;
-	
+
 	self.ToSettle = false;
 	if self.Sharpness ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(self.Sharpness);

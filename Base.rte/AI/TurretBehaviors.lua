@@ -4,7 +4,7 @@ TurretBehaviors = {}
 function TurretBehaviors.Patrol(AI, Owner, Abort)
 	local TurnTimer = Timer()
 	local turn = 3000
-	
+
 	while true do
 		if TurnTimer:IsPastSimMS(turn) then
 			TurnTimer:Reset()
@@ -12,11 +12,11 @@ function TurretBehaviors.Patrol(AI, Owner, Abort)
 			Owner:SetAimAngle(RangeRand(-0.7, 0.7))
 			Owner.HFlipped = not Owner.HFlipped
 		end
-		
+
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
 		if _abrt then return true end
 	end
-	
+
 	return true
 end
 

@@ -20,7 +20,7 @@ function Update(self)
             effect.Pos = self.Pos;
             MovableMan:AddParticle(effect);
             effect:GibThis();
-  
+
             if MovableMan:IsActor(self.holder) then
 
 				local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
@@ -61,7 +61,7 @@ function Update(self)
           		effect.Pos = self.holder.Pos;
 				MovableMan:AddParticle(effect);
 				effect:GibThis();
-				
+
 				self.holder.ToDelete = true;
 			end
 		end

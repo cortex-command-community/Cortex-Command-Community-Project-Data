@@ -18,7 +18,7 @@ function Create(self)
 end
 
 function Update(self)
-    
+
 	if self:IsActivated() then
 
 		if self.chargeCounter > self.maxCharge/2 then

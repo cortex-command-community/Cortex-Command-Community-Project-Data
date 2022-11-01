@@ -2,7 +2,7 @@ dofile("Base.rte/Constants.lua")
 
 function SkirmishDefense:StartActivity()
 	collectgarbage("collect")
-	
+
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			-- Check if we already have a brain assigned
@@ -27,7 +27,7 @@ function SkirmishDefense:StartActivity()
 			end
 		end
 	end
-	
+
 	-- Set all actors defined in the ini-file to sentry mode
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
@@ -42,7 +42,7 @@ function SkirmishDefense:StartActivity()
 			self.CPUTeamCount = self.CPUTeamCount + 1
 		end
 	end
-	
+
 	-- Add a CPU team if we only have one team
 	if self.CPUTeamCount == 0 then
 		local activeTeams = 0
@@ -51,10 +51,10 @@ function SkirmishDefense:StartActivity()
 				activeTeams = activeTeams + 1
 			end
 		end
-		
+
 		if activeTeams < 2 then
 			local cputeam = -1;
-			
+
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
 					cputeam = self:GetTeamOfPlayer(player) + 1
@@ -63,12 +63,12 @@ function SkirmishDefense:StartActivity()
 					end
 				end
 			end
-			
+
 			self.CPUTeam = cputeam
 			self.CPUTeamCount = 1
 		end
 	end
-	
+
 	-- If there's only one Human team, set all existing doors to that team
 	local soleHumanTeam = -1;
 	for team = 0, Activity.MAXTEAMCOUNT - 1 do
@@ -83,15 +83,15 @@ function SkirmishDefense:StartActivity()
 			end
 		end
 	end
-	
+
 	-- Initialize the AI
-	local CPUTeams = {};	
+	local CPUTeams = {};
 	self.AI = {}
-	
+
 	for team = 0, Activity.MAXTEAMCOUNT - 1 do
 		if self:TeamActive(team) and self:TeamIsCPU(team) then
 			table.insert(CPUTeams, team);
-			
+
 			self.AI[team] = {}
 			self.AI[team].defeated = false;
 			self.AI[team].bombChance = math.min(math.max(self.Difficulty/100, 0), 0.95)
@@ -105,14 +105,14 @@ function SkirmishDefense:StartActivity()
 			self.AI[team].baseSpawnTime = 16000 - 50 * self.Difficulty		-- From 16s to 10s
 			self.AI[team].randomSpawnTime = 8000 - 40 * self.Difficulty		-- From 8s to 4s
 			self.AI[team].digToBrainProbability = 0
-			
+
 			if self.Difficulty > 55 then
 				self.AI[team].digToBrainProbability = self.Difficulty / 320
 			end
-			
+
 			-- Select a tech for the CPU player
 			self.AI[team].TechID = PresetMan:GetModuleID(self:GetTeamTech(team))
-			
+
 			-- Store data about player teams: self.AI[team].OnPlayerTeam[Act.Team] is true if "Act" is an enemy to the AI
 			self.AI[team].OnPlayerTeam = {}
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -120,7 +120,7 @@ function SkirmishDefense:StartActivity()
 					self.AI[team].OnPlayerTeam[self:GetTeamOfPlayer(player)] = true
 				end
 			end
-			
+
 			-- Switch to endless mode
 			if self:GetStartingGold() > 100000 then
 				self.endless = true
@@ -131,7 +131,7 @@ function SkirmishDefense:StartActivity()
 		else
 			self:SetTeamFunds(self:GetStartingGold(), team)
 		end
-		
+
 		-- Set initial gold for human teams
 		if self:TeamActive(team) and not self:TeamIsCPU(team) then
 			self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1)
@@ -141,9 +141,9 @@ function SkirmishDefense:StartActivity()
 	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
 	self.LZmap = require("Activities/LandingZoneMap")
 	self.LZmap:Initialize(CPUTeams)
-	
+
 	self.StartTimer = Timer()
-	
+
 	self.Fog = self:GetFogOfWarEnabled()
 end
 
@@ -172,23 +172,23 @@ function SkirmishDefense:UpdateActivity()
 	if self.ActivityState == Activity.OVER then
 		return
 	end
-	
+
 	if self.ActivityState == Activity.EDITING then
 		-- Game is in editing or other modes, so open all does and reset the game running timer
 		MovableMan:OpenAllDoors(true, Activity.NOTEAM)
 		self.StartTimer:Reset()
-	else	
+	else
 		-- Close all doors after placing brains so our fortresses are secure
 		if not self.StartTimer:IsPastSimMS(500) then
 			MovableMan:OpenAllDoors(false, Activity.NOTEAM)
-			
+
 			-- Make sure all actors are in sentry mode
 			for Act in MovableMan.Actors do
 				if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
 					Act.AIMode = Actor.AIMODE_SENTRY
 				end
 			end
-			
+
 			for team = 0, Activity.MAXTEAMCOUNT - 1 do
 				if self:TeamActive(team) and self:TeamIsCPU(team) then
 					if self.AI[team] then
@@ -198,23 +198,23 @@ function SkirmishDefense:UpdateActivity()
 					end
 				end
 			end
-			
+
 			-- Add fog
 			if self.Fog then
 				self.Fog = false	-- only run once
-				
+
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
 						SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(player))
 					end
 				end
-				
+
 				for team = 0, Activity.MAXTEAMCOUNT - 1 do
 					if self:TeamActive(team) and self:TeamIsCPU(team) then
 						SceneMan:MakeAllUnseen(Vector(65, 65), team)
 					end
 				end
-				
+
 				for Act in MovableMan.AddedActors do
 					if Act.ClassName ~= "ADoor" then
 						for ang = 0, math.pi*2, 0.15 do
@@ -222,7 +222,7 @@ function SkirmishDefense:UpdateActivity()
 						end
 					end
 				end
-				
+
 				for Act in MovableMan.Actors do
 					if Act.ClassName ~= "ADoor" then
 						for ang = 0, math.pi*2, 0.15 do
@@ -232,7 +232,7 @@ function SkirmishDefense:UpdateActivity()
 				end
 			end
 		end
-		
+
 		-- Clear all objective markers, they get re-added each frame
 		self:ClearObjectivePoints()
 		-- Keep track of which teams we have set objective points for already, since multiple players can be on the same team
@@ -246,7 +246,7 @@ function SkirmishDefense:UpdateActivity()
 				end
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player)
-				
+
 				-- If player brain is dead then try to find another, maybe he just entered craft
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					local newBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -279,14 +279,14 @@ function SkirmishDefense:UpdateActivity()
 								end
 							end
 						end
-						
+
 						setTeam[team] = true
 						teamtally = teamtally + 1
 					end
 				end
 			end
 		end
-		
+
 		-- Win/Lose Conditions player vs player
 		if self.CPUTeamCount == 0 then
 			if teamtally < 2 then
@@ -296,7 +296,7 @@ function SkirmishDefense:UpdateActivity()
 						break
 					end
 				end
-				
+
 				ActivityMan:EndActivity()
 				return
 			end
@@ -311,7 +311,7 @@ function SkirmishDefense:UpdateActivity()
 					end
 				end
 			end
-			
+
 			-- Win/Lose conditions multiple CPU's
 			if self.CPUTeamCount > 0 then
 				local survivedAIs = 0;
@@ -322,23 +322,23 @@ function SkirmishDefense:UpdateActivity()
 						end
 					end
 				end
-				
+
 				if survivedAIs == 0 then
 					self.CPUTeamCount = 0
-				end			
+				end
 			end
-			
+
 			for team = 0, Activity.MAXTEAMCOUNT - 1 do
 				if self:TeamActive(team) and self:TeamIsCPU(team) then
 					self.LZmap:Update()	-- Update info about landing zones and player actors
-					
+
 					-- Check if any AI actors have reached their destination
 					if self.AI[team].HuntTimer:IsPastSimMS(8000) then
 						self.AI[team].HuntTimer:Reset()
-						
-						for Act in MovableMan.Actors do 
+
+						for Act in MovableMan.Actors do
 							if Act.Team == team and Act.AIMode ~= Actor.AIMODE_GOLDDIG and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab") then
-								if (Act.AIMode == Actor.AIMODE_GOTO and SceneMan:ShortestDistance(Act:GetLastAIWaypoint(), Act.Pos, false).Largest < 100) or 
+								if (Act.AIMode == Actor.AIMODE_GOTO and SceneMan:ShortestDistance(Act:GetLastAIWaypoint(), Act.Pos, false).Largest < 100) or
 									Act.AIMode == Actor.AIMODE_SENTRY or Act.Age > 80000
 								then
 									-- Destination reached: hunt for the brain
@@ -347,7 +347,7 @@ function SkirmishDefense:UpdateActivity()
 							end
 						end
 					end
-					
+
 					-- The AI have money to buy units
 					if self:GetTeamFunds(team) > 0 then
 						if self.AI[team].SpawnTimer:IsPastSimMS(self.AI[team].timeToSpawn) then
@@ -363,7 +363,7 @@ function SkirmishDefense:UpdateActivity()
 										else
 											self:CreateBreachDrop(easyPathLZx, team)
 										end
-										
+
 										-- Search for another target
 										self.AI[team].AttackTarget = nil
 										self.AI[team].AttackPos = nil
@@ -376,7 +376,7 @@ function SkirmishDefense:UpdateActivity()
 										if self.AI[team].digToBrainProbability > 0 then
 											self.AI[team].digToBrainProbability = math.min(self.AI[team].digToBrainProbability+0.03, self.Difficulty/320)
 										end
-										
+
 										local xPosLZ, obstacleHeight
 										if closeLZobst < 25 and easyPathLZobst < 25 then
 											if math.random() < 0.6 then
@@ -398,7 +398,7 @@ function SkirmishDefense:UpdateActivity()
 												obstacleHeight = easyPathLZobst
 											end
 										end
-										
+
 										if obstacleHeight > 200 and math.random() < 0.6 then
 											if math.random() < self.Difficulty/111 then
 												self:CreateBreachDrop(xPosLZ, team)	-- ~90% at max difficulty
@@ -406,13 +406,13 @@ function SkirmishDefense:UpdateActivity()
 											else
 												self.AI[team].timeToSpawn = 500
 											end
-											
+
 											-- This target is very difficult to reach: cancel this attack and search for another target again soon
 											self.AI[team].AttackTarget = nil
 											self.AI[team].AttackPos = nil
 										else
 											self.AI[team].timeToSpawn = (self.AI[team].baseSpawnTime + math.random(self.AI[team].randomSpawnTime)) * rte.SpawnIntervalScale
-											
+
 											if obstacleHeight < 30 then
 												self:CreateHeavyDrop(xPosLZ, self.AI[team].AttackPos, team)
 											elseif obstacleHeight < 100 then
@@ -421,12 +421,12 @@ function SkirmishDefense:UpdateActivity()
 												self:CreateLightDrop(xPosLZ, self.AI[team].AttackPos, team)
 											else
 												self:CreateScoutDrop(xPosLZ, self.AI[team].AttackPos, team)
-												
+
 												-- This target is very difficult to reach: change target for the next attack
 												self.AI[team].AttackTarget = nil
 												self.AI[team].AttackPos = nil
 											end
-											
+
 											if not MovableMan:IsActor(self.AI[team].AttackTarget) or math.random() < 0.4 then
 												-- Change target for the next attack
 												self.AI[team].AttackTarget = nil
@@ -448,7 +448,7 @@ function SkirmishDefense:UpdateActivity()
 												table.insert(TargetActors, {Act=Act, score=self.LZmap:SurfaceProximity(Act.Pos)+distance})
 											end
 										end
-										
+
 										self.AI[team].AttackTarget = self:SelectTarget(TargetActors)
 										if self.AI[team].AttackTarget then
 											self.AI[team].DigToBrain = true
@@ -467,7 +467,7 @@ function SkirmishDefense:UpdateActivity()
 												table.insert(TargetActors, {Act=Act, score=self.LZmap:SurfaceProximity(Act.Pos)+distance})
 											end
 										end
-										
+
 										self.AI[team].AttackTarget = self:SelectTarget(TargetActors)
 										if self.AI[team].AttackTarget then
 											self.AI[team].AttackPos = Vector(self.AI[team].AttackTarget.Pos.X, self.AI[team].AttackTarget.Pos.Y)
@@ -486,7 +486,7 @@ function SkirmishDefense:UpdateActivity()
 						elseif self.AI[team].BombTimer:IsPastSimMS(self.AI[team].timeToBomb) then
 							self.AI[team].BombTimer:Reset()
 							self.AI[team].timeToBomb = (20000 - self.Difficulty * 75) * rte.SpawnIntervalScale
-							
+
 							if math.random() < self.AI[team].bombChance then
 								local bombPosX = self.LZmap:FindBombTarget(team)
 								if bombPosX then
@@ -497,7 +497,7 @@ function SkirmishDefense:UpdateActivity()
 							end
 						elseif self.AI[team].EngineerTimer:IsPastSimMS(self.AI[team].timeToEngineer) then
 							self.AI[team].EngineerTimer:Reset()
-							
+
 							if not self.AI[team].Engineer or not MovableMan:IsActor(self.AI[team].Engineer) then
 								local digPosX = self.LZmap:FindSafeLZ(team)
 								if digPosX then
@@ -505,17 +505,17 @@ function SkirmishDefense:UpdateActivity()
 									if Craft then
 										Craft.Team = team
 										Craft.Pos = Vector(digPosX, -30)	-- Set the spawn point of the craft
-										
+
 										self.AI[team].Engineer = self:CreateEngineer(team)
 										if self.AI[team].Engineer then
 											Craft:AddInventoryItem(self.AI[team].Engineer)
-											
+
 											-- Subtract the total value of the craft+cargo from the CPU team's funds
 											self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI[team].TechID, 2), team)
-											
+
 											-- Spawn the Craft onto the scene
 											MovableMan:AddActor(Craft)
-											
+
 											-- Wait a bit longer until the next check
 											self.AI[team].timeToEngineer = self.AI[team].timeToEngineer * 1.1
 										end
@@ -529,18 +529,18 @@ function SkirmishDefense:UpdateActivity()
 						else
 							local enemyPresent = false
 							local objectives = 0
-							for Act in MovableMan.Actors do 
+							for Act in MovableMan.Actors do
 								if Act.Team == team and not Act:IsDead() then
 									if Act.ClassName ~= "ADoor" then
 										enemyPresent = true
-										
+
 										-- Add objective points
 										if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
 											objectives = objectives + 1
 											if objectives > 3 then
 												break
 											end
-											
+
 											for team = Activity.TEAM_1, Activity.TEAM_4 do
 												self:AddObjectivePoint("Destroy!", Act.AboveHUDPos, team, GameActivity.ARROWDOWN)
 											end
@@ -548,7 +548,7 @@ function SkirmishDefense:UpdateActivity()
 									end
 								end
 							end
-							
+
 							-- No AI actors left, remove the CPU-Team
 							if not enemyPresent then
 								self.AI[team].defeated = true;
@@ -565,17 +565,17 @@ end
 function SkirmishDefense:SelectTarget(TargetActors)
 	if #TargetActors > 1 then
 		table.sort(TargetActors, function(A, B) return A.score < B.score end)	-- Actors closer to the surface first
-		
+
 		local temperature = 5	-- a higher temperature means less random selection
 		local sum = 0
 		local worstScore = TargetActors[#TargetActors].score
-		
+
 		-- normalize the score
 		for i, Data in pairs(TargetActors) do
 			TargetActors[i].chance = 1 - Data.score / worstScore
 			sum = sum + math.exp(temperature*TargetActors[i].chance)
 		end
-		
+
 		-- use Softmax to pick one of the n best LZs
 		if sum > 0 then
 			local pick = math.random() * sum
@@ -587,7 +587,7 @@ function SkirmishDefense:SelectTarget(TargetActors)
 				end
 			end
 		end
-		
+
 		return TargetActors[1].Act
 	elseif #TargetActors == 1 then
 		return TargetActors[1].Act
@@ -605,10 +605,10 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = Team
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		local actorsInCargo
 		if Craft.MaxPassengers < 2 then
 			actorsInCargo = 1
@@ -627,24 +627,24 @@ function SkirmishDefense:CreateHeavyDrop(xPosLZ, Destination, Team)
 			else
 				Passenger = self:CreateRandomInfantry(Team)
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
+
 				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI[Team].TechID, 2), Team)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -666,7 +666,7 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 		Craft = RandomACRocket("Craft", self.AI[Team].TechID)
 		actorsInCargo = Craft.MaxPassengers
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -680,10 +680,10 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = Team
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, actorsInCargo do
 			local Passenger
 			if RangeRand(-5, 125) < self.Difficulty then
@@ -693,24 +693,24 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 			else
 				Passenger = self:CreateLightInfantry(Team)
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
+
 				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI[Team].TechID, 2), Team)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -724,7 +724,7 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 	else
 		Craft = RandomACRocket("Craft", self.AI[Team].TechID)
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -738,10 +738,10 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = Team
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, Craft.MaxPassengers do
 			local Passenger
 			if RangeRand(10, 200) < self.Difficulty then
@@ -749,24 +749,24 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 			else
 				Passenger = self:CreateLightInfantry(Team)
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
+
 				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI[Team].TechID, 2), Team)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -780,7 +780,7 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 	else
 		Craft = RandomACRocket("Craft", self.AI[Team].TechID)
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -794,10 +794,10 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = Team
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, Craft.MaxPassengers do
 			local Passenger
 			if math.random() < 0.3 then
@@ -805,24 +805,24 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 			else
 				Passenger = self:CreateScoutInfantry(Team)
 			end
-			
+
 			if Passenger then
 				if Destination then
 					Passenger.AIMode = Actor.AIMODE_GOTO
 					Passenger:AddAISceneWaypoint(Destination)
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
+
 				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI[Team].TechID, 2), Team)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -834,26 +834,26 @@ function SkirmishDefense:CreateBreachDrop(xPosLZ, Team)
 	if self.Difficulty > 45 then
 		crateProb = self.Difficulty / 300
 	end
-	
+
 	local Craft
 	if math.random() < crateProb then
 		Craft = RandomACRocket("Craft - Crates", self.AI[Team].TechID)
 	else
 		Craft = RandomACRocket("Craft", self.AI[Team].TechID)
 	end
-	
+
 	if Craft then
 		Craft.Team = Team
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		local Passenger = self:CreateBreachInfantry(Team)
 		if Passenger then
 			Craft:AddInventoryItem(Passenger)
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI[Team].TechID, 2), Team)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -870,25 +870,25 @@ function SkirmishDefense:CreateBombDrop(bombPosX, Team)
 			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
 		Craft.Team = Team
 		Craft.Pos = Vector(bombPosX, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 3, 5 do
 			local Payload = RandomTDExplosive("Bombs - Payloads", self.AI[Team].TechID)
 			if Payload then
 				Craft:AddInventoryItem(Payload)
 			end
-			
+
 			if Craft.InventoryMass > craftMaxMass then
 				break
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.AI[Team].TechID, 2), Team)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -910,7 +910,7 @@ function SkirmishDefense:CreateRandomInfantry(Team)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.AI[Team].TechID));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
-		
+
 		local rand = math.random();
 		if rand < 0.25 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID));
@@ -924,7 +924,7 @@ function SkirmishDefense:CreateRandomInfantry(Team)
 		if math.random() < 0.05 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI[Team].TechID));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = Team;
 		return Passenger;
@@ -936,11 +936,11 @@ function SkirmishDefense:CreateLightInfantry(Team)
 	if Passenger.ModuleID ~= self.AI[Team].TechID then
 		Passenger = RandomAHuman("Actors", self.AI[Team].TechID);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID))
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID))
-		
+
 		local rand = math.random();
 		if rand < 0.5 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID));
@@ -949,7 +949,7 @@ function SkirmishDefense:CreateLightInfantry(Team)
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI[Team].TechID));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = Team;
 		return Passenger;
@@ -961,10 +961,10 @@ function SkirmishDefense:CreateHeavyInfantry(Team)
 	if Passenger.ModuleID ~= self.AI[Team].TechID then
 		Passenger = RandomAHuman("Actors", self.AI[Team].TechID);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.AI[Team].TechID))
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID));
 			if math.random() < 0.25 then
@@ -981,7 +981,7 @@ function SkirmishDefense:CreateHeavyInfantry(Team)
 				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
 			end
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = Team;
 		return Passenger;
@@ -993,11 +993,11 @@ function SkirmishDefense:CreateMediumInfantry(Team)
 	if Passenger.ModuleID ~= self.AI[Team].TechID then
 		Passenger = RandomAHuman("Actors", self.AI[Team].TechID);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
 		else
@@ -1006,7 +1006,7 @@ function SkirmishDefense:CreateMediumInfantry(Team)
 		if math.random() < 0.5 then
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = Team;
 		return Passenger;
@@ -1018,7 +1018,7 @@ function SkirmishDefense:CreateEngineer(Team)
 	if Passenger.ModuleID ~= self.AI[Team].TechID then
 		Passenger = RandomAHuman("Actors", self.AI[Team].TechID);
 	end
-	
+
 	if Passenger then
 		if math.random() < 0.7 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID));
@@ -1034,7 +1034,7 @@ function SkirmishDefense:CreateEngineer(Team)
 			end
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.AI[Team].TechID));
-		
+
 		Passenger.AIMode = Actor.AIMODE_GOLDDIG;
 		Passenger.Team = Team;
 		return Passenger;
@@ -1046,11 +1046,11 @@ function SkirmishDefense:CreateBreachInfantry(Team)
 	if Passenger.ModuleID ~= self.AI[Team].TechID then
 		Passenger = RandomAHuman("Actors", self.AI[Team].TechID);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI[Team].TechID));
 		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI[Team].TechID));
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = Team;
 		return Passenger;
@@ -1062,20 +1062,20 @@ function SkirmishDefense:CreateScoutInfantry(Team)
 	if Passenger.ModuleID ~= self.AI[Team].TechID then
 		Passenger = RandomAHuman("Actors", self.AI[Team].TechID);
 	end
-	
+
 	if Passenger then
 		if math.random() < 0.15 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.AI[Team].TechID));
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI[Team].TechID));
 		else
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI[Team].TechID));
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = Team;
 		return Passenger;

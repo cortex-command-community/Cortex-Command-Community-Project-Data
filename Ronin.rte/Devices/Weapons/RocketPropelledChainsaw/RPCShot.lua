@@ -13,7 +13,7 @@ function Update(self)
 
 	self.AngularVel = self.AngularVel * 0.99;
 	self.Vel = self.Vel * 0.99;
-	
+
 	if self.lifeTimer:IsPastSimMS(3000) then
 		self.angleCorrectionRatio = self.angleCorrectionRatio * 0.9;
 	end
@@ -28,7 +28,7 @@ function Update(self)
 			if mo.Material.StructuralIntegrity > self.Mass * self.Sharpness then
 				local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 				self:AddWound(CreateAEmitter(self:GetEntryWoundPresetName()), Vector(math.random(1 + self.length), 0), true);
-	
+
 				mo:AddImpulseForce(self.Vel * self.Mass, Vector());
 				self.Vel = (mo.Vel - dist:SetMagnitude(self.Vel.Magnitude):RadRotate(RangeRand(-1, 1))) * 0.5;
 				self.AngularVel = self.AngularVel + math.random(10, 20) * (math.random() < 0.5 and 1 or -1);

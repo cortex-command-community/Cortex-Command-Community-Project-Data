@@ -31,7 +31,7 @@ function KingOfTheHill:StartActivity()
 			end
 		end
 	end
-	
+
 	self.HoldArea = SceneMan.Scene:GetArea("KOTH Hold Area");
 	self.Timer1 = Timer();
 	self.Timer2 = Timer();

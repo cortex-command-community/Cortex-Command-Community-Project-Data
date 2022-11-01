@@ -6,13 +6,13 @@ package.loaded.Constants = nil; require("Constants");
 
 function MultiplayerLobby:StartActivity()
 	print("START! -- MultiplayerLobby:StartActivity()!");
-	
+
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player))
-				
+
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
 				if not foundBrain then
 					--self.ActivityState = Activity.EDITING
@@ -21,7 +21,7 @@ function MultiplayerLobby:StartActivity()
 					--AudioMan:ClearMusicQueue()
 					--AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1)
 					--self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player)
-					
+
 					foundBrain = CreateAHuman("Brain Robot", "Base.rte")
 					foundBrain.Team = self:GetTeamOfPlayer(player)
 					foundBrain.Pos = Vector(player * 25, 500)
@@ -29,7 +29,7 @@ function MultiplayerLobby:StartActivity()
 					foundBrain:AddInventoryItem(w)
 					MovableMan:AddActor(foundBrain)
 				end
-					
+
 				--else
 				-- Set the found brain to be the selected actor at start
 				self:SetPlayerBrain(foundBrain, player)
@@ -40,7 +40,7 @@ function MultiplayerLobby:StartActivity()
 			end
 		end
 	end
-	
+
 end
 
 -----------------------------------------------------------------------------------------

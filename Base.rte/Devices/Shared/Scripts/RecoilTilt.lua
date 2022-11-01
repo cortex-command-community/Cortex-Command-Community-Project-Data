@@ -3,7 +3,7 @@ function Create(self)
 	self.recoilAngleSize = self:NumberValueExists("RecoilAngleSize") and math.rad(self:GetNumberValue("RecoilAngleSize")) or 0.5/math.sqrt(self.Radius);
 	self.recoilAngleVariation = self:NumberValueExists("RecoilAngleVariation") and 1 - self:GetNumberValue("RecoilAngleVariation") or 0.2;
 	self.recoilRevertSpeed = self:NumberValueExists("RecoilRevertSpeed") and self:GetNumberValue("RecoilRevertSpeed") * 0.01 or 0.01;
-	
+
 	local template = CreateHDFirearm(self:GetModuleAndPresetName());
 	self.origStanceOffset = template.StanceOffset;
 	self.origSharpStanceOffset = template.SharpStanceOffset;

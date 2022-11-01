@@ -3,7 +3,7 @@ function Create(self)
 	self.turnStrength = 3;
 	self.shake = 0.5;
 	self.lifeTimer = Timer();
-	
+
 	if self:NumberValueExists("TargetID") and self:GetNumberValue("TargetID") ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(self:GetNumberValue("TargetID"));
 		if mo and IsActor(mo) then

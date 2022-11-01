@@ -22,14 +22,14 @@ function Massacre:StartActivity()
 			end
 		end
 	end
-	
+
 	-- Select a tech for the CPU player
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 	self.ESpawnTimer = Timer();
 	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
 	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
 	self.Fog = true;
-	
+
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
 		self.KillsRequired = 10;
 		self.killsDisplay = "ten";
@@ -67,14 +67,14 @@ function Massacre:StartActivity()
 		self.BaseSpawnTime = 3500;
 		self.RandomSpawnTime = 4000;
 	end
-	
+
 	-- CPU Funds are unlimited
 	self:SetTeamFunds(1000000, self.CPUTeam);
 
 	self.StartTimer = Timer();
-	
+
 	self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime)) * rte.SpawnIntervalScale;
-	
+
 	-- Take scene ownership
 	for actor in MovableMan.AddedActors do
 		actor.Team = Activity.TEAM_1
@@ -116,10 +116,10 @@ function Massacre:UpdateActivity()
 				else
 					FrameMan:SetScreenText("Kill " .. self.killsDisplay .. " enemies!", player, 333, 5000, true);
 				end
-			
+
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
-				
+
 				-- If player brain is dead then try to find another, maybe he just entered craft
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					local newBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -142,15 +142,15 @@ function Massacre:UpdateActivity()
 						ActivityMan:EndActivity();
 					end
 				end
-				
+
 				--Check if the player has won.
 				if self:GetTeamDeathCount(Activity.TEAM_2) >= self.KillsRequired then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You killed all the attackers!", player, 333, -1, false);
-					
+
 					self.WinnerTeam = Activity.TEAM_1;
-					
+
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
 						if actor.Team ~= self.WinnerTeam then
@@ -162,16 +162,16 @@ function Massacre:UpdateActivity()
 				end
 			end
 		end
-		
+
 		if self.Fog and self:GetFogOfWarEnabled() then
 			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1))
 			self.Fog = false;
 		end
 
 		--Spawn the AI.
-		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then 
+		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 			local ship, actorsInCargo
-			
+
 			if math.random() < 0.5 then
 				-- Set up the ship to deliver this stuff
 				ship = RandomACDropShip("Any", self.CPUTechName);
@@ -185,7 +185,7 @@ function Massacre:UpdateActivity()
 				ship = RandomACRocket("Any", self.CPUTechName);
 				actorsInCargo = math.min(ship.MaxPassengers, 2)
 			end
-			
+
 			ship.Team = self.CPUTeam;
 
 			-- The max allowed weight of this craft plus cargo
@@ -203,7 +203,7 @@ function Massacre:UpdateActivity()
 				shipMaxMass = ship.MaxInventoryMass
 			end
 			local totalInventoryMass = 0
-			
+
 			-- Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
 				-- Get any Actor from the CPU's native tech
@@ -237,16 +237,16 @@ function Massacre:UpdateActivity()
 					-- but since we're so sure we don't need it, might as well go ahead and do it here right away
 					DeleteEntity(passenger);
 					passenger = nil;
-					
+
 					if i < 2 then	-- Don't deliver empty craft
 						DeleteEntity(ship);
 						ship = nil;
 					end
-					
+
 					break;
 				end
 			end
-			
+
 			if ship then
 				-- Set the spawn point of the ship from orbit
 				if self.playertally == 1 then

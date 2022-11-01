@@ -20,7 +20,7 @@ function OneManArmy:StartActivity()
 		self.TimeLimit = 3 * 60000 + 5000;
 		self.timeDisplay = "three minutes";
 		self.BaseSpawnTime = 6000;
-		
+
 		primaryGroup = "Weapons - Heavy";
 		secondaryGroup = "Weapons - Explosive";
 	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
@@ -32,7 +32,7 @@ function OneManArmy:StartActivity()
 		self.TimeLimit = 5 * 60000 + 5000;
 		self.timeDisplay = "five minutes";
 		self.BaseSpawnTime = 5000;
-		
+
 	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
 		self.TimeLimit = 6 * 60000 + 5000;
 		self.timeDisplay = "six minutes";
@@ -42,7 +42,7 @@ function OneManArmy:StartActivity()
 		self.TimeLimit = 7 * 60000 + 5000;
 		self.timeDisplay = "seven minutes";
 		self.BaseSpawnTime = 4000;
-		
+
 		primaryGroup = "Weapons - Primary";
 		secondaryGroup = "Weapons - Secondary";
 		actorGroup = "Actors - Light";
@@ -50,7 +50,7 @@ function OneManArmy:StartActivity()
 		self.TimeLimit = 9 * 60000 + 5000;
 		self.timeDisplay = "nine minutes";
 		self.BaseSpawnTime = 3500;
-		
+
 		primaryGroup = "Weapons - Secondary";
 		secondaryGroup = "Weapons - Secondary";
 		actorGroup = "Actors - Light";
@@ -170,7 +170,7 @@ function OneManArmy:StartActivity()
 			end
 		end
 	end
-	
+
 	--Select a tech for the CPU player
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 	self.ESpawnTimer = Timer();
@@ -183,10 +183,10 @@ function OneManArmy:StartActivity()
 	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_2);
 	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_3);
 	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_4);
-	
+
 	--CPU Funds are "unlimited"
 	self:SetTeamFunds(1000000, self.CPUTeam);
-	
+
 	self.TimeLeft = 500;
 end
 
@@ -236,15 +236,15 @@ function OneManArmy:UpdateActivity()
 						ActivityMan:EndActivity();
 					end
 				end
-				
+
 				--Check if the player has won
 				if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
-					
+
 					self.WinnerTeam = player;
-					
+
 					--Kill all enemies
 					for actor in MovableMan.Actors do
 						if actor.Team ~= self.WinnerTeam then
@@ -260,7 +260,7 @@ function OneManArmy:UpdateActivity()
 		--Spawn the AI
 		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and enemyMOIDCount < rte.AIMOIDMax then
 			local ship, actorsInCargo;
-			
+
 			if math.random() < 0.5 then
 				--Set up the ship to deliver this stuff
 				ship = RandomACDropShip("Any", self.CPUTechName);
@@ -274,9 +274,9 @@ function OneManArmy:UpdateActivity()
 				ship = RandomACRocket("Any", self.CPUTechName);
 				actorsInCargo = math.min(ship.MaxPassengers, 2);
 			end
-			
+
 			ship.Team = self.CPUTeam;
-			
+
 			--The max allowed weight of this craft plus cargo
 			local craftMaxMass = ship.MaxInventoryMass;
 			if craftMaxMass < 0 then
@@ -299,7 +299,7 @@ function OneManArmy:UpdateActivity()
 				else
 					passenger = RandomACrab("Actors - Mecha", self.CPUTechName);
 				end
-				
+
 				--Equip it with tools and guns if it's a humanoid
 				if IsAHuman(passenger) then
 					passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.CPUTechName));
@@ -324,16 +324,16 @@ function OneManArmy:UpdateActivity()
 					--but since we're so sure we don't need it, might as well go ahead and do it right away
 					DeleteEntity(passenger);
 					passenger = nil;
-					
+
 					if i < 2 then	-- Don't deliver empty craft
 						DeleteEntity(ship);
 						ship = nil;
 					end
-					
+
 					break;
 				end
 			end
-			
+
 			if ship then
 				--Set the spawn point of the ship from orbit
 				if self.playertally == 1 then

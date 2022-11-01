@@ -5,11 +5,11 @@ function Create(self)
 	self.scanTimer = Timer();
 	self.actionPhase = 0;
 	self.blink = false;
-	
+
 	self.disarmRange = GetPPM() * 4;
 	self.MuzzleOffset = Vector(self.disarmRange * 0.5, 0);
 	self.targetTable = {};
-	
+
 	self.errorSound = CreateSoundContainer("Error", "Base.rte");
 	self.safeSound = CreateSoundContainer("Disarmer Blip Safe", "Base.rte");
 	self.dangerSound = CreateSoundContainer("Disarmer Blip Danger", "Base.rte");

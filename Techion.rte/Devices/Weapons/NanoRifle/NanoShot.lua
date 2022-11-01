@@ -13,7 +13,7 @@ function Create(self)
 			if target and (target.Team ~= self.Team or (target.WoundCount > 0 and target.PresetName ~= "Nano Rifle")) then
 				self.deleteNextFrame = true;
 				self.Vel = (SceneMan:ShortestDistance(self.Pos, hitPos, true)/TimerMan.DeltaTimeSecs)/GetPPM();
-			
+
 				local effect = CreateAEmitter("Nanobot Effect", "Techion.rte");
 				effect.Sharpness = target.UniqueID;
 				effect.Pos = hitPos + SceneMan:ShortestDistance(hitPos, target.Pos, true):SetMagnitude(3);

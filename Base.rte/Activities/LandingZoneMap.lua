@@ -1,31 +1,31 @@
 --[[
 
 	*** INSTRUCTIONS ***
-	
+
 	Create the LZmap object in the StartActivity() function with require:
 		e.g. self.LZmap = require("Activities/LandingZoneMap")
-	
+
 	Initialize the internal data about enemies and LZ altitudes etc with a table of team numbers that are contolled by the AI and optionally whether to ignore the fog (defaults to false):
 		e.g. self.LZmap:Initialize({self.CPUTeam}) or self.LZmap:Initialize({Activity.TEAM_3, Activity.TEAM_4})
-	
+
 	Call the update function from the UpdateActivity() function every update:
 		e.g. self.LZmap:Update()
-	
-	
+
+
 	Use the funcitons below to find Landing Zones for the AI-controlled team's dropships:
-	
+
 	self.LZmap:FindLZ(team, Destination, [digStrength])
 		input: the team # that is looking for a LZ, a Destination vector (a location in the scene) and optionally the maximum material strength this path can dig through (default is 1)
 		output: (1) a close LZ x-pos, (2) the highest obstacle along the path to destination, (3) a LZ x-pos with an easy path to the destination and (4) the highest obstacle along that path
-	
+
 	self.LZmap:FindBombTarget(team)
 		input: the team # that is looking for a target to bomb
 		output: the best LZ x-pos to bomb, or nil if no target was found
-		
+
 	self.LZmap:FindSafeLZ(team, OccupiedLZs)
 		input: the team # that is looking for a LZ and an optional table of x-positions to avoid
 		output: a LZ x-pos that is far away from enemy brains, or nil if no LZ was found
-	
+
 	self.LZmap:FindStartLZ(team, OccupiedLZs)
 		** Very expensive! Only use once at the start of the activity **
 		input: the team # that is looking for a LZ and an optional table of x-positions to avoid
@@ -49,10 +49,10 @@ function LandingZoneMap:Create(size)
 	Members.NextTeamLOS = {}
 	Members.BombTargets = {}
 	Members.BombHistory = {}
-	
+
 	setmetatable(Members, self)
 	self.__index = self
-	
+
 	return Members
 end
 
@@ -61,36 +61,36 @@ function LandingZoneMap:Initialize(AIteams, ignoreFog)
 		ConsoleMan:PrintString("LandingZoneMap:Initialize takes a list of AI controlled teams as its argument.")
 		return
 	end
-	
+
 	-- add active teams
 	for _, team in pairs(AIteams) do
 		self.EnemyTeamLOS[team] = {}
 		self.NextTeamLOS[team] = {}
 		self.BombTargets[team] = {}
 	end
-	
+
 	if #AIteams == 1 then	-- only one AI team avaliable
 		self.teamAI = AIteams[1]
 	end
-	
+
 	-- estimate terrain height
 	local Pos = Vector(0, -1)
 	while self.terrainIndex < math.floor(SceneMan.SceneWidth / self.gridSize) do
 		Pos.X = self.terrainIndex * self.gridSize
 		self.TerrainAlt[self.terrainIndex] = SceneMan:FindAltitude(Pos, 0, 19)
-		
+
 		if self.TerrainAlt[self.terrainIndex-2] then	-- interpolate
 			self.TerrainAlt[self.terrainIndex-1] = (self.TerrainAlt[self.terrainIndex-2] + self.TerrainAlt[self.terrainIndex]) * 0.5
 		end
-		
+
 		self.terrainIndex = self.terrainIndex + 2	-- skip every second square to save time
 	end
-	
+
 	self:UpdateAltitudeMap()	-- calculate the fitness for every LZ when every piece of terrain has been updated
-	
+
 	self.SceneActors = {}
 	--self.SceneCraft = {}
-	
+
 	-- store all actors placed in the editor
 	local residents = 0
 	for Act in MovableMan.AddedActors do
@@ -103,12 +103,12 @@ function LandingZoneMap:Initialize(AIteams, ignoreFog)
 			end
 		end
 	end
-	
+
 	self.UpdateEnemyData = coroutine.create(self.UpdateEnemies)	-- gathers info about all enemy actors
-	
+
 	-- always ignore the fog when looking for the brain LZ
 	self.ignoreFog = true
-	
+
 	-- analyze all enemies (three calls per enemy plus one call to sum up the results)
 	for _ = 1, residents*3+1 do
 		local _, err = coroutine.resume(self.UpdateEnemyData, self)
@@ -118,7 +118,7 @@ function LandingZoneMap:Initialize(AIteams, ignoreFog)
 			break
 		end
 	end
-	
+
 	self.ignoreFog = ignoreFog or false
 end
 
@@ -143,7 +143,7 @@ function LandingZoneMap.GetNeighborHeightValue(self, index, offset)
 		if height < 100 or height >= SceneMan.SceneHeight then
 			return -50000	-- cannot land here
 		end
-		
+
 		return height
 	elseif offset > 0 then
 		offset = offset - 1
@@ -161,10 +161,10 @@ function LandingZoneMap.GetNeighborHeightValueNoWrap(self, index, offset)
 		if height < 100 or height >= SceneMan.SceneHeight then
 			return -50000	-- cannot land here
 		end
-		
+
 		return height
 	end
-	
+
 	return -50000
 end
 
@@ -176,14 +176,14 @@ function LandingZoneMap:UpdateAltitudeMap()
 		self.terrainIndex = self.terrainIndex + 1
 	else	-- calculate the fitness for every LZ when every piece of terrain has been updated
 		self.terrainIndex = 0
-		
+
 		local GetNeighborVal
 		if SceneMan.SceneWrapsX then
 			GetNeighborVal = self.GetNeighborHeightValue
 		else
 			GetNeighborVal = self.GetNeighborHeightValueNoWrap
 		end
-		
+
 		local value, altitude
 		local minVal = -1
 		local indexLZ = 1
@@ -197,11 +197,11 @@ function LandingZoneMap:UpdateAltitudeMap()
 				for offset = -2, -1 do	-- difference in altitude from terrain pieces to the left
 					value = value - math.abs(altitude - GetNeighborVal(self, i, offset))
 				end
-				
+
 				for offset = 1, 2 do	-- difference in altitude from terrain pieces to the right
 					value = value - math.abs(altitude - GetNeighborVal(self, i, offset))
 				end
-				
+
 				if self.LZs[indexLZ] then
 					self.LZs[indexLZ].X = i * self.gridSize
 					self.LZs[indexLZ].Y = altitude
@@ -209,23 +209,23 @@ function LandingZoneMap:UpdateAltitudeMap()
 				else
 					self.LZs[indexLZ] = {X=i*self.gridSize, Y=altitude, value=value}
 				end
-				
+
 				if value < minVal and value > -500 then
 					minVal = value
 				end
-				
+
 				self.LZLookup[self.LZs[indexLZ].X] = indexLZ
 				indexLZ = indexLZ + 1
 			end
 		end
-		
+
 		-- delete any left over data after the last LZ in the table (just in case the # of LZs have shrunk)
 		while self.LZs[indexLZ] do
 			self.LZLookup[self.LZs[indexLZ].X] = nil
 			self.LZs[indexLZ] = nil
 			indexLZ = indexLZ + 1
 		end
-		
+
 		-- normalize the score
 		for k, DataLZ in pairs(self.LZs) do
 			self.LZs[k].value = 1 - DataLZ.value / minVal
@@ -240,7 +240,7 @@ function LandingZoneMap.UpdateEnemies(self)
 		if not self.SceneActors then
 			self.SceneActors = {}
 			--self.SceneCraft = {}
-			
+
 			if self.teamAI then
 				-- only one AI team, ignore all AI actors
 				for Act in MovableMan.Actors do
@@ -268,7 +268,7 @@ function LandingZoneMap.UpdateEnemies(self)
 			local Act = table.remove(self.SceneActors)
 			if not Act then	-- no actors left to analyze
 				self.SceneActors = nil
-				
+
 				-- activate the updated LOS table
 				for k, _ in pairs(self.LZs) do
 					for team, _ in pairs(self.EnemyTeamLOS) do
@@ -276,7 +276,7 @@ function LandingZoneMap.UpdateEnemies(self)
 						self.EnemyTeamLOS[team][k] = (self.EnemyTeamLOS[team][k] or 0) * 0.5 + self.NextTeamLOS[team][k]
 					end
 				end
-				
+
 				-- slowly reduce activity in the BombTargets table since actors will move around, die etc.
 				local Prune = {}
 				for team, _ in pairs(self.BombTargets) do
@@ -288,13 +288,13 @@ function LandingZoneMap.UpdateEnemies(self)
 						end
 					end
 				end
-				
+
 				for _, Data in pairs(Prune) do
 					self.BombTargets[Data.team][Data.x] = nil
 				end
 			elseif MovableMan:IsActor(Act) and not Act:IsDead() and Act.Vel.Largest < 12 and not(self.teamAI and Act.Team == self.teamAI) then
 				-- ignore this actor if it is on the only AI team, if it is moving to fast or it is dead
-				
+
 				-- check which team can see this actor
 				local VisibleToTeam = {}
 				for team, _ in pairs(self.EnemyTeamLOS) do
@@ -302,7 +302,7 @@ function LandingZoneMap.UpdateEnemies(self)
 						table.insert(VisibleToTeam, team)
 					end
 				end
-				
+
 				if #VisibleToTeam > 0 then
 					-- check if the actor is on the surface
 					if Act.Vel.Largest < 3 then
@@ -321,19 +321,19 @@ function LandingZoneMap.UpdateEnemies(self)
 							end
 						end
 					end
-					
+
 					local viewRange = FrameMan.PlayerScreenWidth * 0.5 + Act.AimDistance + 100	-- DropShip radius is ~100
 					if Act.EquippedItem then
 						viewRange = viewRange + Act.EquippedItem.SharpLength	-- add the SharpLength of any weapon
 					end
-					
+
 					viewRange = math.ceil(viewRange/self.offsetLZ) * self.offsetLZ -- round
-					
+
 					-- stay far away from AA-units
 					if Act:HasObjectInGroup("Anti-Air") then
 						viewRange = math.max(1100, viewRange)
 					end
-					
+
 					-- cast rays to the right and left of the actor
 					local actorTeam = Act.IgnoresWhichTeam
 					local Origin = Vector(Act.EyePos.X, Act.EyePos.Y)
@@ -348,10 +348,10 @@ function LandingZoneMap.UpdateEnemies(self)
 							if pixels < 0 or pixels > self.gridSize then
 								Dist = SceneMan:ShortestDistance(Origin, Free, false)
 								mag = Dist.Magnitude
-								
+
 								for range = self.gridSize, mag, self.offsetLZ do
 									SeePos = Origin + Dist * (range / mag)
-									
+
 									-- assign a score to this XY-position, lower means worse LZ
 									local lzX = self:PosToClosestLZ(SeePos.X)
 									if lzX then
@@ -368,11 +368,11 @@ function LandingZoneMap.UpdateEnemies(self)
 								end
 							end
 						end
-						
+
 						coroutine.yield()	-- wait until next frame
 						Act = nil	-- this pointer is no longer safe to access
 					end
-					
+
 					-- cast a ray upwards
 					pixels = SceneMan:CastObstacleRay(Origin, Vector(0, -self.spacingLZ), Vector(), Free, rte.NoMOID, actorTeam, rte.grassID, 14)
 					if pixels < 0 or pixels > self.gridSize then
@@ -382,7 +382,7 @@ function LandingZoneMap.UpdateEnemies(self)
 							mag = Dist.Largest
 							for range = self.gridSize, mag, self.offsetLZ do
 								local y = Origin.Y + Dist.Y * (range / mag)
-								
+
 								-- assign a score to this XY-position, lower means worse LZ
 								if lz2 then
 									-- this point belongs to two LZs
@@ -395,7 +395,7 @@ function LandingZoneMap.UpdateEnemies(self)
 											end
 										end
 									end
-									
+
 									lzIndex = self.LZLookup[lz2]
 									if lzIndex and self.LZs[lzIndex] and y <= self.LZs[lzIndex].Y then
 										-- write LOS data to a temporary table
@@ -422,7 +422,7 @@ function LandingZoneMap.UpdateEnemies(self)
 				end
 			end
 		end
-		
+
 		coroutine.yield()	-- wait until next frame
 	end
 end
@@ -433,7 +433,7 @@ function LandingZoneMap:SurfaceProximity(Pos)
 	if y then
 		return math.abs(Pos.Y - y)
 	end
-	
+
 	return SceneMan.SceneHeight
 end
 
@@ -465,14 +465,14 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 		if not self.ignoreFog and SceneMan:IsUnseen(LZ.X, LZ.Y, team) then
 			score = score - 100
 		end
-		
+
 		table.insert(GoodLZs, {X=LZ.X, Y=LZ.Y, score=score-(LOSgrid[k] or 0)})
 		totalLZs = totalLZs + 1
 	end
-	
+
 	-- avoid existing craft
 	self:AddCraftScore(GoodLZs, self.LZLookup)
-	
+
 	-- remove the worst half of the LZs
 	table.sort(GoodLZs, function(A, B) return A.score > B.score end)	-- the best LZ first
 	if totalLZs > 7 then
@@ -482,9 +482,9 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 			totalLZs = totalLZs - 1
 		end
 	end
-	
+
 	coroutine.yield()	-- wait until next frame
-	
+
 	-- measure the distance to the destination
 	for k, LZ in pairs(GoodLZs) do
 		if SceneMan.Scene:CalculatePath(Vector(LZ.X, LZ.Y), Destination, false, digStrenght) > -1 then
@@ -492,18 +492,18 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 			for Wpt in SceneMan.Scene.ScenePath do
 				table.insert(Path, Wpt)
 			end
-			
+
 			coroutine.yield()	-- wait until the next frame
-			
+
 			local NextWpt, PrevWpt, deltaY
 			local height = 0
 			local pathLength = 0
 			local pathObstMaxHeight = 0
-			
+
 			for _, Wpt in pairs(Path) do
 				pathLength = pathLength + 1
 				NextWpt = SceneMan:MovePointToGround(Wpt, 20, 12)
-				
+
 				if PrevWpt then
 					deltaY = PrevWpt.Y - NextWpt.Y
 					if deltaY > 20 then	-- Wpt is more than n pixels above PrevWpt in the scene
@@ -517,13 +517,13 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 						height = 0
 					end
 				end
-				
+
 				PrevWpt = NextWpt
 				if pathLength % 17 == 0 then
 					coroutine.yield()	-- wait until the next frame
 				end
 			end
-			
+
 			GoodLZs[k].terrainScore = LZ.score
 			GoodLZs[k].pathLength = pathLength
 			GoodLZs[k].pathObstMaxHeight = pathObstMaxHeight
@@ -535,28 +535,28 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 			GoodLZs[k].pathObstMaxHeight = 200
 			GoodLZs[k].score = LZ.score - 100
 		end
-		
+
 		coroutine.yield()	-- wait until the next frame
 	end
-	
+
 	coroutine.yield()	-- wait until the next frame
-	
+
 	table.sort(GoodLZs, function(A, B) return A.score > B.score end)	-- the best LZ first
 	local MobilityLZ, selected_index = self:SelectLZ(GoodLZs, 12)
 	if selected_index then
 		table.remove(GoodLZs, selected_index)	-- don't select this LZ again
 	end
-	
+
 	coroutine.yield()	-- wait until the next frame
-	
+
 	-- recalculate the score so we can find a safe LZ that is close to the destination
 	for k, LZ in pairs(GoodLZs) do
 		GoodLZs[k].score = LZ.terrainScore - (LZ.pathLength * 0.7 + math.floor(LZ.pathObstMaxHeight/20) * 8)
 	end
-	
+
 	table.sort(GoodLZs, function(A, B) return A.score > B.score end)	-- the best LZ first
 	local CloseLZ = self:SelectLZ(GoodLZs, 10)
-	
+
 	return MobilityLZ.X, MobilityLZ.pathObstMaxHeight, CloseLZ.X, CloseLZ.pathObstMaxHeight
 end
 
@@ -574,7 +574,7 @@ function LandingZoneMap:FindBombTarget(team)
 			end
 		end
 	end
-	
+
 	local bombTargets = {};
 	for x, score in pairs(self.BombTargets[team]) do
 		if score > 1.5 then
@@ -589,13 +589,13 @@ function LandingZoneMap:FindBombTarget(team)
 			end
 		end
 	end
-	
+
 	for x, value in pairs(self.BombHistory) do
 		self.BombHistory[x] = value * 0.7;
 	end
-	
+
 	--TODO don't pick an LZ within some reasonable distance of a brain
-	
+
 	if #bombTargets > 0 then
 		-- pick one of the best LZs
 		local TargetLZ = self:SelectLZ(bombTargets, 5);
@@ -609,51 +609,51 @@ end
 -- input: the team # that is looking for a LZ
 function LandingZoneMap:FindStartLZ(team, OccupiedLZs)
 	local LOSgrid = self.EnemyTeamLOS[team]
-	
+
 	-- store enemy actor locations
 	local EnemyLocations = {}
 	for Act in MovableMan.Actors do
-		if Act.Team ~= team and 
+		if Act.Team ~= team and
 			(Act.ClassName == "Actor" or
 			 Act.ClassName == "ACrab" or
-			 Act.ClassName == "AHuman") 
+			 Act.ClassName == "AHuman")
 		then
 			table.insert(EnemyLocations, Vector(Act.Pos.X, Act.Pos.Y))
 		end
 	end
-	
+
 	for Act in MovableMan.AddedActors do
-		if Act.Team ~= team and 
+		if Act.Team ~= team and
 			(Act.ClassName == "Actor" or
 			 Act.ClassName == "ACrab" or
-			 Act.ClassName == "AHuman") 
+			 Act.ClassName == "AHuman")
 		then
 			table.insert(EnemyLocations, Vector(Act.Pos.X, Act.Pos.Y))
 		end
 	end
-	
+
 	if OccupiedLZs then
 		for _, x in pairs(OccupiedLZs) do
 			local y = self.TerrainAlt[math.floor(x/self.gridSize)] or SceneMan.SceneHeight * 0.5
 			table.insert(EnemyLocations, Vector(x, y))
 		end
 	end
-	
+
 	-- estimate how visible our descent is to the enemy
 	local GoodLZs = {}
 	for k, LZ in pairs(self.LZs) do
 		local tmp = LZ.value * 0.5 - (LOSgrid[k] or 0)
 		table.insert(GoodLZs, {X=LZ.X, Y=LZ.Y, score=tmp})
 	end
-	
+
 	-- avoid existing craft
 	self:AddCraftScore(GoodLZs, self.LZLookup)
-	
+
 	table.sort(GoodLZs, function(A, B) return A.score > B.score end)	-- the best LZs first
 	while #GoodLZs > 12 do
 		table.remove(GoodLZs)	-- keep the n best LZs
 	end
-	
+
 	-- calculate the distance from the best LZs to all enemy actors
 	local distance
 	local bestProxScore = 1
@@ -670,24 +670,24 @@ function LandingZoneMap:FindStartLZ(team, OccupiedLZs)
 				end
 			end
 		end
-		
+
 		if distance then
 			GoodLZs[k].prox = distance
 		else
 			local Dist = SceneMan:ShortestDistance(PosLZ, PosEnemy, false)
 			GoodLZs[k].prox = math.floor((math.abs(Dist.X) + Dist.Magnitude * 0.2)/20)
 		end
-		
+
 		bestProxScore = math.max(distance, bestProxScore)
 	end
-	
+
 	-- add the proximity to the enemy actors to the score
 	for k, LZ in pairs(GoodLZs) do
 		GoodLZs[k].score = LZ.score + 2 * (LZ.prox / bestProxScore)^2 -- normalize the proximity score
 	end
-	
+
 	table.sort(GoodLZs, function(A, B) return A.score > B.score end)	-- the best LZs first
-	
+
 	local TargetLZ = self:SelectLZ(GoodLZs, 7)
 	if TargetLZ then
 		return TargetLZ.X
@@ -697,7 +697,7 @@ end
 -- input: the team # that is looking for a LZ
 function LandingZoneMap:FindSafeLZ(team, OccupiedLZs)
 	local LOSgrid = self.EnemyTeamLOS[team]
-	
+
 	-- store brain locations
 	local BrainLocations = {}
 	local GmActiv = ActivityMan:GetActivity()
@@ -709,14 +709,14 @@ function LandingZoneMap:FindSafeLZ(team, OccupiedLZs)
 			end
 		end
 	end
-	
+
 	if OccupiedLZs then
 		for _, x in pairs(OccupiedLZs) do
 			local y = self.TerrainAlt[math.floor(x/self.gridSize)] or SceneMan.SceneHeight * 0.5
 			table.insert(BrainLocations, Vector(x, y))
 		end
 	end
-	
+
 	-- estimate the distance from the LZs to all enemy brains
 	local score
 	local bestProxScore = 1
@@ -732,7 +732,7 @@ function LandingZoneMap:FindSafeLZ(team, OccupiedLZs)
 				score = math.abs(Dist.X) + Dist.Magnitude * 0.2
 			end
 		end
-		
+
 		if score then
 			BrainProxScore[k] = score
 			bestProxScore = math.max(score, bestProxScore)
@@ -740,20 +740,20 @@ function LandingZoneMap:FindSafeLZ(team, OccupiedLZs)
 			BrainProxScore[k] = 1
 		end
 	end
-	
+
 	-- estimate how visible our descent is to the enemy
 	local GoodLZs = {}
 	for k, LZ in pairs(self.LZs) do
 		local proximityBias = 2 * (BrainProxScore[k] / bestProxScore)^2	-- normalize the brain proximity
 		table.insert(GoodLZs, {X=LZ.X, Y=LZ.Y, score=LZ.value*0.5-(LOSgrid[k] or 0)*3+proximityBias})
 	end
-	
+
 	-- avoid existing craft
 	self:AddCraftScore(GoodLZs, self.LZLookup)
-	
+
 	local TempLZs = {}
 	table.sort(GoodLZs, function(A, B) return A.score < B.score end)	-- the best LZ last
-	
+
 	for i = 1, 20 do	-- pick one of the n best LZs
 		local LZ = table.remove(GoodLZs)
 		if LZ then
@@ -762,7 +762,7 @@ function LandingZoneMap:FindSafeLZ(team, OccupiedLZs)
 			break
 		end
 	end
-	
+
 	local TargetLZ = self:SelectLZ(TempLZs, 7)
 	if TargetLZ then
 		return TargetLZ.X
@@ -773,19 +773,19 @@ end
 function LandingZoneMap:AddCraftScore(LZs, LZlookup)
 	local x_pos, tmp_pos
 	local SceneCraft = {}
-	
+
 	for Act in MovableMan.AddedActors do
 		if Act.ClassName == "ACRocket" or Act.ClassName == "ACDropShip" then
 			table.insert(SceneCraft, Act)
 		end
 	end
-	
+
 	for Act in MovableMan.Actors do
 		if Act.ClassName == "ACRocket" or Act.ClassName == "ACDropShip" then
 			table.insert(SceneCraft, Act)
 		end
 	end
-	
+
 	for _, Craft in pairs(SceneCraft) do
 		if MovableMan:ValidMO(Craft) then
 			x_pos = self:PosToClosestLZ(Craft.Pos.X)	-- align the craft position with a LZ
@@ -797,10 +797,10 @@ function LandingZoneMap:AddCraftScore(LZs, LZlookup)
 						x_pos = x_pos - self.spacingLZ
 					end
 				end
-				
-				if LZlookup[x_pos] and LZs[LZlookup[x_pos]] then				
+
+				if LZlookup[x_pos] and LZs[LZlookup[x_pos]] then
 					LZs[LZlookup[x_pos]].score = LZs[LZlookup[x_pos]].score - 300
-					
+
 					-- left side
 					tmp_pos = x_pos - self.widthLZ
 					if LZs[LZlookup[tmp_pos]] then
@@ -823,7 +823,7 @@ function LandingZoneMap:AddCraftScore(LZs, LZlookup)
 							end
 						end
 					end
-					
+
 					-- right side
 					tmp_pos = x_pos + self.widthLZ
 					if LZs[LZlookup[tmp_pos]] then
@@ -856,13 +856,13 @@ function LandingZoneMap:SelectLZ(LZs, temperature)
 		local sum = 0
 		local bestScore = LZs[1].score
 		local worstScore = LZs[#LZs].score
-		
+
 		-- normalize the score
 		for i, LZ in pairs(LZs) do
 			LZs[i].chance = temp * ((LZ.score - worstScore) / (bestScore - worstScore))
 			sum = sum + math.exp(LZs[i].chance)
 		end
-		
+
 		-- use Softmax to pick one of the n best LZs
 		if sum > 0 then
 			local pick = math.random() * sum
@@ -895,7 +895,7 @@ function LandingZoneMap:PosToClosestLZ(x)
 			return
 		end
 	end
-	
+
 	return math.floor(math.max(x-self.offsetLZ, 0)/self.spacingLZ+0.5) * self.spacingLZ + self.offsetLZ
 end
 
@@ -913,14 +913,14 @@ function LandingZoneMap:PosToLZs(x)
 			return
 		end
 	end
-	
+
 	local new_x = math.max(x-self.offsetLZ, 0)
 	local lz1 = math.floor(new_x/self.spacingLZ) * self.spacingLZ + self.offsetLZ
 	local lz2 = math.ceil(new_x/self.spacingLZ) * self.spacingLZ + self.offsetLZ
 	if lz1 ~= lz2 then
 		return lz1, lz2
 	end
-	
+
 	return lz1
 end
 

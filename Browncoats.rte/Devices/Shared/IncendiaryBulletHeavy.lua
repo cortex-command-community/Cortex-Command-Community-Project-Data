@@ -25,7 +25,7 @@ function Update(self)
 
 		effect.Pos = self.Pos - offset + (offset * i/trailLength);
 		effect.Vel = self.Vel * 0.1 + Vector(1, math.sin(self.smokeTwirlCounter) + RangeRand(-0.1, 0.1)):RadRotate(self.Vel.AbsRadAngle);
-		
+
 		self.smokeTwirlCounter = self.smokeTwirlCounter + RangeRand(-0.2, 0.4);
 		MovableMan:AddParticle(effect);
 	end

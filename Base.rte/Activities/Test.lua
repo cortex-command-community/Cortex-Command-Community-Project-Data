@@ -6,7 +6,7 @@ package.loaded.Constants = nil; require("Constants");
 
 function Test:StartActivity()
 	print("START! -- Test:StartActivity()!");
-	
+
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			-- Check if we already have a brain assigned
@@ -31,7 +31,7 @@ function Test:StartActivity()
 			end
 		end
 	end
-	
+
 	self.doorMessageTimer = Timer();
 	self.doorMessageTimer:SetSimTimeLimitMS(5000);
 	self.allDoorsOpened = false;

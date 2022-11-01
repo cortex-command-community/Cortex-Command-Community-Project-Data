@@ -2,7 +2,7 @@ function Create(self)
 	self.pullTimer = Timer();
 	self.loaded = false;
 	self.rotFactor = math.pi;
-	
+
 	self.cockSound = CreateSoundContainer("Ronin SPAS 12 Cock Sound", "Ronin.rte");
 end
 function Update(self)

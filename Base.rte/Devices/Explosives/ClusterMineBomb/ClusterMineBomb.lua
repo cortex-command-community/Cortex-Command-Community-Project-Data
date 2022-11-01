@@ -2,9 +2,9 @@ function Create(self)
 
 	self.alliedTeam = -1;
 	self.lastAngle = self.RotAngle;
-	
+
 	self.deployRange = 100;
-	
+
 	self.mineCount = 4;
 end
 

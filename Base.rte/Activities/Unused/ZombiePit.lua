@@ -18,7 +18,7 @@ end
 
 function ZombiePitMission:StartActivity()
     print("START! -- ZombiePitMission:StartActivity()!");
-    
+
     self.FightStage = { NOFIGHT = 0, DEFENDING = 1, ATTACK = 2, FIGHTSTAGECOUNT = 3 };
 
     self.AreaTimer = Timer();
@@ -38,10 +38,10 @@ function ZombiePitMission:StartActivity()
 --    for team = 0, self.TeamCount - 1 do
 
 --    end
-    
+
     --------------------------
     -- Set up players
-    
+
     for player = 0, self.PlayerCount - 1 do
         -- Check if we already have a brain assigned
         if not self:GetPlayerBrain(player) then
@@ -61,7 +61,7 @@ function ZombiePitMission:StartActivity()
             end
         end
     end
-    
+
     -- Set up AI modes
     for actor in MovableMan.Actors do
         if actor.Team == self.CPUTeam then
@@ -69,14 +69,14 @@ function ZombiePitMission:StartActivity()
             actor.AIMode = Actor.AIMODE_BRAINHUNT;
         end
     end
-    
+
     --------------------------
     -- Set up tutorial
-    
+
     self.AreaTimer:Reset();
     self.StepTimer:Reset();
     self.SpawnTimer:Reset();
-    
+
 end
 
 -----------------------------------------------------------------------------------------
@@ -106,14 +106,14 @@ function ZombiePitMission:UpdateActivity()
 --        self:UpdateEditing();
         return;
     end
-    
+
     --------------------------
     -- Iterate through all human players
 
     for player = 0, self.PlayerCount - 1 do
         -- The current player's team
         local team = self:GetTeamOfPlayer(player);
-        
+
         -- Make sure the game is not already ending
         if not (self.ActivityState == Activity.OVER) then
             -- Check if any player's brain is dead
@@ -144,19 +144,19 @@ function ZombiePitMission:UpdateActivity()
     -- Iterate through all teams
 
     for team = 0, self.TeamCount - 1 do
-    
+
         -------------------------------------------
         -- Check for victory conditions
-       
+
        -- Make sure the game isn't already ending
        if (not (self.ActivityState == Activity.OVER)) and (not (team == self.CPUTeam)) then
-       
+
        end
     end
-    
+
     --------------------------------------------
     -- Battle logic
-    
+
     if self:GetControlledActor(Activity.PLAYER_1) then
         -- Triggered defending stage
         if self.CurrentFightStage == self.FightStage.NOFIGHT and SceneMan.Scene:WithinArea("AIAttack", self:GetControlledActor(Activity.PLAYER_1).Pos) then
@@ -190,7 +190,7 @@ function ZombiePitMission:UpdateActivity()
         else
             zombie = CreateAHuman("Zombie Fat");
         end
-        
+
         local bomb = CreateTDExplosive("Blue Bomb");
         zombie:AddInventoryItem(bomb);
 
@@ -212,7 +212,7 @@ function ZombiePitMission:UpdateActivity()
         -- Wait another period for next spawn
         self.SpawnTimer:Reset();
     end
-    
+
     -- TEST KILL ZONE
 --[[
     for actor in MovableMan.Actors do

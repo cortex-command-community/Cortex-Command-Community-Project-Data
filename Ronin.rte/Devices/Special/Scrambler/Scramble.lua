@@ -2,10 +2,10 @@ function Create(self)
 	self.effectRadius = 125;
 	self.strength = self.PinStrength;	--Affects the duration of the effect
 	self.flashScreen = false;	--Do not turn on if you are prone to seizures
-	
+
 	self.actorTable = {};
 	local actorCount = 0;	--Diminishes the effect the more actors are affected
-	
+
 	for actor in MovableMan.Actors do
 		local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
 		if dist:MagnitudeIsLessThan(self.effectRadius) then

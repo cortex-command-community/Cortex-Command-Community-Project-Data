@@ -12,12 +12,12 @@ function Update(self)
 	if gFindPathFrom and gFindPathTo then
 		self.Pos = gFindPathFrom
 		gFindPathFrom = nil
-		
+
 		self:ClearAIWaypoints()
 		self:AddAISceneWaypoint(gFindPathTo)
 		self:UpdateMovePath()
 		gFindPathTo = nil
-		
+
 		gWaypoints = {}
 		for Wpt in self.MovePath do
 			table.insert(gWaypoints, Vector(Wpt.X, Wpt.Y))

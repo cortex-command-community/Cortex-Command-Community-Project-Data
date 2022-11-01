@@ -101,7 +101,7 @@ function Update(self)
 				fireE.Pos = self.Pos;
 				fireE.Vel = self.Vel * 0.5 + Vector(math.random(5, 10), 0):RadRotate(randomAngleB);
 				MovableMan:AddParticle(fireE);
-				
+
 				local flame = CreatePEmitter("Flame Hurt Short Float");
 				flame.Pos = self.Pos;
 				flame.Vel = self.Vel * 0.5 + Vector(math.random(3, 7), 0):RadRotate(math.random() * self.emitSpread);

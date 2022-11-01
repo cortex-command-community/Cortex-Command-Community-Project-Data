@@ -26,7 +26,7 @@ function WhilePieMenuOpen(self, pieMenu)
 	if self.remoteModePieSlice ~= nil then
 		self.remoteModePieSlice.Enabled = grenadeMode ~= "Remote";
 	end
-	
+
 	local grenadeCount = self:GetNumberValue("CoalitionRemoteGrenades");
 	if self.removeGrenadesPieSlice ~= nil then
 		self.removeGrenadesPieSlice.Enabled = grenadeCount > 0;
@@ -40,13 +40,13 @@ function Create(self)
 	self.grenadeTableA = {};
 	self.grenadeTableB = {};
 	self.maxActiveGrenades = 12;
-	
+
 	self.impactModePieSlice = nil;
 	self.bounceModePieSlice = nil;
 	self.remoteModePieSlice = nil;
 	self.removeGrenadesPieSlice = nil;
 	self.detonateGrenadesPieSlice = nil;
-	
+
 	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety. Need the safety check for its existence cause, for some reason, it can not exist in the metagame.
 	if OnAttach then
 		OnAttach(self);
@@ -62,7 +62,7 @@ function Update(self)
 		local bullet = CreateActor("Coalition Grenade Launcher Shot", "Coalition.rte");
 		bullet.Pos = self.MuzzlePos;
 		bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.ShakeRange * 0.5 - (self.ShakeRange * math.random()));
-		
+
 		local actor = self:GetRootParent();
 		if MovableMan:IsActor(actor) then
 			actor = ToActor(actor);

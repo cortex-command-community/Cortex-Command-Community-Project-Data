@@ -18,9 +18,9 @@ end
 
 function TestMission:StartActivity()
     print("START! -- TestMission:StartActivity()!");
-    
+
 	self.ActivityState = Activity.STARTING;
-	
+
 	-- Orbit Scene Scanning vars
     self.ScanStage = { PRESCAN = 0, SCANNING = 1, POSTSCAN = 2, SCANSTAGECOUNT = 3 };
     self.CurrentScanStage = self.ScanStage.PRESCAN;
@@ -28,7 +28,7 @@ function TestMission:StartActivity()
     self.ScanTimer = Timer();
     self.ScanTimer:Reset();
     self.ScanEndPos = Vector();
-    
+
     self.CPUBrain = nil;
     self.CPUTeam = Activity.TEAM_2;
     self.braindead = {};
@@ -63,7 +63,7 @@ function TestMission:UpdateActivity()
     if (self.ActivityState == Activity.STARTING) then
         local scanMessage = "Scanning...";
         local messageBlink = 500;
-        
+
         -- Wait a sec first before starting to scan, so player can get what's going on
         if self.CurrentScanStage == self.ScanStage.PRESCAN then
             scanMessage = "Preparing to scan site from orbit";
@@ -100,7 +100,7 @@ function TestMission:UpdateActivity()
                         end
                     end
                 end
-                
+
                 -- If done scanning, move on the the post pause phase
                 if self.ScanPosX[team] > SceneMan.Scene.Width then
                     self.CurrentScanStage = self.ScanStage.POSTSCAN;
@@ -123,7 +123,7 @@ function TestMission:UpdateActivity()
                 messageBlink = 0;
             end
         end
-        
+
         -- Display the scanning text on all players' screens
         for player = 0, self.PlayerCount - 1 do
             -- The current player's team
@@ -149,7 +149,7 @@ function TestMission:UpdateActivity()
 
                 -- See if the player has a brain
                 local brain = self:GetPlayerBrain(player);
-                
+
                 -- Before the player has even had a brain in the scene, so they can't be called braindead yet
                 if not self:PlayerHadBrain(player) then
                     local foundBrain = MovableMan:GetClosestBrainActor(team);

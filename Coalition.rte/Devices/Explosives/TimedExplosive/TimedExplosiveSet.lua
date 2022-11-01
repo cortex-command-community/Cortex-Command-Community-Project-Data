@@ -12,7 +12,7 @@ function Create(self)
 	self.minBlipDelay = 100;
 	self.medBlipDelay = 250;
 	self.maxBlipDelay = 500;
-	
+
 	self.detonateDelay = self:NumberValueExists("DetonationDelay") and self:GetNumberValue("DetonationDelay") or 11000;
 	self.Frame = 1;
 
@@ -25,7 +25,7 @@ function Create(self)
 
 	self.activateSound = CreateSoundContainer("Explosive Device Activate", "Base.rte");
 	self.blipSound = CreateSoundContainer("Timed Explosive Blip", "Coalition.rte");
-	
+
 	RemoteExplosiveStick(self);
 end
 
@@ -44,7 +44,7 @@ function Update(self)
 		else
 			self.ToDelete = false;
 			self.ToSettle = false;
-		
+
 			local number = math.ceil((self.detonateDelay - self.lifeTimer.ElapsedSimTimeMS) * 0.01) * 0.1;
 			local text = "".. number;
 			if number == math.ceil(number) then

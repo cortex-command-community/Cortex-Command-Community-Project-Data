@@ -1,25 +1,25 @@
 function Create(self)
     --The number of goo particles available to pick from
     self.gooCount = 6;
-    
+
     --The range of the tool
     self.range = 30;
-    
+
     --The arc radius of the tool's beam
     self.beamRadius = math.pi * 0.2;
-    
+
     --The radial resolution of the beam
     self.resolution = 0.05;
-    
+
     --The chance of deconstructing a single particle
     self.deconstructChance = 0.1;
-	
+
 	--The base damage output when used on MOs
 	self.damageOutput = 25;
-	
+
 	--How many pixels to skip when detecting MOs, for optimization reasons
 	self.skipPixels = 1;
-	
+
 	--Sounds
 	self.dissipateSound = CreateSoundContainer("Dissipate Sound", "Techion.rte");
 	self.disintegrationSound = CreateSoundContainer("Disintegration Sound", "Techion.rte");
@@ -32,7 +32,7 @@ function Update(self)
         local aimVec = Vector(self.range, 0):RadRotate(aimAngle);
         local aimUp = Vector(aimVec.X, aimVec.Y):RadRotate(math.pi * 0.5):Normalize();
         local hitPos = Vector();
-        
+
         --Cast rays in front of the gun
         for i = -self.beamRadius * 0.5, self.beamRadius * 0.5, self.resolution do
             if math.random() < self.deconstructChance then
@@ -41,12 +41,12 @@ function Update(self)
                     remover.Pos = hitPos;
                     MovableMan:AddParticle(remover);
                     remover:EraseFromTerrain();
-                    
+
                     local piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(1, self.gooCount));
                     piece.Pos = hitPos;
                     MovableMan:AddParticle(piece);
                     piece.ToSettle = true;
-                    
+
                     local glow = CreateMOPixel("Techion.rte/Pixel Creation Glow");
                     glow.Pos = hitPos;
                     MovableMan:AddParticle(glow);
@@ -62,10 +62,10 @@ function Update(self)
 		--Find MOs to disintegrate
 		local moCheck = SceneMan:CastMORay(self.MuzzlePos, aimVec * 0.5, self.RootID, self.Team, rte.airID, true, 2);
 		if moCheck ~= rte.NoMOID then
-		
+
 			local initMO = MovableMan:GetMOFromID(moCheck);
 			if initMO then
-			
+
 				local targetMO = MovableMan:GetMOFromID(ToMOSRotating(initMO).RootID);
 				local dustTarget;
 

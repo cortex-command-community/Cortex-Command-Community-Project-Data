@@ -8,7 +8,7 @@ function Create(self)
 end
 
 function Update(self)
-	if self.mode == "Remote" then	
+	if self.mode == "Remote" then
 		self.ToDelete = false;
 		self.ToSettle = false;
 		--Keep checking for triggers when in "Remote" status

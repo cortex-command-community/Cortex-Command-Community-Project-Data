@@ -17,7 +17,7 @@ function Update(self)
 		self:SetDualWieldable(false);
 		if MovableMan:IsOfActor(self.ID) then
 			actor = ToActor(MovableMan:GetMOFromID(self.RootID));
-		
+
 			ToActor(actor):GetController():SetState(Controller.AIM_SHARP, false);
 			ToActor(actor):GetController():SetState(Controller.BODY_CROUCH, false);
 			if ToActor(actor):GetController():IsState(Controller.WEAPON_FIRE) then
@@ -26,7 +26,7 @@ function Update(self)
 					self:Deactivate();
 					self.triggerPulled = true;
 
-					self.StanceOffset = Vector(8, 5);	
+					self.StanceOffset = Vector(8, 5);
 					self:SetNumberValue("CowboyMode", 3);	--Begin draw phase
 				end
 			else
@@ -88,7 +88,7 @@ function Update(self)
 	else	--Revert values if dropped or no longer controlled by player
 		self:SetOneHanded(true);
 		self:SetDualWieldable(true);
-		self.RateOfFire = self.rof;	
+		self.RateOfFire = self.rof;
 		self.JointOffset = Vector(-2, 3);
 		self.StanceOffset = Vector(12, 0);
 		self.drawGunAngle = 0;

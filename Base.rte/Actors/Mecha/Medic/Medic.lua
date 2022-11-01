@@ -6,7 +6,7 @@ function Create(self)
 	self.healTimer:SetSimTimeLimitMS(self.baseHealDelay);
 	self.crossTimer = Timer();
 	self.crossTimer:SetSimTimeLimitMS(800);
-	
+
 	self.visual = {};
 	self.visual.Colors = {135, 133, 149, 148, 145, 148, 149, 133};
 	self.visual.CurrentColor = 0;

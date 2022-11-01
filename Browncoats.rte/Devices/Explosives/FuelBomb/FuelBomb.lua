@@ -31,7 +31,7 @@ function Update(self)
 
 	self.ToSettle = false;
 	self.ToDelete = false;
-	
+
 	if self.explodeTimer:IsPastSimMS(self.explodeTime) then
 		if self.soundCount <= 0 then
 			self.soundCount = self.soundCount + 1;
@@ -81,7 +81,7 @@ function Update(self)
 		--Look for targets to douse with fuel
 		for i = 1, #self.partList do
 			if self.partList[i] and MovableMan:IsParticle(self.partList[i]) and self.partList[i].PresetName == "Browncoat Fuel Bomb Fuel" then
-		
+
 				if self.partList[i].target and self.partList[i].target.ID ~= rte.NoMOID and not self.partList[i].target.ToDelete then
 
 					if math.random() < 0.01 then

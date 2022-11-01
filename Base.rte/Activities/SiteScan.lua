@@ -1,7 +1,7 @@
 package.loaded.Constants = nil; require("Constants");
 
 function SiteScan:SceneTest()
-	
+
 end
 
 -----------------------------------------------------------------------------------------
@@ -10,7 +10,7 @@ end
 
 function SiteScan:StartActivity()
 	print("START! -- SiteScan:StartActivity()!");
-		
+
 	-- Orbit Scene Scanning vars
 	self.ScanStage = { PRESCAN = 0, SCANNING = 1, POSTSCAN = 2, SCANSTAGECOUNT = 3 };
 	self.CurrentScanStage = self.ScanStage.PRESCAN;
@@ -69,7 +69,7 @@ function SiteScan:UpdateActivity()
 	if (self.ActivityState == Activity.RUNNING) then
 		local scanMessage = "Scanning";
 		local messageBlink = 500;
-		
+
 		-- Wait a sec first before RUNNING to scan, so player can get what's going on
 		if self.CurrentScanStage == self.ScanStage.PRESCAN then
 			scanMessage = "Preparing to scan site from orbit";
@@ -144,7 +144,7 @@ function SiteScan:UpdateActivity()
 				messageBlink = 0;
 			end
 		end
-		
+
 		-- Display the scanning text on all players' screens
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -157,7 +157,7 @@ function SiteScan:UpdateActivity()
 			end
 		end
 	end
-	
+
 	-- Scanning is over and done, control how the messages are presented to the player
 	if (self.ActivityState == Activity.OVER) then
 		-- Manage post-scan messages on screen

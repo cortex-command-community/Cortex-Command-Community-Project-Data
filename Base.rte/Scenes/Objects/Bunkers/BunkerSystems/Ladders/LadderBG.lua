@@ -6,13 +6,13 @@ function Create(self)
 	self.checkTimer:SetSimTimeLimitMS(self.idleDelay);
 	self.checkCounter = 0;
 	self.idleCheckLimit = 50;
-	
+
 	self.checkPos = self.Pos;
-	
+
 	self.width = (ToMOSprite(self):GetSpriteWidth()/5) - 1;
 	self.height = (ToMOSprite(self):GetSpriteHeight()/3) - 1;
-	
-	self.gib = CreateTerrainObject("Destroyed Background Ladder"); 
+
+	self.gib = CreateTerrainObject("Destroyed Background Ladder");
 	self.gib.Pos = Vector(self.Pos.X, self.Pos.Y);
 end
 function Update(self)

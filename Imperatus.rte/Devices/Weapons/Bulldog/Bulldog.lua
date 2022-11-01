@@ -2,7 +2,7 @@ function Create(self)
 	self.origActivationDelay = self.ActivationDelay;
 	self.spinDownTimer = Timer();
 	self.currentlySpinningDown = false;
-	
+
 	self.maxRateOfFire = self.RateOfFire;
 	self.minRateOfFire = self.maxRateOfFire * 0.5;
 	self.RateOfFire = self.minRateOfFire;

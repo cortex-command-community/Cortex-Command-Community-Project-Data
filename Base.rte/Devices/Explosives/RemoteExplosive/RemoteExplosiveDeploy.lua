@@ -17,7 +17,7 @@ function Update(self)
 		explosive.HFlipped = self.HFlipped;
 		explosive.Sharpness = self.alliedTeam;
 		MovableMan:AddParticle(explosive);
-		
+
 		if self.user and IsAHuman(self.user) then
 			if self.user:IsPlayerControlled() then
 				if not self.user:HasObject("Detonator") then

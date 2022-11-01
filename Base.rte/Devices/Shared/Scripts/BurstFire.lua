@@ -17,7 +17,7 @@ function Update(self)
 		elseif self.shotCounter then
 
 			self.triggerPulled = self:IsActivated();
-				
+
 			self:Activate();
 			if self.FiredFrame then
 				self.shotCounter = self.shotCounter + 1;

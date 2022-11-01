@@ -3,7 +3,7 @@ function Create(self)
 	self.lifeTimer = Timer();
 	self.lifeTimer:SetSimTimeLimitMS(self.Lifetime - 100);
 	self.emitTimer = Timer();
-	
+
 	self.startSpeed = self.Vel.Magnitude;
 	self.acceleration = 0.1;
 end

@@ -19,7 +19,7 @@ function Create(self)
 	self.tableNum = #RemoteExplosiveTableA + 1;
 	RemoteExplosiveTableA[self.tableNum] = self;
 	RemoteExplosiveTableB[self.tableNum] = self.alliedTeam;
-	
+
 	self.activateSound = CreateSoundContainer("Explosive Device Activate", "Base.rte");
 
 	RemoteExplosiveStick(self);

@@ -2,15 +2,15 @@ function MetaScript:StartScript()
 	if SettingsMan.PrintDebugInfo then
 		print (self.PresetName.." Create")
 	end
-	
+
 	-- Init script
 	if MetaMan.PlayerCount > 0 then
 		-- Store activity
 		self.Activity = ToGameActivity(ActivityMan:GetActivity());
-		
+
 		-- Determine which teams are CPU-controlled
 		self.TeamIsCPU = {}
-		
+
 		for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 			self.TeamIsCPU[team] = true
 		end

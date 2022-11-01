@@ -17,7 +17,7 @@ function DummyAssault:StartActivity()
 	-- Team 2 is always CPU
 	self.CPUTeam = Activity.TEAM_2
 	self.CPUTech = self:GetTeamTech(Activity.TEAM_2);
-	
+
 	--------------------------
 	-- Set up players
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -28,15 +28,15 @@ function DummyAssault:StartActivity()
 				local brain = CreateActor("Brain Case", "Base.rte")
 				brain.Pos = Vector(3348, 1128-player*24)
 				brain.RotAngle = math.rad(270)
-				
+
 				-- Let the spawn into the world, passing ownership
 				MovableMan:AddActor(brain)
-				
+
 				-- Set the found brain to be the selected actor at start
 				self:SetPlayerBrain(brain, player)
 				SceneMan:SetScroll(brain.Pos, player)
 				self:SetLandingZone(brain.Pos, player)
-				
+
 				-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 				self:SetObservationTarget(brain.Pos, player)
 			end
@@ -55,14 +55,14 @@ function DummyAssault:StartActivity()
 
 	-- Set the funds
 	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1)
-	
+
 	if self:GetFogOfWarEnabled() then
 		-- Make the scene unseen for the player team
 		SceneMan:MakeAllUnseen(Vector(25, 25), Activity.TEAM_1)
 		for x = SceneMan.SceneWidth-1000, SceneMan.SceneWidth-20, 25 do	-- Reveal the LZ
 			SceneMan:CastSeeRay(Activity.TEAM_1, Vector(x,-25), Vector(0,SceneMan.SceneHeight), Vector(), 4, 20)
 		end
-		
+
 		-- Hide the player LZ
 		SceneMan:MakeAllUnseen(Vector(50, 50), Activity.TEAM_2)
 		for y = 0, SceneMan.SceneHeight, 50 do
@@ -80,7 +80,7 @@ function DummyAssault:EndActivity()
 		AudioMan:ClearMusicQueue();
 		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
 		AudioMan:QueueSilence(10);
-		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");		
+		AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
 	else
 		-- But if humans are left, then play happy music!
 		AudioMan:ClearMusicQueue();
@@ -130,7 +130,7 @@ function DummyAssault:UpdateActivity()
 				end
 			end
 		end
-		
+
 		-- Mark the enemy brain.
 		if MovableMan:IsActor(self.CPUBrain) then
 			self:AddObjectivePoint("Destroy!", self.CPUBrain.AboveHUDPos+Vector(0,-16), Activity.TEAM_1, GameActivity.ARROWDOWN)
@@ -157,7 +157,7 @@ function DummyAssault:UpdateActivity()
 	if self.AlarmTriggered then
 		if self.SpawnTimer:IsPastSimMS(self.spawnTime) then
 			self.SpawnTimer:Reset()
-			
+
 			if MovableMan:GetTeamMOIDCount(Activity.TEAM_2) < rte.DefenderMOIDMax then
 				local actor
 				if math.random() > self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTech)) then
@@ -172,7 +172,7 @@ function DummyAssault:UpdateActivity()
 						actor:ClearAIWaypoints()
 						actor:AddAISceneWaypoint(self.SearchArea:GetRandomPoint())
 					end
-					
+
 					actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTech))
 					if math.random() > 0.1 then
 						actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.CPUTech))
@@ -181,7 +181,7 @@ function DummyAssault:UpdateActivity()
 					actor = RandomACrab("Actors - Mecha", self.CPUTech)
 					actor.AIMode = Actor.AIMODE_BRAINHUNT
 				end
-				
+
 				actor.Team = Activity.TEAM_2
 				actor.Pos = Vector(5,550)
 				MovableMan:AddActor(actor)
@@ -189,7 +189,7 @@ function DummyAssault:UpdateActivity()
 		end
 	elseif self.SpawnTimer:IsPastSimMS(1000) then	-- Check the alarm once per second
 		self.SpawnTimer:Reset()
-		
+
 		for actor in MovableMan.Actors do
 			if actor.Team == Activity.TEAM_1 and self.AlarmZone:IsInside(actor.Pos) then
 				self.AlarmTriggered = true

@@ -24,7 +24,7 @@ function BrainvsBrain:StartActivity()
 	-- Timers
 	self.WinTimer = Timer()
 	self.first_update = true
-	
+
 	-- Add a CPU team if we only have one player
 	if not self.CPUTeam or self.CPUTeam == Activity.NOTEAM then
 		local active_players = 0
@@ -33,7 +33,7 @@ function BrainvsBrain:StartActivity()
 				active_players = active_players + 1
 			end
 		end
-		
+
 		if active_players < 2 then
 			self.CPUTeam = Activity.TEAM_2
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -48,25 +48,25 @@ function BrainvsBrain:StartActivity()
 			self.CPUTeam = Activity.NOTEAM
 		end
 	end
-	
+
 	if self.CPUTeam == Activity.NOTEAM then
 		-- No AI player, go in to edit mode
 		self.ActivityState = Activity.EDITING
-		
+
 		-- Add fog so the players cannot build in the same area
 		local RedAreaString = "Red Build Area Center"
 		local GreenAreaString = "Green Build Area Center"
 		if SceneMan.Scene:HasArea(RedAreaString) and SceneMan.Scene:HasArea(GreenAreaString) then
 			local fogWidth = 32
-			
+
 			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_1)
 			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_2)
-			
-			-- Reveal the build areas			
+
+			-- Reveal the build areas
 			local RedCenter = SceneMan.Scene:GetArea(RedAreaString):GetCenterPoint()
 			local GreenCenter = SceneMan.Scene:GetArea(GreenAreaString):GetCenterPoint()
 			local range = SceneMan:ShortestDistance(RedCenter, GreenCenter, false).Magnitude * 0.45
-			
+
 			for y = fogWidth/2, SceneMan.SceneHeight, fogWidth do
 				for x = fogWidth/2, SceneMan.SceneWidth, fogWidth do
 					if SceneMan:ShortestDistance(RedCenter, Vector(x, y), false).Largest < range then
@@ -91,16 +91,16 @@ function BrainvsBrain:StartActivity()
 							if Weapon then
 								Brain:AddInventoryItem(Weapon)
 							end
-							
+
 							Brain.AIMode = Actor.AIMODE_SENTRY
 							Brain.Team = self:GetTeamOfPlayer(player)
-							
+
 							if Brain.Team == Activity.TEAM_1 then
 								Brain.Pos = SceneMan.Scene:GetArea("Red Brain"):GetRandomPoint()
 							else
 								Brain.Pos = SceneMan.Scene:GetArea("Green Brain"):GetRandomPoint()
 							end
-							
+
 							-- make sure we are inside the scene
 							if SceneMan.SceneWrapsX then
 								if Brain.Pos.X < 0 then
@@ -111,7 +111,7 @@ function BrainvsBrain:StartActivity()
 							else
 								Brain.Pos.X = math.max(math.min(Brain.Pos.X, SceneMan.SceneWidth-5), 5)
 							end
-							
+
 							Brain.Pos = SceneMan:MovePointToGround(Brain.Pos, Brain.Height*0.3, 2)
 							MovableMan:AddActor(Brain)
 							self:SetPlayerBrain(Brain, player)
@@ -121,7 +121,7 @@ function BrainvsBrain:StartActivity()
 						-- Set the found brain to be the selected actor at start
 						self:SetPlayerBrain(foundBrain, player)
 						self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player))
-						
+
 						-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
 					end
@@ -129,7 +129,7 @@ function BrainvsBrain:StartActivity()
 			end
 		end
 	end
-	
+
 	-- Set all actors defined in the ini-file to sentry mode
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
@@ -138,11 +138,11 @@ function BrainvsBrain:StartActivity()
 			end
 		end
 	end
-	
+
 	self.TechName = {}
 	self.TechName[Activity.TEAM_1] = self:GetTeamTech(Activity.TEAM_1)
-	self.TechName[Activity.TEAM_2] = self:GetTeamTech(Activity.TEAM_2)	
-	
+	self.TechName[Activity.TEAM_2] = self:GetTeamTech(Activity.TEAM_2)
+
 	if self.CPUTeam == Activity.NOTEAM then
 		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1)
 		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_2)
@@ -152,7 +152,7 @@ function BrainvsBrain:StartActivity()
 		else
 			self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1)
 		end
-		
+
 		-- Store data about player teams: OnPlayerTeam[A.Team] is true if "A" is an enemy to the AI
 		local active_players = 0
 		self.OnPlayerTeam = {}
@@ -162,27 +162,27 @@ function BrainvsBrain:StartActivity()
 				active_players = active_players + 1
 			end
 		end
-		
+
 		self:SetTeamFunds(self:GetStartingGold()*(self.Difficulty/100+0.5), self.CPUTeam)
 		self.CPUTechID = PresetMan:GetModuleID(self.TechName[self.CPUTeam])
 		self.bombChance = math.random(self.Difficulty*0.7, self.Difficulty) / 120
-		
+
 		self.CPUBrain = CreateAHuman("Brain Robot", "Base.rte")
 		if self.CPUBrain then
 			local Weapon = CreateHDFirearm("SMG", "Base.rte")
 			if Weapon then
 				self.CPUBrain:AddInventoryItem(Weapon)
 			end
-			
+
 			self.CPUBrain.AIMode = Actor.AIMODE_SENTRY
 			self.CPUBrain.Team = self.CPUTeam
-			
+
 			if self.CPUBrain.Team == Activity.TEAM_1 then
 				self.CPUBrain.Pos = SceneMan.Scene:GetArea("Red Brain"):GetRandomPoint()
 			else
 				self.CPUBrain.Pos = SceneMan.Scene:GetArea("Green Brain"):GetRandomPoint()
 			end
-			
+
 			-- Make sure we are inside the scene
 			if SceneMan.SceneWrapsX then
 				if self.CPUBrain.Pos.X < 0 then
@@ -193,21 +193,21 @@ function BrainvsBrain:StartActivity()
 			else
 				self.CPUBrain.Pos.X = math.max(math.min(self.CPUBrain.Pos.X, SceneMan.SceneWidth-5), 5)
 			end
-			
+
 			self.CPUBrain.Pos = SceneMan:MovePointToGround(self.CPUBrain.Pos, self.CPUBrain.Height*0.3, 2)
 			MovableMan:AddActor(self.CPUBrain)
 		end
-		
+
 		self.SpawnTimer = Timer()
 		self.spawnDelay = (6500 - self.Difficulty * 60) * rte.SpawnIntervalScale
 		self.HunterTimer = Timer()
 		self.HunterDelay = self.spawnDelay + 10000
-		
+
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
 		self.LZMap = require("Activities/LandingZoneMap")
 		--self.LZMap = dofile("Base.rte/Activities/LandingZoneMap.lua")
 		self.LZMap:Initialize({self.CPUTeam})	-- a list of AI teams
-		
+
 		local GuardArea = "Red Defender "
 		for i = 1, 7 do
 			if SceneMan.Scene:HasArea(GuardArea..i) then
@@ -221,7 +221,7 @@ function BrainvsBrain:StartActivity()
 				break
 			end
 		end
-		
+
 		GuardArea = "Red Miner "
 		for i = 1, 3 do
 			if SceneMan.Scene:HasArea(GuardArea..i) then
@@ -234,7 +234,7 @@ function BrainvsBrain:StartActivity()
 				break
 			end
 		end
-		
+
 		GuardArea = "Green Defender "
 		for i = 1, 7 do
 			if SceneMan.Scene:HasArea(GuardArea..i) then
@@ -247,7 +247,7 @@ function BrainvsBrain:StartActivity()
 				break
 			end
 		end
-		
+
 		GuardArea = "Green Miner "
 		for i = 1, 3 do
 			if SceneMan.Scene:HasArea(GuardArea..i) then
@@ -290,7 +290,7 @@ function BrainvsBrain:UpdateActivity()
 	elseif self.ActivityState == Activity.EDITING then
 		-- Game is in editing or other modes, so open all does and reset the game running timer
 		MovableMan:OpenAllDoors(true, Activity.NOTEAM)
-		
+
 		-- Set all actors to sentry mode
 		for actor in MovableMan.AddedActors do
 			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
@@ -302,7 +302,7 @@ function BrainvsBrain:UpdateActivity()
 	else
 		if self.first_update then
 			self.first_update = nil
-			
+
 			-- Add fog
 			if self:GetFogOfWarEnabled() then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -310,7 +310,7 @@ function BrainvsBrain:UpdateActivity()
 						SceneMan:MakeAllUnseen(Vector(32, 32), self:GetTeamOfPlayer(player))
 					end
 				end
-				
+
 				-- Lift the fog around friendly actors
 				for Act in MovableMan.AddedActors do
 					for ang = 0, math.pi*2, 0.1 do
@@ -324,10 +324,10 @@ function BrainvsBrain:UpdateActivity()
 					end
 				end
 			end
-			
+
 			-- Close all doors after placing brains so our fortresses are secure
 			MovableMan:OpenAllDoors(false, Activity.NOTEAM)
-			
+
 			-- Set all actors to sentry mode
 			for actor in MovableMan.AddedActors do
 				if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
@@ -340,7 +340,7 @@ function BrainvsBrain:UpdateActivity()
 			if self.WinTimer:IsPastRealMS(2000) then
 				-- Check win conditions
 				self.WinTimer:Reset()
-				
+
 				local red_players = 0
 				local green_players = 0
 				if self.CPUTeam ~= Activity.NOTEAM then
@@ -352,7 +352,7 @@ function BrainvsBrain:UpdateActivity()
 						end
 					end
 				end
-				
+
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
 						local Brain = self:GetPlayerBrain(player)
@@ -366,7 +366,7 @@ function BrainvsBrain:UpdateActivity()
 								self:SetPlayerBrain(nil, player)
 							end
 						end
-						
+
 						if Brain and MovableMan:IsActor(Brain) then
 							if self:GetTeamOfPlayer(player) == Activity.TEAM_1 then
 								red_players = red_players + 1
@@ -380,7 +380,7 @@ function BrainvsBrain:UpdateActivity()
 						end
 					end
 				end
-				
+
 				if red_players < 1 and green_players > 0 then
 					self.WinnerTeam = Activity.TEAM_2
 					MovableMan:KillAllEnemyActors(self.WinnerTeam)
@@ -396,14 +396,14 @@ function BrainvsBrain:UpdateActivity()
 					return
 				end
 			end
-			
+
 			if self.LZMap then
 				self.LZMap:Update()
-				
+
 				if self.HunterTimer:IsPastSimMS(self.HunterDelay) then
 					self.HunterTimer:Reset()
 					self.HunterDelay = 11000
-					
+
 					for Hunter in MovableMan.Actors do
 						if Hunter.Team == self.CPUTeam and Hunter.AIMode == Actor.AIMODE_GOTO then
 							local Pray = Hunter.MOMoveTarget
@@ -414,7 +414,7 @@ function BrainvsBrain:UpdateActivity()
 						end
 					end
 				end
-				
+
 				if self:GetTeamFunds(self.CPUTeam) > 0 then
 					if self.SpawnTimer:IsPastSimMS(self.spawnDelay) and MovableMan:IsActor(self.CPUBrain) then
 						if self.AttackActor and MovableMan:IsActor(self.AttackActor) then
@@ -422,7 +422,7 @@ function BrainvsBrain:UpdateActivity()
 							local easyPathLZx, easyPathLZobst, closeLZx, closeLZobst = self.LZMap:FindLZ(self.CPUTeam, self.AttackPos)
 							if closeLZx then	-- Search done
 								self.SpawnTimer:Reset()
-								
+
 								local xPosLZ, obstacleHeight
 								if closeLZobst < 30 and easyPathLZobst < 30 then
 									if math.random() < 0.5 then
@@ -444,7 +444,7 @@ function BrainvsBrain:UpdateActivity()
 										obstacleHeight = easyPathLZobst
 									end
 								end
-								
+
 								if obstacleHeight > 200 and math.random() < 0.4 then
 									-- This target is very difficult to reach: cancel this attack and search for another target
 									self.AttackActor = nil
@@ -458,7 +458,7 @@ function BrainvsBrain:UpdateActivity()
 									else
 										self.spawnDelay = (40000 - self.Difficulty * 250) * rte.SpawnIntervalScale
 									end
-									
+
 									if MovableMan:GetTeamMOIDCount(self.CPUTeam) < rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() and MovableMan:IsActor(self.CPUBrain) then
 										if obstacleHeight < 30 then
 											self:CreateHeavyDrop(xPosLZ)
@@ -468,13 +468,13 @@ function BrainvsBrain:UpdateActivity()
 											self:CreateLightDrop(xPosLZ)
 										else
 											self:CreateScoutDrop(xPosLZ)
-											
+
 											-- This target is very difficult to reach: change target for the next attack
 											self.AttackActor = nil
 											self.AttackPos = nil
 										end
 									end
-									
+
 									if self.AttackActor then
 										if math.random() < 0.4 then
 											-- Change target for the next attack
@@ -488,7 +488,7 @@ function BrainvsBrain:UpdateActivity()
 							end
 						else
 							self.AttackActor = nil
-							
+
 							if MovableMan:GetTeamMOIDCount(self.CPUTeam) < rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 								-- Find an enemy actor to attack
 								local Intruders = {}
@@ -502,7 +502,7 @@ function BrainvsBrain:UpdateActivity()
 										intruder_tally = intruder_tally + 1
 									end
 								end
-								
+
 								if intruder_tally < 1 then
 									self.SpawnTimer:Reset()
 									self.spawnDelay = 10000
@@ -510,7 +510,7 @@ function BrainvsBrain:UpdateActivity()
 									table.sort(Intruders, function(A, B) return A.score > B.score end)	-- the nearest intruder last
 									self.AttackActor = table.remove(Intruders).Act
 									self.AttackPos = Vector(self.AttackActor.Pos.X, self.AttackActor.Pos.Y)
-									
+
 
 									-- try bombing if no targets close to CPU brain
 									if math.random() < self.bombChance and (SceneMan:ShortestDistance(self.CPUBrain.Pos, self.AttackPos, false).Largest/SceneMan.SceneWidth) > 0.2 then
@@ -547,10 +547,10 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for i = 1, Craft.MaxPassengers do
 			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.TechName[self.CPUTeam])) then
 				Passenger = self:CreateCrab(self.CPUTeam)
@@ -559,25 +559,25 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 			else
 				Passenger = self:CreateRandomInfantry(self.CPUTeam)
 			end
-			
+
 			if Passenger then
 				if self.AttackActor and MovableMan:IsActor(self.AttackActor) then
 					Passenger:AddAIMOWaypoint(self.AttackActor)
 				else
 					Passenger.AIMode = Actor.AIMODE_BRAINHUNT
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
-				if Craft.InventoryMass > craftMaxMass then 
+
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.CPUTechID, 2), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -593,7 +593,7 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 	else
 		Craft = RandomACRocket("Craft", self.TechName[self.CPUTeam])
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -607,10 +607,10 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, Craft.MaxPassengers do
 			if RangeRand(-5, 125) < self.Difficulty then
 				Passenger = self:CreateMediumInfantry(self.CPUTeam)
@@ -619,25 +619,25 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 			else
 				Passenger = self:CreateLightInfantry(self.CPUTeam)
 			end
-			
+
 			if Passenger then
 				if self.AttackActor and MovableMan:IsActor(self.AttackActor) then
 					Passenger:AddAIMOWaypoint(self.AttackActor)
 				else
 					Passenger.AIMode = Actor.AIMODE_BRAINHUNT
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
-				if Craft.InventoryMass > craftMaxMass then 
+
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.CPUTechID, 2), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -653,7 +653,7 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 	else
 		Craft = RandomACRocket("Craft", self.TechName[self.CPUTeam])
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -667,35 +667,35 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, Craft.MaxPassengers do
 			if RangeRand(10, 200) < self.Difficulty then
 				Passenger = self:CreateMediumInfantry(self.CPUTeam)
 			else
 				Passenger = self:CreateLightInfantry(self.CPUTeam)
 			end
-			
+
 			if Passenger then
 				if self.AttackActor and MovableMan:IsActor(self.AttackActor) then
 					Passenger:AddAIMOWaypoint(self.AttackActor)
 				else
 					Passenger.AIMode = Actor.AIMODE_BRAINHUNT
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
-				if Craft.InventoryMass > craftMaxMass then 
+
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.CPUTechID, 2), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -711,7 +711,7 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 	else
 		Craft = RandomACRocket("Craft", self.TechName[self.CPUTeam])
 	end
-	
+
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
 		local craftMaxMass = Craft.MaxInventoryMass
@@ -725,27 +725,27 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 			end
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(xPosLZ, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, Craft.MaxPassengers do
 			if math.random() < 0.3 then
 				Passenger = self:CreateLightInfantry(self.CPUTeam)
 			else
 				Passenger = self:CreateScoutInfantry(self.CPUTeam)
 			end
-			
+
 			if Passenger then
 				if self.AttackActor and MovableMan:IsActor(self.AttackActor) then
 					Passenger:AddAIMOWaypoint(self.AttackActor)
 				else
 					Passenger.AIMode = Actor.AIMODE_BRAINHUNT
 				end
-				
+
 				Craft:AddInventoryItem(Passenger)
-				
-				if Craft.InventoryMass > craftMaxMass then 
+
+				if Craft.InventoryMass > craftMaxMass then
 					break
 				end
 			end
@@ -753,7 +753,7 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.CPUTechID, 2), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -771,22 +771,22 @@ function BrainvsBrain:CreateBombDrop(bombPosX)
 			Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
 			craftMaxMass = Craft.MaxInventoryMass
 		end
-		
+
 		Craft.AIMode = Actor.AIMODE_BOMB	-- DropShips open doors at a high altitude in bomb mode
 		Craft.Team = self.CPUTeam
 		Craft.Pos = Vector(bombPosX, -30)	-- Set the spawn point of the craft
-		
+
 		for _ = 1, math.random(3, 6) do
 			Craft:AddInventoryItem(RandomTDExplosive("Bombs - Payloads", self.CPUTechID))
-			
-			if Craft.InventoryMass > craftMaxMass then 
+
+			if Craft.InventoryMass > craftMaxMass then
 				break
 			end
 		end
-		
+
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
 		self:ChangeTeamFunds(-Craft:GetTotalValue(self.CPUTechID, 2), self.CPUTeam)
-		
+
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft)
 	end
@@ -816,7 +816,7 @@ function BrainvsBrain:CreateRandomInfantry(team, mode)
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.TechName[team]));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
-		
+
 		local rand = math.random();
 		if rand < 0.25 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
@@ -830,7 +830,7 @@ function BrainvsBrain:CreateRandomInfantry(team, mode)
 		if math.random() < 0.05 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
-		
+
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
 		Passenger.Team = team;
 		return Passenger;
@@ -842,11 +842,11 @@ function BrainvsBrain:CreateLightInfantry(team, mode)
 	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
-		
+
 		local rand = math.random();
 		if rand < 0.5 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
@@ -855,7 +855,7 @@ function BrainvsBrain:CreateLightInfantry(team, mode)
 		else
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.TechName[team]));
 		end
-		
+
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
 		Passenger.Team = team;
 		return Passenger;
@@ -867,15 +867,15 @@ function BrainvsBrain:CreateDefender(team)
 	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
-		
+
 		if math.random() < 0.2 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_SENTRY;
 		Passenger.Team = team;
 		return Passenger;
@@ -887,10 +887,10 @@ function BrainvsBrain:CreateHeavyInfantry(team, mode)
 	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", self.TechName[team]));
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
 			if math.random() < 0.25 then
@@ -907,7 +907,7 @@ function BrainvsBrain:CreateHeavyInfantry(team, mode)
 				Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 			end
 		end
-		
+
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
 		Passenger.Team = team;
 		return Passenger;
@@ -919,11 +919,11 @@ function BrainvsBrain:CreateMediumInfantry(team, mode)
 	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
-	
+
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
 		else
@@ -932,7 +932,7 @@ function BrainvsBrain:CreateMediumInfantry(team, mode)
 		if math.random() < 0.5 then
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
-		
+
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
 		Passenger.Team = team;
 		return Passenger;
@@ -944,20 +944,20 @@ function BrainvsBrain:CreateScoutInfantry(team, mode)
 	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
-	
+
 	if Passenger then
 		if math.random() < 0.15 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", self.TechName[team]));
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]));
-		
+
 		if math.random() < 0.3 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.TechName[team]))
 		else
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.TechName[team]))
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
 		end
-		
+
 		Passenger.AIMode = mode or Actor.AIMODE_GOTO;
 		Passenger.Team = team;
 		return Passenger;
@@ -969,7 +969,7 @@ function BrainvsBrain:CreateEngineer(team, mode)
 	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
-	
+
 	if Passenger then
 		if math.random() < 0.7 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.TechName[team]));
@@ -985,7 +985,7 @@ function BrainvsBrain:CreateEngineer(team, mode)
 			end
 		end
 		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]));
-		
+
 		Passenger.AIMode = mode or Actor.AIMODE_GOLDDIG;
 		Passenger.Team = team;
 		return Passenger;

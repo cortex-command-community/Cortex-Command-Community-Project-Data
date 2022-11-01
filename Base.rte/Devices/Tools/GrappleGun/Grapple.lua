@@ -15,7 +15,7 @@ function Create(self)
 	self.maxLineLength = 500;
 	self.setLineLength = 0;
 	self.lineStrength = 40;	-- How much "force" the rope can take before breaking
-	
+
 	self.limitReached = false;
 	self.stretchMode = false;	-- Alternative elastic pull mode a là Liero
 	self.stretchPullRatio = 0.1;
@@ -28,11 +28,11 @@ function Create(self)
 	self.climbInterval = 3.5;	-- How many pixels the rope retracts / extends at a time
 	self.autoClimbIntervalA = 4.0;	-- How many pixels the rope retracts / extends at a time when auto-climbing (fast)
 	self.autoClimbIntervalB = 2.0;	-- How many pixels the rope retracts / extends at a time when auto-climbing (slow)
-	
+
 	self.stickSound = CreateSoundContainer("Grapple Gun Claw Stick", "Base.rte");
 	self.clickSound = CreateSoundContainer("Grapple Gun Click", "Base.rte");
 	self.returnSound = CreateSoundContainer("Grapple Gun Return", "Base.rte");
-	
+
 	for i = 1, MovableMan:GetMOIDCount() - 1 do
 		local gun = MovableMan:GetMOFromID(i);
 		if gun and gun.ClassName == "HDFirearm" and gun.PresetName == "Grapple Gun" and SceneMan:ShortestDistance(self.Pos, ToHDFirearm(gun).MuzzlePos, self.mapWrapsX):MagnitudeIsLessThan(5) then
@@ -66,7 +66,7 @@ function Update(self)
 	if self.parent and IsMOSRotating(self.parent) and self.parent:HasObject("Grapple Gun") then
 		local controller;
 		local startPos = self.parent.Pos;
-		
+
 		self.ToDelete = false;
 		self.ToSettle = false;
 
@@ -83,9 +83,9 @@ function Update(self)
 			startPos = self.parentGun.Pos;
 			local flipAng = self.parent.HFlipped and 3.14 or 0;
 			self.parentGun.RotAngle = self.lineVec.AbsRadAngle + flipAng;
-			
+
 			local mode = self.parentGun:GetNumberValue("GrappleMode");
-			
+
 			if mode ~= 0 then
 				self.pieSelection = mode;
 				self.parentGun:RemoveNumberValue("GrappleMode");
@@ -221,7 +221,7 @@ function Update(self)
 				self.climbTimer:Reset();
 
 				if self.pieSelection == 1 then
-				
+
 					if self.setLineLength > self.autoClimbIntervalA and self.terrcheck == false then
 						self.setLineLength = self.setLineLength - (self.autoClimbIntervalA/parentForces);
 					else
@@ -289,11 +289,11 @@ function Update(self)
 								if self.climb == 3 then
 									if (self.setLineLength-self.climbInterval) >= 0 and self.terrcheck == false then
 										self.setLineLength = self.setLineLength - (self.climbInterval/parentForces);
-										
+
 									elseif self.terrcheck ~= false then
 										-- Try to nudge past terrain
 										local aimvec = Vector(self.lineVec.Magnitude, 0):SetMagnitude(nudge):RadRotate((self.lineVec.AbsRadAngle + self.parent:GetAimAngle(true))/2 + self.parent.FlipFactor * 0.7);
-										self.parent.Vel = self.parent.Vel + aimvec;	
+										self.parent.Vel = self.parent.Vel + aimvec;
 									end
 								elseif self.climb == 4 then
 									if (self.setLineLength+self.climbInterval) <= self.maxLineLength then
@@ -315,7 +315,7 @@ function Update(self)
 							self.climb = 4;
 						end
 					elseif controller:IsMouseControlled() == false then
-						if controller:IsState(Controller.HOLD_UP) then 
+						if controller:IsState(Controller.HOLD_UP) then
 							if self.setLineLength > self.climbInterval and self.terrcheck == false then
 								self.climb = 1;
 							elseif self.terrcheck ~= false then
@@ -334,12 +334,12 @@ function Update(self)
 			end
 			if self.actionMode == 2 then	-- Stuck terrain
 				if self.stretchMode then
-					
+
 					local pullVec = self.lineVec:SetMagnitude(0.15 * math.sqrt(self.lineLength)/parentForces);
 					self.parent.Vel = self.parent.Vel + pullVec;
-					
+
 				elseif self.lineLength > self.setLineLength then
-				
+
 					local hookVel = SceneMan:ShortestDistance(Vector(self.PrevPos.X, self.PrevPos.Y), Vector(self.Pos.X, self.Pos.Y), self.mapWrapsX);
 
 					local pullAmountNumber = self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle;
@@ -358,7 +358,7 @@ function Update(self)
 						end
 					end
 					self.parent.Pos = moveToPos;
-					
+
 					local pullAmountNumber = math.abs(self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle)/6.28;
 					-- Break the rope if the forces are too high
 					if (self.parent.Vel - self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber)):MagnitudeIsGreaterThan(self.lineStrength) then
@@ -366,7 +366,7 @@ function Update(self)
 					end
 					self.parent.Vel = self.parent.Vel + self.lineVec;
 				end
-				
+
 			elseif self.actionMode == 3 then	-- Stuck MO
 				if self.target.ID ~= rte.NoMOID then
 
@@ -386,7 +386,7 @@ function Update(self)
 
 						local pullVec = self.lineVec:SetMagnitude(self.stretchPullRatio * math.sqrt(self.lineLength)/parentForces);
 						self.parent.Vel = self.parent.Vel + pullVec;
-	
+
 						local targetForces = 1 + (target.Vel.Magnitude * 10 + target.Mass)/(1 + self.lineLength);
 						target.Vel = target.Vel - (pullVec) * parentForces/targetForces;
 

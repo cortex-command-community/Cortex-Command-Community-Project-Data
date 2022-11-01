@@ -31,7 +31,7 @@ function Update(self)
 					end
 				end
 			end
-		end	
+		end
 	end
 	self.ToDelete = true;
 end

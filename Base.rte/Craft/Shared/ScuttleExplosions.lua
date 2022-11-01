@@ -1,9 +1,9 @@
 function Create(self)
 	self.explosionTimer = Timer();
-	
+
 	self.height = ToMOSprite(self):GetSpriteHeight();
 	self.width = ToMOSprite(self):GetSpriteWidth();
-	
+
 	self.explosionDelay = self:NumberValueExists("ScuttleExplosionDelay") and self:GetNumberValue("ScuttleExplosionDelay") or 5000/math.sqrt(self.width + self.height);
 end
 function Update(self)
