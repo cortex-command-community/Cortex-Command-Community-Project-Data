@@ -72,7 +72,7 @@ function Update(self)
 				self.HitsMOs = true;
 			end
 		end
-	elseif self.mode == "Impact" and self.TravelImpulse.Magnitude > self.Mass then
+	elseif self.mode == "Impact" and self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then
 		self.fuzeDelay = self.fuzeDelay - self.TravelImpulse.Magnitude * 30;
 	end
 end

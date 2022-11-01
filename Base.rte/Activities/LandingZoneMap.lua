@@ -579,7 +579,7 @@ function LandingZoneMap:FindBombTarget(team)
 	for x, score in pairs(self.BombTargets[team]) do
 		if score > 1.5 then
 			for _, enemyBrainPositionX in pairs(enemyBrainPositions) do
-				if SceneMan:ShortestDistance(Vector(x, 0), Vector(enemyBrainPositionX, 0), SceneMan.SceneWrapsX).Magnitude >= minimumDistanceRequiredFromEnemyBrain then
+				if SceneMan:ShortestDistance(Vector(x, 0), Vector(enemyBrainPositionX, 0), SceneMan.SceneWrapsX):MagnitudeIsGreaterThan(minimumDistanceRequiredFromEnemyBrain) then
 					if self.BombHistory[x] then
 						table.insert(bombTargets, {score=score+self.BombHistory[x], X=x});
 					else

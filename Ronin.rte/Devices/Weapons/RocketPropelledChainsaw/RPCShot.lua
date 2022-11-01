@@ -51,14 +51,14 @@ function Update(self)
 				if IsAttachable(mo) and ToAttachable(mo):IsAttached() and not (IsHeldDevice(mo) or IsThrownDevice(mo)) then
 					mo = ToAttachable(mo);
 					local jointPos = mo.Pos + Vector(mo.JointOffset.X * mo.FlipFactor, mo.JointOffset.Y):RadRotate(mo.RotAngle);
-					if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX).Magnitude < 3 and math.random(self.dismemberStrength) > mo.JointStrength then
+					if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(3) and math.random(self.dismemberStrength) > mo.JointStrength then
 						ToMOSRotating(mo:GetParent()):RemoveAttachable(mo.UniqueID, true, true);
 					end
 				end
 			end
 		end
 	end
-	if self.Vel.Magnitude < 2 then	--Countdown to explode if too still
+	if self.Vel:MagnitudeIsLessThan(2) then	--Countdown to explode if too still
 		self.toGibCounter = self.toGibCounter + 1;
 		local newVel = Vector(-3/(self.Vel.Magnitude + 1) * self.FlipFactor, 0):RadRotate(self.RotAngle + RangeRand(-1.5, 1.5));
 		self.Vel = self.Vel + newVel;

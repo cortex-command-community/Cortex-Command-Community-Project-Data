@@ -35,7 +35,7 @@ function Create(self)
 	
 	for i = 1, MovableMan:GetMOIDCount() - 1 do
 		local gun = MovableMan:GetMOFromID(i);
-		if gun and gun.ClassName == "HDFirearm" and gun.PresetName == "Grapple Gun" and SceneMan:ShortestDistance(self.Pos, ToHDFirearm(gun).MuzzlePos, self.mapWrapsX).Magnitude < 5 then
+		if gun and gun.ClassName == "HDFirearm" and gun.PresetName == "Grapple Gun" and SceneMan:ShortestDistance(self.Pos, ToHDFirearm(gun).MuzzlePos, self.mapWrapsX):MagnitudeIsLessThan(5) then
 			self.parentGun = ToHDFirearm(gun);
 			self.parent = MovableMan:GetMOFromID(gun.RootID);
 			if MovableMan:IsActor(self.parent) then
@@ -117,7 +117,7 @@ function Update(self)
 				end
 				local offset = Vector(self.lineLength, 0):RadRotate(self.parent.FlipFactor * (self.lineVec.AbsRadAngle - self.parent:GetAimAngle(true)));
 				self.parentGun.StanceOffset = offset;
-				if self.parent.EquippedItem and self.parent.EquippedItem.ID == self.parentGun.ID and (self.parent.Vel.Magnitude < 5 and controller:IsState(Controller.AIM_SHARP)) then
+				if self.parent.EquippedItem and self.parent.EquippedItem.ID == self.parentGun.ID and (self.parent.Vel:MagnitudeIsLessThan(5) and controller:IsState(Controller.AIM_SHARP)) then
 					self.parentGun.RotAngle = self.parent:GetAimAngle(false) * self.parentGun.FlipFactor;
 					startPos = self.parent.Pos;
 				else
@@ -361,7 +361,7 @@ function Update(self)
 					
 					local pullAmountNumber = math.abs(self.lineVec.AbsRadAngle - self.parent.Vel.AbsRadAngle)/6.28;
 					-- Break the rope if the forces are too high
-					if (self.parent.Vel - self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber)).Magnitude > self.lineStrength then
+					if (self.parent.Vel - self.lineVec:SetMagnitude(self.parent.Vel.Magnitude * pullAmountNumber)):MagnitudeIsGreaterThan(self.lineStrength) then
 						self.ToDelete = true;
 					end
 					self.parent.Vel = self.parent.Vel + self.lineVec;

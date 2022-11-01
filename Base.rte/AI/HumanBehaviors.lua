@@ -173,7 +173,7 @@ function HumanBehaviors.ProcessAlarmEvent(AI, Owner)
 			if AlarmVec.Largest < loudness then	-- only react if the alarm is within hearing range
 				-- if our relative position to the alarm location is the same, don't repeat the signal
 				-- check if we have line of sight to the alarm point
-				if (not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false).Magnitude > 25) then
+				if (not AI.LastAlarmVec or SceneMan:ShortestDistance(AI.LastAlarmVec, AlarmVec, false):MagnitudeIsGreaterThan(25)) then
 					AI.LastAlarmVec = AlarmVec
 					
 					if AlarmVec.Largest < 100 then
@@ -251,7 +251,7 @@ function HumanBehaviors.GetGrenadeAngle(AimPoint, TargetVel, StartPos, muzVel)
 		local timeToTarget = range / muzVel
 		
 		-- lead the target if target speed and projectile TTT is above the threshold
-		if timeToTarget * TargetVel.Magnitude > 0.5 then
+		if timeToTarget * TargetVel:MagnitudeIsGreaterThan(0.5) then
 			AimPoint = AimPoint + TargetVel * timeToTarget
 			Dist = SceneMan:ShortestDistance(StartPos, AimPoint, false)
 		end
@@ -489,7 +489,7 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 				AI.deviceState = AHuman.AIMING
 			end
 			if Owner.AIMode ~= Actor.AIMODE_SQUAD then
-				if SceneMan:ShortestDistance(Owner.Pos, AI.SentryPos, false).Magnitude > Owner.Height*0.7 then
+				if SceneMan:ShortestDistance(Owner.Pos, AI.SentryPos, false):MagnitudeIsGreaterThan(Owner.Height*0.7) then
 					AI.SentryPos = SceneMan:MovePointToGround(AI.SentryPos, Owner.Height*0.25, 3)
 					Owner:ClearAIWaypoints()
 					Owner:AddAISceneWaypoint(AI.SentryPos)
@@ -517,7 +517,7 @@ end
 
 
 function HumanBehaviors.Patrol(AI, Owner, Abort)
-	while AI.flying or Owner.Vel.Magnitude > 4 do	-- wait until we are stationary
+	while AI.flying or Owner.Vel:MagnitudeIsGreaterThan(4) do	-- wait until we are stationary
 		return true
 	end
 	
@@ -536,7 +536,7 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	SceneMan:CastObstacleRay(Owner.Pos, Vector(512, 0), Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4)
 	local Dist = SceneMan:ShortestDistance(Owner.Pos, Free, false)
 	
-	if Dist.Magnitude > 20 then
+	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints()
 		Owner:AddAISceneWaypoint(Free)
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
@@ -560,7 +560,7 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	SceneMan:CastObstacleRay(Owner.Pos, Vector(-512, 0), Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4)
 	Dist = SceneMan:ShortestDistance(Owner.Pos, Free, false)
 	
-	if Dist.Magnitude > 20 then
+	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints()
 		Owner:AddAISceneWaypoint(Free)
 		local _ai, _ownr, _abrt = coroutine.yield()	-- wait until next frame
@@ -586,7 +586,7 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	
 	if WptA then
 		Dist = SceneMan:ShortestDistance(Owner.Pos, WptA, false)
-		if Dist.Magnitude > 20 then
+		if Dist:MagnitudeIsGreaterThan(20) then
 			Owner:AddAISceneWaypoint(WptA)
 		else
 			WptA = nil
@@ -595,7 +595,7 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	
 	if WptB then
 		Dist = SceneMan:ShortestDistance(Owner.Pos, WptB, false)
-		if Dist.Magnitude > 20 then
+		if Dist:MagnitudeIsGreaterThan(20) then
 			Owner:AddAISceneWaypoint(WptB)
 		else
 			WptB = nil
@@ -721,7 +721,7 @@ function HumanBehaviors.GoldDig(AI, Owner, Abort)
 				end
 				
 				if penalty < smallestPenalty then
-					if Dist.Magnitude < 50 then	-- dig to a point behind the gold
+					if Dist:MagnitudeIsLessThan(50) then	-- dig to a point behind the gold
 						GoldPos = Owner.Pos + Dist:SetMagnitude(55)
 					end
 					
@@ -1199,7 +1199,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					CurrDist = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false)
 					if (Owner.Pos.X > AI.BlockingMO.Pos.X and CurrDist.X < Owner.Pos.X) or
 						(Owner.Pos.X < AI.BlockingMO.Pos.X and CurrDist.X > Owner.Pos.X) or
-						SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false).Magnitude > Owner.Diameter + AI.BlockingMO.Diameter
+						SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false):MagnitudeIsGreaterThan(Owner.Diameter + AI.BlockingMO.Diameter)
 					then
 						AI.BlockingMO = nil	-- the blocking actor is not in the way any longer
 						AI.teamBlockState = Actor.NOTBLOCKED
@@ -1341,7 +1341,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								if Waypoint.Type ~= "drop" and Owner:HasObjectInGroup("Tools - Diggers") then
 									local PathSegRay = SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false)	-- detect material blocking the path and start digging through it
 									if AI.teamBlockState ~= Actor.BLOCKED and SceneMan:CastStrengthRay(PrevWptPos, PathSegRay, 4, Free, 2, rte.doorID, true) then
-										if SceneMan:ShortestDistance(Owner.Pos, Free, false).Magnitude < Owner.Height*0.4 then	-- check that we're close enough to start digging
+										if SceneMan:ShortestDistance(Owner.Pos, Free, false):MagnitudeIsLessThan(Owner.Height*0.4) then	-- check that we're close enough to start digging
 											digState = AHuman.STARTDIG
 											AI.deviceState = AHuman.DIGGING
 											obstacleState = Actor.DIGPAUSING
@@ -1505,8 +1505,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										end
 										
 										-- check if we are close enough to dig
-										if SceneMan:ShortestDistance(PrevWptPos, Owner.Pos, false).Magnitude > Owner.Height*0.5 and
-											 SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Magnitude > Owner.Height*0.5
+										if SceneMan:ShortestDistance(PrevWptPos, Owner.Pos, false):MagnitudeIsGreaterThan(Owner.Height*0.5) and
+											 SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):MagnitudeIsGreaterThan(Owner.Height*0.5)
 										then
 											digState = AHuman.NOTDIGGING
 											obstacleState = Actor.PROCEEDING
@@ -1633,7 +1633,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								if _abrt then return true end
 							end
 							
-							if CurrDist.Magnitude > Owner.Height * 0.4 then	-- not close enough to the waypoint
+							if CurrDist:MagnitudeIsGreaterThan(Owner.Height * 0.4) then	-- not close enough to the waypoint
 								ArrivedTimer:Reset()
 								
 								-- check if we have LOS to the waypoint
@@ -1754,7 +1754,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false)
 												SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3)
 												
-												if jumpScore > SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude then
+												if SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false):MagnitudeIsLessThan(jumpScore) then
 													AI.jump = false
 												else
 													AI.jump = true
@@ -1929,7 +1929,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				for _, WptPos in pairs(PathDump) do
 					Origin = TmpWpts[index].Pos
 					local Dist = SceneMan:ShortestDistance(Origin, WptPos, false)
-					if math.abs(Dist.Y) > 30 or Dist.Magnitude > 80 or	-- skip any waypoint too close to the previous one
+					if math.abs(Dist.Y) > 30 or Dist:MagnitudeIsGreaterThan(80) or	-- skip any waypoint too close to the previous one
 						SceneMan:CastStrengthSumRay(Origin, WptPos, 3, rte.grassID) > 5
 					then
 						table.insert(TmpWpts, {Pos=LastPos})
@@ -1958,7 +1958,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							local GapList = {}
 							for j, JumpWpt in pairs(TmpWpts) do	-- look for the other side
 								local Gap = SceneMan:ShortestDistance(StartWpt.Pos, JumpWpt.Pos, false)
-								if Gap.Magnitude > 400 - Gap.Y then	-- TODO: use actor properties here
+								if Gap:MagnitudeIsGreaterThan(400) - Gap.Y then	-- TODO: use actor properties here
 									break	-- too far
 								end
 								
@@ -2354,7 +2354,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 					elseif range < PrjDat.rng then
 						-- lead the target if target speed and projectile TTT is above the threshold
 						local timeToTarget = range / PrjDat.vel
-						if timeToTarget * TargetAvgVel.Magnitude > 2 then
+						if timeToTarget * TargetAvgVel:MagnitudeIsGreaterThan(2) then
 							-- ~double this value since we only do this every second update
 							if PosRand() > 0.5 then
 								timeToTarget = timeToTarget * (2 - RangeRand(0, 0.4) * AI.aimSkill)
@@ -2861,7 +2861,7 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 			local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y)
 			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos
 			local dist = SceneMan:ShortestDistance(startPos, attackPos, false)
-			if dist.Magnitude < meleeDist then
+			if dist:MagnitudeIsLessThan(meleeDist) then
 				AI.lateralMoveState = Actor.LAT_STILL
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized
 				AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1)
@@ -3044,7 +3044,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 	--ConsoleMan:PrintString(Owner.EquippedItem.PresetName .. " range = " .. PrjDat.rng .. " px")
 	--ConsoleMan:PrintString("AimPoint range = " .. SceneMan:ShortestDistance(Owner.Pos, AimPoint, false).Magnitude .. " px")
 	
-	if Dist.Magnitude < PrjDat.rng then
+	if Dist:MagnitudeIsLessThan(PrjDat.rng) then
 		aim = HumanBehaviors.GetAngleToHit(PrjDat, Dist)
 	else
 		return true	-- target out of range
@@ -3100,7 +3100,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 						aimError = RangeRand(-0.15, 0.15) * AI.aimSkill
 						
 						Dist = SceneMan:ShortestDistance(Owner.EquippedItem.Pos, AimPoint, false)
-						if Dist.Magnitude < PrjDat.rng then
+						if Dist:MagnitudeIsLessThan(PrjDat.rng) then
 							aim = HumanBehaviors.GetAngleToHit(PrjDat, Dist)
 						end
 					end

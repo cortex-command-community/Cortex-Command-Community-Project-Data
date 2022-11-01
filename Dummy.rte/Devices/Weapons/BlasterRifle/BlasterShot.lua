@@ -15,7 +15,7 @@ function Update(self)
 		self.trailPar.Vel = self.PrevVel * 0.5;
 		self.trailPar.Lifetime = self.Age + TimerMan.DeltaTimeMS;
 	end
-	if self.Vel.Magnitude < 4 then
+	if self.Vel:MagnitudeIsLessThan(4) then
 		self.ToDelete = true;
 	end
 end

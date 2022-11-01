@@ -53,7 +53,7 @@ function Update(self)
 			for actor in MovableMan.Actors do
 				if IsActor(actor) then
 					local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, false);
-					if dist.Magnitude < 25 and actor.PinStrength == 0 then
+					if dist:MagnitudeIsLessThan(25) and actor.PinStrength == 0 then
 						target = actor;
 						-- Chargeup.
 						self.porttime = self.porttime / (1 + self.portSpeed);

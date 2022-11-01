@@ -28,7 +28,7 @@ function Update(self)
 			end
 		end
 	end
-	if self.Vel.Magnitude < 4 then
+	if self.Vel:MagnitudeIsLessThan(4) then
 		self.ToDelete = true;
 	end
 end

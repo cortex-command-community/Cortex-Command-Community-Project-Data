@@ -26,7 +26,7 @@ function Update(self)
 				local targetCount = 0;
 				self.actionPhase = self.actionPhase + 1;
 				for i = 1, #self.targetTable do
-					if self.targetTable[i] and IsMOSRotating(self.targetTable[i]) and SceneMan:ShortestDistance(self.MuzzlePos, self.targetTable[i].Pos, SceneMan.SceneWrapsX).Magnitude < (self.disarmRange + 5) then
+					if self.targetTable[i] and IsMOSRotating(self.targetTable[i]) and SceneMan:ShortestDistance(self.MuzzlePos, self.targetTable[i].Pos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.disarmRange + 5) then
 						targetCount = targetCount + 1;
 						local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (self.actionPhase == 4 and "Safe" or "Neutral"));
 						detectPar.Pos = self.targetTable[i].Pos;
@@ -80,7 +80,7 @@ function Update(self)
 				for _, bombTable in pairs(disarmTables) do
 					if bombTable then
 						for _, explosive in pairs(bombTable) do
-							if MovableMan:IsParticle(explosive) and SceneMan:ShortestDistance(self.MuzzlePos, explosive.Pos, SceneMan.SceneWrapsX).Magnitude < self.disarmRange then
+							if MovableMan:IsParticle(explosive) and SceneMan:ShortestDistance(self.MuzzlePos, explosive.Pos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.disarmRange) then
 								alarm = true;
 								local isFriendly = explosive.Team == self.Team;
 								alarmSound = isFriendly and alarmSound or self.dangerSound;

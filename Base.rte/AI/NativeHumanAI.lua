@@ -260,12 +260,10 @@ function NativeHumanAI:Update(Owner)
 		else
 			if FoundMO.Team == Owner.Team then	-- found an ally
 				if self.Target then
-					if SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).Magnitude <
-						SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude
-					then
+					if SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).SqrMagnitude < SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).SqrMagnitude then
 						self.Target = nil	-- stop shooting
 					end
-				elseif FoundMO.ClassName ~= "ADoor" and SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).Magnitude < Owner.Diameter + FoundMO.Diameter then
+				elseif FoundMO.ClassName ~= "ADoor" and SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false):MagnitudeIsLessThan(Owner.Diameter + FoundMO.Diameter) then
 					self.BlockingMO = FoundMO	-- this MO is blocking our path
 				end
 			else
@@ -527,7 +525,7 @@ function NativeHumanAI:Update(Owner)
 		if self.PickupHD then
 			if not MovableMan:IsDevice(self.PickupHD) or self.PickupHD.ID ~= self.PickupHD.RootID then
 				self.PickupHD = nil	-- the HeldDevice has been destroyed or picked up
-			elseif SceneMan:ShortestDistance(Owner.Pos, self.PickupHD.Pos, false).Magnitude < Owner.Height then
+			elseif SceneMan:ShortestDistance(Owner.Pos, self.PickupHD.Pos, false):MagnitudeIsLessThan(Owner.Height) then
 				self.Ctrl:SetState(Controller.WEAPON_PICKUP, true)
 			end
 		end

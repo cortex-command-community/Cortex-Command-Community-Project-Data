@@ -8,7 +8,7 @@ function Create(self)
 	
 	for actor in MovableMan.Actors do
 		local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-		if dist.Magnitude < self.effectRadius then
+		if dist:MagnitudeIsLessThan(self.effectRadius) then
 			local skipPx = 1 + (dist.Magnitude * 0.01);
 			local strCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, skipPx, rte.airID);
 			if strCheck < (100/skipPx) then

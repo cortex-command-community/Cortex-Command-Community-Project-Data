@@ -23,7 +23,7 @@ function Create(self)
 end
 function Update(self)
 	--Apply damage to the actors inside based on impulse forces
-	if self.TravelImpulse.Magnitude > self.Mass then
+	if self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then
 		for actor in self.Inventory do
 			if actor and IsActor(actor) and string.find(actor.Material.PresetName, "Flesh") then
 				actor = ToActor(actor);

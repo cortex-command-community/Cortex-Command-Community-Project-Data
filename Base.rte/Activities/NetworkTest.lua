@@ -189,11 +189,11 @@ function NetworkTest:UpdateActivity()
 		end--]]--
 		
 		
-		--[[if actor.TravelImpulse.Magnitude > 0 then
+		--[[if actor.TravelImpulse:MagnitudeIsGreaterThan(0) then
 			actor:FlashWhite(75)
 		end
 		
-		if actor.TravelImpulse.Magnitude > actor.ImpulseDamageThreshold / 2 then
+		if actor.TravelImpulse:MagnitudeIsGreaterThan(actor.ImpulseDamageThreshold / 2) then
 			FrameMan:FlashScreen(0, 10, 250);
 		end--]]--
 	end

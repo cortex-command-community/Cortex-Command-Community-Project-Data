@@ -19,7 +19,7 @@ function Update(self)
 		self:EnableEmission(true);
 		if self.target and self.target.ID ~= rte.NoMOID then
 			local targetDist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
-			if targetDist.Magnitude < (self.Radius + self.target.IndividualRadius) then
+			if targetDist:MagnitudeIsLessThan(self.Radius + self.target.IndividualRadius) then
 				self:GibThis();
 			else
 				local targetVel = targetDist:SetMagnitude(self.turnStrength);

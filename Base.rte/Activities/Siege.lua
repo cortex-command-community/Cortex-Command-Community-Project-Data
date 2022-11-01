@@ -110,7 +110,7 @@ function Siege:StartActivity()
 		-- to delete themselves, because otherwise they are most likely to stand there for the whole battle and waste MOs
 		for actor in MovableMan.AddedActors do
 			if actor.Team == self.PlayerTeam and self.BrainChamber:IsInside(actor.Pos)
-			and SceneMan:ShortestDistance(actor.Pos, playerBrainsLocation, false).Magnitude > 200
+			and SceneMan:ShortestDistance(actor.Pos, playerBrainsLocation, false):MagnitudeIsGreaterThan(200)
 			and not actor:HasObjectInGroup("Brains") and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				actor.ToDelete = true
 			end

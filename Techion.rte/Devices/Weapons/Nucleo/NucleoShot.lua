@@ -52,7 +52,7 @@ function Update(self)
 				end
 			else
 				local rayDirection = SceneMan:ShortestDistance(self.Pos,NucleoCommunicationTable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX)
-				if MovableMan:IsParticle(NucleoCommunicationTable[self.Sharpness][i][2]) and rayDirection.Magnitude < self.linkRange then
+				if MovableMan:IsParticle(NucleoCommunicationTable[self.Sharpness][i][2]) and rayDirection:MagnitudeIsLessThan(self.linkRange) then
 				
 					local dist = SceneMan:ShortestDistance(self.Pos, NucleoCommunicationTable[self.Sharpness][i][2].Pos, SceneMan.SceneWrapsX);
 					PrimitiveMan:DrawLinePrimitive(self.Pos + Vector(math.random(-1, 1), math.random(-1, 1)), self.Pos + dist + Vector(math.random(-1, 1), math.random(-1, 1)), self.colors[math.random(#self.colors)]);

@@ -84,7 +84,7 @@ function Update(self)
 			crouching = false;
 		elseif crouching then
 			if not self.crouchHeld then
-				if not self.tapTimer:IsPastSimMS(self.lungeTapDelay) and SceneMan.Scene.GlobalAcc.Magnitude > 10 then
+				if not self.tapTimer:IsPastSimMS(self.lungeTapDelay) and SceneMan.Scene.GlobalAcc:MagnitudeIsGreaterThan(10) then
 					self.dir = self.lunge(self.lungePower);
 				end
 				self.tapTimer:Reset();

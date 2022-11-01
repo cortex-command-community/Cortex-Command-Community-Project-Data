@@ -57,7 +57,7 @@ function Update(self)
 					end
 				end
 				-- A guide arrow appears at higher speeds
-				if (self.Magazine.Scale == 0 and not controller:IsState(Controller.AIM_SHARP)) or parent.Vel.Magnitude > 6 then
+				if (self.Magazine.Scale == 0 and not controller:IsState(Controller.AIM_SHARP)) or parent.Vel:MagnitudeIsGreaterThan(6) then
 					self.guide = true;
 				else
 					self.guide = false;
@@ -65,7 +65,7 @@ function Update(self)
 			end
 			if self.guide then
 				local frame = 0;
-				if parent.Vel.Magnitude > 12 then
+				if parent.Vel:MagnitudeIsGreaterThan(12) then
 					frame = 1;
 				end
 				local startPos = (parent.Pos + parent.EyePos + self.Pos)/3;

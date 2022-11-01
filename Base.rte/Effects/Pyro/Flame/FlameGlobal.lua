@@ -34,7 +34,7 @@ function Update(self)
 				else
 					GlobalFlameManagement.Flames[i].target = nil;
 					if math.random() > ageRatio then
-						if flame.Vel.Magnitude > 1 then
+						if flame.Vel:MagnitudeIsGreaterThan(1) then
 							local checkPos = Vector(flame.Pos.X, flame.Pos.Y - 1) + flame.Vel * rte.PxTravelledPerFrame * math.random();
 							local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 							if moCheck ~= rte.NoMOID then
@@ -60,7 +60,7 @@ function Update(self)
 							if flame.Throttle < 0 then
 								for n = 1, #nearbyFlame do
 									local dist = SceneMan:ShortestDistance(flame.Pos + flame.Vel * rte.PxTravelledPerFrame, nearbyFlame[n].Pos, SceneMan.SceneWrapsX);
-									if dist.Magnitude < 2 then
+									if dist:MagnitudeIsLessThan(2) then
 										flame.Lifetime = flame.Lifetime + nearbyFlame[n].Lifetime * 0.5;
 										flame.Throttle = flame.Throttle + nearbyFlame[n].Throttle + 1;
 										flame.Pos = flame.Pos + dist * 0.5;

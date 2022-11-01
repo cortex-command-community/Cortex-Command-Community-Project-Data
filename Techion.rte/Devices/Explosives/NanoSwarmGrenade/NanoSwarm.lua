@@ -154,7 +154,7 @@ function Update(self)
 			
 			--Attack, if necessary.
 			if self.target.PresetName ~= "Nanowasp Swarm" and self.target.Team ~= self.Team then
-				if SceneMan:ShortestDistance(self.Pos, self.target.Pos, true).Magnitude < self.attackDist then
+				if SceneMan:ShortestDistance(self.Pos, self.target.Pos, true):MagnitudeIsLessThan(self.attackDist) then
 					attacking = true;
 				end
 			end

@@ -50,7 +50,7 @@ function PulsarDissipate(self, inverted)
 		local penetration = self.Mass * self.Sharpness * self.Vel.Magnitude;
 		if SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)).StructuralIntegrity > penetration then
 			hit = true;
-		elseif self.Vel.Magnitude < self.PrevVel.Magnitude * 0.5 then
+		elseif self.Vel:MagnitudeIsLessThan(self.PrevVel.Magnitude * 0.5) then
 			hit = true;
 		end
 	end

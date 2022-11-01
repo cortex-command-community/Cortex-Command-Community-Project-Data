@@ -243,7 +243,7 @@ function Update(self)
 				if self:GetStringValue("ConstructorMode") == "Spray" then
 					self:SetStringValue("ConstructorMode", "Dig");
 				end
-				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), SceneMan.SceneWrapsX).Magnitude < 30 then
+				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), SceneMan.SceneWrapsX):MagnitudeIsLessThan(30) then
 					self.tunnelFillTimer:Reset();
 					self.operatedByAI = true;
 					self.aiSkillRatio = 1.5 - ActivityMan:GetActivity():GetTeamAISkill(actor.Team)/100;
@@ -463,7 +463,7 @@ function Update(self)
 				self.blockSize = math.max(self.blockSize/2, 6);
 			end
 
-			if cursorMovement.Magnitude > 0 then
+			if cursorMovement:MagnitudeIsGreaterThan(0) then
 				self.cursor = self.cursor + (mouseControlled and cursorMovement or cursorMovement:SetMagnitude(self.cursorMoveSpeed * (aiming and 0.5 or 1)));
 			end
 			local precise = not mouseControlled and aiming;
@@ -521,7 +521,7 @@ function Update(self)
 			if self.buildList[i] ~= nil then
 				tempList[#tempList + 1] = self.buildList[i];
 				if not self.operatedByAI then
-					if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[i][1], self.buildList[i][2]), SceneMan.SceneWrapsX).Magnitude < self.buildDistance then
+					if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[i][1], self.buildList[i][2]), SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.buildDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildList[i][1], self.buildList[i][2]), Vector(self.buildList[i][1] + self.buildList[i][4] - 1, self.buildList[i][2] + self.buildList[i][4] - 1), displayColorBlue);
 					else
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildList[i][1], self.buildList[i][2]), Vector(self.buildList[i][1] + self.buildList[i][4] - 1, self.buildList[i][2] + self.buildList[i][4] - 1), displayColorRed);
@@ -533,7 +533,7 @@ function Update(self)
 
 		-- building up the first block in the build queue
 		if self.resource >= self.buildCost and self.buildList[1] then
-			if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[1][1], self.buildList[1][2]), SceneMan.SceneWrapsX).Magnitude < self.buildDistance then
+			if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[1][1], self.buildList[1][2]), SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.buildDistance) then
 				--TODO: experiment with different cell sizes?
 				local cellSize = 3;
 				local oneThirdBlock = self.buildList[1][4]/cellSize;

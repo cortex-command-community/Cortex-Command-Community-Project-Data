@@ -17,7 +17,7 @@ function Update(self)
 	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X) * 0.1);
 	if self.target and self.target.ID ~= rte.NoMOID then
 		local targetDist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
-		if targetDist.Magnitude < self.Diameter then
+		if targetDist:MagnitudeIsLessThan(self.Diameter) then
 			self:GibThis();
 		else
 			local targetVel = targetDist:SetMagnitude(self.turnStrength);

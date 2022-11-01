@@ -36,7 +36,7 @@ function Update(self)
 		parent = ToActor(parent);
 		local controller = parent:GetController();
 		local resource = parent:GetNumberValue("RoninShovelResource");
-		if parent:IsPlayerControlled() and controller:IsState(Controller.AIM_SHARP) and (not controller:IsMouseControlled() or controller.AnalogAim.Magnitude > 0.9) then
+		if parent:IsPlayerControlled() and controller:IsState(Controller.AIM_SHARP) and (not controller:IsMouseControlled() or controller.AnalogAim:MagnitudeIsGreaterThan(0.9)) then
 			self.InheritedRotAngleOffset = math.min(self.InheritedRotAngleOffset + (0.0003 * self.RateOfFire), self.angleSize * 2);
 		else
 			self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
@@ -113,7 +113,7 @@ function Update(self)
 		if self.Magazine then
 			self.Magazine.Scale = 0;
 		end
-		if self.lastVel.Magnitude > 25 then
+		if self.lastVel:MagnitudeIsGreaterThan(25) then
 			if self.HitWhatMOID ~= rte.NoMOID then
 				local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
 				if mo then

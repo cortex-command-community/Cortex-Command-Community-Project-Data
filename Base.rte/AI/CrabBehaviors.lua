@@ -27,11 +27,11 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 		else
 			if FoundMO.Team == Owner.Team then	-- found an ally
 				if AI.Target then
-					if SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).Magnitude < SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).Magnitude then
+					if SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).SqrMagnitude < SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).SqrMagnitude then
 						AI.Target = nil	-- stop shooting
 					end
 				elseif FoundMO.ClassName ~= "ADoor" and
-					SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).Magnitude < Owner.Diameter + FoundMO.Diameter
+					SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false):MagnitudeIsLessThan(Owner.Diameter + FoundMO.Diameter)
 				then
 					AI.BlockingMO = FoundMO	-- this MO is blocking our path
 				end
@@ -295,7 +295,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 			if _abrt then return true end
 		end
 		
-		if Owner.Vel.Magnitude > 2 then
+		if Owner.Vel:MagnitudeIsGreaterThan(2) then
 			StuckTimer:Reset()
 		end
 		
@@ -396,7 +396,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 			if _abrt then return true end
 			
 			for WptPos in Owner.MovePath do	-- skip any waypoint too close to the previous one
-				if SceneMan:ShortestDistance(TmpList[#TmpList].Pos, WptPos, false).Magnitude > 10 then
+				if SceneMan:ShortestDistance(TmpList[#TmpList].Pos, WptPos, false):MagnitudeIsGreaterThan(10) then
 					table.insert(TmpList, {Pos=WptPos})
 				end
 			end
@@ -408,7 +408,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 				
 				-- already at the target
-				if not Dist or Dist.Magnitude < 25 then
+				if not Dist or Dist:MagnitudeIsLessThan(25) then
 					Owner:ClearMovePath()
 					break
 				end
@@ -428,7 +428,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 		
 		if AI.BlockingMO then
 			if not MovableMan:ValidMO(AI.BlockingMO) or
-				SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false).Magnitude > (Owner.Diameter + AI.BlockingMO.Diameter)*1.2
+				SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false):MagnitudeIsGreaterThan((Owner.Diameter + AI.BlockingMO.Diameter)*1.2)
 			then
 				AI.BlockingMO = nil
 				AI.teamBlockState = Actor.NOTBLOCKED
@@ -555,7 +555,7 @@ function CrabBehaviors.ShootTarget(AI, Owner, Abort)
 				local Dist = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false)
 				local viewLen = SceneMan:ShortestDistance(Owner.EyePos, Owner.ViewPoint, false).Magnitude + FrameMan.PlayerScreenWidth * 0.55	-- TODO: get AimDistance and SharpLength from the ini
 				
-				if Dist.Magnitude < viewLen then
+				if Dist:MagnitudeIsLessThan(viewLen) then
 					local ID = SceneMan:CastMORay(Owner.EyePos, Dist, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, false, 9)
 					if ID ~= rte.NoMOID and (ID == AI.Target.ID or (MovableMan:GetMOFromID(ID)).RootID == AI.Target.ID) then
 						AI.TargetLostTimer:Reset()	-- we can see the target

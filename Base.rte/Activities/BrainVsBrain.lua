@@ -452,7 +452,7 @@ function BrainvsBrain:UpdateActivity()
 								else
 									-- Attack target
 									self.SpawnTimer:Reset()
-									if MovableMan:IsActor(self.CPUBrain) and SceneMan:ShortestDistance(self.AttackActor.Pos, self.CPUBrain.Pos, false).Magnitude < 1000 then
+									if MovableMan:IsActor(self.CPUBrain) and SceneMan:ShortestDistance(self.AttackActor.Pos, self.CPUBrain.Pos, false):MagnitudeIsLessThan(1000) then
 										-- The player is close to the AI brain so spawn again soon
 										self.spawnDelay = (25000 - self.Difficulty * 150) * rte.SpawnIntervalScale
 									else

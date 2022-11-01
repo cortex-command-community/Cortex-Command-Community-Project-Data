@@ -49,7 +49,7 @@ function Update(self)
 	end
 	if self.deleteNextFrame then
 		self.ToDelete = true;
-	elseif self.Vel.Magnitude >= self.speedThreshold then
+	elseif self.Vel:MagnitudeIsGreaterThan(self.speedThreshold) then
 		--Check forward.
 		self.CheckCollision(false);
 	end

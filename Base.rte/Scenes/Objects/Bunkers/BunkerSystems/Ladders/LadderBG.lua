@@ -40,7 +40,7 @@ function Update(self)
 						if climb or (controller:IsState(Controller.MOVE_LEFT) or controller:IsState(Controller.MOVE_RIGHT)) then
 							local speed = actor:GetLimbPathSpeed(1)/velFactor;
 							actor.Vel = actor.Vel * (1 - 1/velFactor) + Vector(speed, 0):RadRotate(actor:GetAimAngle(true)) - gravity * (0.4 + self.skipFrames/velFactor);
-						elseif actor.Vel.Magnitude < 5 then
+						elseif actor.Vel:MagnitudeIsLessThan(5) then
 							--Counter gravity to keep actor still
 							actor.Vel = Vector() - gravity * (0.2 + self.skipFrames/velFactor);
 						end

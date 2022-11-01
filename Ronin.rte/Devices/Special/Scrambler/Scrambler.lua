@@ -14,7 +14,7 @@ function Update(self)
 			self:GibThis();
 		end
 		--Diminish fuze length on impact
-		if self.TravelImpulse.Magnitude > 1 then
+		if self.TravelImpulse:MagnitudeIsGreaterThan(1) then
 			self.fuzeDelay = self.fuzeDelay - self.TravelImpulse.Magnitude * self.fuzeDecreaseIncrement;
 		end
 	elseif self:IsActivated() then

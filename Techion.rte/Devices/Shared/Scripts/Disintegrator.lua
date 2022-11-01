@@ -17,7 +17,7 @@ function Create(self)
 		local actor = MovableMan:GetClosestEnemyActor(self.Team, self.Pos, strength, dist);
 		if actor then
 			local sizeEstimate = (actor.Height + actor.Diameter)/3;
-			if dist.Magnitude < sizeEstimate and sizeEstimate < 50 then
+			if dist:MagnitudeIsLessThan(sizeEstimate) and sizeEstimate < 50 then
 				target = ToActor(actor);
 				strength = strength/math.sqrt(dist.Magnitude);
 			end

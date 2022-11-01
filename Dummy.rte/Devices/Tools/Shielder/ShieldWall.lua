@@ -24,7 +24,7 @@ function Update(self)
 
 	self.AngularVel = 0;
 
-	if self.PinStrength == 0 and self.Vel.Magnitude < 1 then
+	if self.PinStrength == 0 and self.Vel:MagnitudeIsLessThan(1) then
 		self.PinStrength = self.Mass;
 	else
 		self.Vel = Vector();

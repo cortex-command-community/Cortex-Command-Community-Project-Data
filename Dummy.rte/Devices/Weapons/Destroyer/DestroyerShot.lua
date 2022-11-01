@@ -10,7 +10,7 @@ end
 
 function Update(self)
 
-	self.Vel = self.Vel.Magnitude < self.startSpeed and Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude + self.acceleration) or self.Vel;
+	self.Vel = self.Vel:MagnitudeIsLessThan(self.startSpeed) and Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude + self.acceleration) or self.Vel;
 
 	if self.emitTimer:IsPastSimMS(6) then
 		self.emitTimer:Reset();

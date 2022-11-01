@@ -14,7 +14,7 @@ function Update(self)
 
 			for actor in MovableMan.Actors do
 				local dist = SceneMan:ShortestDistance(self.MuzzlePos, actor.Pos, SceneMan.SceneWrapsX);
-				if dist.Magnitude < (actor.Radius + extend) and actor.Team == self.Team and actor.ID ~= parent.ID then
+				if dist:MagnitudeIsLessThan(actor.Radius + extend) and actor.Team == self.Team and actor.ID ~= parent.ID then
 					target = actor;
 					break;
 				end
