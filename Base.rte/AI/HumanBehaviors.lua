@@ -242,7 +242,7 @@ function HumanBehaviors.GetGrenadeAngle(AimPoint, TargetVel, StartPos, muzVel)
 		local timeToTarget = range / muzVel;
 
 		-- lead the target if target speed and projectile TTT is above the threshold
-		if timeToTarget * TargetVel:MagnitudeIsGreaterThan(0.5) then
+		if (timeToTarget * TargetVel.Magnitude) > 0.5 then
 			AimPoint = AimPoint + TargetVel * timeToTarget;
 			Dist = SceneMan:ShortestDistance(StartPos, AimPoint, false);
 		end
@@ -1803,7 +1803,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
 											SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
-											table.sort(Facings, function(A, B) return A.range < B.range end)
+											table.sort(Facings, function(A, B) return A.range < B.range end);
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range;
 											if delta < 1 then
 												AI.jump = false;
@@ -1938,7 +1938,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							local GapList = {};
 							for j, JumpWpt in pairs(TmpWpts) do	-- look for the other side
 								local Gap = SceneMan:ShortestDistance(StartWpt.Pos, JumpWpt.Pos, false);
-								if Gap:MagnitudeIsGreaterThan(400) - Gap.Y then	-- TODO: use actor properties here
+								if Gap:MagnitudeIsGreaterThan(400 - Gap.Y) then	-- TODO: use actor properties here
 									break; -- too far
 								end
 
@@ -2325,7 +2325,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 					elseif range < PrjDat.rng then
 						-- lead the target if target speed and projectile TTT is above the threshold
 						local timeToTarget = range / PrjDat.vel;
-						if timeToTarget * TargetAvgVel:MagnitudeIsGreaterThan(2) then
+						if (timeToTarget * TargetAvgVel.Magnitude) > 2 then
 							-- ~double this value since we only do this every second update
 							if PosRand() > 0.5 then
 								timeToTarget = timeToTarget * (2 - RangeRand(0, 0.4) * AI.aimSkill);

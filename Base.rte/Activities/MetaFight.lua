@@ -1929,7 +1929,7 @@ function MetaFight:PurchaseLightInfantry(player, techID)
 	return digger, mass;
 end
 
-function MetaFight:PurchaseScoutInfantry(player, techID);
+function MetaFight:PurchaseScoutInfantry(player, techID)
 	local mass = 0;
 	local digger = 0;
 	local Cargo = RandomAHuman("Actors - Light", techID);

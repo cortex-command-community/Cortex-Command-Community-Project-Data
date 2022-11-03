@@ -1,7 +1,7 @@
 
 CrabBehaviors = {};
 
-function CrabBehaviors.LookForTargets(AI, Owner);
+function CrabBehaviors.LookForTargets(AI, Owner)
 	local viewAngDeg = RangeRand(35, 85) * Owner.Perceptiveness;
 	if AI.deviceState == AHuman.AIMING then
 		AI.Ctrl:SetState(Controller.AIM_SHARP, true);
@@ -82,7 +82,7 @@ function CrabBehaviors.LookForTargets(AI, Owner);
 end
 
 -- in sentry behavior the agent only looks for new enemies, it sometimes sharp aims to increase spotting range
-function CrabBehaviors.Sentry(AI, Owner, Abort);
+function CrabBehaviors.Sentry(AI, Owner, Abort)
 	local sweepUp = true;
 	local sweepDone = false;
 	-- to-do: refer to upper/lower limits!

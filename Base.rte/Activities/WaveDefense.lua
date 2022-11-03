@@ -540,7 +540,7 @@ function WaveDefense:SelectTarget(TargetActors)
 			for _, Data in pairs(TargetActors) do
 				sum = sum + math.exp(temperature*Data.chance);
 				if sum >= pick then
-					return Data.Act;;
+					return Data.Act;
 				end
 			end
 		end

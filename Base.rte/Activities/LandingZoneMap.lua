@@ -561,7 +561,7 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 end
 
 -- input: the team # that is looking for a target to bomb
-function LandingZoneMap:FindBombTarget(team);
+function LandingZoneMap:FindBombTarget(team)
 	local minimumDistanceRequiredFromEnemyBrain = 500;
 
 	local enemyBrainPositions = {};
@@ -762,7 +762,7 @@ function LandingZoneMap:FindSafeLZ(team, OccupiedLZs)
 end
 
 -- reduce the score around any existing craft to avoid collisions
-function LandingZoneMap:AddCraftScore(LZs, LZlookup);
+function LandingZoneMap:AddCraftScore(LZs, LZlookup)
 	local x_pos, tmp_pos;
 	local SceneCraft = {};
 

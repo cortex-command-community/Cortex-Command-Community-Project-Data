@@ -699,7 +699,7 @@ end
 
 function NativeHumanAI:CreateGoToBehavior(Owner)
 	self.NextGoTo = coroutine.create(HumanBehaviors.GoToWpt);
-	self.NextGoToCleanup = function(AI);
+	self.NextGoToCleanup = function(AI)
 		AI.lateralMoveState = Actor.LAT_STILL;
 		AI.deviceState = AHuman.STILL;
 		AI.proneState = AHuman.NOTPRONE;
@@ -765,7 +765,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		end
 	end
 
-	self.NextCleanup = function(AI);
+	self.NextCleanup = function(AI)
 		AI.fire = false;
 		AI.canHitTarget = false;
 		AI.deviceState = AHuman.STILL;
@@ -779,7 +779,7 @@ function NativeHumanAI:CreateHtHBehavior(Owner)					-- has to be digger, not jus
 	if Owner.AIMode ~= Actor.AIMODE_SQUAD and self.Target and (Owner:HasObjectInGroup("Tools - Diggers") or Owner:HasObjectInGroup("Weapons - Melee")) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget);
 		self.NextBehaviorName = "AttackTarget";
-		self.NextCleanup = function(AI);
+		self.NextCleanup = function(AI)
 			AI.fire = false;
 			AI.Target = nil;
 			AI.deviceState = AHuman.STILL;
@@ -799,7 +799,7 @@ function NativeHumanAI:CreateSuppressBehavior(Owner)
 		return;
 	end
 
-	self.NextCleanup = function(AI);
+	self.NextCleanup = function(AI)
 		AI.fire = false;
 		AI.UnseenTarget = nil;
 		AI.deviceState = AHuman.STILL;
@@ -810,13 +810,13 @@ end
 function NativeHumanAI:CreateMoveAroundBehavior(Owner)
 	self.NextGoTo = coroutine.create(HumanBehaviors.MoveAroundActor);
 	self.NextGoToName = "MoveAroundActor";
-	self.NextGoToCleanup = function(AI);
+	self.NextGoToCleanup = function(AI)
 		AI.lateralMoveState = Actor.LAT_STILL;
 		AI.jump = false;
 	end
 end
 
-function NativeHumanAI:CreateFaceAlarmBehavior(Owner);
+function NativeHumanAI:CreateFaceAlarmBehavior(Owner)
 	self.NextBehavior = coroutine.create(HumanBehaviors.FaceAlarm);
 	self.NextBehaviorName = "FaceAlarm";
 	self.NextCleanup = nil;

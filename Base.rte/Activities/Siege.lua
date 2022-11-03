@@ -467,7 +467,7 @@ function Siege:PlayerBrainsReachable()
 	return reachable;
 end
 
-function Siege:CreateHeavyDrop(xPosLZ, techName);
+function Siege:CreateHeavyDrop(xPosLZ, techName)
 	local Craft = RandomACDropShip("Craft", techName); -- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo
@@ -548,7 +548,7 @@ function Siege:CreateSWATDrop(xPosLZ, techName)
 end
 
 
-function Siege:CreateArtilleryDrop(xPosLZ, techName);
+function Siege:CreateArtilleryDrop(xPosLZ, techName)
 	local Craft = RandomACDropShip("Craft", techName); -- Pick a craft to deliver with
 	if Craft then
 		-- The max allowed weight of this craft plus cargo

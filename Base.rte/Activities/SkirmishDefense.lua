@@ -952,7 +952,7 @@ function SkirmishDefense:CreateLightInfantry(Team)
 	end
 end
 
-function SkirmishDefense:CreateHeavyInfantry(Team);
+function SkirmishDefense:CreateHeavyInfantry(Team)
 	local Passenger = RandomAHuman("Actors - Heavy", self.AI[Team].TechID);
 	if Passenger.ModuleID ~= self.AI[Team].TechID then
 		Passenger = RandomAHuman("Actors", self.AI[Team].TechID);
