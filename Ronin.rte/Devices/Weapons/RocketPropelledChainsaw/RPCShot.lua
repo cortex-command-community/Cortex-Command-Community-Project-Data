@@ -9,8 +9,8 @@ function Create(self)
 	self.dismemberStrength = 300;
 	self.length = ToMOSprite(self):GetSpriteWidth() * 0.5;
 end
-function Update(self)
 
+function Update(self)
 	self.AngularVel = self.AngularVel * 0.99;
 	self.Vel = self.Vel * 0.99;
 
@@ -63,7 +63,7 @@ function Update(self)
 		local newVel = Vector(-3/(self.Vel.Magnitude + 1) * self.FlipFactor, 0):RadRotate(self.RotAngle + RangeRand(-1.5, 1.5));
 		self.Vel = self.Vel + newVel;
 	else
-		self.toGibCounter = math.abs(self.toGibCounter - 1);	--Revert gib countdown
+		self.toGibCounter = math.abs(self.toGibCounter - 1); --Revert gib countdown
 		if math.random() < self.angleCorrectionRatio then
 			--Maintain straighter angle, making it easier to go through lots of objects
 			if math.abs(self.RotAngle) < math.pi then

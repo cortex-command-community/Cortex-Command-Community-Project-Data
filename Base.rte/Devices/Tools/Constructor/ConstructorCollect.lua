@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.speed = self.Vel.Magnitude;
 
 	self.ToSettle = false;
@@ -15,7 +14,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.target and self.target.ID ~= rte.NoMOID then
 		local dist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
 		if dist:MagnitudeIsGreaterThan(self.speed) then

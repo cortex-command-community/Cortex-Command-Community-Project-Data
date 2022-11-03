@@ -7,7 +7,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local frontCheck = SceneMan:CastMORay(self.Pos, Vector(10 * self.FlipFactor, 0), self.ID, -2, rte.airID, false, 1);
 	if frontCheck ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(frontCheck):GetRootParent();

@@ -2,6 +2,7 @@ function Create(self)
 	self.shotsPerBurst = self:NumberValueExists("ShotsPerBurst") and self:GetNumberValue("ShotsPerBurst") or 3;
 	self.coolDownDelay = (60000/self.RateOfFire) + 100;
 end
+
 function Update(self)
 	if self.Magazine then
 		if self.coolDownTimer then

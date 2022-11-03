@@ -2,6 +2,7 @@ function Create(self)
 	self.fuzeDelay = 4000;
 	self.fuzeDecreaseIncrement = 50;
 end
+
 function Update(self)
 	if self.fuze then
 		--Trail effect
@@ -76,6 +77,7 @@ function Update(self)
 		self.fuze = Timer();
 	end
 end
+
 function OnAttach(self, parent)
 	if not self.fuze then
 		self.guideRadius = self:GetRootParent().Radius;

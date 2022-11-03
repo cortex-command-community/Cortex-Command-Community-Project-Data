@@ -1,10 +1,12 @@
 function Create(self)
 	self.impactPower = self:NumberValueExists("ImpactPower") and self:GetNumberValue("ImpactPower") or self.Mass;
 end
+
 function OnDetach(self, exParent)
 	self.AngularVel = self.AngularVel - self.Vel.Magnitude * self.FlipFactor * math.random();
 	self.thrown = true;
 end
+
 function OnCollideWithMO(self, mo, rootMO)
 	if self.thrown then
 		local force = self.PrevVel * self.impactPower;

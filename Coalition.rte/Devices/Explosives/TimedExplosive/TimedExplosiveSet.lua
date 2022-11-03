@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.lifeTimer = Timer();
 	self.blinkTimer = Timer();
 	self.blipTimer = Timer();
@@ -30,7 +29,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if TimedExplosiveTable == nil then
 		TimedExplosiveTable = {};
 		TimedExplosiveTable[self.tableNum] = self;
@@ -90,6 +88,7 @@ function Update(self)
 		self.ToDelete = true;
 	end
 end
+
 function Destroy(self)
 	TimedExplosiveTable[self.tableNum] = nil;
 end

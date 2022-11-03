@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.explodeTimer = Timer();
 	self.partList = {};
 
@@ -28,7 +27,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	self.ToSettle = false;
 	self.ToDelete = false;
 

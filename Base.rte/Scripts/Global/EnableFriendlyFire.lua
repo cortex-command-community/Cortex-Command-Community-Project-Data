@@ -4,6 +4,7 @@ function FriendlyFireScript:StartScript()
 	self.updateTimer = Timer();
 	self.updateTimer:SetSimTimeLimitMS(math.ceil(TimerMan.DeltaTimeMS * 3));
 end
+
 function FriendlyFireScript:UpdateScript()
 	if self.updateTimer:IsPastSimTimeLimit() then
 		for part in MovableMan.Particles do

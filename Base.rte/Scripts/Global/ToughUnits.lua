@@ -1,6 +1,7 @@
 function ToughUnitsScript:StartScript()
 	self.multiplier = 2;
 end
+
 function ToughUnitsScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("ToughUnitsScript") then
@@ -16,6 +17,7 @@ function ToughUnitsScript:UpdateScript()
 		end
 	end
 end
+
 function ToughUnitsScript:Buff(actor)
 	actor:SetNumberValue("ToughUnitsScript", 1);
 	actor.GibWoundLimit = actor.GibWoundLimit * self.multiplier;

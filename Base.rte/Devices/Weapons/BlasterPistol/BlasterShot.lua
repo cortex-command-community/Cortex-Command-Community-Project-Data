@@ -5,6 +5,7 @@ function Create(self)
 	self.trailPar.Lifetime = 60;
 	MovableMan:AddParticle(self.trailPar);
 end
+
 function Update(self)
 	if not self.ToDelete and self.trailPar and MovableMan:IsParticle(self.trailPar) then
 		self.trailPar.Pos = self.Pos - Vector(self.PrevVel.X, self.PrevVel.Y):SetMagnitude(math.min(self.PrevVel.Magnitude * rte.PxTravelledPerFrame, self.TrailLength) * 0.5);

@@ -46,7 +46,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local endPoint = self.timer.ElapsedSimTimeS * self.speed;
 	if endPoint > self.range then
 		endPoint = self.range;

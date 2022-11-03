@@ -9,6 +9,7 @@ function Create(self)
 	self.increasePerShot = 1.05;
 	self.decreasePerFrame = 0.99;
 end
+
 function Update(self)
 	if not self.currentlySpinningDown and not self:IsActivated() and not self:IsReloading() and self.ActiveSound:IsBeingPlayed() then
 		self.spinDownTimer:Reset();

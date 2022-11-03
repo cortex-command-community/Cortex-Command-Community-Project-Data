@@ -1,5 +1,4 @@
 function Create(self)
-
 	if NucleoCommunicationTable == nil then
 		NucleoCommunicationTable = {};
 	end
@@ -25,7 +24,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local target;
 
 	if self.detTimer:IsPastSimMS(self.detDelay) then

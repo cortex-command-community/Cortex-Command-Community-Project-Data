@@ -5,6 +5,7 @@ function Create(self)
 	self.width = ToMOSprite(self):GetSpriteWidth();
 	self.height = ToMOSprite(self):GetSpriteHeight();
 end
+
 function Update(self)
 	if self.ClassName == "ThrownDevice" and not self:GetParent() then
 		local part = CreateMOSRotating(self:GetModuleAndPresetName());

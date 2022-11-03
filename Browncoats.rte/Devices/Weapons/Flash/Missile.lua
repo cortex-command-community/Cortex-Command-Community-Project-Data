@@ -13,6 +13,7 @@ function Create(self)
 	self.lifeTimer:SetSimTimeLimitMS(math.random(self.Lifetime * 0.5, self.Lifetime - math.ceil(TimerMan.DeltaTimeMS)));
 	self.activationDelay = math.random(50, 100);
 end
+
 function Update(self)
 	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X) * 0.1);
 	if self.lifeTimer:IsPastSimMS(self.activationDelay) then

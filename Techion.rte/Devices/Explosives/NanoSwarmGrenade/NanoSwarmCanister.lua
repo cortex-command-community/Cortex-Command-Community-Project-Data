@@ -1,6 +1,7 @@
 function Create(self)
 	self.fuzeDelay = 3000;
 end
+
 function Update(self)
 	if self.fuze then
 		if self.fuze:IsPastSimMS(self.fuzeDelay) then

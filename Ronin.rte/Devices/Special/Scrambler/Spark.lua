@@ -2,6 +2,7 @@ function Create(self)
 	self.checkTimer = Timer();
 	self.checkDelay = math.random(30);
 end
+
 function Update(self)
 	if self.checkTimer:IsPastSimMS(self.checkDelay) then
 		self.checkTimer:Reset();

@@ -7,6 +7,7 @@ function Create(self)
 	self.smokeAirThreshold = 5/(1 + self.smokeTrailLifeTime * 0.01);
 	self.smokeTwirlCounter = math.random() < 0.5 and math.pi or 0;
 end
+
 function Update(self)
 	local offset = self.Vel * rte.PxTravelledPerFrame;	--The effect will be created the next frame so move it one frame backwards towards the barrel
 

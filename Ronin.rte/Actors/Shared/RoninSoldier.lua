@@ -47,11 +47,11 @@ function Create(self)
 			self.Head:AddAttachable(headgear);
 		end
 		if not headgear and self.Head then
-			if self.face == 1 then	--"Mia"
+			if self.face == 1 then --"Mia"
 				self.DeathSound.Pitch = 1.2;
 				self.PainSound.Pitch = 1.2;
 				self.Head:AddAttachable(CreateAttachable("Ronin Black Hair", self.ModuleName));
-			elseif self.face == 4 then	--"Sandra"
+			elseif self.face == 4 then --"Sandra"
 				self.DeathSound.Pitch = 1.2;
 				self.PainSound.Pitch = 1.2;
 				self.Head:AddAttachable(CreateAttachable("Ronin Blonde Hair", self.ModuleName));
@@ -60,6 +60,7 @@ function Create(self)
 		self:SetNumberValue("Equipped", 1);
 	end
 end
+
 function Update(self)
 	self.controller = self:GetController();
 	local damaged = self.Health < self.PrevHealth - 1;

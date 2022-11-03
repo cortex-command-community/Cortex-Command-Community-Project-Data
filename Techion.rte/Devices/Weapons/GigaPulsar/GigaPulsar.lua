@@ -6,6 +6,7 @@ function Create(self)
 	self.dingSound = false;
 	self.ejectEffect = CreateAEmitter("Techion Giga Pulsar Magazine Eject Effect", "Techion.rte");
 end
+
 function Update(self)
 	if not self.currentlySpinningDown and not self:IsActivated() and not self:IsReloading() and self.ActiveSound:IsBeingPlayed() then
 		self.spinDownTimer:Reset();

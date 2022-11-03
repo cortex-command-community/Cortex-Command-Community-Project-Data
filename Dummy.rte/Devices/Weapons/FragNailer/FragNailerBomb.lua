@@ -8,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	self.ToDelete = false;
 
 	if self.actionPhase == 0 then

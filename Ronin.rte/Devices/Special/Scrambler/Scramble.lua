@@ -1,10 +1,10 @@
 function Create(self)
 	self.effectRadius = 125;
-	self.strength = self.PinStrength;	--Affects the duration of the effect
-	self.flashScreen = false;	--Do not turn on if you are prone to seizures
+	self.strength = self.PinStrength; --Affects the duration of the effect
+	self.flashScreen = false; --Do not turn on if you are prone to seizures
 
 	self.actorTable = {};
-	local actorCount = 0;	--Diminishes the effect the more actors are affected
+	local actorCount = 0; --Diminishes the effect the more actors are affected
 
 	for actor in MovableMan.Actors do
 		local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
@@ -40,6 +40,7 @@ function Create(self)
 	end
 	self.buzzSound = CreateSoundContainer("Ronin Scrambler Buzz", "Ronin.rte");
 end
+
 function Update(self)
 	self.ToSettle = false;
 	local actorCount = 0;
@@ -53,7 +54,7 @@ function Update(self)
 					actor.Status = Actor.UNSTABLE;
 					local ctrl = actor:GetController();
 					if math.random(50) < numberValue then
-						for i = 0, 29 do	--Go through and disable the gameplay-related controller states
+						for i = 0, 29 do --Go through and disable the gameplay-related controller states
 							ctrl:SetState(i, false);
 						end
 					end

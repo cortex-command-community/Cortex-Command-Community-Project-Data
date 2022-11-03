@@ -10,6 +10,7 @@ function Create(self)
 	self.trailPar.Lifetime = 60;
 	MovableMan:AddParticle(self.trailPar);
 end
+
 function Update(self)
 	self.ToSettle = false;
 	if self.explosion then
@@ -25,8 +26,8 @@ function Update(self)
 		end
 	end
 end
-function PulsarDissipate(self, inverted)
 
+function PulsarDissipate(self, inverted)
 	local trace = inverted and Vector(-self.Vel.X, -self.Vel.Y):SetMagnitude(GetPPM()) or Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + 1);
 	local hit = false;
 	local hitPos = Vector(self.Pos.X, self.Pos.Y);
@@ -68,9 +69,11 @@ function PulsarDissipate(self, inverted)
 	end
 	return hit;
 end
+
 function OnCollideWithMO(self, mo, parentMO)
 	PulsarDissipate(self, false);
 end
+
 function OnCollideWithTerrain(self, terrainID)
 	PulsarDissipate(self, false);
 end

@@ -2,6 +2,7 @@ function Create(self)
 	self.strength = self.Mass * self.Vel.Magnitude;
 	self.range = self.Lifetime * self.Vel.Magnitude;
 end
+
 function Update(self)
 	--Run the effect on Update() to give other particles a chance to reach the target
 	for i = 1 , MovableMan:GetMOIDCount() - 1 do

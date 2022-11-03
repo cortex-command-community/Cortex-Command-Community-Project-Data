@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.turnStrength = 5;
 	self.lifeTimer = Timer();
 	self.targetSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
@@ -13,6 +12,7 @@ function Create(self)
 	end
 	self.lifeTimer:SetSimTimeLimitMS(self.Lifetime - math.ceil(TimerMan.DeltaTimeMS));
 end
+
 function Update(self)
 	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X) * 0.1);
 	if self.target and self.target.ID ~= rte.NoMOID then

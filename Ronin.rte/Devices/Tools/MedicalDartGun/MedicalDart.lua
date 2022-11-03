@@ -3,6 +3,7 @@ function Create(self)
 	self.IgnoresTeamHits = false;
 	self.width = 3;
 end
+
 function OnCollideWithMO(self, mo, rootMO)
 	if not self.target then
 		local trajectoryScalar = math.abs(math.cos(self.RotAngle - self.Vel.AbsRadAngle));
@@ -47,6 +48,7 @@ function OnCollideWithMO(self, mo, rootMO)
 		end
 	end
 end
+
 function OnAttach(self, parent)
 	if string.find(parent.Material.PresetName, "Flesh") then
 		parent.DamageMultiplier = parent.DamageMultiplier * self.multiplier;
@@ -60,6 +62,7 @@ function OnAttach(self, parent)
 	end
 	self.target = parent;
 end
+
 function OnDetach(self, parent)
 	if parent and string.find(parent.Material.PresetName, "Flesh") then
 		parent.DamageMultiplier = parent.DamageMultiplier/self.multiplier;

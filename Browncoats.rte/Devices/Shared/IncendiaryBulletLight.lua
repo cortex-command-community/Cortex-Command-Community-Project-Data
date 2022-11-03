@@ -7,6 +7,7 @@ function Create(self)
 
 	self.fire = CreatePEmitter("Flame Hurt Short");
 end
+
 function Update(self)
 	if self.trailGlow and MovableMan:IsParticle(self.trailGlow) then
 		self.trailGlow.Pos = self.Pos - Vector(self.Vel.X, self.Vel.Y):SetMagnitude(math.min(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.trailLength) * 0.5);

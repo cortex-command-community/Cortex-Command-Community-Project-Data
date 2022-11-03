@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.blinkTimer = Timer();
 
 	self.actionPhase = 0;
@@ -57,8 +56,8 @@ function Update(self)
 		self.blinkTimer:Reset();
 	end
 end
-function RemoteExplosiveStick(self)
 
+function RemoteExplosiveStick(self)
 	if self.actionPhase == 0 then
 		local checkVec = Vector(self.Vel.X, self.Vel.Y + 1):SetMagnitude(math.max(self.Vel.Magnitude * rte.PxTravelledPerFrame, self.Radius));
 		--Find a user to ignore hits with
@@ -121,6 +120,7 @@ function RemoteExplosiveStick(self)
 		end
 	end
 end
+
 function Destroy(self)
 	RemoteExplosiveTableA[self.tableNum] = nil;
 	RemoteExplosiveTableB[self.tableNum] = nil;

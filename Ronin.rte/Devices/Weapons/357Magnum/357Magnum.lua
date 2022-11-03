@@ -6,6 +6,7 @@ function Create(self)
 	self.drawGunAngle = 0;
 	self.drawGun = false;
 end
+
 function Update(self)
 	--Read RateOfFire on Update() to take Global Scripts to account
 	if self.rof == nil then
@@ -27,7 +28,7 @@ function Update(self)
 					self.triggerPulled = true;
 
 					self.StanceOffset = Vector(8, 5);
-					self:SetNumberValue("CowboyMode", 3);	--Begin draw phase
+					self:SetNumberValue("CowboyMode", 3); --Begin draw phase
 				end
 			else
 				self.triggerPulled = false;
@@ -41,31 +42,31 @@ function Update(self)
 				elseif self.drawGunAngle < 0 then
 					self.drawGunAngle = 0;
 					if self.triggerPulled == false then
-						self:SetNumberValue("CowboyMode", 4);	--Final state: gun is drawn
+						self:SetNumberValue("CowboyMode", 4); --Final state: gun is drawn
 					end
 				end
 			end
 			self.RotAngle = self.RotAngle - (self.drawGunAngle * self.FlipFactor);
 
-			if self:GetNumberValue("CowboyMode") == 1 then		--Setup phase
+			if self:GetNumberValue("CowboyMode") == 1 then --Setup phase
 				self.RateOfFire = self.rof * self.rofBoost;
 				self.StanceOffset = Vector(3, 10);
-				self:SetNumberValue("CowboyMode", 2);		--Setup done
+				self:SetNumberValue("CowboyMode", 2); --Setup done
 
 				self.drawGunAngle = 1.4;
 				self:Deactivate();
 
-			elseif self:GetNumberValue("CowboyMode") == 2 then	--Ready to draw
+			elseif self:GetNumberValue("CowboyMode") == 2 then --Ready to draw
 				self:Deactivate();
 
-			elseif self:GetNumberValue("CowboyMode") == 3 then	--Drawing gun
+			elseif self:GetNumberValue("CowboyMode") == 3 then --Drawing gun
 				if self.triggerPulled == true then
 					self:Deactivate();
 				else
 					self:Deactivate();
-					self:SetNumberValue("CowboyMode", 4);	--Soon can fire
+					self:SetNumberValue("CowboyMode", 4); --Soon can fire
 				end
-			elseif self:GetNumberValue("CowboyMode") == 6 then	--Revert without firing
+			elseif self:GetNumberValue("CowboyMode") == 6 then --Revert without firing
 
 				self:RemoveNumberValue("CowboyMode");
 			end
@@ -85,7 +86,7 @@ function Update(self)
 		else
 			self:RemoveNumberValue("CowboyMode");
 		end
-	else	--Revert values if dropped or no longer controlled by player
+	else --Revert values if dropped or no longer controlled by player
 		self:SetOneHanded(true);
 		self:SetDualWieldable(true);
 		self.RateOfFire = self.rof;

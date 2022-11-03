@@ -5,6 +5,7 @@ function Create(self)
 
 	self.cockSound = CreateSoundContainer("Chamber Round", "Base.rte");
 end
+
 function Update(self)
 	local parent;
 	local actor = self:GetRootParent();

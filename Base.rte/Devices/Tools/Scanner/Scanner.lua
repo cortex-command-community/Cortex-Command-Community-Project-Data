@@ -11,7 +11,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self:IsActivated() then
 		if self.ScanTimer:IsPastSimMS(self.scanDelay) then
 			self.ScanTimer:Reset();

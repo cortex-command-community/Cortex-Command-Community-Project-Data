@@ -9,6 +9,7 @@ function Create(self)
 	self.origSharpStanceOffset = template.SharpStanceOffset;
 	DeleteEntity(template);
 end
+
 function Update(self)
 	if self.InheritedRotAngleOffset > 0 then
 		self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (self.recoilRevertSpeed * (1 + math.sqrt(self.RateOfFire * 0.1) * self.InheritedRotAngleOffset)), 0);

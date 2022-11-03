@@ -12,6 +12,7 @@ function Create(self)
 	self.fireTimer = Timer();
 	self.fireTimer:SetSimTimeLimitMS(500);
 end
+
 function Update(self)
 	local parent = self:GetParent();
 	if parent then

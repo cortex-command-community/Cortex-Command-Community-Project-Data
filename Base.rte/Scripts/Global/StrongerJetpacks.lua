@@ -1,6 +1,7 @@
 function StrongerJetpacksScript:StartScript()
 	self.multiplier = 1.3;
 end
+
 function StrongerJetpacksScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("StrongerJetpacksScript") then
@@ -11,6 +12,7 @@ function StrongerJetpacksScript:UpdateScript()
 		end
 	end
 end
+
 function StrongerJetpacksScript:BuffJetpack(actor)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor);

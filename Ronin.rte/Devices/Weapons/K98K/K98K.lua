@@ -4,6 +4,7 @@ function Create(self)
 
 	self.boltPullSound = CreateSoundContainer("Ronin Kar98 Bolt Pull Sound", "Ronin.rte");
 end
+
 function Update(self)
 	local parent;
 	local actor = self:GetRootParent();

@@ -70,6 +70,7 @@ function Create(self)
 		end
 	end
 end
+
 function Update(self)
 	if self.target and self.target.ID ~= rte.NoMOID then
 

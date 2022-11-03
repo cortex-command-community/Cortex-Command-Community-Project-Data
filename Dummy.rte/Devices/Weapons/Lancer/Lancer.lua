@@ -14,6 +14,7 @@ function Create(self)
 	self.fireSound.high = CreateSoundContainer("Dummy Lancer Fire Sound High", "Dummy.rte");
 	self.bleepSound = CreateSoundContainer("Dummy Lancer Bleep", "Dummy.rte");
 end
+
 function Update(self)
 	if self.FiredFrame then
 		self.setAngle = self.setAngle + self.chargeCounter/(20 * (1 + self.setAngle));

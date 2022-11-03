@@ -8,6 +8,7 @@ function Create(self)
 
 	self.cooldown = Timer();
 	self.cooldownSpeed = 0.5;
+
 	function self.emitSmoke(particleCount)
 		for i = 1, particleCount do
 			local smoke = CreateMOSParticle("Tiny Smoke Ball 1" .. (math.random() < 0.5 and " Glow Blue" or ""), "Base.rte");
@@ -18,6 +19,7 @@ function Create(self)
 		end
 	end
 end
+
 function Update(self)
 	if self.FiredFrame then
 		local actor = self:GetRootParent();

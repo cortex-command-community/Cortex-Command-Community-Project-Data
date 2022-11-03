@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.fireVel = 50;
 	self.checkTimer = Timer();
 
@@ -19,6 +18,7 @@ function Create(self)
 	self.arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
 	self.detectSound = CreateSoundContainer("Mine Activate", "Base.rte");
 end
+
 function Update(self)
 	local parent = self:GetRootParent();
 	if parent and IsActor(parent) then

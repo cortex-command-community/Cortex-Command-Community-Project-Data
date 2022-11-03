@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.delayTimer = Timer();
 	self.blinkTimer = Timer();
 	self.actionPhase = 0;
@@ -36,7 +35,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	self.ToSettle = false;
 	if AntiPersonnelMineTable == nil then
 		AntiPersonnelMineTable = {};
@@ -138,6 +136,7 @@ function Update(self)
 		end
 	end
 end
+
 function Destroy(self)
 	AntiPersonnelMineTable[self.tableNum] = nil;
 end

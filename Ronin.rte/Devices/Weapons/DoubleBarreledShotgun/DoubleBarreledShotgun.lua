@@ -6,6 +6,7 @@ function Create(self)
 
 	self.ejectSound = CreateSoundContainer("Double-Barrel Shotgun Eject Sound", "Ronin.rte");
 end
+
 function Update(self)
 	if self.setAngle > 0 then
 		self.setAngle = self.setAngle - 0.0001 * self.RateOfFire;

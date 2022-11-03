@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.laserTimer = Timer();
 	self.laserCheckDelay = 30;
 	self.laserLength = self.SharpLength + FrameMan.PlayerScreenWidth * 0.3;
@@ -9,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.laserTimer:IsPastSimMS(self.laserCheckDelay) then
 		self.laserTimer:Reset();
 		local actor = self:GetRootParent();

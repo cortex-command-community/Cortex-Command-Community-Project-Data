@@ -11,6 +11,7 @@ function Create(self)
 
 	self.targetLockSound = CreateSoundContainer("Mine Activate", "Base.rte");
 end
+
 function Update(self)
 	local parent = self:GetRootParent();
 	if IsActor(parent) then

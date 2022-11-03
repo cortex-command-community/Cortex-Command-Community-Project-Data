@@ -4,6 +4,7 @@ GlobalFlameManagement = {FlameHandler = nil, Flames = {}};
 function Create(self)
 	self.shortFlame = CreatePEmitter("Flame Hurt Short Float", "Base.rte");
 end
+
 --To-do: multiple flames close to each other should form a bigger flame
 function Update(self)
 	self.PinStrength = 900001;
@@ -106,6 +107,7 @@ function Update(self)
 		end
 	end
 end
+
 function Destroy(self)
 	GlobalFlameManagement.FlameHandler = nil;
 end

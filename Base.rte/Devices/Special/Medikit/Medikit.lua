@@ -4,6 +4,7 @@ function Create(self)
 	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
 	self.errorSound = CreateSoundContainer("Error", "Base.rte");
 end
+
 function Update(self)
 	if self.FiredFrame then
 		local parent = self:GetRootParent();

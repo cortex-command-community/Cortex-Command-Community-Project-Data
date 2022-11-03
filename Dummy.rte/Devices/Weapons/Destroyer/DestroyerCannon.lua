@@ -14,6 +14,7 @@ function Create(self)
 	self.inventorySwapTimer:SetSimTimeLimitMS(math.ceil(TimerMan.DeltaTimeMS));
 	self.activeSound = CreateSoundContainer("Destroyer Emission Sound", "Dummy.rte");
 end
+
 function Update(self)
 	if self.Magazine then
 		if self.inventorySwapTimer:IsPastSimTimeLimit() then
@@ -91,6 +92,7 @@ function Update(self)
 		self.forceFire = false;
 	end
 end
+
 function Destroy(self)
 	self.activeSound:Stop();
 end

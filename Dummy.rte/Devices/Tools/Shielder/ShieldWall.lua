@@ -11,6 +11,7 @@ function Create(self)
 
 	self.AngularVel = 0;
 end
+
 function Update(self)
 	if self.glow and self.glow.UniqueID == self.glowID then
 		self.glow.Pos = self.Pos;
@@ -33,6 +34,7 @@ function Update(self)
 		self:GibThis();
 	end
 end
+
 function Destroy(self)
 	if self.glow then
 		self.glow.ToDelete = true;

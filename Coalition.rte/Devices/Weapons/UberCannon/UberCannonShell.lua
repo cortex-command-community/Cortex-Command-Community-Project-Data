@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.lifeTimer = Timer();
 
 	self.raylength = 200;
@@ -9,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.lifeTimer:IsPastSimMS(4000) then
 		self:GibThis();
 	end

@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.alliedTeam = -1;
 	self.lastAngle = self.RotAngle;
 
@@ -9,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	self.lastAngle = self.RotAngle;
 
 	if not self:GetParent() then

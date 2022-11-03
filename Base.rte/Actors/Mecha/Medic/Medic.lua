@@ -18,6 +18,7 @@ function Create(self)
 	self.healStrength = 1;
 	self.healTargets = {};
 end
+
 function Update(self)
 	local parent = self:GetParent();
 	if parent and IsActor(parent) then

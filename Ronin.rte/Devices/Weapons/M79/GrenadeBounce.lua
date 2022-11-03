@@ -3,6 +3,7 @@ function Create(self)
 	self.startPos = Vector(self.Pos.X, self.Pos.Y);
 	self.safetyRadius = 180;
 end
+
 function Update(self)
 	if not self.safetyTriggered then
 		if self.Age > self.detonationDelay or self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then

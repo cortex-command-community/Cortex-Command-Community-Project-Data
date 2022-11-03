@@ -55,13 +55,13 @@ function ConstructorFloodFill(x, y, startnum, maxnum, array, realposition, reals
 		end
 	end
 end
+
 --TODO: Figure out how to snap different sizes properly
 function ConstructorSnapPos(checkPos, blockSize)
 	return Vector(math.floor((checkPos.X - blockSize/2)/blockSize) * blockSize + blockSize/2, math.floor((checkPos.Y - blockSize/2)/blockSize) * blockSize + blockSize/2);
 end
 
 function ConstructorTerrainRay(start, trace, skip)
-
 	local length = trace.Magnitude;
 	local angle = trace.AbsRadAngle;
 
@@ -91,10 +91,8 @@ function ConstructorTerrainRay(start, trace, skip)
 end
 
 function Create(self)
-
 	self.fireTimer = Timer();
 	self.displayTimer = Timer();
-
 
 	self.buildTimer = Timer();
 	self.buildList = {};
@@ -131,76 +129,76 @@ function Create(self)
 
 	-- autobuild for standard units
 	self.autoBuildList = {
-				Vector(-3, 1),
-				Vector(-2, 1),
-				Vector(-1, 1),
-				Vector(2, 1),
-				Vector(3, 1),
-				Vector(4, 1),
+		Vector(-3, 1),
+		Vector(-2, 1),
+		Vector(-1, 1),
+		Vector(2, 1),
+		Vector(3, 1),
+		Vector(4, 1),
 
-				Vector(-4, -2),
-				Vector(-3, -2),
-				Vector(0, -2),
-				Vector(1, -2),
-				Vector(4, -2),
-				Vector(5, -2),
+		Vector(-4, -2),
+		Vector(-3, -2),
+		Vector(0, -2),
+		Vector(1, -2),
+		Vector(4, -2),
+		Vector(5, -2),
 
-				Vector(-3, -3),
-				Vector(4, -3),
+		Vector(-3, -3),
+		Vector(4, -3),
 
-				Vector(-3, -4),
-				Vector(4, -4),
+		Vector(-3, -4),
+		Vector(4, -4),
 
-				Vector(-3, -5),
-				Vector(-2, -5),
-				Vector(-1, -5),
-				Vector(2, -5),
-				Vector(3, -5),
-				Vector(4, -5),
+		Vector(-3, -5),
+		Vector(-2, -5),
+		Vector(-1, -5),
+		Vector(2, -5),
+		Vector(3, -5),
+		Vector(4, -5),
 
-				Vector(-3, -8),
-				Vector(-2, -8),
-				Vector(-1, -8),
-				Vector(0, -8),
-				Vector(1, -8),
-				Vector(2, -8),
-				Vector(3, -8),
-				Vector(4, -8)
-			};
+		Vector(-3, -8),
+		Vector(-2, -8),
+		Vector(-1, -8),
+		Vector(0, -8),
+		Vector(1, -8),
+		Vector(2, -8),
+		Vector(3, -8),
+		Vector(4, -8)
+	};
 
 	-- autobuild for brain units
 	self.autoBuildListBrain = {
-				Vector(-2, 2),
-				Vector(-2, 1),
-				Vector(-2, 0),
-				Vector(-2, -1),
-				Vector(2, 2),
-				Vector(2, 1),
-				Vector(2, 0),
-				Vector(2, -1),
+		Vector(-2, 2),
+		Vector(-2, 1),
+		Vector(-2, 0),
+		Vector(-2, -1),
+		Vector(2, 2),
+		Vector(2, 1),
+		Vector(2, 0),
+		Vector(2, -1),
 
-				Vector(-2, -2),
-				Vector(-1, -2),
-				Vector(0, -2),
-				Vector(1, -2),
-				Vector(2, -2),
+		Vector(-2, -2),
+		Vector(-1, -2),
+		Vector(0, -2),
+		Vector(1, -2),
+		Vector(2, -2),
 
-				Vector(-3, 3),
-				Vector(-3, 2),
-				Vector(-3, 1),
-				Vector(-3, 0),
-				Vector(-3, -1),
+		Vector(-3, 3),
+		Vector(-3, 2),
+		Vector(-3, 1),
+		Vector(-3, 0),
+		Vector(-3, -1),
 
-				Vector(3, 3),
-				Vector(3, 2),
-				Vector(3, 1),
-				Vector(3, 0),
-				Vector(3, -1),
+		Vector(3, 3),
+		Vector(3, 2),
+		Vector(3, 1),
+		Vector(3, 0),
+		Vector(3, -1),
 
-				Vector(-1, -1),
-				Vector(0, -1),
-				Vector(1, -1),
-			};
+		Vector(-1, -1),
+		Vector(0, -1),
+		Vector(1, -1),
+	};
 
 	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety. Need the safety check for its existence cause, for some reason, it can not exist in the metagame.
 	if OnAttach then
@@ -209,7 +207,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local actor = self:GetRootParent();
 	if actor and IsActor(actor) then
 

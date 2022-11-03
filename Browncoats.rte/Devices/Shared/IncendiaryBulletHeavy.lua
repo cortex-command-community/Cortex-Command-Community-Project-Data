@@ -2,6 +2,7 @@ function Create(self)
 	self.fire = CreatePEmitter("Flame Hurt Short");
 	self.smokeTwirlCounter = math.random() < 0.5 and math.pi or 0;
 end
+
 function Update(self)
 	local velFactor = math.floor(1 + math.sqrt(self.Vel.Magnitude)/(1 + self.Age * 0.01));
 

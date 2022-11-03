@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.delayTimer = Timer();
 	self.overallTimer = Timer();
 	self.scanTimer = Timer();
@@ -16,7 +15,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.Magazine then
 		if self:IsActivated() then
 			self.Magazine.RoundCount = math.ceil(4000 - self.overallTimer.ElapsedSimTimeMS);

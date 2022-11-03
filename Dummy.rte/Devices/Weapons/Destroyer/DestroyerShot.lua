@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.lifeTimer = Timer();
 	self.lifeTimer:SetSimTimeLimitMS(self.Lifetime - 100);
 	self.emitTimer = Timer();
@@ -9,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	self.Vel = self.Vel:MagnitudeIsLessThan(self.startSpeed) and Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude + self.acceleration) or self.Vel;
 
 	if self.emitTimer:IsPastSimMS(6) then

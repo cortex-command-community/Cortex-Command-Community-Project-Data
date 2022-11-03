@@ -5,6 +5,7 @@ function Create(self)
 
 	self.cockSound = CreateSoundContainer("Ronin Model 590 Cock Sound", "Ronin.rte");
 end
+
 function Update(self)
 	local actor = self:GetRootParent();
 	if not (actor and IsAHuman(actor)) then

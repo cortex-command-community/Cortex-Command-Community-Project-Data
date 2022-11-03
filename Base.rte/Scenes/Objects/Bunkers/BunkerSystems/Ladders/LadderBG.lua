@@ -15,6 +15,7 @@ function Create(self)
 	self.gib = CreateTerrainObject("Destroyed Background Ladder");
 	self.gib.Pos = Vector(self.Pos.X, self.Pos.Y);
 end
+
 function Update(self)
 	if self.PinStrength ~= 0 then
 		if self.checkTimer:IsPastSimTimeLimit() then
@@ -65,6 +66,7 @@ function Update(self)
 		self.ToDelete = true;
 	end
 end
+
 function Destroy(self)
 	--If this MO is somehow deleted, a new background sprite will indicate the destruction of the ladder
 	if self.gib then

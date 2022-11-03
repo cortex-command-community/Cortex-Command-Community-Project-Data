@@ -4,6 +4,7 @@ function ConstantGoldIncomeScript:StartScript()
 	self.goldPerSecond = 10;
 	self.activity = ActivityMan:GetActivity();
 end
+
 function ConstantGoldIncomeScript:UpdateScript()
 	if self.activity.ActivityState ~= Activity.EDITING and self.updateTimer:IsPastSimMS(self.updateInterval) then
 		for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do

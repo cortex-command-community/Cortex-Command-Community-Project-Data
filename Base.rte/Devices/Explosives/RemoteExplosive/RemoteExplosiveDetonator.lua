@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.delayTimer = Timer();
 	self.actionPhase = 0;
 	self.fireOn = false;
@@ -11,7 +10,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.ID ~= self.RootID then
 		local actor = MovableMan:GetMOFromID(self.RootID);
 		if MovableMan:IsActor(actor) then

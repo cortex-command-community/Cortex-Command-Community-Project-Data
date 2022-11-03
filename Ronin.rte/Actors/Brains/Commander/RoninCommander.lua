@@ -28,6 +28,7 @@ function Create(self)
 		end
 	end
 	self.stableVel = self:GetStableVelocityThreshold();
+
 	function self.lunge(power)
 		local flip = 0;
 		if self.Status == Actor.STABLE then
@@ -55,6 +56,7 @@ function Create(self)
 		return flip;
 	end
 end
+
 function Update(self)
 	self.controller = self:GetController();
 	if self.updateTimer:IsPastSimMS(1000) then

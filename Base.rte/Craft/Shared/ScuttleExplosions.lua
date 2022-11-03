@@ -6,6 +6,7 @@ function Create(self)
 
 	self.explosionDelay = self:NumberValueExists("ScuttleExplosionDelay") and self:GetNumberValue("ScuttleExplosionDelay") or 5000/math.sqrt(self.width + self.height);
 end
+
 function Update(self)
 	if self.Status > Actor.INACTIVE or self.AIMode == Actor.AIMODE_SCUTTLE then
 		if self.explosionTimer:IsPastSimMS(self.explosionDelay) then

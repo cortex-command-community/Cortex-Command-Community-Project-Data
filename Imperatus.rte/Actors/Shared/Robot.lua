@@ -1,6 +1,7 @@
 function Create(self)
 	self.walkSpeed = self:GetLimbPathSpeed(1);
 end
+
 function Update(self)
 	if self.Health > 0 then
 		local walkSpeedScalar = 2.3;

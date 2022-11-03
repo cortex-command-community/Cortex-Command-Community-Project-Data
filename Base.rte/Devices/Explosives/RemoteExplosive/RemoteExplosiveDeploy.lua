@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.alliedTeam = -1;
 end
 

@@ -1,6 +1,7 @@
 function Create(self)
 	self.width = math.floor(ToMOSprite(self):GetSpriteWidth() * 0.5 + 0.5);
 end
+
 function OnCollideWithMO(self, mo, rootMO)
 	if not self.hit then
 		local hitPos = Vector(self.PrevPos.X, self.PrevPos.Y);

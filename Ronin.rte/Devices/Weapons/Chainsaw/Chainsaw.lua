@@ -16,8 +16,8 @@ function Create(self)
 	self.startSound = CreateSoundContainer("Ronin Chainsaw Start", "Ronin.rte");
 	self.stopSound = CreateSoundContainer("Ronin Chainsaw End", "Ronin.rte");
 end
-function Update(self)
 
+function Update(self)
 	local turn = math.abs(self.AngularVel);
 	local actor = MovableMan:GetMOFromID(self.RootID);
 	if actor and IsAHuman(actor) then
