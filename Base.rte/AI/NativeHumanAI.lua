@@ -313,8 +313,10 @@ function NativeHumanAI:Update(Owner)
 
 		if self.ReloadTimer:IsPastSimMS(8000) then	-- check if we need to reload
 			if Owner.FirearmNeedsReload then
-				self.ReloadTimer:Reset()
 				Owner:ReloadFirearms()
+				if not Owner.FirearmNeedsReload then -- account for BG weapon needing to reload separately
+					self.ReloadTimer:Reset()
+				end
 			elseif not HumanBehaviors.EquipPreferredWeapon(self, Owner) then	-- make sure we equip a preferred or a primary weapon if we have one
 				self.ReloadTimer:Reset()
 			end
