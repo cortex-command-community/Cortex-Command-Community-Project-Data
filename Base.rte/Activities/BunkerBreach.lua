@@ -21,8 +21,6 @@ Add defender units by placing areas named:
 Don't place more defenders than the recommended MOID limit! (15 defenders plus 3 doors equals about 130 IDs, see recommended limit in Base.rte/Constants.lua)
 --]]
 
-dofile("Base.rte/Constants.lua");
-
 function BunkerBreach:StartActivity()
 	collectgarbage("collect");
 

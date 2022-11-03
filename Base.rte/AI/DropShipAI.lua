@@ -1,5 +1,3 @@
-
-dofile("Base.rte/Constants.lua");
 require("AI/NativeDropShipAI"); --dofile("Base.rte/Actors/AI/NativeDropShipAI.lua");
 
 function Create(self)

@@ -1,4 +1,3 @@
-dofile("Base.rte/Constants.lua");
 require("AI/NativeHumanAI");
 
 function Create(self)

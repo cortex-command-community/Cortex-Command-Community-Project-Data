@@ -1,5 +1,3 @@
-dofile("Base.rte/Constants.lua");
-
 ---------------------------------------------------------
 -- BRAIN INTEGRITY CHECK
 function MetaFight:BrainCheck()

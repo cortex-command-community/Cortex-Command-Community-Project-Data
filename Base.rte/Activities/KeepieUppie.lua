@@ -1,5 +1,3 @@
-dofile("Base.rte/Constants.lua");
-
 function KeepieUppie:StartActivity()
 	print("START! -- KeepieUppie:StartActivity()!");
 

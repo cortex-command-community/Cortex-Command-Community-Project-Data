@@ -22,8 +22,6 @@ Add defender units by placing areas named:
 Don't place more defenders than the MOID limit can handle (15 defenders plus 3 doors equals about 130 of 255 available IDs).
 --]]
 
-dofile("Base.rte/Constants.lua");
-
 function Siege:StartActivity()
 	collectgarbage("collect");
 

@@ -1,5 +1,3 @@
-dofile("Base.rte/Constants.lua");
-
 function WaveDefense:CheckBrains()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then

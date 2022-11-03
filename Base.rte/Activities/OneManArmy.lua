@@ -1,5 +1,3 @@
-dofile("Base.rte/Constants.lua");
-
 function OneManArmy:StartActivity()
 
 	self.BuyMenuEnabled = false;
