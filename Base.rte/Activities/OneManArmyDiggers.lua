@@ -1,4 +1,4 @@
-dofile("Base.rte/Constants.lua")
+dofile("Base.rte/Constants.lua");
 
 function OneManArmy:StartActivity()
 
@@ -179,49 +179,49 @@ end
 
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
-		ActivityMan:GetActivity():SetTeamFunds(0,0)
+		ActivityMan:GetActivity():SetTeamFunds(0,0);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
 				if self.StartTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) / 1000) .. " seconds left", player, 0, 1000, false)
+					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) / 1000) .. " seconds left", player, 0, 1000, false);
 				else
-					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true)
+					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
 				end
 
 				-- The current player's team
-				local team = self:GetTeamOfPlayer(player)
+				local team = self:GetTeamOfPlayer(player);
 				-- Check if any player's brain is dead
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
-					self:SetPlayerBrain(nil, player)
-					self:ResetMessageTimer(player)
-					FrameMan:ClearScreenText(player)
-					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false)
+					self:SetPlayerBrain(nil, player);
+					self:ResetMessageTimer(player);
+					FrameMan:ClearScreenText(player);
+					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false);
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
-						self.WinnerTeam = self:OtherTeam(team)
-						ActivityMan:EndActivity()
+						self.WinnerTeam = self:OtherTeam(team);
+						ActivityMan:EndActivity();
 					end
 				else
-					self.HuntPlayer = player
+					self.HuntPlayer = player;
 				end
 
 				--Check if the player has won.
 				if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
-					self:ResetMessageTimer(player)
-					FrameMan:ClearScreenText(player)
-					FrameMan:SetScreenText("You survived!", player, 333, -1, false)
+					self:ResetMessageTimer(player);
+					FrameMan:ClearScreenText(player);
+					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
 
-					self.WinnerTeam = player
+					self.WinnerTeam = player;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
 						if actor.Team ~= self.WinnerTeam then
-							actor.Health = 0
+							actor.Health = 0;
 						end
 					end
 
-					ActivityMan:EndActivity()
+					ActivityMan:EndActivity();
 				end
 			end
 		end
@@ -231,19 +231,19 @@ function OneManArmy:UpdateActivity()
 
 			-- Set up the ship to deliver this stuff
 			local ship = RandomACRocket("Any", self.CPUTechName);
-			local actorsInCargo = math.min(ship.MaxPassengers, 2)
+			local actorsInCargo = math.min(ship.MaxPassengers, 2);
 
 			ship.Team = self.CPUTeam;
 
 			-- The max allowed weight of this craft plus cargo
-			local craftMaxMass = ship.MaxInventoryMass
+			local craftMaxMass = ship.MaxInventoryMass;
 			if craftMaxMass < 0 then
-				craftMaxMass = math.huge
+				craftMaxMass = math.huge;
 			elseif craftMaxMass < 1 then
 				ship = RandomACRocket("Any", 0);
-				craftMaxMass = ship.MaxInventoryMass
+				craftMaxMass = ship.MaxInventoryMass;
 			end
-			local totalInventoryMass = 0
+			local totalInventoryMass = 0;
 
 			-- Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
@@ -262,7 +262,7 @@ function OneManArmy:UpdateActivity()
 				if (ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3)) <= self:GetTeamFunds(self.CPUTeam) and (totalInventoryMass + passenger.Mass) <= craftMaxMass then
 					-- Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
-					totalInventoryMass = totalInventoryMass + passenger.Mass
+					totalInventoryMass = totalInventoryMass + passenger.Mass;
 					passenger = nil;
 				else
 					-- Nope; just delete the nixed passenger and stop adding new ones
@@ -305,7 +305,7 @@ function OneManArmy:UpdateActivity()
 				end
 
 				-- Double-check if the computer can afford this ship and cargo, then subtract the total value from the team's funds
-				local shipValue = ship:GetTotalValue(0,3)
+				local shipValue = ship:GetTotalValue(0,3);
 				if shipValue <= self:GetTeamFunds(self.CPUTeam) then
 					-- Subtract the total value of the ship+cargo from the CPU team's funds
 					self:ChangeTeamFunds(-shipValue, self.CPUTeam);

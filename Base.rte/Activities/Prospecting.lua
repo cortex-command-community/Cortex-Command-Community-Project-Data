@@ -191,7 +191,7 @@ function Prospecting:UpdateActivity()
 							end
 						else
 							-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-							self:SetObservationTarget(brain.Pos, player)
+							self:SetObservationTarget(brain.Pos, player);
 						end
 					end
 

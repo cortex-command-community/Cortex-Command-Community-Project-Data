@@ -49,7 +49,7 @@ function Update(self)
 					NucleoCommunicationTable[self.Sharpness][i][2] = self;
 				end
 			else
-				local rayDirection = SceneMan:ShortestDistance(self.Pos,NucleoCommunicationTable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX)
+				local rayDirection = SceneMan:ShortestDistance(self.Pos,NucleoCommunicationTable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX);
 				if MovableMan:IsParticle(NucleoCommunicationTable[self.Sharpness][i][2]) and rayDirection:MagnitudeIsLessThan(self.linkRange) then
 
 					local dist = SceneMan:ShortestDistance(self.Pos, NucleoCommunicationTable[self.Sharpness][i][2].Pos, SceneMan.SceneWrapsX);

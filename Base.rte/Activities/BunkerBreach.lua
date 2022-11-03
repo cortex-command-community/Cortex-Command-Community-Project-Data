@@ -21,10 +21,10 @@ Add defender units by placing areas named:
 Don't place more defenders than the recommended MOID limit! (15 defenders plus 3 doors equals about 130 IDs, see recommended limit in Base.rte/Constants.lua)
 --]]
 
-dofile("Base.rte/Constants.lua")
+dofile("Base.rte/Constants.lua");
 
 function BunkerBreach:StartActivity()
-	collectgarbage("collect")
+	collectgarbage("collect");
 
 	self.attackerTeam = Activity.TEAM_1;
 	self.defenderTeam = Activity.TEAM_2;
@@ -175,7 +175,7 @@ function BunkerBreach:StartActivity()
 					MovableMan:AddActor(guard);
 				end
 			else
-				break
+				break;
 			end
 		end
 	end
@@ -222,7 +222,7 @@ end
 
 function BunkerBreach:UpdateActivity()
 	if self.ActivityState == Activity.OVER then
-		return
+		return;
 	end
 
 	--Check win conditions
@@ -241,7 +241,7 @@ function BunkerBreach:UpdateActivity()
 					end
 				end
 				ActivityMan:EndActivity();
-				return
+				return;
 			end
 		else
 			local survivingAttackingPlayers = 0;
@@ -278,7 +278,7 @@ function BunkerBreach:UpdateActivity()
 					end
 				end
 				ActivityMan:EndActivity();
-				return
+				return;
 			end
 		end
 	end
@@ -299,7 +299,7 @@ function BunkerBreach:UpdateActivity()
 						diggerCount = diggerCount + 1;
 					end
 					if funds < 0 and self.CPUTeam == self.attackerTeam then
-						self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.playerTeam, GameActivity.ARROWDOWN)
+						self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.playerTeam, GameActivity.ARROWDOWN);
 					end
 				end
 			end
@@ -371,7 +371,7 @@ function BunkerBreach:UpdateActivity()
 			self.WinnerTeam = self.playerTeam;
 			self:ClearObjectivePoints();
 			ActivityMan:EndActivity();
-			return
+			return;
 		end
 	end
 end

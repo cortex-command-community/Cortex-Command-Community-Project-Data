@@ -1,4 +1,4 @@
-dofile("Base.rte/Constants.lua")
+dofile("Base.rte/Constants.lua");
 
 function Survival:StartActivity()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -79,7 +79,7 @@ function Survival:StartActivity()
 
 	-- Take scene ownership
 	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1
+		actor.Team = Activity.TEAM_1;
 	end
 end
 
@@ -130,9 +130,9 @@ function Survival:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					local newBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
 					if newBrain then
-						self:SetPlayerBrain(newBrain, player)
-						self:SwitchToActor(newBrain, player, self:GetTeamOfPlayer(player))
-						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+						self:SetPlayerBrain(newBrain, player);
+						self:SwitchToActor(newBrain, player, self:GetTeamOfPlayer(player));
+						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 					end
 				end
 
@@ -172,13 +172,13 @@ function Survival:UpdateActivity()
 		end
 
 		if self.Fog and self:GetFogOfWarEnabled() then
-			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1))
+			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1));
 			self.Fog = false;
 		end
 
 		--Spawn the AI.
 		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-		local ship, actorsInCargo
+		local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
 				-- Set up the ship to deliver this stuff
@@ -188,10 +188,10 @@ function Survival:UpdateActivity()
 					DeleteEntity(ship);
 					ship = RandomACRocket("Any", self.CPUTechName);
 				end
-				actorsInCargo = ship.MaxPassengers
+				actorsInCargo = ship.MaxPassengers;
 			else
 				ship = RandomACRocket("Any", self.CPUTechName);
-				actorsInCargo = math.min(ship.MaxPassengers, 2)
+				actorsInCargo = math.min(ship.MaxPassengers, 2);
 			end
 
 			ship.Team = self.CPUTeam;
@@ -283,7 +283,7 @@ function Survival:UpdateActivity()
 			end
 
 			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale)
+			self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale);
 		end
 	else
 		self.StartTimer:Reset();

@@ -20,7 +20,7 @@ function Update(self)
 				for x = 1, self.numberOfScans do
 					local angleVariance = (-self.scanSpreadAngle * 0.5) + (math.random() * self.scanSpreadAngle);
 					local terrHitCount = 0;
-					local dots = math.floor(self.maxScanRange/self.scanSpacing)
+					local dots = math.floor(self.maxScanRange/self.scanSpacing);
 					for i = 1, dots do
 						local checkPos = self.MuzzlePos + Vector((self.scanSpacing * i) * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(angleVariance);
 						if SceneMan.SceneWrapsX == true then

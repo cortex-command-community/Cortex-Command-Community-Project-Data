@@ -23,7 +23,7 @@ function ZombieCaveMission:StartActivity()
 	self.CurrentFightStage = self.FightStage.BEGINFIGHT;
 	self.BrainHasLanded = false;
 	self.CPUBrain = nil;
-	self.CPUTechName = "Ronin.rte"
+	self.CPUTechName = "Ronin.rte";
 	self.braindead = {};
 
 	--------------------------
@@ -104,7 +104,7 @@ function ZombieCaveMission:StartActivity()
 					self:SetActorSelectCursor(Vector(3024, 324), player);
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end
@@ -139,7 +139,7 @@ end
 -----------------------------------------------------------------------------------------
 
 function ZombieCaveMission:MakeEnemy(whichMode)
-	local passenger = RandomAHuman("Any", self.CPUTechName)
+	local passenger = RandomAHuman("Any", self.CPUTechName);
 	if passenger then
 		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
 		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
@@ -221,7 +221,7 @@ function ZombieCaveMission:UpdateActivity()
 						end
 					else
 						-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-						self:SetObservationTarget(brain.Pos, player)
+						self:SetObservationTarget(brain.Pos, player);
 					end
 				end
 			-- Game over, show the appropriate messages until a certain time

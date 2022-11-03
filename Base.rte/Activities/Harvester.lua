@@ -1,4 +1,4 @@
-dofile("Base.rte/Constants.lua")
+dofile("Base.rte/Constants.lua");
 
 function Harvester:StartActivity()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -80,7 +80,7 @@ function Harvester:StartActivity()
 
 	-- Take scene ownership
 	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1
+		actor.Team = Activity.TEAM_1;
 	end
 end
 
@@ -128,9 +128,9 @@ function Harvester:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					local newBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
 					if newBrain then
-						self:SetPlayerBrain(newBrain, player)
-						self:SwitchToActor(newBrain, player, self:GetTeamOfPlayer(player))
-						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+						self:SetPlayerBrain(newBrain, player);
+						self:SwitchToActor(newBrain, player, self:GetTeamOfPlayer(player));
+						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 					end
 				end
 
@@ -168,13 +168,13 @@ function Harvester:UpdateActivity()
 		end
 
 		if self.Fog and self:GetFogOfWarEnabled() then
-			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1))
+			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1));
 			self.Fog = false;
 		end
 
 		--Spawn the AI.
 		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-			local ship, actorsInCargo
+			local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
 				-- Set up the ship to deliver this stuff
@@ -184,27 +184,27 @@ function Harvester:UpdateActivity()
 					DeleteEntity(ship);
 					ship = RandomACRocket("Any", self.CPUTechName);
 				end
-				actorsInCargo = ship.MaxPassengers
+				actorsInCargo = ship.MaxPassengers;
 			else
 				ship = RandomACRocket("Any", self.CPUTechName);
-				actorsInCargo = math.min(ship.MaxPassengers, 2)
+				actorsInCargo = math.min(ship.MaxPassengers, 2);
 			end
 
 			-- The max allowed weight of this craft plus cargo
-			local shipMaxMass = ship.MaxInventoryMass
+			local shipMaxMass = ship.MaxInventoryMass;
 			if shipMaxMass < 0 then
-				shipMaxMass = math.huge
+				shipMaxMass = math.huge;
 			elseif shipMaxMass < 1 then
 				if Craft.ClassName == "ACDropship" then
 					DeleteEntity(ship);
-					Craft = RandomACDropShip("Craft", 0)	-- MaxMass not defined
+					Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 				else
-					DeleteEntity(ship)
-					Craft = RandomACRocket("Craft", 0)	-- MaxMass not defined
+					DeleteEntity(ship);
+					Craft = RandomACRocket("Craft", 0); -- MaxMass not defined
 				end
-				shipMaxMass = ship.MaxInventoryMass
+				shipMaxMass = ship.MaxInventoryMass;
 			end
-			local totalInventoryMass = 0
+			local totalInventoryMass = 0;
 
 			ship.Team = self.CPUTeam;
 
@@ -233,7 +233,7 @@ function Harvester:UpdateActivity()
 				if ship:GetTotalValue(0,3) + passenger:GetTotalValue(0,3) <= self:GetTeamFunds(self.CPUTeam) and (passenger.Mass + totalInventoryMass) <= shipMaxMass then
 					-- Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
-					totalInventoryMass = totalInventoryMass + passenger.Mass
+					totalInventoryMass = totalInventoryMass + passenger.Mass;
 					passenger = nil;
 				else
 					-- Nope; just delete the nixed passenger and stop adding new ones

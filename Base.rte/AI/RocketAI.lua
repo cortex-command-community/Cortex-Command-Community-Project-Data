@@ -1,5 +1,4 @@
-
-require("AI/PID")
+require("AI/PID");
 
 function Create(self)
 	---------------- AI variables start ----------------
@@ -52,9 +51,7 @@ function Create(self)
 	self.YposPID = RegulatorPID:New{p=0.012, i=0.07, d=4, last_input=self.LZpos.Y, filter_leak=0.5, integral_max=30};
 
 	-- Check if this team is controlled by a human
-	if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() and
-		ActivityMan:GetActivity():IsHumanTeam(self.Team)
-	then
+	if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() and ActivityMan:GetActivity():IsHumanTeam(self.Team) then
 		self.AIMode = Actor.AIMODE_STAY;	-- Stop the craft from returning to orbit immediately
 	end
 	---------------- AI variables end ----------------

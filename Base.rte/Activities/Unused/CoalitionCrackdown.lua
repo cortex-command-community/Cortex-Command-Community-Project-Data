@@ -27,7 +27,7 @@ function CoalitionCrackdown:StartActivity()
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end

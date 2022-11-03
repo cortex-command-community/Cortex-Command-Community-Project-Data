@@ -1,4 +1,4 @@
-dofile("Base.rte/Constants.lua")
+dofile("Base.rte/Constants.lua");
 
 function OneManArmy:StartActivity()
 
@@ -213,14 +213,14 @@ end
 
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
-		ActivityMan:GetActivity():SetTeamFunds(0, 0)
+		ActivityMan:GetActivity():SetTeamFunds(0, 0);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages
 				if self.StartTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) * 0.001) .. " seconds left", player, 0, 1000, false)
+					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) * 0.001) .. " seconds left", player, 0, 1000, false);
 				else
-					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true)
+					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
 				end
 
 				local team = self:GetTeamOfPlayer(player);
@@ -285,7 +285,7 @@ function OneManArmy:UpdateActivity()
 				ship = RandomACDropShip("Any", 0);
 				craftMaxMass = ship.MaxInventoryMass;
 			end
-			local totalInventoryMass = 0
+			local totalInventoryMass = 0;
 
 			--Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
@@ -316,7 +316,7 @@ function OneManArmy:UpdateActivity()
 				if (ship:GetTotalValue(0, 3) + passenger:GetTotalValue(0, 3)) <= self:GetTeamFunds(self.CPUTeam) and (totalInventoryMass + passenger.Mass) <= craftMaxMass then
 					--Yes we can; so add it to the cargo hold
 					ship:AddInventoryItem(passenger);
-					totalInventoryMass = totalInventoryMass + passenger.Mass
+					totalInventoryMass = totalInventoryMass + passenger.Mass;
 					passenger = nil;
 				else
 					--Nope; just delete the nixed passenger and stop adding new ones

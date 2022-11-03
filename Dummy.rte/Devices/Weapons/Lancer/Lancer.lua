@@ -31,7 +31,7 @@ function Update(self)
 			MovableMan:AddParticle(damagePar);
 		end
 
-		local shellPar1 = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow")
+		local shellPar1 = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow");
 		MovableMan:AddParticle(shellPar1);
 
 		local highCharge = self.maxCharge * 0.7;
@@ -42,7 +42,7 @@ function Update(self)
 			local smokePar = CreateMOSParticle(size .. "Smoke Ball 1 Glow Yellow");
 			smokePar.Pos = self.MuzzlePos;
 			smokePar.Vel = Vector(math.random(5) * (charge/i) * self.FlipFactor, 0):RadRotate(self.RotAngle);
-			smokePar.Team = self.Team
+			smokePar.Team = self.Team;
 			smokePar.IgnoresTeamHits = true;
 			MovableMan:AddParticle(smokePar);
 		end

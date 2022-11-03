@@ -16,7 +16,7 @@ function Update(self)
 	local parent = self:GetRootParent();
 	if parent and IsActor(parent) then
 		if IsAHuman(parent) then
-			parent = ToAHuman(parent)
+			parent = ToAHuman(parent);
 		elseif IsACrab(parent) then
 			parent = ToACrab(parent);
 		else

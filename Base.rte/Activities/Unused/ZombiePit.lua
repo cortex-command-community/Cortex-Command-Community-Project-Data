@@ -57,7 +57,7 @@ function ZombiePitMission:StartActivity()
 				self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
 				self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 				-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-				self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+				self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 			end
 		end
 	end
@@ -228,7 +228,7 @@ function ZombiePitMission:UpdateActivity()
 	if not MovableMan:IsActor(self.CPUBrain) and ActivityMan:ActivityRunning() then
 		self.CPUBrain = nil;
 		-- Proclaim player winner end
-		self.WinnerTeam = Activity.TEAM_1
+		self.WinnerTeam = Activity.TEAM_1;
 		-- Finito!
 		ActivityMan:EndActivity();
 	end

@@ -1,4 +1,4 @@
-dofile("Base.rte/Constants.lua")
+dofile("Base.rte/Constants.lua");
 
 function KeepieUppie:StartActivity()
 	print("START! -- KeepieUppie:StartActivity()!");
@@ -57,7 +57,7 @@ function KeepieUppie:StartActivity()
 	self.StartTimer = Timer();
 	self.started = false;
 
-	self.TimeLeft = 2000
+	self.TimeLeft = 2000;
 end
 
 
@@ -136,15 +136,15 @@ function KeepieUppie:UpdateActivity()
 
 			--Spawn the AI.
 			if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-				local ship, actorsInCargo
+				local ship, actorsInCargo;
 
 				if math.random() < 0.5 then
 					-- Set up the ship to deliver this stuff
 					ship = RandomACDropShip("Any", self.CPUTechName);
-					actorsInCargo = ship.MaxPassengers
+					actorsInCargo = ship.MaxPassengers;
 				else
 					ship = RandomACRocket("Any", self.CPUTechName);
-					actorsInCargo = math.min(ship.MaxPassengers, 2)
+					actorsInCargo = math.min(ship.MaxPassengers, 2);
 				end
 
 				ship.Team = self.CPUTeam;
@@ -169,7 +169,7 @@ function KeepieUppie:UpdateActivity()
 					-- Set AI mode and team so it knows who and what to fight for!
 					passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 					passenger.Team = self.CPUTeam;
-					ship:AddInventoryItem(passenger)
+					ship:AddInventoryItem(passenger);
 				end
 
 				-- Set the spawn point of the ship from orbit
@@ -199,7 +199,7 @@ function KeepieUppie:UpdateActivity()
 				MovableMan:AddActor(ship);
 
 				self.ESpawnTimer:Reset();
-				self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale)
+				self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale);
 			end
 		end
 	else

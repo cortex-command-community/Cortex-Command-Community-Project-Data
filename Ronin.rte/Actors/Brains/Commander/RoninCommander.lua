@@ -95,5 +95,5 @@ function Update(self)
 		end
 		self.crouchHeld = crouching;
 	end
-	self:SetStableVelocityThreshold(crouching and self.stableVel * (1 + math.cos(self.RotAngle)) or self.stableVel)
+	self:SetStableVelocityThreshold(crouching and self.stableVel * (1 + math.cos(self.RotAngle)) or self.stableVel);
 end

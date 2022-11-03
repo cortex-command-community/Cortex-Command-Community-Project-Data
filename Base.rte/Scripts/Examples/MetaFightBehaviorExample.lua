@@ -1,6 +1,6 @@
 function MetaScript:StartScript()
 	if SettingsMan.PrintDebugInfo then
-		print (self.PresetName.." Create")
+		print (self.PresetName.." Create");
 	end
 
 	-- Init script
@@ -9,10 +9,10 @@ function MetaScript:StartScript()
 		self.Activity = ToGameActivity(ActivityMan:GetActivity());
 
 		-- Determine which teams are CPU-controlled
-		self.TeamIsCPU = {}
+		self.TeamIsCPU = {};
 
 		for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
-			self.TeamIsCPU[team] = true
+			self.TeamIsCPU[team] = true;
 		end
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self.Activity:PlayerActive(player) then
@@ -23,7 +23,7 @@ function MetaScript:StartScript()
 		end
 	else
 		if SettingsMan.PrintDebugInfo then
-			print (self.PresetName .. ": Not a Metafight, terminating!")
+			print (self.PresetName .. ": Not a Metafight, terminating!");
 		end
 		-- No need to execute the script as we're not in metagame
 		self:Deactivate();
@@ -39,12 +39,12 @@ function MetaScript:UpdateScript()
 				if IsAHuman(actor) or IsACrab(actor) then
 					if not actor:StringValueExists("ScriptControlled") or actor:GetStringValue("ScriptControlled") == self.PresetName then
 						if actor.AIMode ~= Actor.AIMODE_BRAINHUNT then
-							actor:FlashWhite(10000)
+							actor:FlashWhite(10000);
 							actor.AIMode = Actor.AIMODE_BRAINHUNT;
 						end
 						-- Mark actor as the one, which receives orders from external script, and MetaFight.lua won't interfere.
 						if not actor:StringValueExists("ScriptControlled") then
-							actor:SetStringValue("ScriptControlled", self.PresetName)
+							actor:SetStringValue("ScriptControlled", self.PresetName);
 						end
 					end
 				end
@@ -55,19 +55,19 @@ end
 
 function MetaScript:EndScript()
 	if SettingsMan.PrintDebugInfo then
-		print (self.PresetName.." Destroy")
+		print (self.PresetName.." Destroy");
 	end
 end
 
 function MetaScript:PauseScript()
 	if SettingsMan.PrintDebugInfo then
-		print (self.PresetName.." Pause")
+		print (self.PresetName.." Pause");
 	end
 end
 
 function MetaScript:CraftEnteredOrbit(orbitedCraft)
 	if SettingsMan.PrintDebugInfo then
-		print (self.PresetName.." Orbited")
-		print (orbitedCraft)
+		print (self.PresetName.." Orbited");
+		print (orbitedCraft);
 	end
 end
