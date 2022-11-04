@@ -1,17 +1,14 @@
 -- Weather "Manager" Particle
 
 function WeatherSnow(duration,ppm,pvel)
-
 	local snowrunner = CreateMOPixel("Particle Snow Manager","Base.rte");
 	snowrunner.Mass = duration;
 	snowrunner.Sharpness = ppm;
 	snowrunner.Pos = pvel;
 	MovableMan:AddParticle(snowrunner);
-
 end
 
 function Create(self)
-
 	self.particleList = {"Particle Snow Flake A","Particle Snow Flake B","Particle Snow Flake C"};
 
 	self.lifeTimer = Timer();
@@ -25,11 +22,9 @@ function Create(self)
 
 	self.particleVel = self.Pos;
 	self.Pos = Vector(0,0);
-
 end
 
 function Update(self)
-
 	if self.lifeTimer:IsPastSimMS(self.duration) then
 		self.ToDelete = true;
 	else
@@ -45,5 +40,4 @@ function Update(self)
 			MovableMan:AddParticle(weatherpar);
 		end
 	end
-
 end

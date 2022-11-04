@@ -16,7 +16,7 @@ function Create(self)
 		chain.IgnoresTeamHits = true;
 
 		MovableMan:AddParticle(chain);
-		
+
 		self.twirlCounter = self.twirlCounter + RangeRand(0, 0.5);
 	end
 end

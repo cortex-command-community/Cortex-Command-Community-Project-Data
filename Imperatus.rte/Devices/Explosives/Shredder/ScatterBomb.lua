@@ -9,6 +9,7 @@ function Create(self)
 	self.clusterCount = 8;
 	self.clusterFuse = 1000;
 end
+
 function Update(self)
 	if not self.fuseTriggered then
 		if self:IsActivated() then

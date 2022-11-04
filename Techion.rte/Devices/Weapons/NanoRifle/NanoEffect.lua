@@ -1,4 +1,4 @@
-function Create(self)	
+function Create(self)
 	--Get the target from Sharpness.
 	for id = 1, MovableMan:GetMOIDCount() - 1 do
 		local mo = MovableMan:GetMOFromID(id);
@@ -7,29 +7,29 @@ function Create(self)
 			break;
 		end
 	end
-	
+
 	self.healing = self.target.Team == self.Team;
 	self.healMultiplier = self.target.ModuleName == "Techion.rte" and 1.0 or 0.5;
-	
+
 	if self.target then
 		--Current number of damage pulses.
 		self.pulses = 0;
-		
+
 		--Maximum number of damage pulses to go through before stopping.
 		self.maxPulses = 15;
-		
+
 		--Chance of flickering each frame.
 		self.flickerChance = 0.9;
-		
+
 		--Length of time between pulses of damage.
 		self.pulseTime = 300;
-		
+
 		--Timer for damage.
 		self.pulseTimer = Timer();
-		
+
 		--Offset information.
 		self.Pos = self.Pos + self.Vel * rte.PxTravelledPerFrame;
-		
+
 		if self.target then
 			self.targetOffset = SceneMan:ShortestDistance(self.target.Pos, self.Pos, true);
 			self.hitAngle = self.target.RotAngle;
@@ -54,7 +54,7 @@ function Update(self)
 			flicker.Vel = offset * (-0.1);
 			MovableMan:AddParticle(flicker);
 		end
-		
+
 		--Cause damage to enemies, or heal friendlies.
 		if self.pulseTimer:IsPastSimMS(self.pulseTime + self.target.Material.StructuralIntegrity * 2) then
 

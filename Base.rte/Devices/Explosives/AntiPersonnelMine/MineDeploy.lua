@@ -3,7 +3,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local parent = self:GetRootParent();
 	if IsActor(parent) then
 		self.alliedTeam = ToActor(parent).Team;

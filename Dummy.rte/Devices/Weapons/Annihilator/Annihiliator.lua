@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.fireTimer = Timer();
 	self.blinkTimer = Timer();
 	self.chargeTimer = Timer();
@@ -14,11 +13,9 @@ function Create(self)
 	self.glowChargeIncrement = 0.2;
 	self.maxCharge = 40;
 	self.chargesPerSecond = 20;
-
 end
 
 function Update(self)
-    
 	if self:IsActivated() then
 
 		if self.chargeCounter > self.maxCharge/2 then
@@ -114,15 +111,12 @@ function Update(self)
 		self.fireTimer:Reset();
 		self.particleTable = {};
 	end
-
 end
 
 function Destroy(self)
-
 	for i = 1, #self.particleTable do
 		if MovableMan:IsParticle(self.particleTable[i]) then
 			self.particleTable[i].ToDelete = true;
 		end
 	end
-
 end

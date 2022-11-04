@@ -2,6 +2,7 @@
 function Create(self)
 	self.fireTimer = Timer();
 end
+
 function Update(self)
 	if self.FiredFrame or self:IsReloading() then
 		self.fireTimer:Reset();

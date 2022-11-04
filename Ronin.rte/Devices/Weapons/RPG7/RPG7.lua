@@ -6,6 +6,7 @@ function Update(self)
 		self.Magazine.ToDelete = true;
 	end
 end
+
 function WhilePieMenuOpen(self, pieMenu)
 	if pieMenu.Owner:HasObject("Shovel") and (not self.Magazine or self.Magazine.PresetName ~= "Magazine Ronin Shovel Shot") then
 		if pieMenu:GetFirstPieSliceByPresetName("RPG7 Insert Ammo") == nil then

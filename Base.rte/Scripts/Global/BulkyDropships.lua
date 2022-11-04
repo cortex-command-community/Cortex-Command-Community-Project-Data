@@ -1,6 +1,7 @@
 function BulkyDropshipsScript:StartScript()
 	self.multiplier = 0.35;
 end
+
 function BulkyDropshipsScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("BulkyDropshipsScript") then

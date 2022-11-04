@@ -5,6 +5,7 @@ function Create(self)
 
 	self.cockSound = CreateSoundContainer("Coalition Shotgun Cock Sound", "Coalition.rte");
 end
+
 function Update(self)
 	local parent;
 	local actor = self:GetRootParent();

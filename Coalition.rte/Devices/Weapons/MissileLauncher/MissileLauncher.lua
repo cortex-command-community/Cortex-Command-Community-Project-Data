@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.fireVel = 50;
 	self.checkTimer = Timer();
 
@@ -19,6 +18,7 @@ function Create(self)
 	self.arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
 	self.detectSound = CreateSoundContainer("Mine Activate", "Base.rte");
 end
+
 function Update(self)
 	local parent = self:GetRootParent();
 	if parent and IsActor(parent) then
@@ -69,12 +69,12 @@ function Update(self)
 				end
 				local crossVecX = Vector(markerSize, 0):DegRotate(self.markerRotAngle);
 				local crossVecY = Vector(0, markerSize):DegRotate(self.markerRotAngle);
-				
+
 				local frame = self.markerSize > 50 and 1 or 0;
-				
+
 				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos - crossVecX, self.arrow, crossVecX.AbsRadAngle, frame);
 				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos + crossVecX, self.arrow, crossVecX.AbsRadAngle + math.pi, frame);
-				
+
 				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos - crossVecY, self.arrow, crossVecY.AbsRadAngle, frame);
 				PrimitiveMan:DrawBitmapPrimitive(screen, crosshairPos + crossVecY, self.arrow, crossVecY.AbsRadAngle + math.pi, frame);
 
@@ -93,7 +93,7 @@ function Update(self)
 		self.missile.AngularVel = math.cos(self.missile.Vel.AbsRadAngle) * 10;
 		self.missile.Team = self.Team;
 		self.missile.IgnoresTeamHits = true;
-		
+
 		if self.target and IsMOSRotating(self.target) then
 			self.missile:SetNumberValue("TargetID", self.target.ID);
 		end

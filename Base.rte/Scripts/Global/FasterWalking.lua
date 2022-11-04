@@ -2,6 +2,7 @@ function FasterWalkingScript:StartScript()
 	self.multiplier = 1.6;
 	self.pushForceDenominator = 1.2;
 end
+
 function FasterWalkingScript:UpdateScript()
 	for actor in MovableMan.AddedActors do
 		if not actor:NumberValueExists("FasterWalkingScript") then
@@ -12,6 +13,7 @@ function FasterWalkingScript:UpdateScript()
 		end
 	end
 end
+
 function FasterWalkingScript:BoostWalkSpeed(actor)
 	local walker;
 	if IsAHuman(actor) then

@@ -1,28 +1,27 @@
-
-require("AI/PID")
+require("AI/PID");
 
 function Create(self)
 	---------------- AI variables start ----------------
 	self.StableTimer = Timer();
 	self.StuckTimer = Timer();
 	self.DoorTimer = Timer();
-	
+
 	self.ObstacleTimer = Timer();
 	self.ObstacleTimer:SetSimTimeLimitMS(100);
-	
+
 	self.PlayerInterferedTimer = Timer();
 	self.PlayerInterferedTimer:SetSimTimeLimitMS(500);
-	
+
 	self.DeliveryState = ACraft.FALL;
 	self.LastAIMode = Actor.AIMODE_NONE;
 	self.groundDist = self.Radius/1.35;
-	
+
 	self.LZpos = SceneMan:MovePointToGround(self.Pos, self.groundDist, 9);
 	self.velIntegrator = 0;
-	
+
 	function self:MoveLZ()
 		local FuturePos = self.Pos + self.Vel * 7;
-		
+
 		-- Make sure FuturePos is inside the scene
 		if FuturePos.X > SceneMan.SceneWidth then
 			if SceneMan.SceneWrapsX then
@@ -37,7 +36,7 @@ function Create(self)
 				FuturePos.X = self.Radius;
 			end
 		end
-		
+
 		if self.DeliveryState == ACraft.LAUNCH then
 			self.LZpos.X = FuturePos.X;
 		else
@@ -45,16 +44,14 @@ function Create(self)
 			self.LZpos = SceneMan:MovePointToGround(TestPos, self.groundDist, 5);
 		end
 	end
-	
+
 	-- The controllers
 	self.AngPID = RegulatorPID:New{p=2.7, i=0.01, d=0.9, last_input=self.RotAngle, filter_leak=0.6, integral_max=150};
 	self.XposPID = RegulatorPID:New{p=0.2, d=0.5, filter_leak=0.6, integral_max=100};
 	self.YposPID = RegulatorPID:New{p=0.012, i=0.07, d=4, last_input=self.LZpos.Y, filter_leak=0.5, integral_max=30};
-	
+
 	-- Check if this team is controlled by a human
-	if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() and
-		ActivityMan:GetActivity():IsHumanTeam(self.Team)
-	then
+	if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() and ActivityMan:GetActivity():IsHumanTeam(self.Team) then
 		self.AIMode = Actor.AIMODE_STAY;	-- Stop the craft from returning to orbit immediately
 	end
 	---------------- AI variables end ----------------
@@ -62,14 +59,14 @@ end
 
 function UpdateAI(self)
 	self.Ctrl = self:GetController();
-	
+
 	if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
 		self.StuckTimer:Reset();
 		self:MoveLZ();
 	end
-	
+
 	self.PlayerInterferedTimer:Reset();
-	
+
 	if self.AIMode ~= self.LastAIMode then
 		self.LastAIMode = self.AIMode;
 
@@ -82,7 +79,7 @@ function UpdateAI(self)
 			self:MoveLZ();
 		end
 	end
-	
+
 	-- Reset StableTimer if not in a stable and upright state
 	self.velIntegrator = self.velIntegrator * 0.8 + self.Vel.Magnitude * 0.2;
 	if self.velIntegrator > 5 or math.abs(self.AngularVel) > 1 then
@@ -90,9 +87,9 @@ function UpdateAI(self)
 	else
 		self.LZpos.X = self.Pos.X;
 	end
-	
+
 	-- Delivery Sequence logic
-	if self.DeliveryState == ACraft.FALL then		
+	if self.DeliveryState == ACraft.FALL then
 		self.checkLZ = not self.checkLZ;	-- Only check every second frame
 		if self.checkLZ then
 			-- Move Landing Zone closer to the rocket if it is about to collide with something
@@ -106,7 +103,7 @@ function UpdateAI(self)
 			-- Check for something in the way of our descent, and move to the side to avoid it
 			if self.ObstacleTimer:IsPastSimTimeLimit() then
 				self.ObstacleTimer:Reset();
-				
+
 				local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.max(self.Vel.Y, 2)) * 40;
 				local obstID = SceneMan:CastMORay(self.Pos, Trace, self.ID, self.IgnoresWhichTeam, 0, false, 5);
 				if obstID ~= rte.NoMOID then
@@ -117,7 +114,7 @@ function UpdateAI(self)
 						self.obstacle = true;
 					elseif MovableMan:IsActor(MO) and MO.Team == self.Team then
 						local newLZx = MO.Pos.X + MO.Diameter + self.Diameter;
-						
+
 						-- Make sure newLZx is inside the scene
 						if newLZx > SceneMan.SceneWidth then
 							if SceneMan.SceneWrapsX then
@@ -126,7 +123,7 @@ function UpdateAI(self)
 								newLZx = MO.Pos.X - (MO.Diameter + self.Diameter);
 							end
 						end
-						
+
 						self.LZpos:SetXY(newLZx, math.max(MO.Pos.Y - 200, 0));
 					end
 				elseif self.obstacle then
@@ -136,7 +133,7 @@ function UpdateAI(self)
 				end
 			end
 		end
-		
+
 		if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() then
 			self.AIMode = Actor.AIMODE_RETURN;
 			self.DeliveryState = ACraft.LAUNCH;	-- Don't descend if we have nothing to deliver
@@ -145,7 +142,7 @@ function UpdateAI(self)
 			if self.StableTimer:IsPastSimMS(500) then	-- Move LZ if stable
 				self.LZpos = SceneMan:MovePointToGround(self.Pos, self.groundDist, 6);
 			end
-			
+
 			if self.AIMode ~= Actor.AIMODE_STAY then
 				local dist = SceneMan:ShortestDistance(self.Pos, self.LZpos, false).Magnitude;
 				if dist < 25 then	-- If we passed the check, start unloading
@@ -171,7 +168,7 @@ function UpdateAI(self)
 		-- Check for something in the way of our ascent, and move to the side to avoid it
 		if self.ObstacleTimer:IsPastSimTimeLimit() then
 			self.ObstacleTimer:Reset();
-			
+
 			local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.min(self.Vel.Y, -1)) * 50;
 			local obstID = SceneMan:CastMORay(self.Pos, Trace, self.ID, self.IgnoresWhichTeam, 0, false, 5);
 			if obstID ~= rte.NoMOID then
@@ -191,7 +188,7 @@ function UpdateAI(self)
 			end
 		end
 	end
-	
+
 	-- Control up/down movement
 	if self.DeliveryState ~= ACraft.UNLOAD then
 		local change = self.YposPID:Update(-(self.LZpos.Y - (self.Pos.Y + self.Vel.Y)), 0);
@@ -211,7 +208,7 @@ function UpdateAI(self)
 			self.Ctrl:SetState(Controller.MOVE_DOWN, true);
 		end
 	end
-	
+
 	-- Control right/left movement (the rocket will move sideways if rotated to the side)
 	local dist = SceneMan:ShortestDistance(self.Pos + self.Vel * 20, self.LZpos, false).X;
 	local change = self.XposPID:Update(dist, 0);
@@ -229,7 +226,7 @@ function UpdateAI(self)
 			targetAng = -math.min(change/40, 0.5);
 		end
 	end
-	
+
 	-- Control angle
 	change = self.AngPID:Update(self.RotAngle + self.AngularVel, targetAng);
 	-- Don't burst side thrusters from minimal tilt
@@ -241,7 +238,7 @@ function UpdateAI(self)
 			self.burstLeft = math.max(5 + change, 2);
 		end
 	end
-	
+
 	-- Trigger bursts
 	if self.burstRight then
 		self.burstRight = self.burstRight - 1;
@@ -252,7 +249,7 @@ function UpdateAI(self)
 			end
 		end
 	end
-	
+
 	if self.burstLeft then
 		self.burstLeft = self.burstLeft - 1;
 		if self.burstLeft < 0 then
@@ -262,7 +259,7 @@ function UpdateAI(self)
 			end
 		end
 	end
-	
+
 	if self.burstUp then
 		self.burstUp = self.burstUp - 1;
 		if self.burstUp < 0 then
@@ -272,7 +269,7 @@ function UpdateAI(self)
 			end
 		end
 	end
-	
+
 	if self.AIMode == Actor.AIMODE_STAY then
 		self.StuckTimer:Reset();
 		-- Don't burst main thruster when stationary, as it results in hatches closing

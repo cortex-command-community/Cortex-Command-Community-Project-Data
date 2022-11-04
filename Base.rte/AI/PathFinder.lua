@@ -5,22 +5,22 @@
 -- gPathObstMaxHeight is the largets vertical obstacle height along the path
 
 function Create(self)
-	self:SetControllerMode(Controller.CIM_DISABLED, -1)
+	self:SetControllerMode(Controller.CIM_DISABLED, -1);
 end
 
 function Update(self)
 	if gFindPathFrom and gFindPathTo then
-		self.Pos = gFindPathFrom
-		gFindPathFrom = nil
-		
-		self:ClearAIWaypoints()
-		self:AddAISceneWaypoint(gFindPathTo)
-		self:UpdateMovePath()
-		gFindPathTo = nil
-		
-		gWaypoints = {}
+		self.Pos = gFindPathFrom;
+		gFindPathFrom = nil;
+
+		self:ClearAIWaypoints();
+		self:AddAISceneWaypoint(gFindPathTo);
+		self:UpdateMovePath();
+		gFindPathTo = nil;
+
+		gWaypoints = {};
 		for Wpt in self.MovePath do
-			table.insert(gWaypoints, Vector(Wpt.X, Wpt.Y))
+			table.insert(gWaypoints, Vector(Wpt.X, Wpt.Y));
 		end
 	end
 end
