@@ -908,12 +908,15 @@ function WaveDefense:CreateMediumInfantry()
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
 		
-		local rand = math.random();
-		if rand < 0.5 then
-			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
-		elseif rand < 0.8 then
-			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		if math.random() < 0.3 then
+			Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.AI.Tech));
 		else
+			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
+		end
+		if math.random() < 0.5 then
+			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+		if math.random() < 0.1 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
 		
