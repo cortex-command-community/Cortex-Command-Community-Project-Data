@@ -6,6 +6,7 @@ function MoreGoldScript:StartScript()
 		self.lastGold[t] = self.activity:GetTeamFunds(t);
 	end
 end
+
 function MoreGoldScript:UpdateScript()
 	for t = Activity.TEAM_1, Activity.TEAM_4 do
 		local diff = self.activity:GetTeamFunds(t) - self.lastGold[t];

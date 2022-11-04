@@ -2,9 +2,10 @@ function Create(self)
 	self.pullTimer = Timer();
 	self.loaded = false;
 	self.rotFactor = math.pi;
-	
+
 	self.cockSound = CreateSoundContainer("Chamber Round", "Base.rte");
 end
+
 function Update(self)
 	local parent;
 	local actor = self:GetRootParent();

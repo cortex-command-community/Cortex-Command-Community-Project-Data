@@ -8,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	self.ToDelete = false;
 
 	if self.actionPhase == 0 then
@@ -21,12 +20,12 @@ function Update(self)
 			local checkPix = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 			if checkPix ~= rte.NoMOID and (self.ID == rte.NoMOID or checkPix ~= self.ID) and MovableMan:GetMOFromID(checkPix).Team ~= self.Team then
 				checkPos = checkPos + SceneMan:ShortestDistance(checkPos, self.Pos, SceneMan.SceneWrapsX):SetMagnitude(3);
-				
+
 				self.target = MovableMan:GetMOFromID(checkPix);
 				self.stickPosition = SceneMan:ShortestDistance(self.target.Pos, checkPos, SceneMan.SceneWrapsX);
 				self.stickRotation = self.target.RotAngle;
 				self.stickDirection = self.RotAngle;
-				
+
 				self.stuck = true;
 				rayHit = true;
 				break;

@@ -1,6 +1,7 @@
 function ToughBrainsScript:StartScript()
 	self.multiplier = 3;
 end
+
 function ToughBrainsScript:UpdateScript()
 	for actor in MovableMan.Actors do
 		if actor:IsInGroup("Brains") and not actor:NumberValueExists("ToughBrainsScript") then

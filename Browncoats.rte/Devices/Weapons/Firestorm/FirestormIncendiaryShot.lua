@@ -1,13 +1,10 @@
 function Create(self)
-
 	self.lifeTimer = Timer();
 	self.emitTimerA = Timer();
 	self.emitTimerB = Timer();
-
 end
 
 function Update(self)
-
 	if MovableMan:IsParticle(self) and self.lifeTimer:IsPastSimMS(3000) then
 		self.ToDelete = true;
 	else
@@ -37,7 +34,6 @@ function Update(self)
 			fireC.Team = self.Team;
 			fireC.IgnoresTeamHits = true;
 			MovableMan:AddParticle(fireC);
-
 		end
 
 		if self.emitTimerB:IsPastSimMS(60) then
@@ -56,9 +52,6 @@ function Update(self)
 			fireE.Team = self.Team;
 			fireE.IgnoresTeamHits = true;
 			MovableMan:AddParticle(fireE);
-
 		end
-
 	end
-
 end

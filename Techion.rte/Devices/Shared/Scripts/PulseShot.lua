@@ -3,13 +3,14 @@ function Create(self)
 	self.EffectRotAngle = self.Vel.AbsRadAngle;
 	--Check backward (second argument) on the first frame as the projectile might be bouncing off something immediately
 	PulsarDissipate(self, true);
-	
+
 	self.trailPar = CreateMOPixel(self.PresetName .. " Trail Glow", "Techion.rte");
 	self.trailPar.Pos = self.Pos - (self.Vel * rte.PxTravelledPerFrame);
 	self.trailPar.Vel = self.Vel * 0.1;
 	self.trailPar.Lifetime = 60;
 	MovableMan:AddParticle(self.trailPar);
 end
+
 function Update(self)
 	self.ToSettle = false;
 	if self.explosion then
@@ -25,15 +26,15 @@ function Update(self)
 		end
 	end
 end
-function PulsarDissipate(self, inverted)
 
+function PulsarDissipate(self, inverted)
 	local trace = inverted and Vector(-self.Vel.X, -self.Vel.Y):SetMagnitude(GetPPM()) or Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + 1);
 	local hit = false;
 	local hitPos = Vector(self.Pos.X, self.Pos.Y);
 	local skipPx = math.sqrt(self.Vel.Magnitude) * 0.5;
 
 	local moid = SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx) >= 0 and SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y) or self.HitWhatMOID;
-	
+
 	if moid ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(moid);
 		if mo then
@@ -50,7 +51,7 @@ function PulsarDissipate(self, inverted)
 		local penetration = self.Mass * self.Sharpness * self.Vel.Magnitude;
 		if SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)).StructuralIntegrity > penetration then
 			hit = true;
-		elseif self.Vel.Magnitude < self.PrevVel.Magnitude * 0.5 then
+		elseif self.Vel:MagnitudeIsLessThan(self.PrevVel.Magnitude * 0.5) then
 			hit = true;
 		end
 	end
@@ -62,15 +63,17 @@ function PulsarDissipate(self, inverted)
 		self.explosion.Team = self.Team;
 		self.explosion.Vel = offset;
 		MovableMan:AddParticle(self.explosion);
-		
+
 		self.TrailLength = 0;
 		self.ToDelete = true;
 	end
 	return hit;
 end
+
 function OnCollideWithMO(self, mo, parentMO)
 	PulsarDissipate(self, false);
 end
+
 function OnCollideWithTerrain(self, terrainID)
 	PulsarDissipate(self, false);
 end

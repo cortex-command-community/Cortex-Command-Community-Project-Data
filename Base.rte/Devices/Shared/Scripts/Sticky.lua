@@ -6,8 +6,8 @@ function Create(self)
 
 	--Cycle through all MOs and see which is the closest, and attach to it.
 	for i=1,MovableMan:GetMOIDCount()-1 do
-		part = MovableMan:GetMOFromID(i)
-		if part and
+		part = MovableMan:GetMOFromID(i);
+		if part then
 			part = ToMovableObject(part);
 			dist = math.sqrt((self.Pos.X - part.Pos.X) ^ 2 + (self.Pos.Y - part.Pos.Y) ^ 2);
 			if dist < curdist and part.ID ~= self.ID then

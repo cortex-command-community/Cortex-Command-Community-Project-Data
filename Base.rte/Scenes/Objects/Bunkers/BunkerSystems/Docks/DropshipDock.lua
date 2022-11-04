@@ -16,7 +16,7 @@ function Update(self)
 		local dist = SceneMan:ShortestDistance(self.craft.Pos, self.Pos + Vector(0, ToMOSprite(self.craft):GetSpriteHeight() * 0.5), SceneMan.SceneWrapsX);
 		self.craft.Vel = self.craft.Vel * 0.9 + dist/(3 + self.craft.Vel.Magnitude);
 		self.craft.AngularVel = self.craft.AngularVel * 0.9 - self.craft.RotAngle * 3;
-		
+
 		if self.craft.Status < Actor.DYING then
 			self.craft.Status = Actor.UNSTABLE;	--Deactivated
 		end

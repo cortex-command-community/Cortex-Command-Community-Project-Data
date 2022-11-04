@@ -8,8 +8,8 @@
 -- self.myPD = RegulatorPID:New{p=0.2, d=0.5, filter_leak=0.7, integral_max=50}
 -- All parameters are optional
 
-RegulatorPID = {}
-RegulatorPID.mt = {__index = RegulatorPID}
+RegulatorPID = {};
+RegulatorPID.mt = {__index = RegulatorPID};
 function RegulatorPID:New(Inputs)
 	return setmetatable(
 		{
@@ -22,14 +22,14 @@ function RegulatorPID:New(Inputs)
 			integral = 0,
 			integral_max = Inputs.integral_max or math.huge / 2,
 		},
-		RegulatorPID.mt)
+		RegulatorPID.mt);
 end
 
 function RegulatorPID:Update(raw_input, target)
-	self.filtered_input = self.filtered_input * (1-self.filter_leak) + raw_input * self.filter_leak
-	local err = self.filtered_input - target
-	local change = self.filtered_input - self.last_input
-	self.last_input = self.filtered_input
-	self.integral = math.min(math.max(self.integral + err, -self.integral_max), self.integral_max)
-	return self.p*err + self.i*self.integral + self.d*change
+	self.filtered_input = self.filtered_input * (1-self.filter_leak) + raw_input * self.filter_leak;
+	local err = self.filtered_input - target;
+	local change = self.filtered_input - self.last_input;
+	self.last_input = self.filtered_input;
+	self.integral = math.min(math.max(self.integral + err, -self.integral_max), self.integral_max);
+	return self.p*err + self.i*self.integral + self.d*change;
 end

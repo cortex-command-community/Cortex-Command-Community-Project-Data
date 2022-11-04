@@ -8,10 +8,11 @@ function Create(self)
 	--Angle alteration variables (do not touch)
 	self.rotation = 0;	--Left / Right movement affecting turret angle
 	self.verticalFactor = 0;	--How Up / Down movement affects turret angle
-	
+
 	self.fireTimer = Timer();
 	self.fireTimer:SetSimTimeLimitMS(500);
 end
+
 function Update(self)
 	local parent = self:GetParent();
 	if parent then
@@ -23,7 +24,7 @@ function Update(self)
 				return;
 			end
 			local controller = parent:GetController();
-				
+
 			if controller:IsState(Controller.MOVE_RIGHT) then
 				self.rotation = self.rotation + self.turnSpeed;
 			end
@@ -88,7 +89,7 @@ function Update(self)
 				self:EnableEmission(true);
 				self:TriggerBurst();
 				self.fireTimer:Reset();
-				
+
 				if self:IsSetToBurst() then
 					color = 254;	--Debug trace color: white
 				end

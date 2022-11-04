@@ -2,6 +2,7 @@ function Create(self)
 	self.origMass = self.Mass;
 	self.explosion = CreateMOSRotating("Molotov Cocktail Explosion", "Ronin.rte");
 end
+
 function Update(self)
 	if self.ID == self.RootID then
 		if self.thrown == false then
@@ -23,6 +24,7 @@ function Update(self)
 	end
 	self.lit = self:IsActivated();
 end
+
 function Destroy(self)
 	--Explode into flames only if lit
 	if self.lit then

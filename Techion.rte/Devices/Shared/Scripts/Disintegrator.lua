@@ -5,7 +5,7 @@ function Create(self)
 	self.minScale = 0.1;
 
 	self.disintegrationSound = CreateSoundContainer("Disintegration Sound", "Techion.rte");
-	
+
 	local target;
 	local strength = math.random(self.PinStrength * 0.5, self.PinStrength);
 	--Get assigned target from Sharpness because MOPixels cannot carry NumberValues
@@ -17,7 +17,7 @@ function Create(self)
 		local actor = MovableMan:GetClosestEnemyActor(self.Team, self.Pos, strength, dist);
 		if actor then
 			local sizeEstimate = (actor.Height + actor.Diameter)/3;
-			if dist.Magnitude < sizeEstimate and sizeEstimate < 50 then
+			if dist:MagnitudeIsLessThan(sizeEstimate) and sizeEstimate < 50 then
 				target = ToActor(actor);
 				strength = strength/math.sqrt(dist.Magnitude);
 			end
@@ -70,21 +70,22 @@ function Create(self)
 		end
 	end
 end
+
 function Update(self)
 	if self.target and self.target.ID ~= rte.NoMOID then
-	
+
 		self.target.ToSettle = false;
 		self.target.Vel = (self.target.Vel * 0.9) - (SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs);
 		self.target.AngularVel = self.target.AngularVel * 0.5;
-		
+
 		self.target.GlobalAccScalar = self.target.GlobalAccScalar * (1 - 1/(math.abs(self.target.Mass) + 1));
 		self.target:FlashWhite(10);
-		
+
 		self.target:RemoveWounds(self.target.GibWoundLimit);
-		
+
 		local flag = self.target:GetNumberValue("ToDisintegrate");
 		local parts = {self.target};
-		
+
 		if self.target.EquippedItem then
 			table.insert(parts, ToMOSRotating(self.target.EquippedItem));
 			for att in ToMOSRotating(self.target.EquippedItem).Attachables do
@@ -133,7 +134,7 @@ function Update(self)
 			end
 			for i = 1, radius do
 				if math.random(radius) > i then
-									
+
 					local piece = CreateMOSParticle("Techion.rte/White Goo Particle");
 					if math.random() < 0.3 then
 						piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(6));

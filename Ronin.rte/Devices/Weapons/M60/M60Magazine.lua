@@ -2,6 +2,7 @@ function Create(self)
 	self.lastRoundCount = self.RoundCount;
 	self.loopFrames = 3;
 end
+
 function Update(self)
 	if self.RoundCount ~= self.lastRoundCount then
 		if self.RoundCount < self.FrameCount - self.loopFrames then

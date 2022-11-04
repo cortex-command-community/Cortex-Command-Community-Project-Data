@@ -8,7 +8,7 @@ function GibDeathOnlyScript:UpdateScript()
 				local door = ToADoor(actor);
 				if door.Door then
 					actor.Health = actor.MaxHealth;
-				end 
+				end
 			end
 		end
 		if not actor:NumberValueExists("GibDeathOnlyScript") then

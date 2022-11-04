@@ -8,16 +8,17 @@ function Create(self)
 		local particle = CreateMOPixel("Dummy Repeater Trail Glow");
 		particle.Pos = self.Pos;
 		particle.Sharpness = particle.Sharpness/i;
-		
+
 		particle.Team = self.Team;
 		particle.IgnoresTeamHits = true;
-		
+
 		particle.Lifetime = 100;
 		MovableMan:AddParticle(particle);
 		table.insert(self.trailPar, particle);
 	end
 	self.endPar = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow");
 end
+
 function Update(self)
 	if not self.ToDelete then
 		for i = 1, self.trailParCount do
@@ -28,10 +29,11 @@ function Update(self)
 			end
 		end
 	end
-	if self.Vel.Magnitude < 4 then
+	if self.Vel:MagnitudeIsLessThan(4) then
 		self.ToDelete = true;
 	end
 end
+
 function Destroy(self)
 	self.endPar.Pos = Vector(self.Pos.X, self.Pos.Y) + Vector(self.Vel.X, self.Vel.Y) * 0.16;
 	self.endPar.Vel = Vector(self.Vel.X + math.random(-5, 5), self.Vel.Y + math.random(-5, 5)) * 0.5;

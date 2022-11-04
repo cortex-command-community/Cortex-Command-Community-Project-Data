@@ -1,17 +1,15 @@
 function Create(self)
-
 	self.delayTimer = Timer();
 	self.actionPhase = 0;
 	self.fireOn = false;
 	self.alliedTeam = -1;
-	
+
 	self.detonateDelay = 60000/self.RateOfFire;
-	
+
 	self.detonateSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
 end
 
 function Update(self)
-
 	if self.ID ~= self.RootID then
 		local actor = MovableMan:GetMOFromID(self.RootID);
 		if MovableMan:IsActor(actor) then

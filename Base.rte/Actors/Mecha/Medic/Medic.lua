@@ -6,7 +6,7 @@ function Create(self)
 	self.healTimer:SetSimTimeLimitMS(self.baseHealDelay);
 	self.crossTimer = Timer();
 	self.crossTimer:SetSimTimeLimitMS(800);
-	
+
 	self.visual = {};
 	self.visual.Colors = {135, 133, 149, 148, 145, 148, 149, 133};
 	self.visual.CurrentColor = 0;
@@ -18,6 +18,7 @@ function Create(self)
 	self.healStrength = 1;
 	self.healTargets = {};
 end
+
 function Update(self)
 	local parent = self:GetParent();
 	if parent and IsActor(parent) then

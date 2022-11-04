@@ -11,8 +11,8 @@ end
 function OneManArmyHard:StartActivity()
 	print("START! -- OneManArmyHard:StartActivity()!");
 	self.Spawn = SceneMan.Scene:GetArea("OMA Spawn");
-    for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-        if self:PlayerActive(player) and self:PlayerHuman(player) then
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
 		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -49,11 +49,11 @@ function OneManArmyHard:StartActivity()
 end
 
 function OneManArmyHard:PauseActivity(pause)
-    	print("PAUSE! -- OneManArmyHard:PauseActivity()!");
+		print("PAUSE! -- OneManArmyHard:PauseActivity()!");
 end
 
 function OneManArmyHard:EndActivity()
-    	print("END! -- OneManArmyHard:EndActivity()!");
+		print("END! -- OneManArmyHard:EndActivity()!");
 end
 
 

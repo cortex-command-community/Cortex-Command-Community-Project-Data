@@ -1,5 +1,3 @@
-dofile("Base.rte/Constants.lua")
-
 function KeepieUppie:StartActivity()
 	print("START! -- KeepieUppie:StartActivity()!");
 
@@ -17,7 +15,7 @@ function KeepieUppie:StartActivity()
 	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
 
 	self.SurvivalTimer = Timer();
-	
+
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
 		self.TimeLimit = 25000;
 		self.timeDisplay = "twenty seconds";
@@ -49,15 +47,15 @@ function KeepieUppie:StartActivity()
 		self.BaseSpawnTime = 3500;
 		self.RandomSpawnTime = 4000;
 	end
-	
+
 	self:SetTeamFunds(0, Activity.TEAM_1);
 	-- CPU Funds are unlimited
 	self:SetTeamFunds(1000000, self.CPUTeam);
 
 	self.StartTimer = Timer();
 	self.started = false;
-	
-	self.TimeLeft = 2000
+
+	self.TimeLeft = 2000;
 end
 
 
@@ -96,7 +94,7 @@ function KeepieUppie:UpdateActivity()
 					else
 						FrameMan:SetScreenText("Keep the rocket alive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
 					end
-				
+
 					-- The current player's team
 					local team = self:GetTeamOfPlayer(player);
 					-- Check if any player's brain is dead
@@ -113,15 +111,15 @@ function KeepieUppie:UpdateActivity()
 					else
 						self.HuntPlayer = player;
 					end
-					
+
 					--Check if the player has won.
 					if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(player);
 						FrameMan:SetScreenText("You survived!", player, 333, -1, false);
-						
+
 						self.WinnerTeam = player;
-						
+
 						--Kill all enemies.
 						for actor in MovableMan.Actors do
 							if actor.Team ~= self.WinnerTeam then
@@ -136,19 +134,19 @@ function KeepieUppie:UpdateActivity()
 
 			--Spawn the AI.
 			if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-				local ship, actorsInCargo
-				
+				local ship, actorsInCargo;
+
 				if math.random() < 0.5 then
 					-- Set up the ship to deliver this stuff
 					ship = RandomACDropShip("Any", self.CPUTechName);
-					actorsInCargo = ship.MaxPassengers
+					actorsInCargo = ship.MaxPassengers;
 				else
 					ship = RandomACRocket("Any", self.CPUTechName);
-					actorsInCargo = math.min(ship.MaxPassengers, 2)
+					actorsInCargo = math.min(ship.MaxPassengers, 2);
 				end
-				
+
 				ship.Team = self.CPUTeam;
-				
+
 				-- Set the ship up with a cargo of a few armed and equipped actors
 				for i = 1, actorsInCargo do
 					-- Get any Actor from the CPU's native tech
@@ -169,9 +167,9 @@ function KeepieUppie:UpdateActivity()
 					-- Set AI mode and team so it knows who and what to fight for!
 					passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 					passenger.Team = self.CPUTeam;
-					ship:AddInventoryItem(passenger)
+					ship:AddInventoryItem(passenger);
 				end
-				
+
 				-- Set the spawn point of the ship from orbit
 				if self.playertally == 1 then
 					for i = 1, #self.playerlist do
@@ -199,15 +197,15 @@ function KeepieUppie:UpdateActivity()
 				MovableMan:AddActor(ship);
 
 				self.ESpawnTimer:Reset();
-				self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale)
+				self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale);
 			end
 		end
 	else
 		self.StartTimer:Reset();
 		self.SurvivalTimer:Reset();
-		
+
 		FrameMan:SetScreenText("Order your rocket...", Activity.PLAYER_1, 0, 5000, false);
-		
+
 		--See if the rocket has spawned yet.
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -216,15 +214,15 @@ function KeepieUppie:UpdateActivity()
 						self:SetPlayerBrain(actor, player);
 						self:SetObservationTarget(actor.Pos, player);
 						self:SwitchToActor(actor, player, player);
-				
+
 						self.started = true;
 					end
 				end
 			end
 		end
 	end
-	
+
 	self:SetTeamFunds(0, Activity.TEAM_1);
-	
+
 	self:YSortObjectivePoints();
 end

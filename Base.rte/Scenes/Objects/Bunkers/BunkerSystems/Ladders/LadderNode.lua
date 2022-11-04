@@ -4,6 +4,7 @@ function Create(self)
 	self.width = (ToMOSprite(self):GetSpriteWidth() * 0.5) - 1;
 	self.height = (ToMOSprite(self):GetSpriteHeight() * 0.5) - 1;
 end
+
 function Update(self)
 	if self.PinStrength > 0 and self.checkTimer:IsPastSimTimeLimit() then
 		self.checkTimer:Reset();

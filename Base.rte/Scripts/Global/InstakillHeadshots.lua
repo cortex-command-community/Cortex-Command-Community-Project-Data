@@ -10,6 +10,7 @@ function InstakillHeadshotsScript:UpdateScript()
 		end
 	end
 end
+
 function InstakillHeadshotsScript:WeakenHead(actor)
 	actor:SetNumberValue("InstakillHeadshotsScript", 1);
 	if IsAHuman(actor) then

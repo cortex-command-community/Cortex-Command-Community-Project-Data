@@ -26,12 +26,12 @@ function KingOfTheHill:StartActivity()
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end
 	end
-	
+
 	self.HoldArea = SceneMan.Scene:GetArea("KOTH Hold Area");
 	self.Timer1 = Timer();
 	self.Timer2 = Timer();
@@ -44,11 +44,11 @@ function KingOfTheHill:StartActivity()
 end
 
 function KingOfTheHill:PauseActivity(pause)
-    	print("PAUSE! -- KingOfTheHill:PauseActivity()!");
+		print("PAUSE! -- KingOfTheHill:PauseActivity()!");
 end
 
 function KingOfTheHill:EndActivity()
-    	print("END! -- KingOfTheHill:EndActivity()!");
+		print("END! -- KingOfTheHill:EndActivity()!");
 end
 
 

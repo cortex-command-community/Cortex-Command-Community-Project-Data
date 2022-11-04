@@ -1,16 +1,13 @@
 function Create(self)
-
 	self.lifeTimer = Timer();
 
 	self.raylength = 50;
 	self.rayPixSpace = 5;
 
 	self.dots = math.floor(self.raylength/self.rayPixSpace);
-
 end
 
 function Update(self)
-
 	if self.lifeTimer:IsPastSimMS(4000) then
 		self:GibThis();
 	end
@@ -39,5 +36,4 @@ function Update(self)
 			self:GibThis();
 		end
 	end
-
 end

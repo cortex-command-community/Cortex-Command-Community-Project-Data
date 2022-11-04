@@ -28,6 +28,7 @@ function Create(self)
 		end
 	end
 	self.stableVel = self:GetStableVelocityThreshold();
+
 	function self.lunge(power)
 		local flip = 0;
 		if self.Status == Actor.STABLE then
@@ -44,9 +45,9 @@ function Create(self)
 			local aimAng = self:GetAimAngle(false);
 			local vertical = math.abs(math.cos(aimAng))/vel;
 			local strength = power * math.min(self.Health/self.MaxHealth, 1);
-			
+
 			local jumpVec =	Vector((power + strength/vel) * flip, -(power * 0.5 + (strength * 0.3)) * vertical):RadRotate(aimAng * self.FlipFactor);
-			
+
 			self.Vel = self.Vel + jumpVec/mass;
 			self.AngularVel = self.AngularVel - (1/angVel * vertical) * flip * math.cos(self.RotAngle);
 			self.Status = Actor.UNSTABLE;
@@ -55,6 +56,7 @@ function Create(self)
 		return flip;
 	end
 end
+
 function Update(self)
 	self.controller = self:GetController();
 	if self.updateTimer:IsPastSimMS(1000) then
@@ -84,7 +86,7 @@ function Update(self)
 			crouching = false;
 		elseif crouching then
 			if not self.crouchHeld then
-				if not self.tapTimer:IsPastSimMS(self.lungeTapDelay) and SceneMan.Scene.GlobalAcc.Magnitude > 10 then
+				if not self.tapTimer:IsPastSimMS(self.lungeTapDelay) and SceneMan.Scene.GlobalAcc:MagnitudeIsGreaterThan(10) then
 					self.dir = self.lunge(self.lungePower);
 				end
 				self.tapTimer:Reset();
@@ -93,5 +95,5 @@ function Update(self)
 		end
 		self.crouchHeld = crouching;
 	end
-	self:SetStableVelocityThreshold(crouching and self.stableVel * (1 + math.cos(self.RotAngle)) or self.stableVel)
+	self:SetStableVelocityThreshold(crouching and self.stableVel * (1 + math.cos(self.RotAngle)) or self.stableVel);
 end
