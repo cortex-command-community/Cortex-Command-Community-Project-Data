@@ -2817,9 +2817,18 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		-- use following sequence to attack either with a suited melee weapon or arms
 		local meleeDist = 0;
 
-		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Breaching", true) then
-			meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25);
+		if AI.Target.ClassName == "ADoor" then
+			-- Prefer breaching tools for attacking doors
+			if Owner:EquipDeviceInGroup("Tools - Breaching", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) then
+				meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 15);
+			end
+		else
+			-- Prefer melee weapons for attacking actors
+			if Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) then
+				meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25);
+			end
 		end
+
 		if meleeDist > 0 then
 			local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
 			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos;
