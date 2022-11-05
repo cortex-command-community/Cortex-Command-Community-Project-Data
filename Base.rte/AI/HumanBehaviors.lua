@@ -1164,7 +1164,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	while true do
 		-- Reset our stuck timer if we're moving
 		-- We average out velocity from this and last frame, for a little hysteresis
-		local stuckThreshold = 1.5; -- pixels per second of movement we need to be considered not stuck
+		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
 		if (Owner.Vel + Owner.PrevVel):MagnitudeIsGreaterThan(stuckThreshold * 2) then
 			StuckTimer:Reset();
 		end
