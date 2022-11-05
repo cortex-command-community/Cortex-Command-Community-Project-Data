@@ -214,7 +214,7 @@ function WaveDefense:UpdateActivity()
 	if self.ActivityState == Activity.OVER then
 		return;
 	end
-	
+
 	if self.ActivityState == Activity.EDITING then
 		-- Remove fog
 		if self.Fog then
@@ -275,7 +275,7 @@ function WaveDefense:UpdateActivity()
 					Act:GetController().InputMode = Controller.CIM_AI;
 				end
 			end
-			
+
 			-- Add fog
 			if self.Fog then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -503,7 +503,7 @@ function WaveDefense:UpdateActivity()
 							end
 						end
 					end
-					
+
 					if self.AI.BombTimer:IsPastSimMS(self.AI.timeToBomb) then
 						self.AI.BombTimer:Reset();
 						self.AI.timeToBomb = math.random(20, 30) * 1000;
@@ -942,7 +942,7 @@ function WaveDefense:CreateLightInfantry()
 
 	if Passenger then
 		Passenger:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.AI.Tech));
-		
+
 		local rand = math.random();
 		if rand < 0.33 then
 			Passenger:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.AI.Tech));
@@ -1011,7 +1011,7 @@ function WaveDefense:CreateMediumInfantry()
 		if math.random() < 0.1 then
 			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
 		end
-		
+
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
