@@ -1164,7 +1164,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	while true do
 		-- Reset our stuck timer if we're moving
 		-- We average out velocity from this and last frame, for a little hysteresis
-		local stuckThreshold = 3.5; -- pixels per second of movement we need to be considered not stuck
+		local stuckThreshold = 1.5; -- pixels per second of movement we need to be considered not stuck
 		if (Owner.Vel + Owner.PrevVel):MagnitudeIsGreaterThan(stuckThreshold * 2) then
 			StuckTimer:Reset();
 		end
@@ -1230,8 +1230,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT;
 				end
 
-				-- Try swapping prone/unprone, with a 5% random chance per frame while we're stuck
-				if PosRand() < 0.05 then
+				-- Try swapping prone/unprone, with a 0.5% random chance per frame while we're stuck
+				if PosRand() < 0.005 then
 					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE;
 				end
 
