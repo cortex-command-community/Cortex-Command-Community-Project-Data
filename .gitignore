@@ -53,6 +53,8 @@ Base.rte/Settings.ini
 Benchmark.rte/
 Scenes.rte/
 Metagames.rte/
+Saves.rte/*
+!Saves.rte/Index.ini
 DedicatedServerDebug.bat
 
 allegro.log

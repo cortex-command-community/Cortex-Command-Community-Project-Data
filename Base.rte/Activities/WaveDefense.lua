@@ -23,6 +23,89 @@ function WaveDefense:CheckBrains()
 	end
 end
 
+function WaveDefense:StartFreshSession()
+	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam);
+	self:CheckBrains();
+
+	self.triggerWaveInit = true;
+	self.wave = 1;
+	self.wavesDefeated = 0;
+
+	-- Set all actors defined in the ini-file to sentry mode
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+			actor.AIMode = Actor.AIMODE_SENTRY;
+		end
+	end
+
+	-- Take scene ownership
+	for actor in MovableMan.AddedActors do
+		actor.Team = self.playerTeam;
+	end
+end
+
+function WaveDefense:ResumeFromSave()
+	self.triggerWaveInit = self:LoadNumber("triggerWaveInit") == 1;
+	self.wave = self:LoadNumber("wave");
+	self.wavesDefeated = self:LoadNumber("wavesDefeated");
+
+	self.StartTimer.ElapsedRealTimeMS = self:LoadNumber("StartTimer");
+	self.NextWaveTimer.ElapsedRealTimeMS = self:LoadNumber("NextWaveTimer");
+	self.PrepareForNextWaveTimer.ElapsedRealTimeMS = self:LoadNumber("PrepareForNextWaveTimer");
+	self.prepareForNextWave = self:LoadNumber("prepareForNextWave") == 1;
+
+	self.AI.SpawnTimer.ElapsedRealTimeMS = self:LoadNumber("AI_SpawnTimer");
+	self.AI.BombTimer.ElapsedRealTimeMS = self:LoadNumber("AI_BombTimer");
+	self.AI.HuntTimer.ElapsedRealTimeMS = self:LoadNumber("AI_HuntTimer");
+
+	self.AI.playerValue = self:LoadNumber("AI_playerValue");
+	self.AI.lastWaveValue = self:LoadNumber("AI_lastWaveValue");
+
+	gPrevAITech = self:LoadString("AI_Tech");
+	self.AI.Tech = gPrevAITech;
+	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech);
+
+	for actor in MovableMan.Actors do
+		if actor.Team == self.CPUTeam then
+			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+				actor.AIMode = Actor.AIMODE_BRAINHUNT;
+			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
+				actor.AIMode = Actor.AIMODE_DELIVER;
+			end
+		end
+	end
+
+	for actor in MovableMan.AddedActors do
+		if actor.Team == self.CPUTeam then
+			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+				actor.AIMode = Actor.AIMODE_BRAINHUNT;
+			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
+				actor.AIMode = Actor.AIMODE_DELIVER;
+			end
+		end
+	end
+end
+
+function WaveDefense:OnSave()
+	self:SaveNumber("triggerWaveInit", self.triggerWaveInit and 1 or 0);
+	self:SaveNumber("wave", self.wave);
+	self:SaveNumber("wavesDefeated", self.wavesDefeated);
+
+	self:SaveNumber("StartTimer", self.StartTimer.ElapsedRealTimeMS);
+	self:SaveNumber("NextWaveTimer", self.NextWaveTimer.ElapsedRealTimeMS);
+	self:SaveNumber("PrepareForNextWaveTimer", self.PrepareForNextWaveTimer.ElapsedRealTimeMS);
+	self:SaveNumber("prepareForNextWave", self.prepareForNextWave and 1 or 0);
+
+	self:SaveNumber("AI_SpawnTimer", self.AI.SpawnTimer.ElapsedRealTimeMS);
+	self:SaveNumber("AI_BombTimer", self.AI.BombTimer.ElapsedRealTimeMS);
+	self:SaveNumber("AI_HuntTimer", self.AI.HuntTimer.ElapsedRealTimeMS);
+
+	self:SaveNumber("AI_playerValue", self.AI.playerValue);
+	self:SaveNumber("AI_lastWaveValue", self.AI.lastWaveValue);
+
+	self:SaveString("AI_Tech", gPrevAITech);
+end
+
 function WaveDefense:StartActivity()
 	collectgarbage("collect");
 
@@ -35,26 +118,26 @@ function WaveDefense:StartActivity()
 		end
 	end
 
-	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam);
-	self:CheckBrains();
-	self.triggerWaveInit = true;
+	self.StartTimer = Timer();
+	self.NextWaveTimer = Timer();
+	self.PrepareForNextWaveTimer = Timer();
+	self.PrepareForNextWaveTimer:SetRealTimeLimitMS(30000);
+	self.prepareForNextWave = false;
 
-	-- Set all actors defined in the ini-file to sentry mode
-	for actor in MovableMan.AddedActors do
-		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-			actor.AIMode = Actor.AIMODE_SENTRY;
-		end
-	end
-
+	self.Fog = self:GetFogOfWarEnabled();
+	
 	-- Initialize the AI
 	if self.CPUTeam ~= Activity.NOTEAM then
-		self.wave = 1;
-		self.wavesDefeated = 0;
-
 		self.AI = {};
 		self.AI.SpawnTimer = Timer();
 		self.AI.BombTimer = Timer();
 		self.AI.HuntTimer = Timer();
+
+		self.AI.bombChance = math.min(math.max(self.Difficulty/100+math.random(-0.1, 0.1), 0), 1);
+		self.AI.timeToSpawn = 8000 - 50 * self.Difficulty; -- Time before the first AI spawn: from 8s to 3s
+		self.AI.timeToBomb = (42000 - 300 * self.Difficulty) * math.random(0.7, 1.1); -- From 42s to 12s
+		self.AI.baseSpawnTime = 9000 - 40 * self.Difficulty; -- From 9s to 5s
+		self.AI.randomSpawnTime = 6000 - 30 * self.Difficulty; -- From 6s to 3s
 
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
 		self.AI.LZmap = require("Activities/LandingZoneMap"); --self.AI.LZmap = dofile("Base.rte/Activities/LandingZoneMap.lua")
@@ -69,26 +152,16 @@ function WaveDefense:StartActivity()
 		end
 	end
 
-	self.StartTimer = Timer();
-	self.NextWaveTimer = Timer();
-	self.PrepareForNextWaveTimer = Timer();
-	self.PrepareForNextWaveTimer:SetRealTimeLimitMS(30000);
-
-	-- Take scene ownership
-	for actor in MovableMan.AddedActors do
-		actor.Team = self.playerTeam;
+	if self.ActivityState == Activity.NOTSTARTED then
+		-- New game started, initialize stuff that's needed
+		self:StartFreshSession();
+	else
+		-- We're loading a previously saved game
+		self:ResumeFromSave();
 	end
-
-	self.Fog = self:GetFogOfWarEnabled();
 end
 
 function WaveDefense:InitWave()
-	self.AI.bombChance = math.min(math.max(self.Difficulty/100+math.random(-0.1, 0.1), 0), 1);
-	self.AI.timeToSpawn = 8000 - 50 * self.Difficulty; -- Time before the first AI spawn: from 8s to 3s
-	self.AI.timeToBomb = (42000 - 300 * self.Difficulty) * math.random(0.7, 1.1); -- From 42s to 12s
-	self.AI.baseSpawnTime = 9000 - 40 * self.Difficulty; -- From 9s to 5s
-	self.AI.randomSpawnTime = 6000 - 30 * self.Difficulty; -- From 6s to 3s
-
 	self.AI.SpawnTimer:Reset();
 	self.AI.BombTimer:Reset();
 	self.AI.HuntTimer:Reset();
@@ -120,7 +193,6 @@ function WaveDefense:InitWave()
 
 	if self.AI.lastWaveValue then
 		-- TODO: figure out how much gold we need to defeat the player based on previous waves
-
 		local handicap = 0;
 		if self.AI.playerValue > lastWavePlayerValue then
 			handicap = handicap + (self.AI.playerValue - lastWavePlayerValue) * 0.5;
@@ -186,9 +258,6 @@ function WaveDefense:UpdateActivity()
 							MovableMan:RemoveActor(Brain);
 						end
 					end
-
-					-- Award some gold for defeating the wave
-					self:ChangeTeamFunds((500-5.5*self.Difficulty)*rte.StartingFundsScale, self.playerTeam);
 				end
 			end
 		end
@@ -301,6 +370,12 @@ function WaveDefense:UpdateActivity()
 				self.triggerWaveInit = true;
 				self.prepareForNextWave = true;
 				self.PrepareForNextWaveTimer:Reset();
+
+				-- Award some gold for defeating the wave
+				self:ChangeTeamFunds((500-5.5*self.Difficulty)*rte.StartingFundsScale, self.playerTeam);
+
+				-- Autosave at the end of each wave
+				LuaMan:SaveScene("Wave Defense - Autosave");
 			else
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -448,33 +523,54 @@ function WaveDefense:UpdateActivity()
 						end
 					end
 				end
-			else	-- The AI is out of gold
-				local enemyPresent = false;
-				local objectives = 0;
-				for Act in MovableMan.Actors do
-					if Act.Team == self.CPUTeam and not Act:IsDead() then
-						if Act.ClassName ~= "ADoor" then
-							enemyPresent = true;
-
-							-- Add objective points
-							if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
-								objectives = objectives + 1;
-								if objectives > 3 then
-									break;
-								end
-
-								for team = self.playerTeam, Activity.TEAM_4 do
-									self:AddObjectivePoint("Destroy!", Act.AboveHUDPos, team, GameActivity.ARROWDOWN);
-								end
-							end
-						end
-					end
-				end
+			else
+				self:AddObjectiveMarkers();
 
 				-- No AI actors left, remove the CPU-Team
-				if not enemyPresent then
+				if not self:EnemyPresent() then
 					self.wavesDefeated = self.wavesDefeated + 1;
 					self.NextWaveTimer:Reset();
+				end
+			end
+		end
+	end
+end
+
+function WaveDefense:EnemyPresent()
+	local enemyPresent = false;
+
+	for Act in MovableMan.Actors do
+		if Act.Team == self.CPUTeam and not Act:IsDead() then
+			if Act.ClassName ~= "ADoor" then
+				enemyPresent = true;
+			end
+		end
+	end
+
+	for Act in MovableMan.AddedActors do
+		if Act.Team == self.CPUTeam and not Act:IsDead() then
+			if Act.ClassName ~= "ADoor" then
+				enemyPresent = true;
+			end
+		end
+	end
+
+	return enemyPresent;
+end
+
+function WaveDefense:AddObjectiveMarkers()
+	local objectives = 0;
+	for Act in MovableMan.Actors do
+		if Act.Team == self.CPUTeam and not Act:IsDead() then
+				-- Add objective points
+			if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
+				objectives = objectives + 1;
+				if objectives > 3 then
+					break;
+				end
+
+				for team = self.playerTeam, Activity.TEAM_4 do
+					self:AddObjectivePoint("Destroy!", Act.AboveHUDPos, team, GameActivity.ARROWDOWN);
 				end
 			end
 		end
