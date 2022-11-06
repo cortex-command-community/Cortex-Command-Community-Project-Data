@@ -562,7 +562,7 @@ function WaveDefense:AddObjectiveMarkers()
 	local objectives = 0;
 	for Act in MovableMan.Actors do
 		if Act.Team == self.CPUTeam and not Act:IsDead() then
-				-- Add objective points
+			-- Add objective points
 			if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
 				objectives = objectives + 1;
 				if objectives > 3 then
