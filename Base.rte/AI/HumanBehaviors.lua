@@ -1110,9 +1110,13 @@ function HumanBehaviors.UpdateAverageVel(Owner, AverageVel)
 	-- Store an exponential moving average of our speed over the past seconds
 	local timeInSeconds = 1;
 
+	-- Calculate a velocity based on our actual movement
+	-- This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero
+	local newVelocity = Owner.Pos - Owner.PrevPos;
+
 	local ticksPerTime = timeInSeconds / TimerMan.DeltaTimeSecs;
 	AverageVel = AverageVel - (AverageVel / ticksPerTime);
-	AverageVel = AverageVel + (Owner.Vel / ticksPerTime);
+	AverageVel = AverageVel + (newVelocity / ticksPerTime);
 
 	return AverageVel;
 end
