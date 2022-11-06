@@ -1106,17 +1106,19 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	return true;
 end
 
+function HumanBehaviors.GetRealVelocity(Owner)
+	-- Calculate a velocity based on our actual movement
+	-- This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero
+	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
+end
+
 function HumanBehaviors.UpdateAverageVel(Owner, AverageVel)
 	-- Store an exponential moving average of our speed over the past seconds
 	local timeInSeconds = 1;
 
-	-- Calculate a velocity based on our actual movement
-	-- This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero
-	local newVelocity = Owner.Pos - Owner.PrevPos;
-
 	local ticksPerTime = timeInSeconds / TimerMan.DeltaTimeSecs;
 	AverageVel = AverageVel - (AverageVel / ticksPerTime);
-	AverageVel = AverageVel + (newVelocity / ticksPerTime);
+	AverageVel = AverageVel + (HumanBehaviors.GetRealVelocity(Owner) / ticksPerTime);
 
 	return AverageVel;
 end
@@ -1160,7 +1162,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	NoLOSTimer:SetSimTimeLimitMS(1000);
 
 	local StuckTimer = Timer();
-	StuckTimer:SetSimTimeLimitMS(3000);
+	StuckTimer:SetSimTimeLimitMS(1000);
 	local AverageVel = Owner.Vel;
 
 	local nextLatMove = AI.lateralMoveState;
@@ -1180,7 +1182,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 		AverageVel = HumanBehaviors.UpdateAverageVel(Owner, AverageVel);
 		
 		-- Reset our stuck timer if we're moving
-		local stuckThreshold = 2.0; -- pixels per second of movement we need to be considered not stuck
+		local stuckThreshold = 4.5; -- pixels per second of movement we need to be considered not stuck
 		if AverageVel:MagnitudeIsGreaterThan(stuckThreshold) then
 			StuckTimer:Reset();
 		end
@@ -1224,10 +1226,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil;
 			WptList = nil; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
-			-- Set our velocity to our current velocity, instead of using rolling average
-			-- This means that when we get unstuck, we'll immediately go back to normal pathing
-			-- Instead of needing to wait for our rolling average to catch back up
-			AverageVel = Owner.Vel;
 			if AI.jump then
 				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
