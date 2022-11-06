@@ -1106,6 +1106,16 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	return true;
 end
 
+function HumanBehaviors.UpdateAverageVel(Owner, AverageVel)
+	-- Store an exponential moving average of our speed over the past seconds
+	local timeInSeconds = 1;
+
+	local ticksPerTime = timeInSeconds / TimerMan.DeltaTimeSecs;
+	AverageVel = AverageVel - (AverageVel / ticksPerTime);
+	AverageVel = AverageVel + (Owner.Vel / ticksPerTime);
+
+	return AverageVel;
+end
 
 -- move to the next waypoint
 function HumanBehaviors.GoToWpt(AI, Owner, Abort)
@@ -1147,6 +1157,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 	local StuckTimer = Timer();
 	StuckTimer:SetSimTimeLimitMS(3000);
+	local AverageVel = Owner.Vel;
 
 	local nextLatMove = AI.lateralMoveState;
 	local nextAimAngle = Owner:GetAimAngle(false) * 0.95;
@@ -1162,10 +1173,11 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}};
 
 	while true do
+		AverageVel = HumanBehaviors.UpdateAverageVel(Owner, AverageVel);
+		
 		-- Reset our stuck timer if we're moving
-		-- We average out velocity from this and last frame, for a little hysteresis
-		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
-		if (Owner.Vel + Owner.PrevVel):MagnitudeIsGreaterThan(stuckThreshold * 2) then
+		local stuckThreshold = 2.0; -- pixels per second of movement we need to be considered not stuck
+		if AverageVel:MagnitudeIsGreaterThan(stuckThreshold) then
 			StuckTimer:Reset();
 		end
 
@@ -1208,7 +1220,10 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil;
 			WptList = nil; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
-			-- We intentionally don't reset the stuck timer here, we want the ai to keep trying until it gets unstuck
+			-- Set our velocity to our current velocity, instead of using rolling average
+			-- This means that when we get unstuck, we'll immediately go back to normal pathing
+			-- Instead of needing to wait for our rolling average to catch back up
+			AverageVel = Owner.Vel;
 			if AI.jump then
 				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
