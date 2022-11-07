@@ -21,19 +21,17 @@ Add defender units by placing areas named:
 Don't place more defenders than the recommended MOID limit! (15 defenders plus 3 doors equals about 130 IDs, see recommended limit in Base.rte/Constants.lua)
 --]]
 
-dofile("Base.rte/Constants.lua")
-
 function BunkerBreach:StartActivity()
-	collectgarbage("collect")
-	
+	collectgarbage("collect");
+
 	self.attackerTeam = Activity.TEAM_1;
 	self.defenderTeam = Activity.TEAM_2;
-	
+
 	self.TechName = {};
-	
+
 	self.TechName[self.attackerTeam] = self:GetTeamTech(self.attackerTeam);	-- Select a tech for the CPU player
 	self.TechName[self.defenderTeam] = self:GetTeamTech(self.defenderTeam);	-- Select a tech for the CPU player
-	
+
 	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
 	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_2);
 
@@ -61,14 +59,14 @@ function BunkerBreach:StartActivity()
 			MovableMan:ChangeActorTeam(actor, self.defenderTeam);
 		end
 	end
-	
+
 	--Clear wonky default scene launch text
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 		end
 	end
-	
+
 	--CPU team setup
 	if self.CPUTeam ~= Activity.NOTEAM then
 		self:SetTeamFunds(4000 + 8000 * math.floor(self.difficultyRatio * 5)/5, self.CPUTeam);
@@ -77,14 +75,14 @@ function BunkerBreach:StartActivity()
 		end
 		self.playerTeam = self:OtherTeam(self.CPUTeam);
 	end
-		
-	
+
+
 	--Add attacker brains for human attackers
 	if self.attackerTeam ~= self.CPUTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.attackerTeam then
 				local attackingBrain = self:CreateBrainBot(self:GetTeamOfPlayer(player));
-				
+
 				local lzX = attackerLZ:GetRandomPoint().X;
 				if SceneMan.SceneWrapsX then
 					if lzX < 0 then
@@ -96,7 +94,7 @@ function BunkerBreach:StartActivity()
 					lzX = math.max(math.min(lzX, SceneMan.SceneWidth - 50), 50);
 				end
 				attackingBrain.Pos = SceneMan:MovePointToGround(Vector(lzX, 0), attackingBrain.Radius * 0.5, 3);
-				
+
 				MovableMan:AddActor(attackingBrain);
 				self:SetPlayerBrain(attackingBrain, player);
 				self:SetObservationTarget(attackingBrain.Pos, player);
@@ -104,7 +102,7 @@ function BunkerBreach:StartActivity()
 			end
 		end
 	end
-	
+
 	--Add defender brains, either using the Brain area or picking randomly from those created by deployments
 	if SceneMan.Scene:HasArea("Brain") then
 		for actor in MovableMan.Actors do
@@ -112,7 +110,7 @@ function BunkerBreach:StartActivity()
 				actor.ToDelete = true;
 			end
 		end
-		
+
 		self.defenderBrain = self:CreateBrainBot(self.defenderTeam);
 		self.defenderBrain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
 		MovableMan:AddActor(self.defenderBrain);
@@ -127,19 +125,19 @@ function BunkerBreach:StartActivity()
 		local brainIndexToChoose = math.random(1, #deploymentBrains);
 		self.defenderBrain = deploymentBrains[brainIndexToChoose];
 		table.remove(deploymentBrains, brainIndexToChoose);
-		
+
 		--Delete brains that weren't the chosen one, and also randomly delete most of their guards
-        self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+		self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
 		for _, unchosenDeploymentBrain in pairs(deploymentBrains) do
 			unchosenDeploymentBrain.ToDelete = true;
 			for actor in MovableMan.AddedActors do
-				if actor.Team == self.defenderTeam and math.random() < 0.75 and self.BrainChamber:IsInside(actor.Pos) and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") and SceneMan:ShortestDistance(actor.Pos, self.defenderBrain.Pos, false).Magnitude > 200 then
+				if actor.Team == self.defenderTeam and math.random() < 0.75 and self.BrainChamber:IsInside(actor.Pos) and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") and SceneMan:ShortestDistance(actor.Pos, self.defenderBrain.Pos, false):MagnitudeIsGreaterThan(200) then
 					actor.ToDelete = true;
 				end
 			end
 		end
 	end
-	
+
 	--Make sure all defending human players have brains
 	if (self.defenderTeam ~= self.CPUTeam) then
 		local playerDefenderBrainsAssignedCount = 0;
@@ -157,12 +155,12 @@ function BunkerBreach:StartActivity()
 				self:SetPlayerBrain(brainToAssignToPlayer, player);
 				self:SetObservationTarget(brainToAssignToPlayer.Pos, player);
 				self:SetLandingZone(brainToAssignToPlayer.Pos, player);
-				
+
 				playerDefenderBrainsAssignedCount = playerDefenderBrainsAssignedCount + 1;
 			end
 		end
 	end
-	
+
 	self.loadouts = {"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"};
 	self.infantryLoadouts = {"Light", "Heavy", "Sniper"};
 	--Add defending units in predefined areas
@@ -175,7 +173,7 @@ function BunkerBreach:StartActivity()
 					MovableMan:AddActor(guard);
 				end
 			else
-				break
+				break;
 			end
 		end
 	end
@@ -222,9 +220,9 @@ end
 
 function BunkerBreach:UpdateActivity()
 	if self.ActivityState == Activity.OVER then
-		return
+		return;
 	end
-	
+
 	--Check win conditions
 	if self.checkTimer:IsPastRealTimeLimit() then
 		self.checkTimer:Reset();
@@ -241,7 +239,7 @@ function BunkerBreach:UpdateActivity()
 					end
 				end
 				ActivityMan:EndActivity();
-				return
+				return;
 			end
 		else
 			local survivingAttackingPlayers = 0;
@@ -278,7 +276,7 @@ function BunkerBreach:UpdateActivity()
 					end
 				end
 				ActivityMan:EndActivity();
-				return
+				return;
 			end
 		end
 	end
@@ -299,7 +297,7 @@ function BunkerBreach:UpdateActivity()
 						diggerCount = diggerCount + 1;
 					end
 					if funds < 0 and self.CPUTeam == self.attackerTeam then
-						self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.playerTeam, GameActivity.ARROWDOWN)
+						self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.playerTeam, GameActivity.ARROWDOWN);
 					end
 				end
 			end
@@ -314,11 +312,11 @@ function BunkerBreach:UpdateActivity()
 			end
 			if self.CPUSpawnTimer:IsPastSimMS(self.CPUSpawnDelay) then
 				self.CPUSpawnTimer:Reset();
-				
+
 				local enemyUnitRatio = enemyCount/math.max(allyCount, 1);
 				--Send CPU to dig for gold if funds are low and a digger hasn't recently been sent
 				self.sendGoldDiggers = not self.sendGoldDiggers and diggerCount < self.CPUMaxDiggerCount and (funds < 500 or math.random() < 0.1);
-				
+
 				if self.CPUTeam == self.attackerTeam then
 					if self.sendGoldDiggers then
 						self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG, self.CPUMaxDiggerCount - diggerCount);
@@ -329,7 +327,7 @@ function BunkerBreach:UpdateActivity()
 						self.CPUSpawnDelay = self.CPUSpawnDelay * 0.9;
 					end
 				elseif self.CPUTeam == self.defenderTeam then
-				
+
 					local dist = Vector();
 					local targetActor = MovableMan:GetClosestEnemyActor(self.CPUTeam, Vector(self.defenderBrain.Pos.X, SceneMan.SceneHeight * 0.5), self.CPUSearchRadius, dist);
 					if targetActor then
@@ -352,7 +350,7 @@ function BunkerBreach:UpdateActivity()
 						end
 					else
 						self.chokePoint = nil;
-					
+
 						if self.sendGoldDiggers then
 							self:CreateDrop(self.CPUTeam, "Engineer", Actor.AIMODE_GOLDDIG, self.CPUMaxDiggerCount - diggerCount);
 						else
@@ -371,7 +369,7 @@ function BunkerBreach:UpdateActivity()
 			self.WinnerTeam = self.playerTeam;
 			self:ClearObjectivePoints();
 			ActivityMan:EndActivity();
-			return
+			return;
 		end
 	end
 end
@@ -389,7 +387,7 @@ function BunkerBreach:CreateDrop(team, loadout, aiMode, optionalPassengerCount)
 		--MaxMass not defined, spawn a default craft
 		craft = RandomACDropShip("Craft", "Base.rte");
 	end
-	
+
 	craft.Team = team;
 	local xPos;
 	local lz = self:GetLZArea(team);
@@ -401,10 +399,10 @@ function BunkerBreach:CreateDrop(team, loadout, aiMode, optionalPassengerCount)
 		xPos = math.random(100, SceneMan.SceneWidth - 100);
 	end
 	craft.Pos = Vector(xPos, -30);
-	
+
 	local passengerCount = optionalPassengerCount == nil and math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers) or optionalPassengerCount;
 	for i = 1, passengerCount do
-		if craft.InventoryMass > craft.MaxInventoryMass then 
+		if craft.InventoryMass > craft.MaxInventoryMass then
 			break;
 		end
 		local passenger;
@@ -413,7 +411,7 @@ function BunkerBreach:CreateDrop(team, loadout, aiMode, optionalPassengerCount)
 		else
 			passenger = math.random() < crabRatio and self:CreateCrab(team) or self:CreateInfantry(team);
 		end
-		
+
 		if passenger then
 			if aiMode then
 				passenger.AIMode = aiMode;
@@ -442,7 +440,7 @@ function BunkerBreach:CreateInfantry(team, loadout)
 		--Do not attempt creating Infantry out of a Mecha loadout!
 		return self:CreateCrab(team, loadout);
 	end
-	
+
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
 	local actor;
 	if math.random() < 0.5 then	--Pick a unit from the loadout presets occasionally
@@ -460,7 +458,7 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			if actor.ModuleID ~= techID then
 				actor = RandomAHuman("Actors", techID);
 			end
-			
+
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 			local rand = math.random();
@@ -471,13 +469,13 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			else
 				actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", techID));
 			end
-			
+
 		elseif loadout == "Heavy" then
 			actor = RandomAHuman("Actors - Heavy", techID);
 			if actor.ModuleID ~= techID then
 				actor = RandomAHuman("Actors", techID);
 			end
-			
+
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techID));
 			if math.random() < 0.3 then
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
@@ -495,10 +493,10 @@ function BunkerBreach:CreateInfantry(team, loadout)
 					actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 				end
 			end
-			
+
 		elseif loadout == "Sniper" then
 			actor = RandomAHuman("Actors", techID);
-			
+
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", techID));
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
 			if math.random() < 0.3 then
@@ -506,13 +504,13 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			else
 				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
-			
+
 		elseif loadout == "Engineer" then
 			actor = RandomAHuman("Actors - Light", techID);
 			if actor.ModuleID ~= techID then
 				actor = RandomAHuman("Actors", techID);
 			end
-			
+
 			if math.random() < 0.7 then
 				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
 			else
@@ -531,7 +529,7 @@ function BunkerBreach:CreateInfantry(team, loadout)
 			actor = RandomAHuman("Actors", techID);
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", techID));
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-			
+
 			local rand = math.random();
 			if rand < 0.25 then
 				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
@@ -554,7 +552,7 @@ function BunkerBreach:CreateCrab(team, loadout)
 	if loadout == nil then
 		loadout = "Mecha";
 	end
-	
+
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
 	if self:GetCrabToHumanSpawnRatio(techID) > 0 then
 		local actor;

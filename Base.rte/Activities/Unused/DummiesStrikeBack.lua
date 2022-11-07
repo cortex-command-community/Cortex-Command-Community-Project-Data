@@ -10,8 +10,8 @@ end
 
 function Dummies:StartActivity()
 	print("START! -- Dummies:StartActivity()!");
-    for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-        if self:PlayerActive(player) and self:PlayerHuman(player) then
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
 		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -26,7 +26,7 @@ function Dummies:StartActivity()
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end
@@ -38,11 +38,11 @@ function Dummies:StartActivity()
 end
 
 function Dummies:PauseActivity(pause)
-    	print("PAUSE! -- Dummies:PauseActivity()!");
+		print("PAUSE! -- Dummies:PauseActivity()!");
 end
 
 function Dummies:EndActivity()
-    	print("END! -- Dummies:EndActivity()!");
+		print("END! -- Dummies:EndActivity()!");
 end
 
 

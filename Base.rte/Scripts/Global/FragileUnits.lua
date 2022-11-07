@@ -8,6 +8,7 @@ function FragileUnitsScript:UpdateScript()
 		end
 	end
 end
+
 function FragileUnitsScript:MakeFragile(actor)
 	if IsAHuman(actor) or IsACrab(actor) then
 		actor = ToActor(actor);

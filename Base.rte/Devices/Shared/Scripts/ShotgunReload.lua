@@ -7,6 +7,7 @@ function Create(self)
 
 	self.ammoCounter = self.RoundInMagCount;
 end
+
 function Update(self)
 	if self.Magazine then
 		if self.loadedShell then

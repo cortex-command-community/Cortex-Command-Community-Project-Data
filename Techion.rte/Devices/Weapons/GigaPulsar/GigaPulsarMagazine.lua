@@ -2,6 +2,7 @@ function Create(self)
 	self.smokeTimer = Timer();
 	self.smokeDelay = 25;
 end
+
 function Update(self)
 	if self.Sharpness == 1 and self.smokeTimer:IsPastSimMS(self.smokeDelay) then
 		self.smokeTimer:Reset();

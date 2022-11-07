@@ -4,6 +4,7 @@ GlobalFlameManagement = {FlameHandler = nil, Flames = {}};
 function Create(self)
 	self.shortFlame = CreatePEmitter("Flame Hurt Short Float", "Base.rte");
 end
+
 --To-do: multiple flames close to each other should form a bigger flame
 function Update(self)
 	self.PinStrength = 900001;
@@ -13,14 +14,14 @@ function Update(self)
 		--TODO: use 'pairs' instead?
 		for i = 1, #GlobalFlameManagement.Flames do
 			if GlobalFlameManagement.Flames[i] and GlobalFlameManagement.Flames[i].particle and MovableMan:ValidMO(GlobalFlameManagement.Flames[i].particle) then
-			
+
 				flameCount = flameCount + 1;
-		
+
 				local flame = GlobalFlameManagement.Flames[i].particle;
 				local ageRatio = flame.Age/flame.Lifetime;
 				flame.ToSettle = false;
 				flame.Throttle = flame.Throttle - TimerMan.DeltaTimeMS/flame.Lifetime;
-				
+
 				if GlobalFlameManagement.Flames[i].target and MovableMan:ValidMO(GlobalFlameManagement.Flames[i].target) and GlobalFlameManagement.Flames[i].target.ID ~= rte.NoMOID and not GlobalFlameManagement.Flames[i].target.ToDelete then
 					flame.Vel = GlobalFlameManagement.Flames[i].target.Vel;
 					flame.Pos = GlobalFlameManagement.Flames[i].target.Pos + Vector(GlobalFlameManagement.Flames[i].stickOffset.X, GlobalFlameManagement.Flames[i].stickOffset.Y):RadRotate(GlobalFlameManagement.Flames[i].target.RotAngle - GlobalFlameManagement.Flames[i].targetStickAngle);
@@ -34,20 +35,20 @@ function Update(self)
 				else
 					GlobalFlameManagement.Flames[i].target = nil;
 					if math.random() > ageRatio then
-						if flame.Vel.Magnitude > 1 then
+						if flame.Vel:MagnitudeIsGreaterThan(1) then
 							local checkPos = Vector(flame.Pos.X, flame.Pos.Y - 1) + flame.Vel * rte.PxTravelledPerFrame * math.random();
 							local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 							if moCheck ~= rte.NoMOID then
 								local mo = MovableMan:GetMOFromID(moCheck);
 								if mo and (flame.Team == Activity.NOTEAM or mo.Team ~= flame.Team) then
 									GlobalFlameManagement.Flames[i].target = ToMOSRotating(mo);
-									
+
 									GlobalFlameManagement.Flames[i].isShort = true;
 									GlobalFlameManagement.Flames[i].deleteDelay = math.random(flame.Lifetime);
-									
-									GlobalFlameManagement.Flames[i].targetStickAngle = mo.RotAngle;	
+
+									GlobalFlameManagement.Flames[i].targetStickAngle = mo.RotAngle;
 									GlobalFlameManagement.Flames[i].stickOffset = SceneMan:ShortestDistance(mo.Pos, flame.Pos, SceneMan.SceneWrapsX) * 0.8;
-									
+
 									flame.GlobalAccScalar = 0.9;
 								end
 							elseif flame.GlobalAccScalar < 0.5 and GlobalFlameManagement.Flames[i].isShort and math.random() < 0.2 and SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
@@ -60,7 +61,7 @@ function Update(self)
 							if flame.Throttle < 0 then
 								for n = 1, #nearbyFlame do
 									local dist = SceneMan:ShortestDistance(flame.Pos + flame.Vel * rte.PxTravelledPerFrame, nearbyFlame[n].Pos, SceneMan.SceneWrapsX);
-									if dist.Magnitude < 2 then
+									if dist:MagnitudeIsLessThan(2) then
 										flame.Lifetime = flame.Lifetime + nearbyFlame[n].Lifetime * 0.5;
 										flame.Throttle = flame.Throttle + nearbyFlame[n].Throttle + 1;
 										flame.Pos = flame.Pos + dist * 0.5;
@@ -106,6 +107,7 @@ function Update(self)
 		end
 	end
 end
+
 function Destroy(self)
 	GlobalFlameManagement.FlameHandler = nil;
 end

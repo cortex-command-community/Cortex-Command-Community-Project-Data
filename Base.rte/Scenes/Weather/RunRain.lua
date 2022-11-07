@@ -1,17 +1,14 @@
 -- Rain "Manager" Particle
 
 function WeatherRain(duration,ppm,pvel)
-
 	local rainrunner = CreateMOPixel("Particle Rain Manager","Base.rte");
 	rainrunner.Mass = duration;
 	rainrunner.Sharpness = ppm;
 	rainrunner.Pos = pvel;
 	MovableMan:AddParticle(rainrunner);
-
 end
 
 function Create(self)
-
 	self.lifeTimer = Timer();
 	self.spawnTimer = Timer();
 
@@ -23,11 +20,9 @@ function Create(self)
 
 	self.particleVel = self.Pos;
 	self.Pos = Vector(0,0);
-
 end
 
 function Update(self)
-
 	if self.lifeTimer:IsPastSimMS(self.duration) then
 		self.ToDelete = true;
 	else
@@ -43,5 +38,4 @@ function Update(self)
 			MovableMan:AddParticle(weatherpar);
 		end
 	end
-
 end

@@ -1,5 +1,4 @@
 function Create(self)
-
 	if NucleoCommunicationTable == nil then
 		NucleoCommunicationTable = {};
 	end
@@ -25,7 +24,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local target;
 
 	if self.detTimer:IsPastSimMS(self.detDelay) then
@@ -41,7 +39,7 @@ function Update(self)
 			target = MovableMan:GetMOFromID(moid);
 		end
 	end
-	
+
 	PrimitiveMan:DrawCirclePrimitive(self.Pos, self.Radius, self.colors[math.random(#self.colors)]);
 
 	if NucleoCommunicationTable[self.Sharpness] ~= nil then
@@ -51,9 +49,9 @@ function Update(self)
 					NucleoCommunicationTable[self.Sharpness][i][2] = self;
 				end
 			else
-				local rayDirection = SceneMan:ShortestDistance(self.Pos,NucleoCommunicationTable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX)
-				if MovableMan:IsParticle(NucleoCommunicationTable[self.Sharpness][i][2]) and rayDirection.Magnitude < self.linkRange then
-				
+				local rayDirection = SceneMan:ShortestDistance(self.Pos,NucleoCommunicationTable[self.Sharpness][i][2].Pos,SceneMan.SceneWrapsX);
+				if MovableMan:IsParticle(NucleoCommunicationTable[self.Sharpness][i][2]) and rayDirection:MagnitudeIsLessThan(self.linkRange) then
+
 					local dist = SceneMan:ShortestDistance(self.Pos, NucleoCommunicationTable[self.Sharpness][i][2].Pos, SceneMan.SceneWrapsX);
 					PrimitiveMan:DrawLinePrimitive(self.Pos + Vector(math.random(-1, 1), math.random(-1, 1)), self.Pos + dist + Vector(math.random(-1, 1), math.random(-1, 1)), self.colors[math.random(#self.colors)]);
 					--The projectiles are drawn towards each other
@@ -112,7 +110,7 @@ function Update(self)
 				MovableMan:AddMO(melt);
 			end
 		end
-		
+
 		local blastpar = CreateMOSRotating("Nucleo Explosion");
 		blastpar.Pos = self.Pos;
 		blastpar:GibThis();

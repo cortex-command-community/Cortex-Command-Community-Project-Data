@@ -16,7 +16,7 @@ function InfiniteAmmo:UpdateScript()
 							local potentialWep = actor:Inventory();
 							if potentialWep.PresetName == grenade.PresetName then
 								count = count + 1;
-							end	
+							end
 							actor:SwapNextInventory(potentialWep, true);
 						end
 						if count == 0 then

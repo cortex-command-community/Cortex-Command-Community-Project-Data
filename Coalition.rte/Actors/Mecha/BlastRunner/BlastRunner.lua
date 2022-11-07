@@ -16,5 +16,4 @@ function Update(self)
 	if self:GetController():IsState(Controller.BODY_JUMP) and SceneMan:CastStrengthRay(self.Pos,Vector(0,(self.Radius+5)),0,rayHitPos,0,0,SceneMan.SceneWrapsX) == true then
 		self.Vel = self.Vel + Vector(0,-2);
 	end
-
 end

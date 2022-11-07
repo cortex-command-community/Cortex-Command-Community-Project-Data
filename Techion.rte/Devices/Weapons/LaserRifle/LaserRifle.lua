@@ -5,9 +5,10 @@ function Create(self)
 	--This value tracks the shots and varies the penetration strength to create a "resistance" effect on tougher materials
 	self.shotCounter = 0;	--TODO: Rename/describe this variable better
 	self.activity = ActivityMan:GetActivity();
-	
+
 	self.cooldown = Timer();
 	self.cooldownSpeed = 0.5;
+
 	function self.emitSmoke(particleCount)
 		for i = 1, particleCount do
 			local smoke = CreateMOSParticle("Tiny Smoke Ball 1" .. (math.random() < 0.5 and " Glow Blue" or ""), "Base.rte");
@@ -18,6 +19,7 @@ function Create(self)
 		end
 	end
 end
+
 function Update(self)
 	if self.FiredFrame then
 		local actor = self:GetRootParent();
@@ -37,28 +39,28 @@ function Update(self)
 		--Use higher pixel skip first to find a rough estimate
 		local skipPx = 4;
 		local rayLength = SceneMan:CastObstacleRay(startPos, trace, hitPos, gapPos, actor.ID, self.Team, rte.airID, skipPx);
-	
+
 		if rayLength >= 0 then
 			gapPos = gapPos - Vector(trace.X, trace.Y):SetMagnitude(skipPx);
 			skipPx = 1;
 			local shortRay = SceneMan:CastObstacleRay(gapPos, Vector(trace.X, trace.Y):SetMagnitude(range - rayLength + skipPx), hitPos, gapPos, actor.ID, self.Team, rte.airID, skipPx);
 			gapPos = gapPos - Vector(trace.X, trace.Y):SetMagnitude(skipPx);
 			local strengthFactor = math.max(1 - rayLength/self.range, math.random()) * (self.shotCounter + 1)/self.strengthVariation;
-			
+
 			local moID = SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y);
 			if moID ~= rte.NoMOID and moID ~= self.ID then
 				local mo = ToMOSRotating(MovableMan:GetMOFromID(moID));
 				if self.penetrationStrength * strengthFactor >= mo.Material.StructuralIntegrity then
 					local moAngle = -mo.RotAngle * mo.FlipFactor;
-					
+
 					local woundName = mo:GetEntryWoundPresetName();
 					if woundName ~= "" then
 						local wound = CreateAEmitter(woundName);
-						
+
 						local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
 						local offset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(moAngle):SetMagnitude(dist.Magnitude - (wound.Radius - 1) * wound.Scale);
 						local traceOffset = Vector(trace.X * mo.FlipFactor, trace.Y):RadRotate(moAngle);
-						
+
 						wound.InheritedRotAngleOffset = traceOffset.AbsRadAngle - (mo.HFlipped and 0 or math.pi);
 						mo:AddWound(wound, Vector(offset.X, offset.Y), true);
 					end
@@ -100,7 +102,7 @@ function Update(self)
 		local ammoRatio = 1 - self.Magazine.RoundCount/self.Magazine.Capacity;
 		self.emitSmoke(math.floor(ammoRatio * RangeRand(0.5, 2.0) + RangeRand(0.25, 0.50)));
 		self.cooldown:SetSimTimeLimitMS(self.ReloadTime * ammoRatio);
-		
+
 		local cooldownRate = math.floor(self.cooldown.ElapsedSimTimeMS/(60000/(self.RateOfFire * self.cooldownSpeed)));
 		if ammoRatio ~= 0 and cooldownRate >= 1 then
 			self.Magazine.RoundCount = math.min(self.Magazine.RoundCount + cooldownRate, self.Magazine.Capacity);

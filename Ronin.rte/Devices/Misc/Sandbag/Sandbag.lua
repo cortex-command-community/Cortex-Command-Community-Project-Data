@@ -5,6 +5,7 @@ function Create(self)
 	self.width = ToMOSprite(self):GetSpriteWidth();
 	self.height = ToMOSprite(self):GetSpriteHeight();
 end
+
 function Update(self)
 	if self.ClassName == "ThrownDevice" and not self:GetParent() then
 		local part = CreateMOSRotating(self:GetModuleAndPresetName());
@@ -12,10 +13,10 @@ function Update(self)
 		part.HFlipped = self.HFlipped;
 		part.Vel = self.Vel;
 		MovableMan:AddParticle(part);
-		
+
 		self.ToDelete = true;
 
-	elseif self.TravelImpulse.Magnitude > self.Mass then
+	elseif self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then
 		for i = 1, self.TravelImpulse.Magnitude * 0.3 do
 			if self.Mass > 5 then
 				local particle = CreateMOPixel("Sandbag Particle ".. math.random(5));
@@ -29,7 +30,7 @@ function Update(self)
 				break;
 			end
 		end
-		if self.TravelImpulse.Magnitude > self.impulseSoundThreshold then
+		if self.TravelImpulse:MagnitudeIsGreaterThan(self.impulseSoundThreshold) then
 			self.impulseSound:Play(self.Pos);
 		end
 		self.GibWoundLimit = self.Mass * 3;

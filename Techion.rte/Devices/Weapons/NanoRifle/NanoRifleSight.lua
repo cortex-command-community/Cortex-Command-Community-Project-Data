@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.laserTimer = Timer();
 	self.laserCheckDelay = 30;
 	self.laserLength = self.SharpLength + FrameMan.PlayerScreenWidth * 0.3;
@@ -9,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.laserTimer:IsPastSimMS(self.laserCheckDelay) then
 		self.laserTimer:Reset();
 		local actor = self:GetRootParent();
@@ -49,7 +47,7 @@ function Update(self)
 					if checkPos.X > SceneMan.SceneWidth then
 						checkPos = Vector(checkPos.X - SceneMan.SceneWidth,checkPos.Y);
 					elseif checkPos.X < 0 then
-						checkPos = Vector(SceneMan.SceneWidth + checkPos.X,  checkPos.Y);
+						checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 					end
 				end
 				local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);

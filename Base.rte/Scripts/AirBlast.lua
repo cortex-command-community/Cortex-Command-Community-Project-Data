@@ -2,13 +2,14 @@ function Create(self)
 	self.strength = self.Mass * self.Vel.Magnitude;
 	self.range = self.Lifetime * self.Vel.Magnitude;
 end
+
 function Update(self)
 	--Run the effect on Update() to give other particles a chance to reach the target
 	for i = 1 , MovableMan:GetMOIDCount() - 1 do
 		local mo = MovableMan:GetMOFromID(i);
 		if mo and mo.PinStrength == 0 then
 			local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
-			if dist.Magnitude < self.range then
+			if dist:MagnitudeIsLessThan(self.range) then
 				local strSumCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, 3, rte.airID);
 				if strSumCheck < self.strength then
 					local massFactor = math.sqrt(1 + math.abs(mo.Mass));
@@ -31,7 +32,7 @@ function Update(self)
 					end
 				end
 			end
-		end	
+		end
 	end
 	self.ToDelete = true;
 end

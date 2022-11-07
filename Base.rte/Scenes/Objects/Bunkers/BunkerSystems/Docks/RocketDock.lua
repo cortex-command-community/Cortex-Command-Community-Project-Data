@@ -33,10 +33,10 @@ function Update(self)
 		self.craft = nil;
 		for actor in MovableMan.Actors do
 			--See if a live rocket is within 40 pixel range of the docking unit and if it has the AI mode set to "Stay".
-			if (actor.ClassName == "ACRocket") and (actor.AIMode == Actor.AIMODE_STAY or actor.AIMode == Actor.AIMODE_DELIVER) and actor.Health > 0  and (math.abs(actor.Pos.X - self.Pos.X) < self.detectionRange) and (math.abs(actor.Pos.Y - self.Pos.Y) < self.detectionRange) then
+			if (actor.ClassName == "ACRocket") and (actor.AIMode == Actor.AIMODE_STAY or actor.AIMode == Actor.AIMODE_DELIVER) and actor.Health > 0 and (math.abs(actor.Pos.X - self.Pos.X) < self.detectionRange) and (math.abs(actor.Pos.Y - self.Pos.Y) < self.detectionRange) then
 				self.craft = ToActor(actor);
 			end
 		end
 		self.updateTimer:Reset();
-    end
+	end
 end

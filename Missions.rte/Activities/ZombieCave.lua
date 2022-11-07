@@ -23,7 +23,7 @@ function ZombieCaveMission:StartActivity()
 	self.CurrentFightStage = self.FightStage.BEGINFIGHT;
 	self.BrainHasLanded = false;
 	self.CPUBrain = nil;
-	self.CPUTechName = "Ronin.rte"
+	self.CPUTechName = "Ronin.rte";
 	self.braindead = {};
 
 	--------------------------
@@ -104,7 +104,7 @@ function ZombieCaveMission:StartActivity()
 					self:SetActorSelectCursor(Vector(3024, 324), player);
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player)
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end
@@ -124,7 +124,7 @@ function ZombieCaveMission:StartActivity()
 	self:SetBrainLZWidth(Activity.PLAYER_2, 0);
 	self:SetBrainLZWidth(Activity.PLAYER_3, 0);
 	self:SetBrainLZWidth(Activity.PLAYER_4, 0);
-	
+
 	--------------------------
 	-- Set up tutorial
 
@@ -139,7 +139,7 @@ end
 -----------------------------------------------------------------------------------------
 
 function ZombieCaveMission:MakeEnemy(whichMode)
-	local passenger = RandomAHuman("Any", self.CPUTechName)
+	local passenger = RandomAHuman("Any", self.CPUTechName);
 	if passenger then
 		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.CPUTechName));
 		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.CPUTechName));
@@ -147,7 +147,7 @@ function ZombieCaveMission:MakeEnemy(whichMode)
 			passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
 		end
 	end
-	
+
 	passenger.AIMode = whichMode or 0;
 	return passenger;
 end
@@ -193,7 +193,7 @@ function ZombieCaveMission:UpdateActivity()
 			if not (self.ActivityState == Activity.OVER) then
 				-- Defending Zombie team
 				if team == self.ZombieTeam then
-					
+
 				-- Player team
 				else
 					-- Check if any of the attacking player's brain is dead
@@ -209,7 +209,7 @@ function ZombieCaveMission:UpdateActivity()
 								self:SwitchToActor(newBrain, player, team);
 							end
 							self:GetBanner(GUIBanner.RED, player):ClearText();
-						else				
+						else
 							FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false);
 							self.braindead[player] = true;
 							-- Now see if all brains of self player's team are dead, and if so, end the game
@@ -221,7 +221,7 @@ function ZombieCaveMission:UpdateActivity()
 						end
 					else
 						-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-						self:SetObservationTarget(brain.Pos, player)
+						self:SetObservationTarget(brain.Pos, player);
 					end
 				end
 			-- Game over, show the appropriate messages until a certain time
@@ -243,14 +243,14 @@ function ZombieCaveMission:UpdateActivity()
 		if self:TeamActive(team) then
 			-------------------------------------------
 			-- Check for victory conditions
-		   
+
 			-- Make sure the game isn't already ending
 			if (not (self.ActivityState == Activity.OVER)) and (not (team == self.ZombieTeam)) then
-		   
+
 			end
 		end
 	end
-	
+
 	--------------------------------------------
 	-- Battle logic
 
@@ -284,14 +284,14 @@ function ZombieCaveMission:UpdateActivity()
 	if self.CurrentFightStage < self.FightStage.OUTERCAVE and playerInCave then
 		self.CurrentFightStage = self.FightStage.OUTERCAVE;
 	end
-		
+
 	if self.CurrentFightStage < self.FightStage.INNERCAVE and playerInInnerCave then
 		self.CurrentFightStage = self.FightStage.INNERCAVE;
 	end
 
 	local genOuterEnabled = self.CurrentFightStage >= self.FightStage.OUTERCAVE;
-	local genInnerEnabled = playerInCave or self.Generator2 ==  nil;
-	
+	local genInnerEnabled = playerInCave or self.Generator2 == nil;
+
 	-- OUTER CAVE BATTLE
 	-- See if the outer generator is still alive
 	if MovableMan:IsParticle(self.Generator2) then
@@ -306,14 +306,14 @@ function ZombieCaveMission:UpdateActivity()
 		end
 		-- Plop out new bombs if there aren't enough
 		self.BombMaker2:EnableEmission(bombCount < 1);
-	
+
 		-- Enable/disable the zombie generator as ordered
 		self.Generator2:EnableEmission(genOuterEnabled);
 	else
 		self.Generator2 = nil;
 		self.BombMaker2:EnableEmission(false);
 	end
-	
+
 	-- INNER CAVE BATTLE
 	-- Check if the generators are still alive, and if so, have the active only when the player is in the cave
 	if MovableMan:IsParticle(self.Generator1) then
@@ -348,7 +348,7 @@ function ZombieCaveMission:UpdateActivity()
 		else
 			self.ControlCase = nil;
 		end
-		
+
 		-- Chip on the ground
 		for item in MovableMan.Items do
 			if item:HasObject("Control Chip") then
@@ -356,14 +356,14 @@ function ZombieCaveMission:UpdateActivity()
 				self:AddObjectivePoint("Protect!", item.AboveHUDPos, self.ZombieTeam, GameActivity.ARROWDOWN);
 			end
 		end
-		
+
 		-- Actor markers
 		local team1Count = 0;
 		for actor in MovableMan.Actors do
 			if actor.Team == Activity.TEAM_1 and actor:IsInGroup("Brains") then
 				team1Count = team1Count + 1;
 			end
-			
+
 			if actor:HasObject("Control Chip") then
 				if actor:IsInGroup("Craft") then
 					self:AddObjectivePoint("Launch into orbit!", actor.AboveHUDPos + Vector(0, -32), Activity.TEAM_1, GameActivity.ARROWUP);
@@ -380,11 +380,11 @@ function ZombieCaveMission:UpdateActivity()
 				self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.ZombieTeam, GameActivity.ARROWDOWN);
 			end
 		end
-		
+
 		if self.BrainHasLanded and team1Count < 1 then
 			self:AddObjectivePoint("Buy more bodies to help you!", Vector(3060, 340), Activity.TEAM_1, GameActivity.ARROWDOWN);
 		end
-		
+
 		-- Sort the objective points
 		self:YSortObjectivePoints();
 	end
@@ -425,7 +425,7 @@ function ZombieCaveMission:UpdateActivity()
 			ship2.Pos.Y = -50;
 			ship1.Team = self.AmbusherTeam;
 			ship2.Team = self.AmbusherTeam;
-			
+
 			-- Let the spawn into the world, passing ownership
 			MovableMan:AddActor(ship1);
 			MovableMan:AddActor(ship2);

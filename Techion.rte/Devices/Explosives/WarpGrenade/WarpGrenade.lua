@@ -2,6 +2,7 @@ function Create(self)
 	self.fuzeDelay = 4000;
 	self.fuzeDecreaseIncrement = 50;
 end
+
 function Update(self)
 	if self.fuze then
 		--Trail effect
@@ -11,17 +12,17 @@ function Update(self)
 		part.Lifetime = 10;
 		MovableMan:AddParticle(part);
 		--Diminish fuze length on impact
-		if self.TravelImpulse.Magnitude > 1 then
+		if self.TravelImpulse:MagnitudeIsGreaterThan(1) then
 			self.fuzeDelay = self.fuzeDelay - self.TravelImpulse.Magnitude * self.fuzeDecreaseIncrement;
 		end
 		if self.fuze:IsPastSimMS(self.fuzeDelay) then
 
 			local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
-            effect.Pos = self.Pos;
-            MovableMan:AddParticle(effect);
-            effect:GibThis();
-  
-            if MovableMan:IsActor(self.holder) then
+			effect.Pos = self.Pos;
+			MovableMan:AddParticle(effect);
+			effect:GibThis();
+
+			if MovableMan:IsActor(self.holder) then
 
 				local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
 				effect.Pos = self.holder.Pos;
@@ -34,7 +35,7 @@ function Update(self)
 				for actor in MovableMan.Actors do
 					if actor.Team ~= self.holder.Team then
 						local dist = SceneMan:ShortestDistance(self.holder.Pos, actor.Pos, SceneMan.SceneWrapsX);
-						if dist.Magnitude < 5 + (self.holder.Radius * 0.5) then
+						if dist:MagnitudeIsLessThan(5 + (self.holder.Radius * 0.5)) then
 							if (self.holder.Mass * 2) > actor.Mass then
 								self.holder.Vel = self.holder.Vel + Vector(dist.X, dist.Y):SetMagnitude(1) + Vector(0, -1);
 								actor:GibThis();
@@ -52,16 +53,16 @@ function Update(self)
 					self.holder:AddInventoryItem(CreateTDExplosive(self.PresetName));
 				end
 				self.ToDelete = true;
-            else
+			else
 				self:GibThis();
 			end
 		elseif self.ToDelete then
 			if MovableMan:IsActor(self.holder) then
 				local effect = CreateMOSRotating("Warp Grenade Effect", "Techion.rte");
-          		effect.Pos = self.holder.Pos;
+				effect.Pos = self.holder.Pos;
 				MovableMan:AddParticle(effect);
 				effect:GibThis();
-				
+
 				self.holder.ToDelete = true;
 			end
 		end
@@ -76,6 +77,7 @@ function Update(self)
 		self.fuze = Timer();
 	end
 end
+
 function OnAttach(self, parent)
 	if not self.fuze then
 		self.guideRadius = self:GetRootParent().Radius;

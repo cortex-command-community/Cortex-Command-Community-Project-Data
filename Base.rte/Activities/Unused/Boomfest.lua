@@ -12,8 +12,8 @@ end
 function Boomfest:StartActivity()
 	print("START! -- Boomfest:StartActivity()!");
 	self.Spawn = SceneMan.Scene:GetArea("OMA Spawn");
-    for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-        if self:PlayerActive(player) and self:PlayerHuman(player) then
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
 		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
@@ -52,11 +52,11 @@ function Boomfest:StartActivity()
 end
 
 function Boomfest:PauseActivity(pause)
-    	print("PAUSE! -- Boomfest:PauseActivity()!");
+		print("PAUSE! -- Boomfest:PauseActivity()!");
 end
 
 function Boomfest:EndActivity()
-    	print("END! -- Boomfest:EndActivity()!");
+		print("END! -- Boomfest:EndActivity()!");
 end
 
 

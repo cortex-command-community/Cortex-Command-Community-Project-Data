@@ -20,7 +20,7 @@ function Create(self)
 
 	self.lastVel = Vector(50 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
-	
+
 	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety.
 	if OnAttach then
 		OnAttach(self);
@@ -30,13 +30,13 @@ end
 function Update(self)
 	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
 	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
-	
+
 	local parent = self:GetRootParent();
 	if parent and IsActor(parent) then
 		parent = ToActor(parent);
 		local controller = parent:GetController();
 		local resource = parent:GetNumberValue("RoninShovelResource");
-		if parent:IsPlayerControlled() and controller:IsState(Controller.AIM_SHARP) and (not controller:IsMouseControlled() or controller.AnalogAim.Magnitude > 0.9) then
+		if parent:IsPlayerControlled() and controller:IsState(Controller.AIM_SHARP) and (not controller:IsMouseControlled() or controller.AnalogAim:MagnitudeIsGreaterThan(0.9)) then
 			self.InheritedRotAngleOffset = math.min(self.InheritedRotAngleOffset + (0.0003 * self.RateOfFire), self.angleSize * 2);
 		else
 			self.InheritedRotAngleOffset = math.max(self.InheritedRotAngleOffset - (0.0003 * self.RateOfFire), 0);
@@ -67,10 +67,10 @@ function Update(self)
 					damagePar.Vel = Vector(fireVec.X, fireVec.Y):RadRotate((-spread * 2 + i * spread - self.InheritedRotAngleOffset * 1.4) * self.FlipFactor);
 					damagePar.Team = self.Team;
 					damagePar.IgnoresTeamHits = true;
-					
+
 					damagePar.Mass = math.sqrt(self:GetParent().Mass + self.Mass);
 					damagePar.Sharpness = self.Sharpness * RangeRand(0.5, 1.0);
-					
+
 					MovableMan:AddParticle(damagePar);
 				end
 			elseif not overhead and resource < 10 then
@@ -113,7 +113,7 @@ function Update(self)
 		if self.Magazine then
 			self.Magazine.Scale = 0;
 		end
-		if self.lastVel.Magnitude > 25 then
+		if self.lastVel:MagnitudeIsGreaterThan(25) then
 			if self.HitWhatMOID ~= rte.NoMOID then
 				local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
 				if mo then
@@ -126,7 +126,7 @@ function Update(self)
 
 						damagePar.Pos = self.lastMuzzlePos;
 						damagePar.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * 0.5 - spread * i/(particleCount - 1)) * 1.5;
-	
+
 						damagePar:SetWhichMOToNotHit(self, -1);
 						MovableMan:AddParticle(damagePar);
 					end
