@@ -1181,8 +1181,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	while true do
 		AverageVel = HumanBehaviors.UpdateAverageVel(Owner, AverageVel);
 		
+		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
+
+		-- Cap AverageVel, so if we have a spike in velocity it doesn't take too long to come back down
+		AverageVel:CapMagnitude(stuckThreshold * 5)
+
 		-- Reset our stuck timer if we're moving
-		local stuckThreshold = 4.5; -- pixels per second of movement we need to be considered not stuck
 		if AverageVel:MagnitudeIsGreaterThan(stuckThreshold) then
 			StuckTimer:Reset();
 		end
