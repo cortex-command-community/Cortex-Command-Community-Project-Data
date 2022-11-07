@@ -2800,6 +2800,17 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 
 	AI.TargetLostTimer:SetSimTimeLimitMS(5000);
 
+	-- If we've been trying for a while and we're not getting any closer to our target, auto-fail the behaviour so we do other stuff
+	local MovementFailTimer = Timer();
+	MovementFailTimer:SetSimTimeLimitMS(3000);
+	local closestDistance = nil;
+
+	-- If we're attacking the target but it's not dying (likely that we're too far away), fail
+	-- It may be that we are successfully damaging it, just very slowly. That's not a big issue
+	-- If it's still a good target, we'll likely retarget it next frame, and move a little closer (by re-adding the GoToBehavior)
+	local DamageFailTimer = Timer();
+	DamageFailTimer:SetSimTimeLimitMS(6000);
+
 	-- move back here later
 	local PrevMOMoveTarget, PrevSceneWaypoint;
 	if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
@@ -2831,35 +2842,47 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		if not AI.Target or not MovableMan:ValidMO(AI.Target) then
 			break;
 		end
+
 		-- use following sequence to attack either with a suited melee weapon or arms
-		local meleeDist = 0;
+		local suitableWeapon = false;
 
 		if AI.Target.ClassName == "ADoor" then
 			-- Prefer breaching tools for attacking doors
-			if Owner:EquipDeviceInGroup("Tools - Breaching", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) then
-				meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 15);
-			end
+			suitableWeapon = Owner:EquipDeviceInGroup("Tools - Breaching", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true);
 		else
 			-- Prefer melee weapons for attacking actors
-			if Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) then
-				meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25);
-			end
+			suitableWeapon = Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Tools - Breaching", true);
 		end
 
-		if meleeDist > 0 then
-			local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
-			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos;
-			local dist = SceneMan:ShortestDistance(startPos, attackPos, false);
-			if dist:MagnitudeIsLessThan(meleeDist) then
-				AI.lateralMoveState = Actor.LAT_STILL;
-				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized;
-				AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1);
-			else
-				AI.fire = false;
-			end
-		else
+		if not suitableWeapon then
+			-- We have no suitable weapon to use
+			AI:CreateGetWeaponBehavior(Owner);
 			break;
-		-- else TODO: periodically look for weapons?
+		end
+
+		local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
+		local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos;
+		local distance = SceneMan:ShortestDistance(startPos, attackPos, false);
+		local meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25);
+		if distance:MagnitudeIsLessThan(meleeDist) then
+			if DamageFailTimer:IsPastSimTimeLimit() then
+				break;
+			end
+			AI.lateralMoveState = Actor.LAT_STILL;
+			AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized;
+			AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1);
+		else
+			DamageFailTimer:Reset();
+
+			-- Ensure we're getting closer
+			if not closestDistance or distance.SqrMagnitude < closestDistance.SqrMagnitude then
+				closestDistance = distance;
+				MovementFailTimer:Reset();
+			elseif MovementFailTimer:IsPastSimTimeLimit() then
+				break;
+			end
+
+			AI.fire = false;
 		end
 	end
 

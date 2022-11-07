@@ -251,7 +251,7 @@ function NativeHumanAI:Update(Owner)
 	local FoundMO, HitPoint = self.SpotTargets(self, Owner, self.skill);
 	if FoundMO then
 		--TODO: decide whether to attack based on the material strength of found MO
-		if self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
+		if self.Behavior ~= nil and self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
 			self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y);
 			self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false);
 			self.TargetLostTimer:Reset();
@@ -715,7 +715,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	self.ReloadTimer:Reset();
 	self.TargetLostTimer:Reset();
 
-	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude;
+	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false);
 
 	if IsADoor(self.Target) and Owner.AIMode ~= Actor.AIMODE_SQUAD then
 		--TODO: Include other explosive weapons with varying effective ranges!
@@ -731,7 +731,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
-	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
+	and dist:MagnitudeIsGreaterThan(100) and dist:MagnitudeIsLessThan(ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
 		self.NextBehaviorName = "ThrowTarget";
 	elseif Owner:EquipFirearm(true) then
@@ -742,10 +742,10 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget);
 			self.NextBehaviorName = "ShootTarget";
 		end
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist:MagnitudeIsLessThan(ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
 		self.NextBehaviorName = "ThrowTarget";
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 250 then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist:MagnitudeIsLessThan(250) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget);
 		self.NextBehaviorName = "AttackTarget";
 	else	-- unarmed or far away
