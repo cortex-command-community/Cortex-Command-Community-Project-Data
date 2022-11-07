@@ -28,7 +28,7 @@ function DoainarMission:StartActivity()
 	self.Sac.Pos = Vector(1274, 315);
 	self.Sac.Team = self.CPUTeam;
 	MovableMan:AddParticle(self.Sac);
-	
+
 	--Set all the underground doors to be quiet so that we don't ruin the surprise!
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "ADoor" then
@@ -76,7 +76,7 @@ function DoainarMission:StartActivity()
 	self.mamacrab.PinStrength = 1;
 
 	self.target = self:GetPlayerBrain(Activity.PLAYER_1);
-	
+
 	SceneMan:MakeAllUnseen(Vector(36, 36), self.PlayerTeam);
 end
 
@@ -171,7 +171,7 @@ function DoainarMission:UpdateActivity()
 				end
 			else
 				-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-				self:SetObservationTarget(brain.Pos, player)
+				self:SetObservationTarget(brain.Pos, player);
 			end
 			if self.braindead[player] == false then
 				if (-self.SpawnTimer:LeftTillSimMS(0) >= 25) then
@@ -183,7 +183,7 @@ function DoainarMission:UpdateActivity()
 
 							self.mamacrab.PinStrength = 0;
 							self.mamacrab.Status = Actor.UNSTABLE;
-							
+
 							self.target = MovableMan:GetClosestTeamActor(self.PlayerTeam, Activity.PLAYER_NONE, self.mamacrab.Pos, SceneMan.SceneWidth, Vector(), self.mamacrab);
 
 							self:ResetMessageTimer(player);
@@ -224,7 +224,7 @@ function DoainarMission:UpdateActivity()
 							AudioMan:ClearMusicQueue();
 							AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ruinexploration.ogg", -1, -1);
 							self.downhole = true;
-							
+
 							for actor in MovableMan.Actors do
 								if actor.ClassName == "ADoor" then
 									actor = ToADoor(actor);
@@ -249,7 +249,7 @@ function DoainarMission:UpdateActivity()
 
 					if MovableMan:IsActor(brain) and self.downhole == false and playerInsideConsoleArea == 0 then
 						self:AddObjectivePoint("Protect!", brain.AboveHUDPos + Vector(0, -8), self.PlayerTeam, GameActivity.ARROWDOWN);
-					end				
+					end
 				end
 			end
 		end
@@ -257,7 +257,7 @@ function DoainarMission:UpdateActivity()
 
 	if self.mamadead == false and MovableMan:IsActor(self.mamacrab) and self.mamacrab.Status ~= Actor.INACTIVE then
 		self:AddObjectivePoint("Kill!", self.mamacrab.AboveHUDPos+Vector(0, -16), self.PlayerTeam, GameActivity.ARROWDOWN);
-		if self.mamajumptime:LeftTillSimMS(3000) < 0 and MovableMan:IsActor(self.target) and SceneMan:GetTerrMatter(self.mamacrab.Pos.X, self.mamacrab.Pos.Y + self.mamacrab:GetSpriteHeight() * 0.5) then				
+		if self.mamajumptime:LeftTillSimMS(3000) < 0 and MovableMan:IsActor(self.target) and SceneMan:GetTerrMatter(self.mamacrab.Pos.X, self.mamacrab.Pos.Y + self.mamacrab:GetSpriteHeight() * 0.5) then
 			local jumpVector = Vector((self.target.Pos.X - self.mamacrab.Pos.X) * 0.045, -15 + ((self.target.Pos.Y - self.mamacrab.Pos.Y) * 0.025));
 			self.mamacrab.Vel = self.mamacrab.Vel + jumpVector:SetMagnitude(math.min(jumpVector.Magnitude, 30));
 			self.mamacrab.Status = Actor.UNSTABLE;
@@ -304,7 +304,7 @@ function DoainarMission:UpdateActivity()
 	if self.downhole == true and playerInsideConsoleArea == 0 then
 		self:AddObjectivePoint("Investigate!", Vector(1104, 600), self.PlayerTeam, GameActivity.ARROWDOWN);
 	end
-	
+
 	if invest2obj == 1 then
 		self:AddObjectivePoint("Get a digging tool and dig!", Vector(1400, 400), self.PlayerTeam, GameActivity.ARROWDOWN);
 	end

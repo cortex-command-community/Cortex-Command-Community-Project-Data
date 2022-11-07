@@ -1,9 +1,8 @@
 function Create(self)
-
 	self.turnStrength = 5;
 	self.lifeTimer = Timer();
 	self.targetSound = CreateSoundContainer("Explosive Device Detonate", "Base.rte");
-	
+
 	if self:NumberValueExists("TargetID") then
 		local mo = MovableMan:GetMOFromID(self:GetNumberValue("TargetID"));
 		if mo and IsMOSRotating(mo) then
@@ -13,11 +12,12 @@ function Create(self)
 	end
 	self.lifeTimer:SetSimTimeLimitMS(self.Lifetime - math.ceil(TimerMan.DeltaTimeMS));
 end
+
 function Update(self)
 	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X) * 0.1);
 	if self.target and self.target.ID ~= rte.NoMOID then
 		local targetDist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
-		if targetDist.Magnitude < self.Diameter then
+		if targetDist:MagnitudeIsLessThan(self.Diameter) then
 			self:GibThis();
 		else
 			local targetVel = targetDist:SetMagnitude(self.turnStrength);

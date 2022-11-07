@@ -2,7 +2,7 @@ function GrenadeLauncherImpact(pieMenu, pieSlice, pieMenuOwner)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("GrenadeMode", "Impact");
-		
+
 		pieSlice.Enabled = false;
 		local pieSlicePresetNamesToEnable = {"Coalition Grenade Launcher Bounce Mode", "Coalition Grenade Launcher Remote Mode"};
 		for _, pieSlicePresetNameToEnable in pairs(pieSlicePresetNamesToEnable) do
@@ -18,7 +18,7 @@ function GrenadeLauncherBounce(pieMenu, pieSlice, pieMenuOwner)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("GrenadeMode", "Bounce");
-		
+
 		pieSlice.Enabled = false;
 		local pieSlicePresetNamesToEnable = {"Coalition Grenade Launcher Impact Mode", "Coalition Grenade Launcher Remote Mode"};
 		for _, pieSlicePresetNameToEnable in pairs(pieSlicePresetNamesToEnable) do
@@ -34,7 +34,7 @@ function GrenadeLauncherRemote(pieMenu, pieSlice, pieMenuOwner)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("GrenadeMode", "Remote");
-		
+
 		pieSlice.Enabled = false;
 		local pieSlicePresetNamesToEnable = {"Coalition Grenade Launcher Impact Mode", "Coalition Grenade Launcher Bounce Mode"};
 		for _, pieSlicePresetNameToEnable in pairs(pieSlicePresetNamesToEnable) do

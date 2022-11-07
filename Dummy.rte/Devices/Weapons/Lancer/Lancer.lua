@@ -7,13 +7,14 @@ function Create(self)
 
 	self.bleepSoundPlayed = false;
 	self.setAngle = 0;
-	
+
 	self.fireSound = {};
 	self.fireSound.low = CreateSoundContainer("Dummy Lancer Fire Sound Low", "Dummy.rte");
 	self.fireSound.medium = CreateSoundContainer("Dummy Lancer Fire Sound Medium", "Dummy.rte");
 	self.fireSound.high = CreateSoundContainer("Dummy Lancer Fire Sound High", "Dummy.rte");
 	self.bleepSound = CreateSoundContainer("Dummy Lancer Bleep", "Dummy.rte");
 end
+
 function Update(self)
 	if self.FiredFrame then
 		self.setAngle = self.setAngle + self.chargeCounter/(20 * (1 + self.setAngle));
@@ -30,18 +31,18 @@ function Update(self)
 			MovableMan:AddParticle(damagePar);
 		end
 
-		local shellPar1 = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow")
+		local shellPar1 = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow");
 		MovableMan:AddParticle(shellPar1);
 
 		local highCharge = self.maxCharge * 0.7;
 		local lowCharge = self.maxCharge * 0.3;
-		
+
 		for i = 1, self.chargeCounter do
 			local size = i > lowCharge and (i > highCharge and "" or "Small ") or "Tiny ";
 			local smokePar = CreateMOSParticle(size .. "Smoke Ball 1 Glow Yellow");
 			smokePar.Pos = self.MuzzlePos;
 			smokePar.Vel = Vector(math.random(5) * (charge/i) * self.FlipFactor, 0):RadRotate(self.RotAngle);
-			smokePar.Team = self.Team
+			smokePar.Team = self.Team;
 			smokePar.IgnoresTeamHits = true;
 			MovableMan:AddParticle(smokePar);
 		end

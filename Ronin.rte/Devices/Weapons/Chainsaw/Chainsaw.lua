@@ -9,15 +9,15 @@ function Create(self)
 	self.actTimer = Timer();
 	self.activated = false;
 	self.actDelay = 200;
-	
+
 	self.dismemberStrength = 250;
 	self.length = ToMOSprite(self):GetSpriteWidth();
 
 	self.startSound = CreateSoundContainer("Ronin Chainsaw Start", "Ronin.rte");
 	self.stopSound = CreateSoundContainer("Ronin Chainsaw End", "Ronin.rte");
 end
-function Update(self)
 
+function Update(self)
 	local turn = math.abs(self.AngularVel);
 	local actor = MovableMan:GetMOFromID(self.RootID);
 	if actor and IsAHuman(actor) then
@@ -27,7 +27,7 @@ function Update(self)
 		turn = math.abs(self.lastAngle - parent:GetAimAngle(false));
 
 		self.InheritedRotAngleOffset = -(-0.8 + math.sin(self.rotFactor) * 0.4);
-		
+
 		self.Scale = 1;
 		if self.Magazine then
 			if self:IsActivated() then
@@ -92,7 +92,7 @@ function Update(self)
 				if mo and IsAttachable(mo) and ToAttachable(mo):IsAttached() and not (IsHeldDevice(mo) or IsThrownDevice(mo)) then
 					mo = ToAttachable(mo);
 					local jointPos = mo.Pos + Vector(mo.JointOffset.X * mo.FlipFactor, mo.JointOffset.Y):RadRotate(mo.RotAngle);
-					if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX).Magnitude < 3 and math.random(self.dismemberStrength) > mo.JointStrength then
+					if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(3) and math.random(self.dismemberStrength) > mo.JointStrength then
 						ToMOSRotating(mo:GetParent()):RemoveAttachable(mo.UniqueID, true, true);
 					end
 				end
@@ -100,7 +100,7 @@ function Update(self)
 		elseif self.fired == true then
 			self.Scale = 1;
 			self.fired = false;
-			
+
 			self.stopSound:Play(self.Pos);
 
 			if self.Magazine.RoundCount == 0 then

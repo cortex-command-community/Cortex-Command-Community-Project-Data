@@ -2,10 +2,11 @@ function Create(self)
 	self.origActivationDelay = self.ActivationDelay;
 	self.spinDownTimer = Timer();
 	self.currentlySpinningDown = false;
-	
+
 	self.dingSound = false;
 	self.ejectEffect = CreateAEmitter("Techion Giga Pulsar Magazine Eject Effect", "Techion.rte");
 end
+
 function Update(self)
 	if not self.currentlySpinningDown and not self:IsActivated() and not self:IsReloading() and self.ActiveSound:IsBeingPlayed() then
 		self.spinDownTimer:Reset();
@@ -18,7 +19,7 @@ function Update(self)
 		self.ActivationDelay = self.origActivationDelay * self.spinDownTimer.ElapsedSimTimeMS / self.DeactivationDelay;
 		self.currentlySpinningDown = false;
 	end
-	
+
 	if self.Magazine then
 		self.lastMag = self.Magazine;
 		self.dingSound = false;

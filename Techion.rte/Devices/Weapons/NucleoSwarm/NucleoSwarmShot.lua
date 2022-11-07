@@ -70,7 +70,7 @@ function Update(self)
 			for actor in MovableMan.Actors do
 				if actor.Team ~= self.Team then
 					self.potentialtargetdist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
-					if (self.lastdist == nil or (self.lastdist ~= nil and self.potentialtargetdist.Magnitude < self.lastdist)) and self.potentialtargetdist.Magnitude <= 500 and SceneMan:CastStrengthRay(self.Pos, self.potentialtargetdist:SetMagnitude(self.potentialtargetdist.Magnitude - actor.Radius), 0, Vector(), 5, rte.airID, SceneMan.SceneWrapsX) == false then
+					if (self.lastdist == nil or (self.lastdist ~= nil and self.potentialtargetdist:MagnitudeIsLessThan(self.lastdist))) and not self.potentialtargetdist:MagnitudeIsGreaterThan(500) and SceneMan:CastStrengthRay(self.Pos, self.potentialtargetdist:SetMagnitude(self.potentialtargetdist.Magnitude - actor.Radius), 0, Vector(), 5, rte.airID, SceneMan.SceneWrapsX) == false then
 						self.lastdist = self.potentialtargetdist.Magnitude;
 						self.target = actor;
 						self.lasttargetpos = Vector(self.target.Pos.X, self.target.Pos.Y);

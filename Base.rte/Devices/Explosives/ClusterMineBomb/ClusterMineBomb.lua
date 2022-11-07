@@ -1,15 +1,13 @@
 function Create(self)
-
 	self.alliedTeam = -1;
 	self.lastAngle = self.RotAngle;
-	
+
 	self.deployRange = 100;
-	
+
 	self.mineCount = 4;
 end
 
 function Update(self)
-
 	self.lastAngle = self.RotAngle;
 
 	if not self:GetParent() then

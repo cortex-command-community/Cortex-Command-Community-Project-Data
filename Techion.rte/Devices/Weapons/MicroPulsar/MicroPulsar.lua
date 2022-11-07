@@ -7,7 +7,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local actor = MovableMan:GetMOFromID(self.RootID);
 	if MovableMan:IsActor(actor) and ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
 

@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.lifeTimer = Timer();
 
 	self.raylength = 200;
@@ -9,7 +8,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.lifeTimer:IsPastSimMS(4000) then
 		self:GibThis();
 	end
@@ -22,7 +20,7 @@ function Update(self)
 				checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
 			end
 		end
-		local terrCheck = SceneMan:GetTerrMatter(checkPos.X,  checkPos.Y);
+		local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
 		if terrCheck == rte.airID then
 			local moCheck = SceneMan:GetMOIDPixel(checkPos.X,checkPos.Y);
 			if moCheck ~= rte.NoMOID then

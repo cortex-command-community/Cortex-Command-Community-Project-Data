@@ -21,9 +21,10 @@ function Create(self)
 	local velocity = Vector(randomDirection * math.random(10), math.min(10 + 10 * 1500/SceneMan.SceneHeight, 100));
 	self.Vel = self.Vel + velocity:SetMagnitude(math.max(velocity.Magnitude - self.Vel.Magnitude, 0));
 end
+
 function Update(self)
 	--Apply damage to the actors inside based on impulse forces
-	if self.TravelImpulse.Magnitude > self.Mass then
+	if self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then
 		for actor in self.Inventory do
 			if actor and IsActor(actor) and string.find(actor.Material.PresetName, "Flesh") then
 				actor = ToActor(actor);
@@ -42,6 +43,7 @@ function Update(self)
 		self:OpenHatch();
 	end
 end
+
 function Destroy(self)
 	ActivityMan:GetActivity():ReportDeath(self.Team, -1);
 end

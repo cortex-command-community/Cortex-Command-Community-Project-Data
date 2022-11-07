@@ -3,6 +3,7 @@ function Create(self)
 	self.shellMOSParticle = self:StringValueExists("CylinderShellMOSParticle") and self:GetStringValue("CylinderShellMOSParticle") or "Base.rte/Casing";
 	self.shellMOSRotating = self:StringValueExists("CylinderShellMOSRotating") and self:GetStringValue("CylinderShellMOSRotating") or nil;
 end
+
 function Update(self)
 	if self.Magazine then
 		self.shellsToEject = self.Magazine.Capacity - self.Magazine.RoundCount;

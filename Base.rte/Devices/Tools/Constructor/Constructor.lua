@@ -6,7 +6,7 @@ function OnAttach(self, newParent)
 		if subPieMenuPieSlice ~= nil then
 			pieMenu = subPieMenuPieSlice.SubPieMenu;
 		end
-	
+
 		local mode = self:GetStringValue("ConstructorMode");
 		local pieSliceToAddPresetName = mode == "Dig" and "Constructor Spray Mode" or "Constructor Dig Mode";
 		pieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
@@ -55,13 +55,13 @@ function ConstructorFloodFill(x, y, startnum, maxnum, array, realposition, reals
 		end
 	end
 end
+
 --TODO: Figure out how to snap different sizes properly
 function ConstructorSnapPos(checkPos, blockSize)
 	return Vector(math.floor((checkPos.X - blockSize/2)/blockSize) * blockSize + blockSize/2, math.floor((checkPos.Y - blockSize/2)/blockSize) * blockSize + blockSize/2);
 end
 
 function ConstructorTerrainRay(start, trace, skip)
-
 	local length = trace.Magnitude;
 	local angle = trace.AbsRadAngle;
 
@@ -91,16 +91,14 @@ function ConstructorTerrainRay(start, trace, skip)
 end
 
 function Create(self)
-
 	self.fireTimer = Timer();
 	self.displayTimer = Timer();
-	
 
 	self.buildTimer = Timer();
 	self.buildList = {};
 	self.buildCost = 10;	--How much resource is required per one build 3 x 3 px piece
 	self.sprayCost = self.buildCost * 0.5;
-							
+
 	self.blockSize = 24;
 	self.fullBlock = 64 * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
 	self.maxResource = 12 * self.fullBlock;
@@ -111,7 +109,7 @@ function Create(self)
 	self.clearer = CreateMOSRotating("Constructor Terrain Clearer");
 
 	self.digStrength = 200;	--The StructuralIntegrity limit of harvestable materials
-	
+
 	self.digLength = 50;
 	self.digsPerSecond = 100;
 	self.spreadRange = math.rad(self.ParticleSpreadRange);
@@ -131,76 +129,76 @@ function Create(self)
 
 	-- autobuild for standard units
 	self.autoBuildList = {
-				Vector(-3, 1), 
-				Vector(-2, 1), 
-				Vector(-1, 1), 
-				Vector(2, 1), 
-				Vector(3, 1), 
-				Vector(4, 1), 
+		Vector(-3, 1),
+		Vector(-2, 1),
+		Vector(-1, 1),
+		Vector(2, 1),
+		Vector(3, 1),
+		Vector(4, 1),
 
-				Vector(-4, -2), 
-				Vector(-3, -2), 
-				Vector(0, -2), 
-				Vector(1, -2), 
-				Vector(4, -2), 
-				Vector(5, -2), 
+		Vector(-4, -2),
+		Vector(-3, -2),
+		Vector(0, -2),
+		Vector(1, -2),
+		Vector(4, -2),
+		Vector(5, -2),
 
-				Vector(-3, -3), 
-				Vector(4, -3), 
+		Vector(-3, -3),
+		Vector(4, -3),
 
-				Vector(-3, -4), 
-				Vector(4, -4), 
+		Vector(-3, -4),
+		Vector(4, -4),
 
-				Vector(-3, -5), 
-				Vector(-2, -5), 
-				Vector(-1, -5), 
-				Vector(2, -5), 
-				Vector(3, -5), 
-				Vector(4, -5), 
+		Vector(-3, -5),
+		Vector(-2, -5),
+		Vector(-1, -5),
+		Vector(2, -5),
+		Vector(3, -5),
+		Vector(4, -5),
 
-				Vector(-3, -8), 
-				Vector(-2, -8), 
-				Vector(-1, -8), 
-				Vector(0, -8), 
-				Vector(1, -8), 
-				Vector(2, -8), 
-				Vector(3, -8), 
-				Vector(4, -8)
-			};
+		Vector(-3, -8),
+		Vector(-2, -8),
+		Vector(-1, -8),
+		Vector(0, -8),
+		Vector(1, -8),
+		Vector(2, -8),
+		Vector(3, -8),
+		Vector(4, -8)
+	};
 
 	-- autobuild for brain units
 	self.autoBuildListBrain = {
-				Vector(-2, 2), 
-				Vector(-2, 1), 
-				Vector(-2, 0), 
-				Vector(-2, -1), 
-				Vector(2, 2), 
-				Vector(2, 1), 
-				Vector(2, 0), 
-				Vector(2, -1), 
-				
-				Vector(-2, -2), 
-				Vector(-1, -2), 
-				Vector(0, -2), 
-				Vector(1, -2), 
-				Vector(2, -2), 
+		Vector(-2, 2),
+		Vector(-2, 1),
+		Vector(-2, 0),
+		Vector(-2, -1),
+		Vector(2, 2),
+		Vector(2, 1),
+		Vector(2, 0),
+		Vector(2, -1),
 
-				Vector(-3, 3), 
-				Vector(-3, 2), 
-				Vector(-3, 1), 
-				Vector(-3, 0), 
-				Vector(-3, -1), 
+		Vector(-2, -2),
+		Vector(-1, -2),
+		Vector(0, -2),
+		Vector(1, -2),
+		Vector(2, -2),
 
-				Vector(3, 3), 
-				Vector(3, 2), 
-				Vector(3, 1), 
-				Vector(3, 0), 
-				Vector(3, -1), 
-				
-				Vector(-1, -1), 
-				Vector(0, -1), 
-				Vector(1, -1), 
-			};
+		Vector(-3, 3),
+		Vector(-3, 2),
+		Vector(-3, 1),
+		Vector(-3, 0),
+		Vector(-3, -1),
+
+		Vector(3, 3),
+		Vector(3, 2),
+		Vector(3, 1),
+		Vector(3, 0),
+		Vector(3, -1),
+
+		Vector(-1, -1),
+		Vector(0, -1),
+		Vector(1, -1),
+	};
 
 	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety. Need the safety check for its existence cause, for some reason, it can not exist in the metagame.
 	if OnAttach then
@@ -209,7 +207,6 @@ function Create(self)
 end
 
 function Update(self)
-	
 	local actor = self:GetRootParent();
 	if actor and IsActor(actor) then
 
@@ -220,7 +217,7 @@ function Update(self)
 
 		if self.Magazine then
 			self.Magazine.RoundCount = math.max(self.resource, 1);
-			
+
 			self.Magazine.Mass = 1 + 39 * (self.resource/self.maxResource);
 			self.Magazine.Scale = 0.5 + (self.resource/self.maxResource) * 0.5;
 
@@ -229,11 +226,11 @@ function Update(self)
 			self.Magazine.Pos = actor.Pos + Vector(-(self.Magazine.Radius * 0.3 + parentWidth * 0.2 - 0.5) * self.FlipFactor, -(self.Magazine.Radius * 0.15 + parentHeight * 0.2)):RadRotate(actor.RotAngle);
 			self.Magazine.RotAngle = actor.RotAngle;
 		end
-		
+
 		if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
 			PrimitiveMan:DrawTextPrimitive(screen, actor.AboveHUDPos + Vector(0, 26), "Mode: ".. self:GetStringValue("ConstructorMode"), true, 1);
 		end
-		
+
 		-- constructor actions if the user is in gold dig mode
 		if playerControlled then
 			self.operatedByAI = false;
@@ -243,7 +240,7 @@ function Update(self)
 				if self:GetStringValue("ConstructorMode") == "Spray" then
 					self:SetStringValue("ConstructorMode", "Dig");
 				end
-				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), SceneMan.SceneWrapsX).Magnitude < 30 then
+				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), SceneMan.SceneWrapsX):MagnitudeIsLessThan(30) then
 					self.tunnelFillTimer:Reset();
 					self.operatedByAI = true;
 					self.aiSkillRatio = 1.5 - ActivityMan:GetActivity():GetTeamAISkill(actor.Team)/100;
@@ -325,7 +322,7 @@ function Update(self)
 			if ctrl:IsState(Controller.WEAPON_FIRE) then
 
 				local angle = actor:GetAimAngle(true);
-				
+
 				if self:GetStringValue("ConstructorMode") == "Spray" then
 					if self.resource >= self.sprayCost then
 						local particleCount = 9;
@@ -385,7 +382,7 @@ function Update(self)
 							if digWeight > 0 then
 								digWeight = digWeight/9;
 								self.resource = math.min(self.resource + digWeight * self.buildCost, self.maxResource);
-								
+
 								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeight > 0.5 and " Big" or ""));
 								collectFX.Pos = Vector(digPos.X, digPos.Y);
 								collectFX.Sharpness = self.ID;
@@ -438,7 +435,7 @@ function Update(self)
 			local cursorMovement = Vector();
 			local mouseControlled = ctrl:IsMouseControlled();
 			local aiming = false;
-			
+
 			if mouseControlled then
 				cursorMovement = cursorMovement + ctrl.MouseMovement;
 			else
@@ -463,7 +460,7 @@ function Update(self)
 				self.blockSize = math.max(self.blockSize/2, 6);
 			end
 
-			if cursorMovement.Magnitude > 0 then
+			if cursorMovement:MagnitudeIsGreaterThan(0) then
 				self.cursor = self.cursor + (mouseControlled and cursorMovement or cursorMovement:SetMagnitude(self.cursorMoveSpeed * (aiming and 0.5 or 1)));
 			end
 			local precise = not mouseControlled and aiming;
@@ -478,7 +475,7 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), displayColorYellow);
 			end
 			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.blockSize - 1, self.blockSize - 1), displayColorYellow);
-			
+
 			local dist = SceneMan:ShortestDistance(actor.ViewPoint, self.cursor, SceneMan.SceneWrapsX);
 			if math.abs(dist.X) > self.maxCursorDist.X then
 				self.cursor.X = actor.ViewPoint.X + self.maxCursorDist.X * (dist.X < 0 and -1 or 1);
@@ -521,7 +518,7 @@ function Update(self)
 			if self.buildList[i] ~= nil then
 				tempList[#tempList + 1] = self.buildList[i];
 				if not self.operatedByAI then
-					if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[i][1], self.buildList[i][2]), SceneMan.SceneWrapsX).Magnitude < self.buildDistance then
+					if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[i][1], self.buildList[i][2]), SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.buildDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildList[i][1], self.buildList[i][2]), Vector(self.buildList[i][1] + self.buildList[i][4] - 1, self.buildList[i][2] + self.buildList[i][4] - 1), displayColorBlue);
 					else
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildList[i][1], self.buildList[i][2]), Vector(self.buildList[i][1] + self.buildList[i][4] - 1, self.buildList[i][2] + self.buildList[i][4] - 1), displayColorRed);
@@ -533,7 +530,7 @@ function Update(self)
 
 		-- building up the first block in the build queue
 		if self.resource >= self.buildCost and self.buildList[1] then
-			if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[1][1], self.buildList[1][2]), SceneMan.SceneWrapsX).Magnitude < self.buildDistance then
+			if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[1][1], self.buildList[1][2]), SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.buildDistance) then
 				--TODO: experiment with different cell sizes?
 				local cellSize = 3;
 				local oneThirdBlock = self.buildList[1][4]/cellSize;
@@ -543,7 +540,7 @@ function Update(self)
 					local bx = self.buildList[1][3] - (by * oneThirdBlock);
 					by = by * cellSize - 1;
 					bx = bx * cellSize - 1;
-					
+
 					self.buildList[1][3] = self.buildList[1][3] + 1;
 					local totalCost = 0;
 					local startPos = ConstructorWrapPos(Vector(bx + self.buildList[1][1], by + self.buildList[1][2]));
@@ -558,7 +555,7 @@ function Update(self)
 								else
 									name = "Base.rte/Constructor Tile " .. math.random(16);
 								end
-								local terrainObject = CreateTerrainObject(name); 
+								local terrainObject = CreateTerrainObject(name);
 								terrainObject.Pos = pos;
 								SceneMan:AddSceneObject(terrainObject);
 
@@ -570,7 +567,7 @@ function Update(self)
 					if didBuild then
 						self.resource = self.resource - (self.buildCost * totalCost);
 						local buildPos = self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx + self.buildList[1][1] + (cellSize - 1), by + self.buildList[1][2] + (cellSize - 1)), SceneMan.SceneWrapsX);
-						
+
 						for otherPlayer = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 							local otherScreen = ActivityMan:GetActivity():ScreenOfPlayer(otherPlayer);
 							if otherScreen ~= -1 and (otherScreen == screen or not SceneMan:IsUnseen(buildPos.X, buildPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(otherPlayer))) then
@@ -584,7 +581,7 @@ function Update(self)
 						self.buildSound.Volume = totalCost;
 						self.buildSound.Pitch = 2 - totalCost;
 						self.buildSound:Play(buildPos);
-						
+
 						if self.buildList[1][3] == cellsPerBlock then
 							self.buildList[1] = nil;
 						end

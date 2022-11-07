@@ -2,6 +2,7 @@ function Create(self)
 	self.shellMOSParticle = self:StringValueExists("CylinderShellMOSParticle") and self:GetStringValue("CylinderShellMOSParticle") or "Base.rte/Casing";
 	self.shellMOSRotating = self:StringValueExists("CylinderShellMOSRotating") and self:GetStringValue("CylinderShellMOSRotating") or nil;
 end
+
 function OnDetach(self, exParent)
 	local shellsToEject = self.Capacity - self.RoundCount;
 	for i = 1, shellsToEject do

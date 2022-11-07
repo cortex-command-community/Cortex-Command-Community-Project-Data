@@ -3,9 +3,10 @@ function Create(self)
 	self.tilt = 0.2;
 	self.loadTimer = Timer();
 	self.shellsToEject = 0;
-	
+
 	self.ejectSound = CreateSoundContainer("Double-Barrel Shotgun Eject Sound", "Ronin.rte");
 end
+
 function Update(self)
 	if self.setAngle > 0 then
 		self.setAngle = self.setAngle - 0.0001 * self.RateOfFire;

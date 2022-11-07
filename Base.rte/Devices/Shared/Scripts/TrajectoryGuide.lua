@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.laserTimer = Timer();
 	self.laserTimer:SetSimTimeLimitMS(10);
 	self.guideTable = {};
@@ -34,7 +33,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	local actor = self:GetRootParent();
 	if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() then
 		local actor = ToActor(actor);

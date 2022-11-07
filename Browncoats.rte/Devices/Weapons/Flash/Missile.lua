@@ -3,7 +3,7 @@ function Create(self)
 	self.turnStrength = 3;
 	self.shake = 0.5;
 	self.lifeTimer = Timer();
-	
+
 	if self:NumberValueExists("TargetID") and self:GetNumberValue("TargetID") ~= rte.NoMOID then
 		local mo = MovableMan:GetMOFromID(self:GetNumberValue("TargetID"));
 		if mo and IsActor(mo) then
@@ -13,13 +13,14 @@ function Create(self)
 	self.lifeTimer:SetSimTimeLimitMS(math.random(self.Lifetime * 0.5, self.Lifetime - math.ceil(TimerMan.DeltaTimeMS)));
 	self.activationDelay = math.random(50, 100);
 end
+
 function Update(self)
 	self.GlobalAccScalar = 1/math.sqrt(1 + math.abs(self.Vel.X) * 0.1);
 	if self.lifeTimer:IsPastSimMS(self.activationDelay) then
 		self:EnableEmission(true);
 		if self.target and self.target.ID ~= rte.NoMOID then
 			local targetDist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);
-			if targetDist.Magnitude < (self.Radius + self.target.IndividualRadius) then
+			if targetDist:MagnitudeIsLessThan(self.Radius + self.target.IndividualRadius) then
 				self:GibThis();
 			else
 				local targetVel = targetDist:SetMagnitude(self.turnStrength);

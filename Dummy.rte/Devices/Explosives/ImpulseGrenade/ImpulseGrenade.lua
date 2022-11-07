@@ -1,6 +1,7 @@
 function Create(self)
 	self.fuzeDelay = 3000;
 end
+
 function Update(self)
 	self.AngularVel = (self.AngularVel - self.Vel.X * 0.1) * 0.9;
 	if self.fuze then

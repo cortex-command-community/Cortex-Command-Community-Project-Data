@@ -2,6 +2,7 @@ function Create(self)
 	self.muzzleTable = {Vector(14, -2), Vector(14, 1)};
 	self.muzzleSelect = 0;
 end
+
 function Update(self)
 	if self.FiredFrame then
 		self.muzzleSelect = math.abs(self.muzzleSelect - 1);

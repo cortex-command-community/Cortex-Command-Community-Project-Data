@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.adjustmentAmount = 1;
 
 	self.delayTimer = Timer();
@@ -38,6 +37,7 @@ function Create(self)
 		end
 	end
 end
+
 function Update(self)
 	if self.delayTimer:IsPastSimMS(25) and self.target and self.target.ID ~= rte.NoMOID then
 		local checkVel = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX);

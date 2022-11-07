@@ -1,11 +1,12 @@
 function Create(self)
 	self.muzzleSmokeSize = self:NumberValueExists("MuzzleSmokeSize") and self:GetNumberValue("MuzzleSmokeSize") or self.Mass * 0.5;
-	
+
 	self.muzzleSmokeCountMax = self.muzzleSmokeSize;
 	self.muzzleSmokeCountMin = math.ceil(self.muzzleSmokeCountMax * 0.5);
 	self.muzzleSmokeVel = math.sqrt(self.muzzleSmokeSize) * 5;
 	self.muzzleSmokeSpread = math.rad((self.ShakeRange + self.SharpShakeRange) * 0.5 + (self.muzzleSmokeVel + self.ParticleSpreadRange) * 0.5);
 end
+
 function Update(self)
 	if self.FiredFrame then
 		local smokeCount = math.random(self.muzzleSmokeCountMin, self.muzzleSmokeCountMax);

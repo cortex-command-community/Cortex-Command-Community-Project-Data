@@ -1,5 +1,4 @@
 function Create(self)
-
 	self.delayTimer = Timer();
 
 	self.delayTime = 100;
@@ -10,7 +9,6 @@ function Create(self)
 end
 
 function Update(self)
-
 	if self.delayTimer:IsPastSimMS(self.delayTime) then
 		for i = self.skipPoints, self.pointCount - 1 do
 			local radius = self.spiralScale * math.sqrt(i);

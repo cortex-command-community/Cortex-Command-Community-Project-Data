@@ -2,6 +2,7 @@ function Create(self)
 	self.shotsPerBurst = self:NumberValueExists("ShotsPerBurst") and self:GetNumberValue("ShotsPerBurst") or 3;
 	self.coolDownDelay = (60000/self.RateOfFire) + 100;
 end
+
 function Update(self)
 	if self.Magazine then
 		if self.coolDownTimer then
@@ -17,7 +18,7 @@ function Update(self)
 		elseif self.shotCounter then
 
 			self.triggerPulled = self:IsActivated();
-				
+
 			self:Activate();
 			if self.FiredFrame then
 				self.shotCounter = self.shotCounter + 1;

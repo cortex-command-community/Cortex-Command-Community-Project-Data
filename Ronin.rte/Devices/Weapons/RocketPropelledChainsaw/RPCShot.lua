@@ -9,11 +9,11 @@ function Create(self)
 	self.dismemberStrength = 300;
 	self.length = ToMOSprite(self):GetSpriteWidth() * 0.5;
 end
-function Update(self)
 
+function Update(self)
 	self.AngularVel = self.AngularVel * 0.99;
 	self.Vel = self.Vel * 0.99;
-	
+
 	if self.lifeTimer:IsPastSimMS(3000) then
 		self.angleCorrectionRatio = self.angleCorrectionRatio * 0.9;
 	end
@@ -28,7 +28,7 @@ function Update(self)
 			if mo.Material.StructuralIntegrity > self.Mass * self.Sharpness then
 				local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 				self:AddWound(CreateAEmitter(self:GetEntryWoundPresetName()), Vector(math.random(1 + self.length), 0), true);
-	
+
 				mo:AddImpulseForce(self.Vel * self.Mass, Vector());
 				self.Vel = (mo.Vel - dist:SetMagnitude(self.Vel.Magnitude):RadRotate(RangeRand(-1, 1))) * 0.5;
 				self.AngularVel = self.AngularVel + math.random(10, 20) * (math.random() < 0.5 and 1 or -1);
@@ -51,19 +51,19 @@ function Update(self)
 				if IsAttachable(mo) and ToAttachable(mo):IsAttached() and not (IsHeldDevice(mo) or IsThrownDevice(mo)) then
 					mo = ToAttachable(mo);
 					local jointPos = mo.Pos + Vector(mo.JointOffset.X * mo.FlipFactor, mo.JointOffset.Y):RadRotate(mo.RotAngle);
-					if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX).Magnitude < 3 and math.random(self.dismemberStrength) > mo.JointStrength then
+					if SceneMan:ShortestDistance(self.Pos, jointPos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(3) and math.random(self.dismemberStrength) > mo.JointStrength then
 						ToMOSRotating(mo:GetParent()):RemoveAttachable(mo.UniqueID, true, true);
 					end
 				end
 			end
 		end
 	end
-	if self.Vel.Magnitude < 2 then	--Countdown to explode if too still
+	if self.Vel:MagnitudeIsLessThan(2) then	--Countdown to explode if too still
 		self.toGibCounter = self.toGibCounter + 1;
 		local newVel = Vector(-3/(self.Vel.Magnitude + 1) * self.FlipFactor, 0):RadRotate(self.RotAngle + RangeRand(-1.5, 1.5));
 		self.Vel = self.Vel + newVel;
 	else
-		self.toGibCounter = math.abs(self.toGibCounter - 1);	--Revert gib countdown
+		self.toGibCounter = math.abs(self.toGibCounter - 1); --Revert gib countdown
 		if math.random() < self.angleCorrectionRatio then
 			--Maintain straighter angle, making it easier to go through lots of objects
 			if math.abs(self.RotAngle) < math.pi then
