@@ -1366,7 +1366,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									else
 										digState = AHuman.NOTDIGGING;
 										obstacleState = Actor.PROCEEDING;
-										StuckTimer:SetSimTimeLimitMS(2000);
+										StuckTimer:SetSimTimeLimitMS(1000);
 									end
 								end
 
