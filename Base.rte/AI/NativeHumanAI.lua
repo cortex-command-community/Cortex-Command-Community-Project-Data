@@ -256,49 +256,39 @@ function NativeHumanAI:Update(Owner)
 			self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false);
 			self.TargetLostTimer:Reset();
 			self.ReloadTimer:Reset();
-		else
-			if FoundMO.Team == Owner.Team then	-- found an ally
-				if self.Target then
-					if SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).SqrMagnitude < SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).SqrMagnitude then
-						self.Target = nil; -- stop shooting
-					end
-				elseif FoundMO.ClassName ~= "ADoor" and SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false):MagnitudeIsLessThan(Owner.Diameter + FoundMO.Diameter) then
-					self.BlockingMO = FoundMO; -- this MO is blocking our path
-				end
+		elseif FoundMO.Team ~= Owner.Team then	-- found an enemy
+			if FoundMO.ClassName == "AHuman" then
+				FoundMO = ToAHuman(FoundMO);
+			elseif FoundMO.ClassName == "ACrab" then
+				FoundMO = ToACrab(FoundMO);
+			elseif FoundMO.ClassName == "ACRocket" then
+				FoundMO = ToACRocket(FoundMO);
+			elseif FoundMO.ClassName == "ACDropShip" then
+				FoundMO = ToACDropShip(FoundMO);
+			elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
+				FoundMO = ToADoor(FoundMO);
+			elseif FoundMO.ClassName == "Actor" then
+				FoundMO = ToActor(FoundMO);
 			else
-				if FoundMO.ClassName == "AHuman" then
-					FoundMO = ToAHuman(FoundMO);
-				elseif FoundMO.ClassName == "ACrab" then
-					FoundMO = ToACrab(FoundMO);
-				elseif FoundMO.ClassName == "ACRocket" then
-					FoundMO = ToACRocket(FoundMO);
-				elseif FoundMO.ClassName == "ACDropShip" then
-					FoundMO = ToACDropShip(FoundMO);
-				elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
-					FoundMO = ToADoor(FoundMO);
-				elseif FoundMO.ClassName == "Actor" then
-					FoundMO = ToActor(FoundMO);
-				else
-					FoundMO = nil;
-				end
+				FoundMO = nil;
+			end
 
-				if FoundMO and FoundMO.Status < Actor.INACTIVE then
-					if self.Target then
-						-- check if this MO should be targeted instead
-						if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5 then
-							self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y);
-							self.Target = FoundMO;
-							self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
-							if self.NextBehaviorName ~= "ShootTarget" then
-								self:CreateAttackBehavior(Owner);
-							end
-						end
-					else
-						self.OldTargetPos = nil;
+			if FoundMO and FoundMO.Status < Actor.INACTIVE then
+				if self.Target then
+					-- check if this MO should be targeted instead
+					if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5 then
+						self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y);
 						self.Target = FoundMO;
 						self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
-						self:CreateAttackBehavior(Owner);
+						if self.NextBehaviorName ~= "ShootTarget" then
+							self:CreateAttackBehavior(Owner);
+						end
 					end
+				else
+					self.OldTargetPos = nil;
+					self.Target = FoundMO;
+					self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
+					self:CreateAttackBehavior(Owner);
 				end
 			end
 		end
@@ -806,15 +796,6 @@ function NativeHumanAI:CreateSuppressBehavior(Owner)
 		AI.UnseenTarget = nil;
 		AI.deviceState = AHuman.STILL;
 		AI.proneState = AHuman.NOTPRONE;
-	end
-end
-
-function NativeHumanAI:CreateMoveAroundBehavior(Owner)
-	self.NextGoTo = coroutine.create(HumanBehaviors.MoveAroundActor);
-	self.NextGoToName = "MoveAroundActor";
-	self.NextGoToCleanup = function(AI)
-		AI.lateralMoveState = Actor.LAT_STILL;
-		AI.jump = false;
 	end
 end
 
