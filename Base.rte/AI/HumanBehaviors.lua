@@ -1202,26 +1202,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 		elseif not AI.flying and UpdatePathTimer:IsPastSimTimeLimit() then
 			UpdatePathTimer:Reset();
 
-			if Waypoint and AI.BlockingMO then
-				if MovableMan:ValidMO(AI.BlockingMO) then
-					CurrDist = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false);
-					if (Owner.Pos.X > AI.BlockingMO.Pos.X and CurrDist.X < Owner.Pos.X) or
-						(Owner.Pos.X < AI.BlockingMO.Pos.X and CurrDist.X > Owner.Pos.X) or
-						SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false):MagnitudeIsGreaterThan(Owner.Diameter + AI.BlockingMO.Diameter)
-					then
-						AI.BlockingMO = nil; -- the blocking actor is not in the way any longer
-						AI.teamBlockState = Actor.NOTBLOCKED;
-					else
-						AI.BlockedTimer:Reset();
-						AI.teamBlockState = Actor.IGNORINGBLOCK;
-						AI:CreateMoveAroundBehavior(Owner);
-						break; -- end this behavior
-					end
-				else
-					AI.BlockingMO = nil;
-				end
-			end
-
 			AI.deviceState = AHuman.STILL;
 			AI.proneState = AHuman.NOTPRONE;
 			AI.jump = false;
@@ -2032,19 +2012,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			if digState == AHuman.NOTDIGGING then
 				Owner:SetAimAngle(nextAimAngle);
 				nextAimAngle = Owner:GetAimAngle(false) * 0.95; -- look straight ahead
-			end
-		end
-
-		if AI.BlockingMO then
-			if not MovableMan:ValidMO(AI.BlockingMO) or SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false).Largest > (Owner.Height + AI.BlockingMO.Diameter)*1.2 then
-				AI.BlockingMO = nil;
-				AI.teamBlockState = Actor.NOTBLOCKED;
-			elseif AI.teamBlockState == Actor.NOTBLOCKED and Waypoint then
-				if (Waypoint.Pos.X > Owner.Pos.X and AI.BlockingMO.Pos.X > Owner.Pos.X) or (Waypoint.Pos.X < Owner.Pos.X and AI.BlockingMO.Pos.X < Owner.Pos.X) then
-					AI.teamBlockState = Actor.BLOCKED;
-				else
-					AI.BlockingMO = nil;
-				end
 			end
 		end
 

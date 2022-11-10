@@ -98,7 +98,6 @@ function NativeHumanAI:Update(Owner)
 			self.UnseenTarget = nil;
 			self.OldTargetPos = nil;
 			self.PickupHD = nil;
-			self.BlockingMO = nil;
 
 			self.fire = false;
 			self.canHitTarget = false;

@@ -18,51 +18,41 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 	end
 
 	if FoundMO then
-		if AI.Target and MovableMan:ValidMO(AI.Target) and FoundMO.ID == AI.Target.ID then	-- found the same target
+		if self.Behavior ~= nil and AI.Target and MovableMan:ValidMO(AI.Target) and FoundMO.ID == AI.Target.ID then	-- found the same target
 			AI.TargetOffset = SceneMan:ShortestDistance(AI.Target.Pos, HitPoint, false);
 			AI.TargetLostTimer:Reset();
 			AI.ReloadTimer:Reset();
-		else
-			if FoundMO.Team == Owner.Team then	-- found an ally
-				if AI.Target then
-					if SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).SqrMagnitude < SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).SqrMagnitude then
-						AI.Target = nil; -- stop shooting
-					end
-				elseif FoundMO.ClassName ~= "ADoor" and SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false):MagnitudeIsLessThan(Owner.Diameter + FoundMO.Diameter) then
-					AI.BlockingMO = FoundMO; -- this MO is blocking our path
-				end
+		elseif FoundMO.Team ~= Owner.Team then	-- found an enemy
+			if FoundMO.ClassName == "AHuman" then
+				FoundMO = ToAHuman(FoundMO);
+			elseif FoundMO.ClassName == "ACrab" then
+				FoundMO = ToACrab(FoundMO);
+			elseif FoundMO.ClassName == "ACRocket" then
+				FoundMO = ToACRocket(FoundMO);
+			elseif FoundMO.ClassName == "ACDropShip" then
+				FoundMO = ToACDropShip(FoundMO);
+			elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
+				FoundMO = ToADoor(FoundMO);
+			elseif FoundMO.ClassName == "Actor" then
+				FoundMO = ToActor(FoundMO);
 			else
-				if FoundMO.ClassName == "AHuman" then
-					FoundMO = ToAHuman(FoundMO);
-				elseif FoundMO.ClassName == "ACrab" then
-					FoundMO = ToACrab(FoundMO);
-				elseif FoundMO.ClassName == "ACRocket" then
-					FoundMO = ToACRocket(FoundMO);
-				elseif FoundMO.ClassName == "ACDropShip" then
-					FoundMO = ToACDropShip(FoundMO);
-				elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
-					FoundMO = ToADoor(FoundMO);
-				elseif FoundMO.ClassName == "Actor" then
-					FoundMO = ToActor(FoundMO);
-				else
-					FoundMO = nil;
-				end
+				FoundMO = nil;
+			end
 
-				if FoundMO then
-					if AI.Target then
-						-- check if this MO should be targeted instead
-						if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(AI.Target, Owner) + 0.2 then
-							AI.OldTargetPos = Vector(AI.Target.Pos.X, AI.Target.Pos.Y);
-							AI.Target = FoundMO;
-							AI.TargetOffset = SceneMan:ShortestDistance(AI.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
-							AI:CreateAttackBehavior(Owner);
-						end
-					else
-						AI.OldTargetPos = nil;
+			if FoundMO then
+				if AI.Target then
+					-- check if this MO should be targeted instead
+					if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(AI.Target, Owner) + 0.2 then
+						AI.OldTargetPos = Vector(AI.Target.Pos.X, AI.Target.Pos.Y);
 						AI.Target = FoundMO;
 						AI.TargetOffset = SceneMan:ShortestDistance(AI.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
 						AI:CreateAttackBehavior(Owner);
 					end
+				else
+					AI.OldTargetPos = nil;
+					AI.Target = FoundMO;
+					AI.TargetOffset = SceneMan:ShortestDistance(AI.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
+					AI:CreateAttackBehavior(Owner);
 				end
 			end
 		end
@@ -418,24 +408,6 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 			Owner:ClearMovePath();
 			for _, Wpt in pairs(TmpList) do
 				Owner:AddToMovePathEnd(Wpt.Pos);
-			end
-		end
-
-		if AI.BlockingMO then
-			if not MovableMan:ValidMO(AI.BlockingMO) or SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false):MagnitudeIsGreaterThan((Owner.Diameter + AI.BlockingMO.Diameter)*1.2) then
-				AI.BlockingMO = nil;
-				AI.teamBlockState = Actor.NOTBLOCKED;
-
-				if Owner.AIMode == Actor.AIMODE_BRAINHUNT and AI.FollowingActor then
-					AI.FollowingActor = nil;
-					break; -- end this behavior
-				end
-			elseif AI.teamBlockState == Actor.NOTBLOCKED and Waypoint then
-				if (Waypoint.Pos.X > Owner.Pos.X and AI.BlockingMO.Pos.X > Owner.Pos.X) or (Waypoint.Pos.X < Owner.Pos.X and AI.BlockingMO.Pos.X < Owner.Pos.X) then
-					AI.teamBlockState = Actor.BLOCKED;
-				else
-					AI.BlockingMO = nil;
-				end
 			end
 		end
 
