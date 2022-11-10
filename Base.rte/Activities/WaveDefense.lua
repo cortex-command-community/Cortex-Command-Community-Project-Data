@@ -373,9 +373,6 @@ function WaveDefense:UpdateActivity()
 
 				-- Award some gold for defeating the wave
 				self:ChangeTeamFunds((500-5.5*self.Difficulty)*rte.StartingFundsScale, self.playerTeam);
-
-				-- Autosave at the end of each wave
-				LuaMan:SaveScene("Wave Defense - Autosave");
 			else
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
