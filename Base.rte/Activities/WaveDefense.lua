@@ -272,7 +272,7 @@ function WaveDefense:UpdateActivity()
 			-- Give back control of the actors
 			for Act in MovableMan.Actors do
 				if Act.Team == self.playerTeam then
-					Act:GetController().InputMode = Controller.CIM_AI;
+					Act:GetController().InputMode = Act:IsPlayerControlled() and Controller.CIM_PLAYER or Controller.CIM_AI;
 				end
 			end
 
