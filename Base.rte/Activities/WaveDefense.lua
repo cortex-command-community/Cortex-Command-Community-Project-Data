@@ -406,6 +406,7 @@ function WaveDefense:UpdateActivity()
 					if Act.Team == self.CPUTeam and Act.AIMode ~= Actor.AIMODE_GOLDDIG and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab") then
 						if (Act.AIMode == Actor.AIMODE_GOTO and SceneMan:ShortestDistance(Act:GetLastAIWaypoint(), Act.Pos, false).Largest < 100) or Act.AIMode == Actor.AIMODE_SENTRY or Act.Age > 60000 then
 							-- Destination reached: hunt for the brain
+							Act:ClearAIWaypoints();
 							Act.AIMode = Actor.AIMODE_BRAINHUNT;
 						end
 					end
