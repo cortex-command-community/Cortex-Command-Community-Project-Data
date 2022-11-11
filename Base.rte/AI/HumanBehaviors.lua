@@ -1109,7 +1109,7 @@ end
 function HumanBehaviors.GetRealVelocity(Owner)
 	-- Calculate a velocity based on our actual movement
 	-- This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero
-	-- Use nsormal delta time, not AI, because PrevPos is updated per-tick (not per-AI-tick)
+	-- Use normal delta time, not AI, because PrevPos is updated per-tick (not per-AI-tick)
 	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
 end
 
