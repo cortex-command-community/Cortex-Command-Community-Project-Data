@@ -55,8 +55,8 @@ function NativeHumanAI:Create(Owner)
 			Owner.Jetpack.Throttle = 0.25;
 		end
 
-		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs;
-		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5;
+		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.AIDeltaTimeSecs;
+		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.AIDeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.AIDeltaTimeSecs, 2) * 0.5;
 		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.JetTimeTotal*0.99); -- in milliseconds
 	end
 
@@ -583,7 +583,7 @@ function NativeHumanAI:Update(Owner)
 	if (not self.jump and Owner.Vel.Y > 18) then
 		self.jump = true;
 	end
-	if self.jump and Owner.JetTimeLeft > TimerMan.DeltaTimeMS then
+	if self.jump and Owner.JetTimeLeft > TimerMan.AIDeltaTimeMS then
 		if self.jumpState == AHuman.PREJUMP then
 			self.jumpState = AHuman.UPJUMP;
 		elseif self.jumpState ~= AHuman.UPJUMP then	-- the jetpack is off

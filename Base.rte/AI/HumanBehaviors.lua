@@ -1109,6 +1109,7 @@ end
 function HumanBehaviors.GetRealVelocity(Owner)
 	-- Calculate a velocity based on our actual movement
 	-- This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero
+	-- Use nsormal delta time, not AI, because PrevPos is updated per-tick (not per-AI-tick)
 	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
 end
 
@@ -1116,7 +1117,7 @@ function HumanBehaviors.UpdateAverageVel(Owner, AverageVel)
 	-- Store an exponential moving average of our speed over the past seconds
 	local timeInSeconds = 1;
 
-	local ticksPerTime = timeInSeconds / TimerMan.DeltaTimeSecs;
+	local ticksPerTime = timeInSeconds / TimerMan.AIDeltaTimeSecs;
 	AverageVel = AverageVel - (AverageVel / ticksPerTime);
 	AverageVel = AverageVel + (HumanBehaviors.GetRealVelocity(Owner) / ticksPerTime);
 
@@ -1711,7 +1712,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 												-- a burst use 10x more fuel
 												if Owner.Jetpack:CanTriggerBurst() then
-													t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.DeltaTimeSecs*10), TimerMan.DeltaTimeSecs);
+													t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 												end
 
 												-- test jumping
@@ -1771,7 +1772,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 											-- a burst use 10x more fuel
 											if Owner.Jetpack:CanTriggerBurst() then
-												t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.DeltaTimeSecs*10), TimerMan.DeltaTimeSecs);
+												t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 											end
 
 											-- when jumping (check four directions)
@@ -2121,7 +2122,7 @@ function HumanBehaviors.GetProjectileData(Owner)
 		PrjDat.g = SceneMan.GlobalAcc.Y * 0.67 * Weapon:GetBulletAccScalar(); -- underestimate gravity
 		PrjDat.vsq = PrjDat.vel^2; -- muzzle velocity squared
 		PrjDat.vqu = PrjDat.vsq^2; -- muzzle velocity quad
-		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs; -- AirResistance is stored as the ini-value times 60
+		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.AIDeltaTimeSecs; -- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel);
 		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg;
 
@@ -2140,14 +2141,14 @@ function HumanBehaviors.GetProjectileData(Owner)
 			local threshold = PrjDat.thr * rte.PxTravelledPerFrame; -- AirThreshold in pixels/frame
 			local vel = PrjDat.vel * rte.PxTravelledPerFrame; -- muzzle velocity in pixels/frame
 
-			for _ = 0, math.ceil(lifeTime/TimerMan.DeltaTimeMS) do
+			for _ = 0, math.ceil(lifeTime/TimerMan.AIDeltaTimeMS) do
 				PrjDat.rng = PrjDat.rng + vel;
 				if vel > threshold then
 					vel = vel * PrjDat.drg;
 				end
 			end
 		else	-- no AirResistance
-			PrjDat.rng = PrjDat.vel * rte.PxTravelledPerFrame * (lifeTime / TimerMan.DeltaTimeMS);
+			PrjDat.rng = PrjDat.vel * rte.PxTravelledPerFrame * (lifeTime / TimerMan.AIDeltaTimeMS);
 		end
 
 		-- Artificially decrease reported range to make sure AI
@@ -2869,7 +2870,7 @@ function HumanBehaviors.GetAngleToHit(PrjDat, Dist)
 		local D = Dist / GetPPM(); -- convert from pixels to meters
 		if PrjDat.drg < 1 then	-- compensate for air resistance
 			local rng = D.Magnitude;
-			local timeToTarget = math.floor((rng / math.max(PrjDat.vel*PrjDat.drg^math.floor(rng/(PrjDat.vel+1)+0.5), PrjDat.thr)) / TimerMan.DeltaTimeSecs); -- estimate time of flight in frames
+			local timeToTarget = math.floor((rng / math.max(PrjDat.vel*PrjDat.drg^math.floor(rng/(PrjDat.vel+1)+0.5), PrjDat.thr)) / TimerMan.AIDeltaTimeSecs); -- estimate time of flight in frames
 
 			if timeToTarget > 1 then
 				local muzVel = 0.9*math.max(PrjDat.vel * PrjDat.drg^timeToTarget, PrjDat.thr) + 0.1*PrjDat.vel; -- compensate for velocity reduction during flight
@@ -3034,7 +3035,7 @@ function HumanBehaviors.FaceAlarm(AI, Owner, Abort)
 	if AI.AlarmPos then
 		local AlarmDist = SceneMan:ShortestDistance(Owner.EyePos, AI.AlarmPos, false);
 		AI.AlarmPos = nil;
-		for _ = 1, math.ceil(200/TimerMan.DeltaTimeMS) do
+		for _ = 1, math.ceil(200/TimerMan.AIDeltaTimeMS) do
 			AI.deviceState = AHuman.AIMING;
 			if not Owner.aggressive then
 				AI.lateralMoveState = Actor.LAT_STILL;
@@ -3051,7 +3052,7 @@ end
 function HumanBehaviors.PinArea(AI, Owner, Abort)
 	if AI.OldTargetPos then
 		local AlarmDist = SceneMan:ShortestDistance(Owner.EyePos, AI.OldTargetPos, false);
-		for _ = 1, math.ceil(math.random(1000, 3000)/TimerMan.DeltaTimeMS) do
+		for _ = 1, math.ceil(math.random(1000, 3000)/TimerMan.AIDeltaTimeMS) do
 			AI.deviceState = AHuman.AIMING;
 			AI.lateralMoveState = Actor.LAT_STILL;
 			AlarmDist:SetXY(AlarmDist.X+RangeRand(-5,5), AlarmDist.Y+RangeRand(-5,5));
