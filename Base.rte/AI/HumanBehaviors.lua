@@ -1227,13 +1227,14 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 			else
+				local updateInterval = SettingsMan.AIUpdateInterval;
 				-- Try swapping direction, with a 15% random chance per tick while we're stuck
-				if PosRand() < 0.15 then
+				if PosRand() > (1 - 0.15) / updateInterval then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT;
 				end
 
 				-- Try swapping prone/unprone, with a 0.5% random chance per tick while we're stuck
-				if PosRand() < 0.005 then
+				if PosRand() > (1 - 0.005) / updateInterval then
 					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE;
 				end
 
