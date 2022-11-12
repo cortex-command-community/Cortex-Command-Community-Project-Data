@@ -1227,12 +1227,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 			else
-				-- Try swapping direction, with a 15% random chance per frame while we're stuck
+				-- Try swapping direction, with a 15% random chance per tick while we're stuck
 				if PosRand() < 0.15 then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT;
 				end
 
-				-- Try swapping prone/unprone, with a 0.5% random chance per frame while we're stuck
+				-- Try swapping prone/unprone, with a 0.5% random chance per tick while we're stuck
 				if PosRand() < 0.005 then
 					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE;
 				end
@@ -2122,7 +2122,7 @@ function HumanBehaviors.GetProjectileData(Owner)
 		PrjDat.g = SceneMan.GlobalAcc.Y * 0.67 * Weapon:GetBulletAccScalar(); -- underestimate gravity
 		PrjDat.vsq = PrjDat.vel^2; -- muzzle velocity squared
 		PrjDat.vqu = PrjDat.vsq^2; -- muzzle velocity quad
-		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.AIDeltaTimeSecs; -- AirResistance is stored as the ini-value times 60
+		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs; -- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel);
 		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg;
 
@@ -2141,14 +2141,14 @@ function HumanBehaviors.GetProjectileData(Owner)
 			local threshold = PrjDat.thr * rte.PxTravelledPerFrame; -- AirThreshold in pixels/frame
 			local vel = PrjDat.vel * rte.PxTravelledPerFrame; -- muzzle velocity in pixels/frame
 
-			for _ = 0, math.ceil(lifeTime/TimerMan.AIDeltaTimeMS) do
+			for _ = 0, math.ceil(lifeTime/TimerMan.DeltaTimeMS) do
 				PrjDat.rng = PrjDat.rng + vel;
 				if vel > threshold then
 					vel = vel * PrjDat.drg;
 				end
 			end
 		else	-- no AirResistance
-			PrjDat.rng = PrjDat.vel * rte.PxTravelledPerFrame * (lifeTime / TimerMan.AIDeltaTimeMS);
+			PrjDat.rng = PrjDat.vel * rte.PxTravelledPerFrame * (lifeTime / TimerMan.DeltaTimeMS);
 		end
 
 		-- Artificially decrease reported range to make sure AI
@@ -2870,7 +2870,7 @@ function HumanBehaviors.GetAngleToHit(PrjDat, Dist)
 		local D = Dist / GetPPM(); -- convert from pixels to meters
 		if PrjDat.drg < 1 then	-- compensate for air resistance
 			local rng = D.Magnitude;
-			local timeToTarget = math.floor((rng / math.max(PrjDat.vel*PrjDat.drg^math.floor(rng/(PrjDat.vel+1)+0.5), PrjDat.thr)) / TimerMan.AIDeltaTimeSecs); -- estimate time of flight in frames
+			local timeToTarget = math.floor((rng / math.max(PrjDat.vel*PrjDat.drg^math.floor(rng/(PrjDat.vel+1)+0.5), PrjDat.thr)) / TimerMan.DeltaTimeSecs); -- estimate time of flight in frames
 
 			if timeToTarget > 1 then
 				local muzVel = 0.9*math.max(PrjDat.vel * PrjDat.drg^timeToTarget, PrjDat.thr) + 0.1*PrjDat.vel; -- compensate for velocity reduction during flight
