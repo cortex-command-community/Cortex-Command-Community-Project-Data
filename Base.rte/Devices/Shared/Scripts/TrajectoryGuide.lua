@@ -34,7 +34,7 @@ end
 
 function Update(self)
 	local actor = self:GetRootParent();
-	if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() then
+	if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() and not self:IsReloading() then
 		local actor = ToActor(actor);
 		local controller = actor:GetController();
 		if not self.isThrownDevice and (self:DoneReloading() or self.FiredFrame) and self.Magazine and self.Magazine.RoundCount ~= 0 then
