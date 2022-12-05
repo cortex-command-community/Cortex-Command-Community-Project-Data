@@ -6,6 +6,10 @@ function Create(self)
 	
 	self.stayOpenTimer = Timer();
 	self.stayOpenTimer:SetSimTimeLimitMS(self:NumberValueExists("StayOpenDuration") and self:GetNumberValue("StayOpenDuration") or 2000);
+	
+	self.openCloseSound = CreateSoundContainer("Animated Background Door Open Close Sound", "Base.rte");
+	self.openCloseSound.Pos = self.Pos;
+	self.openCloseSound:Play();
 end
 
 function Update(self)
@@ -17,6 +21,7 @@ function Update(self)
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
 		self.isStayingOpen = false;
 		self.isClosing = true;
+		self.openCloseSound:Play();
 	elseif self.Frame == 0 and self.isClosing then
 		self.ToDelete = true;
 	end
