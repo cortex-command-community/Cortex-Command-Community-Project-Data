@@ -9,7 +9,6 @@ end
 function Update(self)
 	self.PinStrength = 900001;
 	local flameCount = 0;
-	local nearbyFlame = {};
 	if #GlobalFlameManagement.Flames ~= 0 then
 		--TODO: use 'pairs' instead?
 		for i = 1, #GlobalFlameManagement.Flames do
@@ -57,32 +56,6 @@ function Update(self)
 							end
 						end
 						if not GlobalFlameManagement.Flames[i].isShort then
-							--Combine two flames into one
-							if flame.Throttle < 0 then
-								for n = 1, #nearbyFlame do
-									local dist = SceneMan:ShortestDistance(flame.Pos + flame.Vel * rte.PxTravelledPerFrame, nearbyFlame[n].Pos, SceneMan.SceneWrapsX);
-									if dist:MagnitudeIsLessThan(2) then
-										flame.Lifetime = flame.Lifetime + nearbyFlame[n].Lifetime * 0.5;
-										flame.Throttle = flame.Throttle + nearbyFlame[n].Throttle + 1;
-										flame.Pos = flame.Pos + dist * 0.5;
-										flame.Vel = flame.Vel - Vector(0, 1 + flame.Throttle):RadRotate(RangeRand(-1, 1));
-										nearbyFlame[n].ToDelete = true;
-										--[[To-do: spawn a new, bigger flame particle altogether?
-										local newFlame = CreatePEmitter("Big Flame", "Base.rte");
-										newFlame.Lifetime = flame.Lifetime;
-										newFlame.Pos = flame.Pos;
-										newFlame.Vel = flame.Vel;
-										MovableMan:AddParticle(newFlame);
-										GlobalFlameManagement.Flames[i].particle = newFlame;
-										GlobalFlameManagement.Flames[i].isShort = true;
-										flame.ToDelete = true;
-										flame = newFlame;
-										]]--
-										break;
-									end
-								end
-								table.insert(nearbyFlame, flame);
-							end
 							if math.random() < (1 + flame.Throttle) * 0.1 then
 								--Spawn another, shorter flame particle occasionally
 								local particle = self.shortFlame:Clone();
