@@ -1107,9 +1107,8 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 end
 
 function HumanBehaviors.GetRealVelocity(Owner)
-	-- Calculate a velocity based on our actual movement
-	-- This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero
-	-- Use normal delta time, not AI, because PrevPos is updated per-tick (not per-AI-tick)
+	-- Calculate a velocity based on our actual movement. This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero.
+	-- Note - we use normal delta time, not AI delta time, because PrevPos is updated per-tick (not per-AI-tick)
 	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
 end
 
@@ -2836,14 +2835,14 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 
 		local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
 		local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos;
-		local distance = SceneMan:ShortestDistance(startPos, attackPos, false);
+		local distance = SceneMan:ShortestDistance(startPos, attackPos, SceneMan.SceneWrapsX);
 		local meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25);
 		if distance:MagnitudeIsLessThan(meleeDist) then
 			if DamageFailTimer:IsPastSimTimeLimit() then
 				break;
 			end
 			AI.lateralMoveState = Actor.LAT_STILL;
-			AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized;
+			AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, SceneMan.SceneWrapsX).Normalized;
 			AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1);
 		else
 			DamageFailTimer:Reset();

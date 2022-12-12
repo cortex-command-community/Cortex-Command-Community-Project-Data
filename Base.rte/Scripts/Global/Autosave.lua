@@ -1,11 +1,11 @@
 function AutosaveScript:StartScript()
-	self.AutosaveTimer = Timer();
-	self.AutosaveTimer:SetRealTimeLimitS(60*3);
+	self.autosaveTimer = Timer();
+	self.autosaveTimer:SetRealTimeLimitS(60 * 3);
 end
 
 function AutosaveScript:UpdateScript()
-	if self.AutosaveTimer:IsPastRealTimeLimit() then
+	if self.autosaveTimer:IsPastRealTimeLimit() then
 		LuaMan:SaveGame("Autosave");
-		self.AutosaveTimer:Reset();
+		self.autosaveTimer:Reset();
 	end
 end
