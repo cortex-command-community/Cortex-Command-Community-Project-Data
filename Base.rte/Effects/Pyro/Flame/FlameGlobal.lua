@@ -55,15 +55,14 @@ function Update(self)
 								flame.GlobalAccScalar = 0.9;
 							end
 						end
-						if not GlobalFlameManagement.Flames[i].isShort then
-							if math.random() < (1 + flame.Throttle) * 0.1 then
-								--Spawn another, shorter flame particle occasionally
-								local particle = self.shortFlame:Clone();
-								particle.Lifetime = particle.Lifetime * RangeRand(0.6, 0.9);
-								particle.Vel = flame.Vel + Vector(0, -3) + Vector(math.random(), 0):RadRotate(math.random() * math.pi * 2);
-								particle.Pos = Vector(flame.Pos.X, flame.Pos.Y - 1);
-								MovableMan:AddParticle(particle);
-							end
+						
+						--Spawn another, shorter flame particle occasionally
+						if not GlobalFlameManagement.Flames[i].isShort and math.random() < (1 + flame.Throttle) * 0.1 then
+							local particle = self.shortFlame:Clone();
+							particle.Lifetime = particle.Lifetime * RangeRand(0.6, 0.9);
+							particle.Vel = flame.Vel + Vector(0, -3) + Vector(math.random(), 0):RadRotate(math.random() * math.pi * 2);
+							particle.Pos = Vector(flame.Pos.X, flame.Pos.Y - 1);
+							MovableMan:AddParticle(particle);
 						end
 					end
 					if GlobalFlameManagement.Flames[i].deleteDelay and flame.Age > GlobalFlameManagement.Flames[i].deleteDelay then
@@ -75,7 +74,6 @@ function Update(self)
 			end
 		end
 		if flameCount == 0 then
-			--Clear the global table
 			GlobalFlameManagement.Flames = {};
 		end
 	end
