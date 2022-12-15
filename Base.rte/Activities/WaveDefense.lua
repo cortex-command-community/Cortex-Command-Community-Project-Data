@@ -69,7 +69,6 @@ function WaveDefense:StartActivity(isNewGame)
 		end
 	end
 
-print(isNewGame);
 	if isNewGame then
 		self:StartNewGame();
 	else
@@ -78,7 +77,6 @@ print(isNewGame);
 end
 
 function WaveDefense:StartNewGame()
-	print("STARTING NEW GAME");
 	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam);
 	self:CheckBrains();
 
@@ -339,7 +337,6 @@ function WaveDefense:UpdateActivity()
 					FrameMan:ClearScreenText(player);
 					local str = "Your brain has been destroyed by wave "..self.wave.." at "..self.Difficulty.."% difficulty";
 					FrameMan:SetScreenText(str, player, 333, -1, false);
-					ConsoleMan:PrintString(str);
 				else
 					playertally = playertally + 1;
 					if not setTeam[team] then
