@@ -76,6 +76,26 @@ function WaveDefense:StartActivity(isNewGame)
 	end
 end
 
+function WaveDefense:OnSave()
+	self:SaveNumber("triggerWaveInit", self.triggerWaveInit and 1 or 0);
+	self:SaveNumber("wave", self.wave);
+	self:SaveNumber("wavesDefeated", self.wavesDefeated);
+
+	self:SaveNumber("StartTimer", self.StartTimer.ElapsedRealTimeMS);
+	self:SaveNumber("NextWaveTimer", self.NextWaveTimer.ElapsedRealTimeMS);
+	self:SaveNumber("PrepareForNextWaveTimer", self.PrepareForNextWaveTimer.ElapsedRealTimeMS);
+	self:SaveNumber("prepareForNextWave", self.prepareForNextWave and 1 or 0);
+
+	self:SaveNumber("AI_SpawnTimer", self.AI.SpawnTimer.ElapsedRealTimeMS);
+	self:SaveNumber("AI_BombTimer", self.AI.BombTimer.ElapsedRealTimeMS);
+	self:SaveNumber("AI_HuntTimer", self.AI.HuntTimer.ElapsedRealTimeMS);
+
+	self:SaveNumber("AI_playerValue", self.AI.playerValue or 0);
+	self:SaveNumber("AI_lastWaveValue", self.AI.lastWaveValue or 0);
+
+	self:SaveString("AI_Tech", self.AI.Tech or "");
+end
+
 function WaveDefense:StartNewGame()
 	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam);
 	self:CheckBrains();
@@ -94,10 +114,6 @@ function WaveDefense:StartNewGame()
 end
 
 function WaveDefense:ResumeLoadedGame()
-	if self:LoadNumber("IsCurrentlyEditing") == 1 then
-		self.ActivityState = Activity.EDITING;
-	end
-	
 	self.triggerWaveInit = self:LoadNumber("triggerWaveInit") == 1;
 	self.wave = self:LoadNumber("wave");
 	self.wavesDefeated = self:LoadNumber("wavesDefeated");
@@ -136,28 +152,6 @@ function WaveDefense:ResumeLoadedGame()
 			end
 		end
 	end
-end
-
-function WaveDefense:OnSave()
-	self:SaveNumber("IsCurrentlyEditing", (self.ActivityState == Activity.EDITING and 1 or 0));
-
-	self:SaveNumber("triggerWaveInit", self.triggerWaveInit and 1 or 0);
-	self:SaveNumber("wave", self.wave);
-	self:SaveNumber("wavesDefeated", self.wavesDefeated);
-
-	self:SaveNumber("StartTimer", self.StartTimer.ElapsedRealTimeMS);
-	self:SaveNumber("NextWaveTimer", self.NextWaveTimer.ElapsedRealTimeMS);
-	self:SaveNumber("PrepareForNextWaveTimer", self.PrepareForNextWaveTimer.ElapsedRealTimeMS);
-	self:SaveNumber("prepareForNextWave", self.prepareForNextWave and 1 or 0);
-
-	self:SaveNumber("AI_SpawnTimer", self.AI.SpawnTimer.ElapsedRealTimeMS);
-	self:SaveNumber("AI_BombTimer", self.AI.BombTimer.ElapsedRealTimeMS);
-	self:SaveNumber("AI_HuntTimer", self.AI.HuntTimer.ElapsedRealTimeMS);
-
-	self:SaveNumber("AI_playerValue", self.AI.playerValue or 0);
-	self:SaveNumber("AI_lastWaveValue", self.AI.lastWaveValue or 0);
-
-	self:SaveString("AI_Tech", self.AI.Tech or "");
 end
 
 function WaveDefense:InitWave()
