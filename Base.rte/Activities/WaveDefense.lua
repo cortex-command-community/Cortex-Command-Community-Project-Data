@@ -23,90 +23,7 @@ function WaveDefense:CheckBrains()
 	end
 end
 
-function WaveDefense:StartFreshSession()
-	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam);
-	self:CheckBrains();
-
-	self.triggerWaveInit = true;
-	self.wave = 1;
-	self.wavesDefeated = 0;
-
-	-- Set all actors defined in the ini-file to sentry mode
-	for actor in MovableMan.AddedActors do
-		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-			actor.AIMode = Actor.AIMODE_SENTRY;
-		end
-	end
-
-	-- Take scene ownership
-	for actor in MovableMan.AddedActors do
-		actor.Team = self.playerTeam;
-	end
-end
-
-function WaveDefense:ResumeFromSave()
-	self.triggerWaveInit = self:LoadNumber("triggerWaveInit") == 1;
-	self.wave = self:LoadNumber("wave");
-	self.wavesDefeated = self:LoadNumber("wavesDefeated");
-
-	self.StartTimer.ElapsedRealTimeMS = self:LoadNumber("StartTimer");
-	self.NextWaveTimer.ElapsedRealTimeMS = self:LoadNumber("NextWaveTimer");
-	self.PrepareForNextWaveTimer.ElapsedRealTimeMS = self:LoadNumber("PrepareForNextWaveTimer");
-	self.prepareForNextWave = self:LoadNumber("prepareForNextWave") == 1;
-
-	self.AI.SpawnTimer.ElapsedRealTimeMS = self:LoadNumber("AI_SpawnTimer");
-	self.AI.BombTimer.ElapsedRealTimeMS = self:LoadNumber("AI_BombTimer");
-	self.AI.HuntTimer.ElapsedRealTimeMS = self:LoadNumber("AI_HuntTimer");
-
-	self.AI.playerValue = self:LoadNumber("AI_playerValue");
-	self.AI.lastWaveValue = self:LoadNumber("AI_lastWaveValue");
-
-	gPrevAITech = self:LoadString("AI_Tech");
-	self.AI.Tech = gPrevAITech;
-	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech);
-
-	for actor in MovableMan.Actors do
-		if actor.Team == self.CPUTeam then
-			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-				actor.AIMode = Actor.AIMODE_BRAINHUNT;
-			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
-				actor.AIMode = Actor.AIMODE_DELIVER;
-			end
-		end
-	end
-
-	for actor in MovableMan.AddedActors do
-		if actor.Team == self.CPUTeam then
-			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-				actor.AIMode = Actor.AIMODE_BRAINHUNT;
-			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
-				actor.AIMode = Actor.AIMODE_DELIVER;
-			end
-		end
-	end
-end
-
-function WaveDefense:OnSave()
-	self:SaveNumber("triggerWaveInit", self.triggerWaveInit and 1 or 0);
-	self:SaveNumber("wave", self.wave);
-	self:SaveNumber("wavesDefeated", self.wavesDefeated);
-
-	self:SaveNumber("StartTimer", self.StartTimer.ElapsedRealTimeMS);
-	self:SaveNumber("NextWaveTimer", self.NextWaveTimer.ElapsedRealTimeMS);
-	self:SaveNumber("PrepareForNextWaveTimer", self.PrepareForNextWaveTimer.ElapsedRealTimeMS);
-	self:SaveNumber("prepareForNextWave", self.prepareForNextWave and 1 or 0);
-
-	self:SaveNumber("AI_SpawnTimer", self.AI.SpawnTimer.ElapsedRealTimeMS);
-	self:SaveNumber("AI_BombTimer", self.AI.BombTimer.ElapsedRealTimeMS);
-	self:SaveNumber("AI_HuntTimer", self.AI.HuntTimer.ElapsedRealTimeMS);
-
-	self:SaveNumber("AI_playerValue", self.AI.playerValue);
-	self:SaveNumber("AI_lastWaveValue", self.AI.lastWaveValue);
-
-	self:SaveString("AI_Tech", gPrevAITech);
-end
-
-function WaveDefense:StartActivity()
+function WaveDefense:StartActivity(isNewGame)
 	collectgarbage("collect");
 
 	-- Get player team
@@ -152,13 +69,97 @@ function WaveDefense:StartActivity()
 		end
 	end
 
-	if self.ActivityState == Activity.NOTSTARTED then
-		-- New game started, initialize stuff that's needed
-		self:StartFreshSession();
+print(isNewGame);
+	if isNewGame then
+		self:StartNewGame();
 	else
-		-- We're loading a previously saved game
-		self:ResumeFromSave();
+		self:ResumeLoadedGame();
 	end
+end
+
+function WaveDefense:StartNewGame()
+	print("STARTING NEW GAME");
+	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam);
+	self:CheckBrains();
+
+	self.triggerWaveInit = true;
+	self.wave = 1;
+	self.wavesDefeated = 0;
+
+	-- Set all actors defined in the ini-file to sentry mode, and set their team to the player's.
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+			actor.AIMode = Actor.AIMODE_SENTRY;
+		end
+		actor.Team = self.playerTeam;
+	end
+end
+
+function WaveDefense:ResumeLoadedGame()
+	if self:LoadNumber("IsCurrentlyEditing") == 1 then
+		self.ActivityState = Activity.EDITING;
+	end
+	
+	self.triggerWaveInit = self:LoadNumber("triggerWaveInit") == 1;
+	self.wave = self:LoadNumber("wave");
+	self.wavesDefeated = self:LoadNumber("wavesDefeated");
+
+	self.StartTimer.ElapsedRealTimeMS = self:LoadNumber("StartTimer");
+	self.NextWaveTimer.ElapsedRealTimeMS = self:LoadNumber("NextWaveTimer");
+	self.PrepareForNextWaveTimer.ElapsedRealTimeMS = self:LoadNumber("PrepareForNextWaveTimer");
+	self.prepareForNextWave = self:LoadNumber("prepareForNextWave") == 1;
+
+	self.AI.SpawnTimer.ElapsedRealTimeMS = self:LoadNumber("AI_SpawnTimer");
+	self.AI.BombTimer.ElapsedRealTimeMS = self:LoadNumber("AI_BombTimer");
+	self.AI.HuntTimer.ElapsedRealTimeMS = self:LoadNumber("AI_HuntTimer");
+
+	self.AI.playerValue = self:LoadNumber("AI_playerValue");
+	self.AI.lastWaveValue = self:LoadNumber("AI_lastWaveValue");
+
+	self.AI.Tech = self:LoadString("AI_Tech");
+	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech);
+
+	for actor in MovableMan.Actors do
+		if actor.Team == self.CPUTeam then
+			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+				actor.AIMode = Actor.AIMODE_BRAINHUNT;
+			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
+				actor.AIMode = Actor.AIMODE_DELIVER;
+			end
+		end
+	end
+
+	for actor in MovableMan.AddedActors do
+		if actor.Team == self.CPUTeam then
+			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+				actor.AIMode = Actor.AIMODE_BRAINHUNT;
+			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
+				actor.AIMode = Actor.AIMODE_DELIVER;
+			end
+		end
+	end
+end
+
+function WaveDefense:OnSave()
+	self:SaveNumber("IsCurrentlyEditing", (self.ActivityState == Activity.EDITING and 1 or 0));
+
+	self:SaveNumber("triggerWaveInit", self.triggerWaveInit and 1 or 0);
+	self:SaveNumber("wave", self.wave);
+	self:SaveNumber("wavesDefeated", self.wavesDefeated);
+
+	self:SaveNumber("StartTimer", self.StartTimer.ElapsedRealTimeMS);
+	self:SaveNumber("NextWaveTimer", self.NextWaveTimer.ElapsedRealTimeMS);
+	self:SaveNumber("PrepareForNextWaveTimer", self.PrepareForNextWaveTimer.ElapsedRealTimeMS);
+	self:SaveNumber("prepareForNextWave", self.prepareForNextWave and 1 or 0);
+
+	self:SaveNumber("AI_SpawnTimer", self.AI.SpawnTimer.ElapsedRealTimeMS);
+	self:SaveNumber("AI_BombTimer", self.AI.BombTimer.ElapsedRealTimeMS);
+	self:SaveNumber("AI_HuntTimer", self.AI.HuntTimer.ElapsedRealTimeMS);
+
+	self:SaveNumber("AI_playerValue", self.AI.playerValue or 0);
+	self:SaveNumber("AI_lastWaveValue", self.AI.lastWaveValue or 0);
+
+	self:SaveString("AI_Tech", self.AI.Tech or "");
 end
 
 function WaveDefense:InitWave()
@@ -167,7 +168,6 @@ function WaveDefense:InitWave()
 	self.AI.HuntTimer:Reset();
 
 	self.AI.Tech = self:GetTeamTech(self.CPUTeam);	-- Select a tech for the CPU player
-	gPrevAITech = self.AI.Tech; -- Store the AI tech in a global so we don't pick the same tech again next round
 	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech);
 
 	local lastWavePlayerValue = self.AI.playerValue;
