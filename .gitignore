@@ -51,10 +51,9 @@ luac.out
 _Screenshots/
 Base.rte/Settings.ini
 Benchmark.rte/
-Scenes.rte/
-Metagames.rte/
-Saves.rte/*
-!Saves.rte/Index.ini
+UserSavesConquest.rte/
+UserSavesScripted.rte/
+UserScenes.rte/
 DedicatedServerDebug.bat
 
 allegro.log

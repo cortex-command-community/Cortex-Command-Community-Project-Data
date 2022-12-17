@@ -5,7 +5,7 @@ end
 
 function AutosaveScript:UpdateScript()
 	if self.autosaveTimer:IsPastRealTimeLimit() then
-		LuaMan:SaveGame("Autosave");
+		ActivityMan:SaveGame("AutoSave");
 		self.autosaveTimer:Reset();
 	end
 end
