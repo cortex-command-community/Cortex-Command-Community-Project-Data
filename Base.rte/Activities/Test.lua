@@ -37,6 +37,10 @@ function Test:StartActivity()
 	self.allDoorsOpened = false;
 end
 
+function Test:OnSave()
+	-- Don't have to do anything, just need this to allow saving/loading.
+end
+
 -----------------------------------------------------------------------------------------
 -- Pause Activity
 -----------------------------------------------------------------------------------------

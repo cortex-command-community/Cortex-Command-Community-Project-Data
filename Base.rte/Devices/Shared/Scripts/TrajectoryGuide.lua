@@ -34,7 +34,7 @@ end
 
 function Update(self)
 	local actor = self:GetRootParent();
-	if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() then
+	if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() and not self:IsReloading() then
 		local actor = ToActor(actor);
 		local controller = actor:GetController();
 		if not self.isThrownDevice and (self:DoneReloading() or self.FiredFrame) and self.Magazine and self.Magazine.RoundCount ~= 0 then
@@ -47,7 +47,7 @@ function Update(self)
 
 				local guideParPos, guideParVel;
 
-				if self.isThrownDevice and IsAHuman(actor) then
+				if self.isThrownDevice and IsAHuman(actor) and actor:GetController():IsState(Controller.WEAPON_FIRE) then
 					--Display detonation point if a scripted fuze is active
 					if self.fuze and self.fuzeDelay then
 						self.maxTrajectoryPars = (self.fuzeDelay - self.fuze.ElapsedSimTimeMS - self.laserTimer.ElapsedSimTimeMS)/TimerMan.DeltaTimeMS * rte.PxTravelledPerFrame;

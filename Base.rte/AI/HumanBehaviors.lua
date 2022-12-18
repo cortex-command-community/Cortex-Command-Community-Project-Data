@@ -1106,6 +1106,22 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	return true;
 end
 
+function HumanBehaviors.GetRealVelocity(Owner)
+	-- Calculate a velocity based on our actual movement. This is because otherwise gravity falsely reports that we have a downward velocity, even if our net movement is zero.
+	-- Note - we use normal delta time, not AI delta time, because PrevPos is updated per-tick (not per-AI-tick)
+	return (Owner.Pos - Owner.PrevPos) / TimerMan.DeltaTimeSecs;
+end
+
+function HumanBehaviors.UpdateAverageVel(Owner, AverageVel)
+	-- Store an exponential moving average of our speed over the past seconds
+	local timeInSeconds = 1;
+
+	local ticksPerTime = timeInSeconds / TimerMan.AIDeltaTimeSecs;
+	AverageVel = AverageVel - (AverageVel / ticksPerTime);
+	AverageVel = AverageVel + (HumanBehaviors.GetRealVelocity(Owner) / ticksPerTime);
+
+	return AverageVel;
+end
 
 -- move to the next waypoint
 function HumanBehaviors.GoToWpt(AI, Owner, Abort)
@@ -1146,7 +1162,8 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	NoLOSTimer:SetSimTimeLimitMS(1000);
 
 	local StuckTimer = Timer();
-	StuckTimer:SetSimTimeLimitMS(3000);
+	StuckTimer:SetSimTimeLimitMS(1000);
+	local AverageVel = Owner.Vel;
 
 	local nextLatMove = AI.lateralMoveState;
 	local nextAimAngle = Owner:GetAimAngle(false) * 0.95;
@@ -1162,10 +1179,15 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}};
 
 	while true do
+		AverageVel = HumanBehaviors.UpdateAverageVel(Owner, AverageVel);
+		
+		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
+
+		-- Cap AverageVel, so if we have a spike in velocity it doesn't take too long to come back down
+		AverageVel:CapMagnitude(stuckThreshold * 5)
+
 		-- Reset our stuck timer if we're moving
-		-- We average out velocity from this and last frame, for a little hysteresis
-		local stuckThreshold = 3.5; -- pixels per second of movement we need to be considered not stuck
-		if (Owner.Vel + Owner.PrevVel):MagnitudeIsGreaterThan(stuckThreshold * 2) then
+		if AverageVel:MagnitudeIsGreaterThan(stuckThreshold) then
 			StuckTimer:Reset();
 		end
 
@@ -1180,26 +1202,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 		elseif not AI.flying and UpdatePathTimer:IsPastSimTimeLimit() then
 			UpdatePathTimer:Reset();
 
-			if Waypoint and AI.BlockingMO then
-				if MovableMan:ValidMO(AI.BlockingMO) then
-					CurrDist = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false);
-					if (Owner.Pos.X > AI.BlockingMO.Pos.X and CurrDist.X < Owner.Pos.X) or
-						(Owner.Pos.X < AI.BlockingMO.Pos.X and CurrDist.X > Owner.Pos.X) or
-						SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false):MagnitudeIsGreaterThan(Owner.Diameter + AI.BlockingMO.Diameter)
-					then
-						AI.BlockingMO = nil; -- the blocking actor is not in the way any longer
-						AI.teamBlockState = Actor.NOTBLOCKED;
-					else
-						AI.BlockedTimer:Reset();
-						AI.teamBlockState = Actor.IGNORINGBLOCK;
-						AI:CreateMoveAroundBehavior(Owner);
-						break; -- end this behavior
-					end
-				else
-					AI.BlockingMO = nil;
-				end
-			end
-
 			AI.deviceState = AHuman.STILL;
 			AI.proneState = AHuman.NOTPRONE;
 			AI.jump = false;
@@ -1208,7 +1210,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			Waypoint = nil;
 			WptList = nil; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
-			-- We intentionally don't reset the stuck timer here, we want the ai to keep trying until it gets unstuck
 			if AI.jump then
 				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
@@ -1225,13 +1226,14 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 			else
-				-- Try swapping direction, with a 15% random chance per frame while we're stuck
-				if PosRand() < 0.15 then
+				local updateInterval = SettingsMan.AIUpdateInterval;
+				-- Try swapping direction, with a 15% random chance per tick while we're stuck
+				if PosRand() > (1 - 0.15) / updateInterval then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT;
 				end
 
-				-- Try swapping prone/unprone, with a 5% random chance per frame while we're stuck
-				if PosRand() < 0.05 then
+				-- Try swapping prone/unprone, with a 0.5% random chance per tick while we're stuck
+				if PosRand() > (1 - 0.005) / updateInterval then
 					AI.proneState = AI.proneState == AHuman.PRONE and AHuman.NOTPRONE or AHuman.PRONE;
 				end
 
@@ -1345,7 +1347,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									else
 										digState = AHuman.NOTDIGGING;
 										obstacleState = Actor.PROCEEDING;
-										StuckTimer:SetSimTimeLimitMS(2000);
+										StuckTimer:SetSimTimeLimitMS(1000);
 									end
 								end
 
@@ -1710,7 +1712,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 												-- a burst use 10x more fuel
 												if Owner.Jetpack:CanTriggerBurst() then
-													t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.DeltaTimeSecs*10), TimerMan.DeltaTimeSecs);
+													t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 												end
 
 												-- test jumping
@@ -1770,7 +1772,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 											-- a burst use 10x more fuel
 											if Owner.Jetpack:CanTriggerBurst() then
-												t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.DeltaTimeSecs*10), TimerMan.DeltaTimeSecs);
+												t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 											end
 
 											-- when jumping (check four directions)
@@ -2014,19 +2016,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			end
 		end
 
-		if AI.BlockingMO then
-			if not MovableMan:ValidMO(AI.BlockingMO) or SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false).Largest > (Owner.Height + AI.BlockingMO.Diameter)*1.2 then
-				AI.BlockingMO = nil;
-				AI.teamBlockState = Actor.NOTBLOCKED;
-			elseif AI.teamBlockState == Actor.NOTBLOCKED and Waypoint then
-				if (Waypoint.Pos.X > Owner.Pos.X and AI.BlockingMO.Pos.X > Owner.Pos.X) or (Waypoint.Pos.X < Owner.Pos.X and AI.BlockingMO.Pos.X < Owner.Pos.X) then
-					AI.teamBlockState = Actor.BLOCKED;
-				else
-					AI.BlockingMO = nil;
-				end
-			end
-		end
-
 		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
 		if _abrt then return true end
 	end
@@ -2125,6 +2114,7 @@ function HumanBehaviors.GetProjectileData(Owner)
 		PrjDat.g = 0;
 		PrjDat.vel = 100;
 		PrjDat.rng = math.huge;
+		PrjDat.pen = math.huge;
 	else
 		-- find muzzle velocity
 		PrjDat.vel = Weapon:GetAIFireVel();
@@ -2783,6 +2773,17 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 
 	AI.TargetLostTimer:SetSimTimeLimitMS(5000);
 
+	-- If we've been trying for a while and we're not getting any closer to our target, auto-fail the behaviour so we do other stuff
+	local MovementFailTimer = Timer();
+	MovementFailTimer:SetSimTimeLimitMS(3000);
+	local closestDistance = nil;
+
+	-- If we're attacking the target but it's not dying (likely that we're too far away), fail
+	-- It may be that we are successfully damaging it, just very slowly. That's not a big issue
+	-- If it's still a good target, we'll likely retarget it next frame, and move a little closer (by re-adding the GoToBehavior)
+	local DamageFailTimer = Timer();
+	DamageFailTimer:SetSimTimeLimitMS(6000);
+
 	-- move back here later
 	local PrevMOMoveTarget, PrevSceneWaypoint;
 	if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
@@ -2814,91 +2815,47 @@ function HumanBehaviors.AttackTarget(AI, Owner, Abort)
 		if not AI.Target or not MovableMan:ValidMO(AI.Target) then
 			break;
 		end
+
 		-- use following sequence to attack either with a suited melee weapon or arms
-		local meleeDist = 0;
+		local suitableWeapon = false;
 
-		if Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Breaching", true) then
-			meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25);
-		end
-		if meleeDist > 0 then
-			local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
-			local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos;
-			local dist = SceneMan:ShortestDistance(startPos, attackPos, false);
-			if dist:MagnitudeIsLessThan(meleeDist) then
-				AI.lateralMoveState = Actor.LAT_STILL;
-				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, false).Normalized;
-				AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1);
-			else
-				AI.fire = false;
-			end
+		if AI.Target.ClassName == "ADoor" then
+			-- Prefer breaching tools for attacking doors
+			suitableWeapon = Owner:EquipDeviceInGroup("Tools - Breaching", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Weapons - Melee", true);
 		else
+			-- Prefer melee weapons for attacking actors
+			suitableWeapon = Owner:EquipDeviceInGroup("Weapons - Melee", true) or Owner:EquipDeviceInGroup("Tools - Diggers", true) or Owner:EquipDeviceInGroup("Tools - Breaching", true);
+		end
+
+		if not suitableWeapon then
+			-- We have no suitable weapon to use
+			AI:CreateGetWeaponBehavior(Owner);
 			break;
-		-- else TODO: periodically look for weapons?
 		end
-	end
 
-	return true;
-end
-
-
--- move around another actor
-function HumanBehaviors.MoveAroundActor(AI, Owner, Abort)
-	if not Owner.Jetpack or not MovableMan:ValidMO(AI.BlockingMO) then
-		AI.teamBlockState = Actor.NOTBLOCKED;
-		AI.BlockingMO = nil;
-		return true;
-	end
-
-	local BurstTimer = Timer();
-	local refuel = false;
-	local Dist;
-
-	BurstTimer:SetSimTimeLimitMS(math.max(SceneMan.GlobalAcc.Y*5, AI.minBurstTime)); -- a burst last until the BurstTimer expire
-	AI.jump = true;
-
-	-- look above the blocking actor
-	Dist = SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false);
-	if Dist.X > 0 then
-		AI.Ctrl.AnalogAim = Vector(1,0):RadRotate(1.20);
-	else
-		AI.Ctrl.AnalogAim = Vector(1,0):RadRotate(1.94);
-	end
-
-	while true do
-		if BurstTimer:IsPastSimTimeLimit() then	-- trigger jetpack bursts
-			BurstTimer:Reset();
-			AI.jump = false;
-
-			Dist = SceneMan:ShortestDistance(Owner.Pos, AI.BlockingMO.Pos, false);
-			if Dist.Y + Owner.Vel.Y * 3 > (Owner.Diameter + AI.BlockingMO.Diameter)*0.67 then
-				Owner:SetAimAngle(-0.5);
-
-				if math.abs(Dist.X) > math.max(Owner.Diameter, AI.BlockingMO.Diameter)/2 then
-					return true;
-				end
+		local startPos = Vector(Owner.EquippedItem.Pos.X, Owner.EquippedItem.Pos.Y);
+		local attackPos = (AI.Target.ClassName == "ADoor" and ToADoor(AI.Target).Door and ToADoor(AI.Target).Door:IsAttached()) and ToADoor(AI.Target).Door.Pos or AI.Target.Pos;
+		local distance = SceneMan:ShortestDistance(startPos, attackPos, SceneMan.SceneWrapsX);
+		local meleeDist = Owner.IndividualRadius + (IsThrownDevice(Owner.EquippedItem) and 50 or 25);
+		if distance:MagnitudeIsLessThan(meleeDist) then
+			if DamageFailTimer:IsPastSimTimeLimit() then
+				break;
 			end
+			AI.lateralMoveState = Actor.LAT_STILL;
+			AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.EyePos, attackPos, SceneMan.SceneWrapsX).Normalized;
+			AI.fire = not (AI.fire and IsThrownDevice(Owner.EquippedItem) and Owner.ThrowProgress == 1);
 		else
-			AI.jump = true;
-			if Owner.Vel.Y < -9 then
-				AI.jump = false;
-			end
-		end
+			DamageFailTimer:Reset();
 
-		if refuel then
-			AI.jump = false;
-			if Owner.JetTimeLeft > Owner.JetTimeTotal * 0.9 then
-				refuel = false;
+			-- Ensure we're getting closer
+			if not closestDistance or distance.SqrMagnitude < closestDistance.SqrMagnitude then
+				closestDistance = distance;
+				MovementFailTimer:Reset();
+			elseif MovementFailTimer:IsPastSimTimeLimit() then
+				break;
 			end
-		elseif Owner.JetTimeLeft < Owner.JetTimeTotal * 0.1 then
-			refuel = true;
-		end
 
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
-		if not MovableMan:IsActor(AI.BlockingMO) then
-			AI.teamBlockState = Actor.NOTBLOCKED;
-			AI.BlockingMO = nil;
-			return true;
+			AI.fire = false;
 		end
 	end
 
@@ -3079,7 +3036,7 @@ function HumanBehaviors.FaceAlarm(AI, Owner, Abort)
 	if AI.AlarmPos then
 		local AlarmDist = SceneMan:ShortestDistance(Owner.EyePos, AI.AlarmPos, false);
 		AI.AlarmPos = nil;
-		for _ = 1, math.ceil(200/TimerMan.DeltaTimeMS) do
+		for _ = 1, math.ceil(200/TimerMan.AIDeltaTimeMS) do
 			AI.deviceState = AHuman.AIMING;
 			if not Owner.aggressive then
 				AI.lateralMoveState = Actor.LAT_STILL;
@@ -3096,7 +3053,7 @@ end
 function HumanBehaviors.PinArea(AI, Owner, Abort)
 	if AI.OldTargetPos then
 		local AlarmDist = SceneMan:ShortestDistance(Owner.EyePos, AI.OldTargetPos, false);
-		for _ = 1, math.ceil(math.random(1000, 3000)/TimerMan.DeltaTimeMS) do
+		for _ = 1, math.ceil(math.random(1000, 3000)/TimerMan.AIDeltaTimeMS) do
 			AI.deviceState = AHuman.AIMING;
 			AI.lateralMoveState = Actor.LAT_STILL;
 			AlarmDist:SetXY(AlarmDist.X+RangeRand(-5,5), AlarmDist.Y+RangeRand(-5,5));

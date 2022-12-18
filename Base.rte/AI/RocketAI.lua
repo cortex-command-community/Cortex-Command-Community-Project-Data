@@ -228,6 +228,7 @@ function UpdateAI(self)
 	end
 
 	-- Control angle
+
 	change = self.AngPID:Update(self.RotAngle + self.AngularVel, targetAng);
 	-- Don't burst side thrusters from minimal tilt
 	local tilted = math.floor(math.abs(self.RotAngle) + 0.9);
@@ -241,7 +242,7 @@ function UpdateAI(self)
 
 	-- Trigger bursts
 	if self.burstRight then
-		self.burstRight = self.burstRight - 1;
+		self.burstRight = self.burstRight - SettingsMan.AIUpdateInterval;
 		if self.burstRight < 0 then
 			self.Ctrl:SetState(Controller.MOVE_RIGHT, true);
 			if self.burstRight < -4 then	-- Fire for -n frames (higher -> better control)
@@ -251,7 +252,7 @@ function UpdateAI(self)
 	end
 
 	if self.burstLeft then
-		self.burstLeft = self.burstLeft - 1;
+		self.burstLeft = self.burstLeft - SettingsMan.AIUpdateInterval;
 		if self.burstLeft < 0 then
 			self.Ctrl:SetState(Controller.MOVE_LEFT, true);
 			if self.burstLeft < -4 then
@@ -261,7 +262,7 @@ function UpdateAI(self)
 	end
 
 	if self.burstUp then
-		self.burstUp = self.burstUp - 1;
+		self.burstUp = self.burstUp - SettingsMan.AIUpdateInterval;
 		if self.burstUp < 0 then
 			self.Ctrl:SetState(Controller.MOVE_UP, true);
 			if self.burstUp < -16 then
