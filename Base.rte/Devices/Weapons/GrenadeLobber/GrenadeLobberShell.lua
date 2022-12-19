@@ -18,13 +18,13 @@ function Update(self)
 	local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
 	self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-self.setAngle * self.FlipFactor);
 
-    if self.FiredFrame then
-        self.shellsToEject = 1
-    end
-    if self.Magazine then
-        self.loadTimer:Reset();
-        self.Frame = 0;
-    elseif self:IsReloading() then
+	if self.FiredFrame then
+		self.shellsToEject = 1
+	end
+	if self.Magazine then
+		self.loadTimer:Reset();
+		self.Frame = 0;
+	elseif self:IsReloading() then
 		if self.loadTimer:IsPastSimMS(self.ReloadTime * 0.3) then
 			if self.Frame ~= 1 then
 				AudioMan:PlaySound("Ronin.rte/Devices/Weapons/DoubleBarreledShotgun/Sounds/Eject.flac", self.Pos);
