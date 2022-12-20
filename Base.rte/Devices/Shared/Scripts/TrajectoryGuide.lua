@@ -42,12 +42,11 @@ function Update(self)
 			self.projectileGravity = self.Magazine.NextRound.NextParticle.GlobalAccScalar;
 		end
 		local hitPos;
-		if controller:IsState(Controller.AIM_SHARP) or self.isThrownDevice and controller:IsState(Controller.WEAPON_FIRE) then
+		if (self.isThrownDevice and controller:IsState(Controller.WEAPON_FIRE)) or (not self.isThrownDevice and controller:IsState(Controller.AIM_SHARP)) then
 			if self.laserTimer:IsPastSimTimeLimit() then
 
 				local guideParPos, guideParVel;
-
-				if self.isThrownDevice and IsAHuman(actor) and actor:GetController():IsState(Controller.WEAPON_FIRE) then
+				if self.isThrownDevice and IsAHuman(actor) then
 					--Display detonation point if a scripted fuze is active
 					if self.fuze and self.fuzeDelay then
 						self.maxTrajectoryPars = (self.fuzeDelay - self.fuze.ElapsedSimTimeMS - self.laserTimer.ElapsedSimTimeMS)/TimerMan.DeltaTimeMS * rte.PxTravelledPerFrame;
