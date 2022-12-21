@@ -1,6 +1,6 @@
 function OnAttach(self, newParent)
 	local rootParent = self:GetRootParent();
-	if IsAHuman(rootParent) then
+	if IsAHuman(rootParent) and MovableMan:IsActor(rootParent) then
 		local humanRootParent = ToAHuman(rootParent);
 		humanRootParent.PieMenu:GetFirstPieSliceByPresetName("Ronin Shovel Fill Sandbag PieSlice").Enabled = humanRootParent:GetNumberValue("RoninShovelResource") >= 10;
 	end

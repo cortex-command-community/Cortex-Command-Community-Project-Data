@@ -1,6 +1,6 @@
 function OnAttach(self, newParent)
 	local rootParent = self:GetRootParent();
-	if IsActor(rootParent) then
+	if IsActor(rootParent) and MovableMan:IsActor(rootParent) then
 		local pieMenu = ToActor(rootParent).PieMenu;
 		local subPieMenuPieSlice = pieMenu:GetFirstPieSliceByPresetName("Constructor Options");
 		if subPieMenuPieSlice ~= nil then

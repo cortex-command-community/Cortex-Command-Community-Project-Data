@@ -7,6 +7,10 @@ function Create(self)
 			break;
 		end
 	end
+	if self.target == nil then
+		self.ToDelete = true;
+		return;
+	end
 
 	self.healing = self.target.Team == self.Team;
 	self.healMultiplier = self.target.ModuleName == "Techion.rte" and 1.0 or 0.5;
