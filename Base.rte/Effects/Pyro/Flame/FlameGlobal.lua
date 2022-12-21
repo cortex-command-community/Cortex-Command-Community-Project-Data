@@ -36,20 +36,18 @@ function Update(self)
 					if math.random() > ageRatio then
 						if flame.Vel:MagnitudeIsGreaterThan(1) then
 							local checkPos = Vector(flame.Pos.X, flame.Pos.Y - 1) + flame.Vel * rte.PxTravelledPerFrame * math.random();
-							local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
+							local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y, flame.Team);
 							if moCheck ~= rte.NoMOID then
 								local mo = MovableMan:GetMOFromID(moCheck);
-								if mo and (flame.Team == Activity.NOTEAM or mo.Team ~= flame.Team) then
-									GlobalFlameManagement.Flames[i].target = ToMOSRotating(mo);
+								GlobalFlameManagement.Flames[i].target = ToMOSRotating(mo);
 
-									GlobalFlameManagement.Flames[i].isShort = true;
-									GlobalFlameManagement.Flames[i].deleteDelay = math.random(flame.Lifetime);
+								GlobalFlameManagement.Flames[i].isShort = true;
+								GlobalFlameManagement.Flames[i].deleteDelay = math.random(flame.Lifetime);
 
-									GlobalFlameManagement.Flames[i].targetStickAngle = mo.RotAngle;
-									GlobalFlameManagement.Flames[i].stickOffset = SceneMan:ShortestDistance(mo.Pos, flame.Pos, SceneMan.SceneWrapsX) * 0.8;
+								GlobalFlameManagement.Flames[i].targetStickAngle = mo.RotAngle;
+								GlobalFlameManagement.Flames[i].stickOffset = SceneMan:ShortestDistance(mo.Pos, flame.Pos, SceneMan.SceneWrapsX) * 0.8;
 
-									flame.GlobalAccScalar = 0.9;
-								end
+								flame.GlobalAccScalar = 0.9;
 							elseif flame.GlobalAccScalar < 0.5 and GlobalFlameManagement.Flames[i].isShort and math.random() < 0.2 and SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
 								GlobalFlameManagement.Flames[i].deleteDelay = math.random(flame.Lifetime);
 								flame.GlobalAccScalar = 0.9;
