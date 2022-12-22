@@ -300,6 +300,17 @@ function WaveDefense:UpdateActivity()
 			end
 		end
 
+		-- Show the remaining funds and current wave on player 1's screen only
+		FrameMan:ClearScreenText(Activity.PLAYER_1);
+		local str = "Wave "..self.wave.."  |  ";
+		local remainingFunds = math.floor(self:GetTeamFunds(self.CPUTeam));
+		if remainingFunds <= 0 then
+			str = str .. "Kill all enemies to finish the wave!";
+		else
+			str = str .. "Remaining Enemy Funds: "..remainingFunds;
+		end
+		FrameMan:SetScreenText(str, Activity.PLAYER_1, 0, 10, false);
+
 		-- Clear all objective markers, they get re-added each frame
 		self:ClearObjectivePoints()
 		-- Keep track of which teams we have set objective points for already, since multiple players can be on the same team
@@ -311,6 +322,7 @@ function WaveDefense:UpdateActivity()
 				if not self.StartTimer:IsPastRealMS(3000) then
 					FrameMan:SetScreenText("Survive wave "..self.wave, player, 333, 5000, true);
 				end
+
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
 
