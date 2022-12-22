@@ -1905,6 +1905,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				-- copy useful waypoints to a temporary path
 				local TmpWpts = {};
 				table.insert(TmpWpts, {Pos=Owner.Pos});
+
 				local Origin;
 				local LastPos = PathDump[1];
 				local index = 1;
@@ -1921,6 +1922,11 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					LastPos = WptPos;
 					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
 					if _abrt then return true end
+				end
+
+				-- No path
+				if #PathDump == 0 then
+					break;
 				end
 
 				table.insert(TmpWpts, {Pos=PathDump[#PathDump]}); -- add the last waypoint in the MovePath
