@@ -78,7 +78,7 @@ function Test:UpdateActivity()
 		end
 	end
 
-	if UInputMan.FlagAltState and UInputMan:KeyPressed(28) then
+	if UInputMan.FlagAltState and UInputMan:KeyPressed(Key["1"]) then
 		MovableMan:OpenAllDoors(not self.allDoorsOpened, Activity.NOTEAM);
 		self.allDoorsOpened = not self.allDoorsOpened;
 	end
