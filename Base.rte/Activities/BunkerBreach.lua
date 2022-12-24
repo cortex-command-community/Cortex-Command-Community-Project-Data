@@ -22,7 +22,7 @@ function BunkerBreach:SetupAIVariables()
 	self.AI = {};
 	self.AI.isAttackerTeam = self.CPUTeam == self.attackerTeam;
 	self.AI.isDefenderTeam = self.CPUTeam == self.defenderTeam;
-	
+
 	if self.CPUTeam ~= Activity.NOTEAM then
 		self.AI.difficultyRatio = self.Difficulty / Activity.MAXDIFFICULTY;
 		self.AI.maxDiggerCount = math.floor(self.AI.difficultyRatio * 5);
@@ -60,10 +60,10 @@ function BunkerBreach:SetupHumanAttackerBrains()
 			else
 				brainPosition.X = math.max(math.min(brainPosition.X, SceneMan.SceneWidth - 50), 50);
 			end
-			
+
 			attackingBrain.Pos = SceneMan:MovePointToGround(brainPosition, attackingBrain.Radius * 0.5, 3);
 			MovableMan:AddActor(attackingBrain);
-			
+
 			self:SwitchToActor(attackingBrain, player, self.attackerTeam);
 			self:SetPlayerBrain(attackingBrain, player);
 			self:SetObservationTarget(attackingBrain.Pos, player);
@@ -74,7 +74,7 @@ end
 
 function BunkerBreach:SetupDefenderBrains()
 	local defenderBrain;
-	
+
 	-- Add defender brains, either using the Brain area or picking randomly from those created by deployments.
 	if SceneMan.Scene:HasArea("Brain") then
 		for actor in MovableMan.Actors do
@@ -125,7 +125,7 @@ function BunkerBreach:SetupDefenderBrains()
 					MovableMan:AddActor(brainToAssignToPlayer);
 				end
 				playerDefenderBrainsAssignedCount = playerDefenderBrainsAssignedCount + 1;
-				
+
 				self:SwitchToActor(brainToAssignToPlayer, player, self.defenderTeam);
 				self:SetPlayerBrain(brainToAssignToPlayer, player);
 				self:SetObservationTarget(brainToAssignToPlayer.Pos, player);
@@ -144,7 +144,7 @@ function BunkerBreach:SetupDefenderActors()
 	for _, loadoutName in pairs({"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"}) do
 		if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
 			local defenderArea = SceneMan.Scene:GetOptionalArea(loadoutName .. " Defenders");
-			if defenderArea ~= nil then	
+			if defenderArea ~= nil then
 				for defenderBox in defenderArea.Boxes do
 					local guard;
 					if loadoutName == "Mecha" or loadoutName == "Turret" then
@@ -192,7 +192,7 @@ function BunkerBreach:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
 		SceneMan:MakeAllUnseen(Vector(24, 24), self.attackerTeam);
 		SceneMan:MakeAllUnseen(Vector(24, 24), self.defenderTeam);
-		
+
 		-- Reveal outside areas for the attacker.
 		for x = 0, SceneMan.SceneWidth - 1, 24 do
 			SceneMan:CastSeeRay(self.attackerTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
@@ -247,9 +247,9 @@ function BunkerBreach:StartActivity()
 	self:SetupDefenderBrains();
 
 	self:SetupDefenderActors();
-	
+
 	self:SetupDefenderInternalReinforcementAreas();
-	
+
 	self:SetupFogOfWar();
 end
 
@@ -377,18 +377,18 @@ function BunkerBreach:UpdateAIDecisionData()
 			end
 		end
 	end
-	
+
 	if self.AI.shouldSpawnDiggers then
 		self.AI.shouldSpawnDiggers = false;
 	elseif self.AI.diggerCount < self.AI.maxDiggerCount and (self.AI.funds < 500 or math.random() < 0.1) then
 		self.AI.shouldSpawnDiggers = true;
 	end
-	
+
 	if self.AI.isAttackerTeam and self.AI.funds > 0 and self.AI.majorAttackTimer:IsPastSimTimeLimit() then
 		self.AI.isLaunchingMajorAttack = not self.AI.isLaunchingMajorAttack;
 		if self.AI.isLaunchingMajorAttack then
 			self.AI.majorAttackTimer:SetSimTimeLimitMS(self.AI.spawnTimer:GetSimTimeLimitMS() * math.random(0.75, 1.5));
-		else 
+		else
 			self.AI.majorAttackTimer:SetSimTimeLimitMS(self.AI.initialMajorAttackDelay * RangeRand(0.9, 1.1))
 		end
 		self.AI.majorAttackTimer:Reset();
@@ -404,7 +404,7 @@ function BunkerBreach:CalculateAISpawnDelay(useShorterDelay)
 	if useShorterDelay then
 		spawnDelayMultiplier = spawnDelayMultiplier - 0.25
 	end
-	
+
 	self.AI.spawnTimer:SetSimTimeLimitMS(math.min(150000, math.floor((40000 - (self.AI.difficultyRatio * 20000) + (self.AI.friendlyUnitsToEnemyUnitsValueRatio * (self.AI.isDefenderTeam and 7500 or 10000)) + (self.AI.isAttackerTeam and 10000 or 0)) * rte.SpawnIntervalScale * spawnDelayMultiplier)));
 end
 
@@ -417,7 +417,7 @@ function BunkerBreach:SendDefenderGuardsAtEnemiesInsideBunker()
 			local closestFriendlyUnitData = {};
 			for _, friendlyUnitInsideBunker in pairs(self.AI.friendlyUnitsInsideBunker) do
 				if not friendlyUnitInsideBunker:IsInGroup("Brains") then
-					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, false, rte.PathFindingDefaultDigStrength);
+					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, false, GetPathFindingDefaultDigStrength());
 					if closestFriendlyUnitData.pathLengthToEnemy == nil or pathLengthFromFriendlyUnitToEnemy < closestFriendlyUnitData.pathLengthToEnemy then
 						closestFriendlyUnitData.pathLengthToEnemy = pathLengthFromFriendlyUnitToEnemy;
 						closestFriendlyUnitData.actor = friendlyUnitInsideBunker;
@@ -428,7 +428,7 @@ function BunkerBreach:SendDefenderGuardsAtEnemiesInsideBunker()
 					end
 				end
 			end
-			
+
 			if closestFriendlyUnitData.actor and closestFriendlyUnitData.actor.AIMode ~= Actor.AIMODE_GOLDDIG and (closestFriendlyUnitData.actor.AIMode ~= Actor.AIMODE_SENTRY or math.random() < 0.1) then
 				closestFriendlyUnitData.actor:AddAIMOWaypoint(enemyUnitInsideBunker);
 				closestFriendlyUnitData.actor.AIMode = Actor.AIMODE_GOTO;
@@ -444,11 +444,11 @@ function BunkerBreach:UpdateAISpawns()
 			self:CreateDrop("Engineer", Actor.AIMODE_GOLDDIG, self.AI.maxDiggerCount - self.AI.diggerCount);
 		elseif self.AI.isLaunchingMajorAttack or self.AI.friendlyUnitsToEnemyUnitsValueRatio < (3 * math.max(self.AI.difficultyRatio, 0.1)) then
 			self:CreateDrop("Any", Actor.AIMODE_BRAINHUNT, self.AI.isLaunchingMajorAttack and 999 or nil, self.AI.isLaunchingMajorAttack);
-			
+
 			if self.AI.isLaunchingMajorAttack and math.random() < (self.AI.difficultyRatio * 0.9) then
 				self:CreateDrop("Any", Actor.AIMODE_BRAINHUNT, 999, true);
 			end
-			
+
 			self:CalculateAISpawnDelay(self.AI.isLaunchingMajorAttack);
 		else
 			self.AI.spawnTimer:SetSimTimeLimitMS(self.AI.spawnTimer:GetSimTimeLimitMS() * 0.9);
@@ -504,12 +504,12 @@ function BunkerBreach:UpdateActivity()
 		end
 		self.winConditionCheckTimer:Reset();
 	end
-	
+
 	if self.CPUTeam ~= -1 then
 		self.AI.funds = self:GetTeamFunds(self.CPUTeam);
-		
+
 		self:UpdatePlayerObjectiveArrowsAndScreenText();
-		
+
 		if self.AI.internalReinforcementDoorsAndActorsToSpawn then
 			for internalReinforcementDoor, actorsToSpawn in pairs(self.AI.internalReinforcementDoorsAndActorsToSpawn) do
 				if MovableMan:IsParticle(internalReinforcementDoor) and internalReinforcementDoor.Frame == internalReinforcementDoor.FrameCount - 1 then
@@ -521,12 +521,12 @@ function BunkerBreach:UpdateActivity()
 				end
 			end
 		end
-		
+
 		if self.AI.spawnTimer:IsPastSimTimeLimit() then
 			self.AI.spawnTimer:Reset();
-			
+
 			self:UpdateAIDecisionData();
-			
+
 			if self.AI.funds > 0 then
 				self:UpdateAISpawns();
 			elseif self.AI.isAttackerTeam or (self.AI.isDefenderTeam and self.AI.internalReinforcementBudget <= 0) then
@@ -549,7 +549,7 @@ function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(team
 	for _, enemyToTarget in ipairs(enemiesToTarget) do
 		local internalReinforcementPositionForEnemy;
 		for _, internalReinforcementPosition in pairs(self.AI.internalReinforcementPositions) do
-			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, false, rte.PathFindingDefaultDigStrength);
+			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, false, GetPathFindingDefaultDigStrength());
 			if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
 				internalReinforcementPositionForEnemy = internalReinforcementPosition;
 				pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
@@ -562,7 +562,7 @@ function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(team
 			table.insert(internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy], enemyToTarget);
 		end
 	end
-	
+
 	return internalReinforcementPositionsToEnemyTargets;
 end
 
@@ -575,7 +575,7 @@ function BunkerBreach:CreateInternalReinforcements(loadout, numberOfReinforcemen
 	local crabRatio = self:GetCrabToHumanSpawnRatio(techID);
 
 	local internalReinforcementPositionsToEnemyTargets = self:CalculateInternalReinforcementPositionsToEnemyTargets(team, numberOfReinforcementsToCreate);
-	
+
 local numberOfDoorsUsed = 0;
 
 	local numberOfReinforcementsCreated = 0;
@@ -638,7 +638,7 @@ function BunkerBreach:CreateDrop(loadout, aiMode, passengerCount, avoidPreviousC
 		craft = RandomACDropShip("Craft", "Base.rte");
 	end
 	craft.Team = team;
-	
+
 	craft.Pos = Vector(0, -30);
 	local landingZoneArea = self:GetLZArea(team);
 	if landingZoneArea then
@@ -687,7 +687,7 @@ function BunkerBreach:CreateDrop(loadout, aiMode, passengerCount, avoidPreviousC
 				passenger.AIMode = Actor.Actor.AIMODE_PATROL;
 			end
 			craft:AddInventoryItem(passenger);
-			
+
 			if craft.InventoryMass > craft.MaxInventoryMass then
 				break;
 			end
@@ -702,7 +702,7 @@ function BunkerBreach:CreateInfantry(techID, loadout)
 		local infantryLoadouts = {"Light", "Heavy", "Sniper"};
 		loadout = infantryLoadouts[math.random(#infantryLoadouts)];
 	end
-	
+
 	local actor;
 	if math.random() < 0.5 then
 		if loadout == "Light" then
@@ -713,8 +713,8 @@ function BunkerBreach:CreateInfantry(techID, loadout)
 			actor = PresetMan:GetLoadout("Infantry " .. loadout, techID, false);
 		end
 	end
-	
-	if not actor then	
+
+	if not actor then
 		local loadoutToGroupNameTable = {
 			Light = "Actors - Light",
 			Heavy = "Actors - Heavy",

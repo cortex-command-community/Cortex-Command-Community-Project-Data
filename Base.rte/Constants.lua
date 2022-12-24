@@ -10,7 +10,6 @@ rte.StartingFundsScale = 1.0;
 rte.DiggersRate = 0.4;
 rte.MetabaseArea = "MetabaseServiceArea";
 rte.PxTravelledPerFrame = GetPPM() * TimerMan.DeltaTimeSecs;
-rte.PathFindingDefaultDigStrength = 35; -- The default dig strength used for pathfinding. Matches the value defined in the source code.
 
 --Materials
 rte.airID = 0;
