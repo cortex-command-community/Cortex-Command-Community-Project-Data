@@ -307,7 +307,7 @@ function WaveDefense:UpdateActivity()
 		if remainingFunds <= 0 then
 			str = str .. "Kill all enemies to finish the wave!";
 		else
-			str = str .. "Remaining Enemy Funds: "..remainingFunds;
+			str = str .. "Remaining Enemy Budget: " .. remainingFunds .. " oz";
 		end
 		FrameMan:SetScreenText(str, Activity.PLAYER_1, 0, 10, false);
 
