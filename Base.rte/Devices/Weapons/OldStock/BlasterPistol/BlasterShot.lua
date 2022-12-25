@@ -1,5 +1,5 @@
 function Create(self)
-	self.trailPar = CreateMOPixel("Blaster Pistol Trail Glow", "Base.rte");
+	self.trailPar = CreateMOPixel("Old Stock Blaster Pistol Trail Glow", "Base.rte");
 	self.trailPar.Pos = self.Pos;
 	self.trailPar.Vel = self.Vel * 0.1;
 	self.trailPar.Lifetime = 60;

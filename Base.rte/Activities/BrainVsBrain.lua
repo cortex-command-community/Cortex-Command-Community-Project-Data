@@ -169,7 +169,7 @@ function BrainvsBrain:StartActivity()
 
 		self.CPUBrain = CreateAHuman("Brain Robot", "Base.rte");
 		if self.CPUBrain then
-			local Weapon = CreateHDFirearm("SMG", "Base.rte");
+			local Weapon = CreateHDFirearm("Old Stock SMG", "Base.rte");
 			if Weapon then
 				self.CPUBrain:AddInventoryItem(Weapon);
 			end
