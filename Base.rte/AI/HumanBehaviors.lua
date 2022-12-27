@@ -849,7 +849,14 @@ function HumanBehaviors.BrainSearch(AI, Owner, Abort)
 					local height = 0;
 					local pathLength = 0;
 					local pathObstMaxHeight = 0;
-					for Wpt in Owner.MovePath do
+
+					local PathDump = {}
+					-- copy the MovePath to a temporary table so we can yield safely while working on the path
+					for WptPos in Owner.MovePath do
+						table.insert(PathDump, WptPos);
+					end
+
+					for _, Wpt in pairs(PathDump) do
 						pathLength = pathLength + 1;
 						if OldWpt then
 							deltaY = OldWpt.Y - Wpt.Y;
