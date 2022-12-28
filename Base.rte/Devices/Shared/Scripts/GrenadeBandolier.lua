@@ -2,34 +2,34 @@ function Create(self)
 	self.parent = nil;
 	self.addedBandolier = false;
 	self.BandolierName = self.PresetName;
-	self.grenadeName = self:StringValueExists("Grenade Name") and self:GetStringValue("Grenade Name") or "Frag Grenade";
-	self.grenadeTech = self:StringValueExists("Grenade Tech") and self:GetStringValue("Grenade Tech") or "Base.rte";
+	self.grenadeName = self:StringValueExists("GrenadeName") and self:GetStringValue("GrenadeName") or "Frag Grenade";
+	self.grenadeTech = self:StringValueExists("GrenadeTech") and self:GetStringValue("GrenadeTech") or "Base.rte";
 
-	self.isThrownDevice = self:NumberValueExists("Thrown Device");
+	self.isThrownDevice = self:NumberValueExists("ThrownDevice");
 	if  self.isThrownDevice then
 		self.grenadeObject = CreateThrownDevice(self.grenadeName, self.grenadeTech);
 	else
 		self.grenadeObject = CreateTDExplosive(self.grenadeName, self.grenadeTech);
 	end
 
-	self.grenadeCount = self:NumberValueExists("Grenade Count") and self:GetNumberValue("Grenade Count") or 3;
-	self.replenishDelay = self:NumberValueExists("Replenish Delay") and self:GetNumberValue("Replenish Delay") or 0;
-	self.BandolierMass = self:NumberValueExists("Bandolier Mass") and self:GetNumberValue("Bandolier Mass") or 1.5;
-	self.grenadeMass = self:NumberValueExists("Grenade Mass") and self:GetNumberValue("Grenade Mass") or  self.grenadeObject.Mass;
+	self.grenadeCount = self:NumberValueExists("GrenadeCount") and self:GetNumberValue("GrenadeCount") or 3;
+	self.replenishDelay = self:NumberValueExists("ReplenishDelay") and self:GetNumberValue("ReplenishDelay") or 0;
+	self.BandolierMass = self:NumberValueExists("BandolierMass") and self:GetNumberValue("BandolierMass") or 1.5;
+	self.grenadeMass = self:NumberValueExists("GrenadeMass") and self:GetNumberValue("GrenadeMass") or  self.grenadeObject.Mass;
 
 	self.grenadeObjectGoldValue = self.grenadeObject:GetGoldValue(self.grenadeObject.ModuleID, 1, 1);
 
 	self.attachable = CreateAttachable("Grenade Bandolier", "Base.rte");
-	self.attachable:SetStringValue("Bandolier Name", self.PresetName);
-	self.attachable:SetNumberValue("Replenish Delay", self.replenishDelay);
-	self.attachable:SetStringValue("Grenade Name", self.grenadeName);
-	self.attachable:SetStringValue("Grenade Tech", self.grenadeTech);
-	self.attachable:SetNumberValue("Bandolier Mass", self.BandolierMass);
-	self.attachable:SetNumberValue("Grenade Mass", self.grenadeMass);
-	self.attachable:SetNumberValue("Grenade Count", self.grenadeCount);
-	self.attachable:SetNumberValue("Grenade Value", self.grenadeObjectGoldValue);
+	self.attachable:SetStringValue("BandolierName", self.PresetName);
+	self.attachable:SetNumberValue("ReplenishDelay", self.replenishDelay);
+	self.attachable:SetStringValue("GrenadeName", self.grenadeName);
+	self.attachable:SetStringValue("GrenadeTech", self.grenadeTech);
+	self.attachable:SetNumberValue("BandolierMass", self.BandolierMass);
+	self.attachable:SetNumberValue("GrenadeMass", self.grenadeMass);
+	self.attachable:SetNumberValue("GrenadeCount", self.grenadeCount);
+	self.attachable:SetNumberValue("GrenadeValue", self.grenadeObjectGoldValue);
 	if self.isThrownDevice then
-		self.attachable:SetNumberValue("Thrown Device", 1);
+		self.attachable:SetNumberValue("ThrownDevice", 1);
 	end
 
 end

@@ -1,19 +1,19 @@
 function Create(self)
 
-	self.grenadeName = self:GetStringValue("Grenade Name");
-	self.grenadeTech = self:GetStringValue("Grenade Tech");
+	self.grenadeName = self:GetStringValue("GrenadeName");
+	self.grenadeTech = self:GetStringValue("GrenadeTech");
 
-	if self:NumberValueExists("Thrown Device") then
+	if self:NumberValueExists("ThrownDevice") then
 		self.grenadeObject = CreateThrownDevice(self.grenadeName, self.grenadeTech);
 	else
 		self.grenadeObject = CreateTDExplosive(self.grenadeName, self.grenadeTech);
 	end
 
-	self.grenadeBandolierName = self:GetStringValue("Bandolier Name");
+	self.grenadeBandolierName = self:GetStringValue("BandolierName");
 
 	self.addedGrenade = false;
 	self.addGrenadeTimer = Timer();
-	self.grenadeReplenishDelay = self:GetNumberValue("Replenish Delay");
+	self.grenadeReplenishDelay = self:GetNumberValue("ReplenishDelay");
 
 	if IsAHuman(self:GetRootParent()) then
 		self.rootParent = ToAHuman(self:GetRootParent());
@@ -26,13 +26,13 @@ function Create(self)
 			self.rootParent:RemoveInventoryItem(self.grenadeBandolierName);
 		end
 
-		self.grenadePerBandolier = self:GetNumberValue("Grenade Count");
+		self.grenadePerBandolier = self:GetNumberValue("GrenadeCount");
 		self.rootParent:SetNumberValue(self.grenadeBandolierName, self.grenadePerBandolier - 1);
 		self.grenadeCount = self.rootParent:GetNumberValue(self.grenadeBandolierName);	--Get ammount of grenades in our Bandolier
 
-		self.BandolierMass = self:GetNumberValue("Bandolier Mass");
+		self.BandolierMass = self:GetNumberValue("BandolierMass");
 
-		self.explosiveGoldValue = self:GetNumberValue("Grenade Value");
+		self.explosiveGoldValue = self:GetNumberValue("GrenadeValue");
 		self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.grenadeObject.ModuleID, 1, 1) + (self.explosiveGoldValue * (self.grenadePerBandolier - 1)));
 
 		self.IsPlayer = ActivityMan:GetActivity():IsHumanTeam(self.rootParent.Team)
@@ -65,7 +65,7 @@ function Update(self)
 
 		self.grenadeCount = self.rootParent:GetNumberValue(self.grenadeBandolierName);
 
-		self.Mass = self.BandolierMass + self:GetNumberValue("Grenade Mass") * self.grenadeCount;
+		self.Mass = self.BandolierMass + self:GetNumberValue("GrenadeMass") * self.grenadeCount;
 
 		if self.grenadeCount <= 0 then
 			if self.rootParent:HasObject(self.grenadeName) then
