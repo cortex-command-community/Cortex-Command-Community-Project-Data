@@ -78,7 +78,7 @@ function ZombieCaveMission:StartActivity()
 				-- Create a rocket with a brain bot inside instead
 				local rocket = CreateACRocket("Rocket MK1");
 				local brainBot = CreateAHuman("Brain Robot");
-				local gun = CreateHDFirearm("Old Stock Pistol");
+				local gun = CreateHDFirearm("Pistol");
 				brainBot:AddInventoryItem(gun);
 				brainBot.AIMode = Actor.AIMODE_SENTRY;
 				rocket:AddInventoryItem(brainBot);

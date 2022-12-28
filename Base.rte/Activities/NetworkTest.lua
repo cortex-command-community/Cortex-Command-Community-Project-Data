@@ -15,7 +15,7 @@ function NetworkTest:StartActivity()
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
 				if not foundBrain then
 					foundBrain = CreateAHuman("Brain Robot");
-					local weapon = CreateHDFirearm("Old Stock Battle Rifle", "Base.rte");
+					local weapon = CreateHDFirearm("Battle Rifle", "Base.rte");
 					foundBrain:AddInventoryItem(weapon);
 
 					local device = CreateHDFirearm("Medium Digger");
@@ -61,7 +61,7 @@ function NetworkTest:StartActivity()
 		--[[local a = CreateAHuman("Fat Culled Clone");
 		a.Team = 0;
 		a.Pos = SceneMan:MovePointToGround(Vector(-200 - i * 100,0) , 0 , 3);
-		local weapon = CreateHDFirearm("Old Stock Battle Rifle", "Base.rte");
+		local weapon = CreateHDFirearm("Battle Rifle", "Base.rte");
 		a:AddInventoryItem(weapon);
 		MovableMan:AddActor(a);--]]--
 

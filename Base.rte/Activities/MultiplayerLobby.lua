@@ -25,7 +25,7 @@ function MultiplayerLobby:StartActivity()
 					foundBrain = CreateAHuman("Brain Robot", "Base.rte");
 					foundBrain.Team = self:GetTeamOfPlayer(player);
 					foundBrain.Pos = Vector(player * 25, 500);
-					local w = CreateHDFirearm("Old Stock Battle Rifle", "Base.rte");
+					local w = CreateHDFirearm("Battle Rifle", "Base.rte");
 					foundBrain:AddInventoryItem(w);
 					MovableMan:AddActor(foundBrain);
 				end
