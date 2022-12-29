@@ -4,4 +4,4 @@ function Update(self)
 	else
 		self.Frame = 0;
 	end
-ends
+end
