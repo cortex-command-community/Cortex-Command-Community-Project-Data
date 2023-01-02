@@ -305,7 +305,7 @@ function WaveDefense:UpdateActivity()
 		local str = "Wave "..self.wave.."  |  ";
 		local remainingFunds = math.floor(self:GetTeamFunds(self.CPUTeam));
 		if remainingFunds <= 0 then
-			str = str .. "Kill all enemies to finish the wave!";
+			str = str .. "Kill all enemies to finish the wave";
 		else
 			str = str .. "Remaining Enemy Budget: " .. remainingFunds .. " oz";
 		end
