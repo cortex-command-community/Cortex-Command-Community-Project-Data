@@ -4,15 +4,14 @@ local modifyGrenadeCount = function(self, numberOfGrenadesToAddOrRemove, doNotDe
 		self.ToDelete = true;
 		return;
 	end
-	if numberOfGrenadesToAddOrRemove ~= 0 then
-		self.currentGrenadeCount = self.currentGrenadeCount + numberOfGrenadesToAddOrRemove;
 
-		self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.rootParent.ModuleID, 1, 1) + (self.grenadeObjectGoldValue * numberOfGrenadesToAddOrRemove));
-		self.Mass = self.bandolierMass + (self.grenadeMass * self.currentGrenadeCount);
+	self.currentGrenadeCount = self.currentGrenadeCount + numberOfGrenadesToAddOrRemove;
+	self.Mass = self.bandolierMass + (self.grenadeMass * self.currentGrenadeCount);
+	self.rootParent:SetNumberValue(self.bandolierKey, self.currentGrenadeCount);
+	self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.rootParent.ModuleID, 1, 1) + (self.grenadeObjectGoldValue * numberOfGrenadesToAddOrRemove));
 
-		if self.currentGrenadeCount <= 0 and not doNotDeleteAttachableIfThereAreNoMoreGrenades then
-			self.ToDelete = true;
-		end
+	if self.currentGrenadeCount <= 0 and not doNotDeleteAttachableIfThereAreNoMoreGrenades then
+		self.ToDelete = true;
 	end
 end
 
@@ -59,14 +58,12 @@ function Create(self)
 	self.grenadeReplenishTimer = Timer();
 	self.grenadeReplenishTimer:SetSimTimeLimitMS(self.grenadeReplenishDelay);
 
-	self.rootParent:SetNumberValue(self.bandolierKey, 1);
-
 	self.grenadeMass = self:GetNumberValue("GrenadeMass");
 	self.grenadesPerBandolier = self:GetNumberValue("GrenadeCount");
 	self.grenadeObjectGoldValue = self.grenadeObject:GetGoldValue(self.grenadeObject.ModuleID, 1, 1);
 
-	self.currentGrenadeCount = 0;
-	self:modifyGrenadeCount(self.grenadesPerBandolier);
+	self.currentGrenadeCount = self.rootParent:GetNumberValue(self.bandolierKey);
+	self:modifyGrenadeCount(self.currentGrenadeCount == 0 and self.grenadesPerBandolier or 0);
 
 	self.grenadeAmmoIcon = CreateMOSParticle("Ammo Icon", "Base.rte");
 
