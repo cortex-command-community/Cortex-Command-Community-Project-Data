@@ -1,122 +1,146 @@
+local modifyGrenadeCount = function(self, numberOfGrenadesToAddOrRemove, doNotDeleteAttachableIfThereAreNoMoreGrenades)
+	-- This is probably an unnecessary safety check, but it may be possible for some combination of replenish delays and replenish gui time limits to result in wonky behaviour, so it's best to be extra safe.
+	if self.currentGrenadeCount < 0 then
+		self.ToDelete = true;
+		return;
+	end
+	if numberOfGrenadesToAddOrRemove ~= 0 then
+		self.currentGrenadeCount = self.currentGrenadeCount + numberOfGrenadesToAddOrRemove;
+
+		self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.rootParent.ModuleID, 1, 1) + (self.grenadeObjectGoldValue * numberOfGrenadesToAddOrRemove));
+		self.Mass = self.bandolierMass + (self.grenadeMass * self.currentGrenadeCount);
+
+		if self.currentGrenadeCount <= 0 and not doNotDeleteAttachableIfThereAreNoMoreGrenades then
+			self.ToDelete = true;
+		end
+	end
+end
+
+-- Note: This function returns whether or not the replenished grenade was equipped.
+local replenishGrenade = function(self, forceEquipGrenade)
+	self.rootParent:AddInventoryItem(self.grenadeObject:Clone());
+
+	if forceEquipGrenade or self.grenadeReplenishDelay < 100 then
+		self:modifyGrenadeCount(-1);
+		return self.rootParent:EquipNamedDevice(self.grenadeTech, self.grenadeName, true);
+	else
+		self.grenadeReplenishGUITimer:Reset();
+		self:modifyGrenadeCount(-1, true);
+	end
+	return false;
+end
+
 function Create(self)
+	self.modifyGrenadeCount = modifyGrenadeCount;
+	self.replenishGrenade = replenishGrenade;
+
+	self.DeleteWhenRemovedFromParent = true;
+
+	local rootParent = self:GetRootParent();
+	if not IsAHuman(rootParent) then
+		self.ToDelete = true;
+		return;
+	end
+	self.rootParent = ToAHuman(rootParent);
+	self.rootParentController = self.rootParent:GetController();
+	self.isHumanTeam = ActivityMan:GetActivity():IsHumanTeam(self.rootParent.Team);
 
 	self.grenadeName = self:GetStringValue("GrenadeName");
 	self.grenadeTech = self:GetStringValue("GrenadeTech");
 
-	if self:NumberValueExists("ThrownDevice") then
-		self.grenadeObject = CreateThrownDevice(self.grenadeName, self.grenadeTech);
-	else
-		self.grenadeObject = CreateTDExplosive(self.grenadeName, self.grenadeTech);
-	end
+	local appropriateGrenadeCreateFunction = self:NumberValueExists("GrenadeIsThrownDevice") and CreateThrownDevice or CreateTDExplosive;
+	self.grenadeObject = appropriateGrenadeCreateFunction(self.grenadeName, self.grenadeTech);
 
-	self.grenadeBandolierName = self:GetStringValue("BandolierName");
+	self.bandolierName = self:GetStringValue("BandolierName");
+	self.bandolierKey = self.grenadeTech .. "/" .. self.bandolierName;
+	self.bandolierMass = self:GetNumberValue("BandolierMass");
 
-	self.addedGrenade = false;
-	self.addGrenadeTimer = Timer();
 	self.grenadeReplenishDelay = self:GetNumberValue("ReplenishDelay");
+	self.grenadeReplenishTimer = Timer();
+	self.grenadeReplenishTimer:SetSimTimeLimitMS(self.grenadeReplenishDelay);
 
-	if IsAHuman(self:GetRootParent()) then
-		self.rootParent = ToAHuman(self:GetRootParent());
-	end
+	self.rootParent:SetNumberValue(self.bandolierKey, 1);
 
-	if self.rootParent then
-		self.rootParent:EquipNamedDevice(self.grenadeName, true);
+	self.grenadeMass = self:GetNumberValue("GrenadeMass");
+	self.grenadesPerBandolier = self:GetNumberValue("GrenadeCount");
+	self.grenadeObjectGoldValue = self.grenadeObject:GetGoldValue(self.grenadeObject.ModuleID, 1, 1);
 
-		if self.rootParent:HasObject(self.grenadeBandolierName) then
-			self.rootParent:RemoveInventoryItem(self.grenadeBandolierName);
-		end
+	self.currentGrenadeCount = 0;
+	self:modifyGrenadeCount(self.grenadesPerBandolier);
 
-		self.grenadePerBandolier = self:GetNumberValue("GrenadeCount");
-		self.rootParent:SetNumberValue(self.grenadeBandolierName, self.grenadePerBandolier - 1);
-		self.grenadeCount = self.rootParent:GetNumberValue(self.grenadeBandolierName);	--Get ammount of grenades in our Bandolier
-
-		self.BandolierMass = self:GetNumberValue("BandolierMass");
-
-		self.explosiveGoldValue = self:GetNumberValue("GrenadeValue");
-		self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.grenadeObject.ModuleID, 1, 1) + (self.explosiveGoldValue * (self.grenadePerBandolier - 1)));
-
-		self.IsPlayer = ActivityMan:GetActivity():IsHumanTeam(self.rootParent.Team)
-
-	end
-
-	-- Icons go here, loaded in Create for efficiency
 	self.grenadeAmmoIcon = CreateMOSParticle("Ammo Icon", "Base.rte");
-	self.grenadeRefreshIcon = CreateTDExplosive(self.grenadeName, self.grenadeTech);
-	-- TODO maybe change sprite or at least sprite colour for refresh plus
-	self.grenadeRefreshPlus = CreateMOSParticle("Particle Heal Effect", "Base.rte");
 
-	self.refreshGui = false;
-	self.refreshGuiTimer = Timer();
-	self.refreshGuiDelay = 1200;
+	self.grenadeReplenishGUITimer = Timer();
+	self.grenadeReplenishGUITimer:SetSimTimeLimitMS(1500);
+	self.grenadeReplenishGUITimer.ElapsedSimTimeMS = self.grenadeReplenishGUITimer:GetSimTimeLimitMS() + 1000;
+	self.grenadeReplenishIcon = self.grenadeObject;
+	-- TODO maybe change sprite or at least sprite colour for refresh plus
+	self.grenadeReplenishPlusIcon = CreateMOSParticle("Particle Heal Effect", "Base.rte");
+
+	self:replenishGrenade(true);
 end
 
 function Update(self)
-	if not self:IsAttached() then
-		self.ToDelete = true;
-		return;
-	end
+	if self.rootParent and self.rootParent.Health > 0 and MovableMan:IsActor(self.rootParent) then
+		local rootParentEquippedItemModuleAndPresetName = self.rootParent.EquippedItem ~= nil and self.rootParent.EquippedItem:GetModuleAndPresetName() or nil;
+		local rootParentIsHoldingGrenade = rootParentEquippedItemModuleAndPresetName == self.grenadeObject:GetModuleAndPresetName();
 
-	if self.rootParent and self.rootParent.Health > 0 then
-		if self.rootParent:HasObject(self.grenadeBandolierName) then
-			self.rootParent:RemoveInventoryItem(self.grenadeBandolierName);
-			self.rootParent:SetNumberValue(self.grenadeBandolierName, self.grenadeCount+self.grenadePerBandolier);
-			self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.rootParent.ModuleID, 1, 1) + self.explosiveGoldValue*self.grenadePerBandolier);
+		-- If the root parent is holding a grenade bandolier, merge it and replace it with a grenade.
+		if rootParentEquippedItemModuleAndPresetName == self.bandolierKey then
+			ToAttachable(self.rootParent.EquippedItem):RemoveFromParent();
+			self:modifyGrenadeCount(self.grenadesPerBandolier);
+			rootParentIsHoldingGrenade = self:replenishGrenade(true);
 		end
 
-		self.grenadeCount = self.rootParent:GetNumberValue(self.grenadeBandolierName);
+		local rootParentHasGrenadeInInventory = false;
 
-		self.Mass = self.BandolierMass + self:GetNumberValue("GrenadeMass") * self.grenadeCount;
-
-		if self.grenadeCount <= 0 then
-			if self.rootParent:HasObject(self.grenadeName) then
-				self.Mass = 0;
-			else
-				self.ToDelete = true;
+		-- Merge any grenades or grenade bandoliers in the root parent's inventory.
+		if self.rootParent:HasObject(self.grenadeName) or self.rootParent:HasObject(self.bandolierName) then
+			local rootParentHasGrenadeOrBandolierSoAnyCopiesCanBeMerged = rootParentIsHoldingGrenade;
+			for inventoryItem in self.rootParent.Inventory do
+				if inventoryItem:GetModuleAndPresetName() == self.bandolierKey or inventoryItem:GetModuleAndPresetName() == self.grenadeObject:GetModuleAndPresetName() then
+					rootParentHasGrenadeInInventory = rootParentHasGrenadeInInventory or inventoryItem.PresetName == self.grenadeName;
+					if not rootParentHasGrenadeOrBandolierSoAnyCopiesCanBeMerged then
+						rootParentHasGrenadeOrBandolierSoAnyCopiesCanBeMerged = true;
+					else
+						self:modifyGrenadeCount(inventoryItem.PresetName == self.bandolierName and self.grenadesPerBandolier or 1);
+						self.rootParent:RemoveInventoryItem(self.grenadeTech, inventoryItem.PresetName);
+					end
+				end
 			end
 		end
 
-		if self.rootParent.HUDVisible and self.rootParent.EquippedItem and self.rootParent.EquippedItem.PresetName == self.grenadeName and self.rootParent:IsPlayerControlled() and not (self.rootParent.Jetpack and self.rootParent.Jetpack:IsEmitting()) then
-			local rootParentController = self.rootParent:GetController();
+		-- Draw the grenade ammo icon and text.
+		if self.rootParent.HUDVisible and rootParentIsHoldingGrenade and self.rootParent:IsPlayerControlled() and not (self.rootParent.Jetpack and self.rootParent.Jetpack:IsEmitting()) then
 			local distanceBetweenIconAndText = 2 + math.floor(self.grenadeAmmoIcon:GetSpriteWidth() * 0.5);
-			local drawPosition = self.rootParent.AboveHUDPos + Vector(-distanceBetweenIconAndText, rootParentController:IsState(Controller.PIE_MENU_ACTIVE) and 16 or 2);
+			local drawPosition = self.rootParent.AboveHUDPos + Vector(-distanceBetweenIconAndText, self.rootParentController:IsState(Controller.PIE_MENU_ACTIVE) and -1	 or 2);
 
-			PrimitiveMan:DrawBitmapPrimitive(rootParentController.Player, drawPosition, self.grenadeAmmoIcon, 3.14, 0, true, true);
+			PrimitiveMan:DrawBitmapPrimitive(self.rootParentController.Player, drawPosition, self.grenadeAmmoIcon, math.pi, 0, true, true);
 			drawPosition = drawPosition + Vector(distanceBetweenIconAndText, -self.grenadeAmmoIcon:GetSpriteHeight() * 0.5);
-			PrimitiveMan:DrawTextPrimitive(rootParentController.Player, drawPosition, tostring(self.grenadeCount + 1), true, 0);
+			PrimitiveMan:DrawTextPrimitive(self.rootParentController.Player, drawPosition, tostring(self.currentGrenadeCount + 1), true, 0);
 		end
 
-		if self.rootParent:HasObject(self.grenadeName) or (self.rootParent.EquippedItem and self.rootParent.EquippedItem.PresetName == self.grenadeName) then
-			self.addGrenadeTimer:Reset();
-		elseif self.addGrenadeTimer:IsPastSimMS(self.grenadeReplenishDelay) and self.grenadeCount > 0 then
-			self.rootParent:AddInventoryItem(self.grenadeObject:Clone());
-
-			if self.grenadeReplenishDelay < 100 then
-				self.rootParent:EquipNamedDevice(self.grenadeName, true);
-			else
-				self.refreshGui = true;
-				self.refreshGuiTimer:Reset();
-			end
-
-			self.rootParent:SetNumberValue(self.grenadeBandolierName, self.grenadeCount - 1);
-			self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.rootParent.ModuleID, 1, 1) - self.explosiveGoldValue);
-
+		-- Give the root parent a grenade if the timer is ready and they don't already have a copy of the grenade.
+		if rootParentIsHoldingGrenade or rootParentHasGrenadeInInventory then
+			self.grenadeReplenishTimer:Reset();
+		elseif self.grenadeReplenishTimer:IsPastSimTimeLimit() then
+			self:replenishGrenade();
+			self.grenadeReplenishTimer:Reset();
 		end
 
-		if self.refreshGui == true then
-			if self.IsPlayer == true and self.HUDVisible == true then
-				local rootParentController = self.rootParent:GetController();
-
-				local grenadeRefreshIconPos = self.rootParent.AboveHUDPos + Vector(25, 24);
-				local grenadeRefreshPlusPos = self.rootParent.AboveHUDPos + Vector(30, 24);
-
-				PrimitiveMan:DrawBitmapPrimitive(rootParentController.Player, grenadeRefreshIconPos, self.grenadeRefreshIcon, 3.14, 0, true, true);
-				PrimitiveMan:DrawBitmapPrimitive(rootParentController.Player, grenadeRefreshPlusPos, self.grenadeRefreshPlus, 3.14, 0, true, true);
-			end
-			if self.refreshGuiTimer:IsPastSimMS(self.refreshGuiDelay) then
-				self.refreshGui = false;
-			end
-		else
-			self.refreshGuiTimer:Reset();
+		-- Draw grenade replenish icons, and delete the Attachable in the case where the icons are finished drawing and the current grenade count is <= 0, but the Attachable needed to stick around to draw the icons.
+		if self.isHumanTeam and self.HUDVisible and not self.grenadeReplenishGUITimer:IsPastSimTimeLimit() then
+			local grenadeReplenishIconPos = self.rootParent.AboveHUDPos + Vector(25, 24);
+			PrimitiveMan:DrawBitmapPrimitive(self.rootParentController.Player, grenadeReplenishIconPos, self.grenadeReplenishIcon, math.pi, 0, true, true);
+			PrimitiveMan:DrawBitmapPrimitive(self.rootParentController.Player, grenadeReplenishIconPos + Vector(self.grenadeReplenishIcon:GetSpriteWidth(), 0), self.grenadeReplenishPlusIcon, math.pi, 0, true, true);
+		elseif self.currentGrenadeCount <= 0 and self.grenadeReplenishGUITimer:IsPastSimTimeLimit() then
+			self.ToDelete = true;
 		end
+	end
+end
+
+function Destroy(self)
+	if self.rootParent and MovableMan:IsActor(self.rootParent) then
+		self.rootParent:RemoveNumberValue(self.bandolierKey);
 	end
 end
