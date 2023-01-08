@@ -703,96 +703,85 @@ function BunkerBreach:CreateInfantry(techID, loadout)
 		loadout = infantryLoadouts[math.random(#infantryLoadouts)];
 	end
 
-	local actor;
-	if math.random() < 0.5 then
-		if loadout == "Light" then
-			actor = PresetMan:GetLoadout("Infantry " .. (math.random() < 0.7 and "Light" or "CQB"), techID, false);
-		elseif loadout == "Heavy" then
-			actor = PresetMan:GetLoadout("Infantry " .. (math.random() < 0.7 and "Heavy" or "Grenadier"), techID, false);
-		else
-			actor = PresetMan:GetLoadout("Infantry " .. loadout, techID, false);
-		end
+	local loadoutToGroupNameTable = {
+		Light = "Actors - Light",
+		Heavy = "Actors - Heavy",
+		Sniper = "Actors - Light",
+		Engineer = "Actors - Light",
+	};
+	local actor = RandomAHuman(loadoutToGroupNameTable[loadout] or "Actors", techID);
+	if actor.ModuleID ~= techID then
+		actor = RandomAHuman("Actors", techID);
 	end
 
-	if not actor then
-		local loadoutToGroupNameTable = {
-			Light = "Actors - Light",
-			Heavy = "Actors - Heavy",
-			Sniper = "Actors - Light",
-			Engineer = "Actors - Light",
-		};
-		actor = RandomAHuman(loadoutToGroupNameTable[loadout] or "Actors", techID);
-		if actor.ModuleID ~= techID then
-			actor = RandomAHuman("Actors", techID);
+	if loadout == "Light" then
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
+		if math.random() < 0.5 then
+			actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
+		elseif math.random() < 0.8 then
+			actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
-
-		if loadout == "Light" then
+		if self.AI.isAttackerTeam and math.random() < 0.25 then
+			actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", techID));
+		end
+	elseif loadout == "Heavy" then
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techID));
+		if math.random() < 0.3 then
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-			local rand = math.random();
-			if rand < 0.5 then
+			if math.random() < 0.25 then
 				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
-			elseif rand < 0.8 then
-				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-			elseif self.AI.isAttackerTeam then
-				actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", techID));
-			end
-		elseif loadout == "Heavy" then
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", techID));
-			if math.random() < 0.3 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
-				if math.random() < 0.25 then
-					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
-				elseif math.random() < 0.35 then
-					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-				end
-			else
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-				if math.random() < 0.3 then
-					actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
-					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-				else
-					actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-				end
-			end
-		elseif loadout == "Sniper" then
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", techID));
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-			if math.random() < 0.3 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-			else
+			elseif math.random() < 0.35 then
 				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
-		elseif loadout == "Engineer" then
-			if math.random() < 0.7 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
-			else
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-				local rand = math.random();
-				if rand < 0.2 then
-					actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
-				elseif rand < 0.4 then
-					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-				elseif self.AI.isAttackerTeam then
-					actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", techID));
-				end
-			end
-			actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techID));
 		else
-			actor = RandomAHuman("Actors", techID);
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", techID));
 			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-
-			local rand = math.random();
-			if rand < 0.25 then
-				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
-			elseif rand < 0.5 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
-			elseif rand < 0.5 then
+			if math.random() < 0.3 then
 				actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
+				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			else
+				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
+			end
+		end
+	elseif loadout == "Sniper" then
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", techID));
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
+		if math.random() < 0.3 then
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
+		else
+			actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+	elseif loadout == "Engineer" then
+		if math.random() < 0.7 then
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", techID));
+		else
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
+			if math.random() < 0.2 then
+				actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
+			elseif math.random() < 0.6 then
 				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 			end
+		end
+		actor:AddInventoryItem(RandomHDFirearm("Tools - Diggers", techID));
+		if self.AI.isAttackerTeam and math.random() < 0.5 then
+			actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", techID));
+		end
+	else
+		actor = RandomAHuman("Actors", techID);
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", techID));
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
+
+		if math.random() < 0.25 then
+			actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", techID));
+		elseif math.random() < 0.5 then
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", techID));
+		elseif math.random() < 0.5 then
+			actor:AddInventoryItem(RandomHeldDevice("Shields", techID));
+		else
+			actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+		if self.AI.isAttackerTeam and math.random() < 0.15 then
+			actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", techID));
 		end
 	end
 
