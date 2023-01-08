@@ -98,7 +98,6 @@ function NativeHumanAI:Update(Owner)
 			self.UnseenTarget = nil;
 			self.OldTargetPos = nil;
 			self.PickupHD = nil;
-			self.BlockingMO = nil;
 
 			self.fire = false;
 			self.canHitTarget = false;
@@ -251,54 +250,44 @@ function NativeHumanAI:Update(Owner)
 	local FoundMO, HitPoint = self.SpotTargets(self, Owner, self.skill);
 	if FoundMO then
 		--TODO: decide whether to attack based on the material strength of found MO
-		if self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
+		if self.Behavior ~= nil and self.Target and MovableMan:ValidMO(self.Target) and FoundMO.ID == self.Target.ID then	-- found the same target
 			self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y);
 			self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false);
 			self.TargetLostTimer:Reset();
 			self.ReloadTimer:Reset();
-		else
-			if FoundMO.Team == Owner.Team then	-- found an ally
-				if self.Target then
-					if SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false).SqrMagnitude < SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).SqrMagnitude then
-						self.Target = nil; -- stop shooting
-					end
-				elseif FoundMO.ClassName ~= "ADoor" and SceneMan:ShortestDistance(Owner.Pos, FoundMO.Pos, false):MagnitudeIsLessThan(Owner.Diameter + FoundMO.Diameter) then
-					self.BlockingMO = FoundMO; -- this MO is blocking our path
-				end
+		elseif FoundMO.Team ~= Owner.Team then	-- found an enemy
+			if FoundMO.ClassName == "AHuman" then
+				FoundMO = ToAHuman(FoundMO);
+			elseif FoundMO.ClassName == "ACrab" then
+				FoundMO = ToACrab(FoundMO);
+			elseif FoundMO.ClassName == "ACRocket" then
+				FoundMO = ToACRocket(FoundMO);
+			elseif FoundMO.ClassName == "ACDropShip" then
+				FoundMO = ToACDropShip(FoundMO);
+			elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
+				FoundMO = ToADoor(FoundMO);
+			elseif FoundMO.ClassName == "Actor" then
+				FoundMO = ToActor(FoundMO);
 			else
-				if FoundMO.ClassName == "AHuman" then
-					FoundMO = ToAHuman(FoundMO);
-				elseif FoundMO.ClassName == "ACrab" then
-					FoundMO = ToACrab(FoundMO);
-				elseif FoundMO.ClassName == "ACRocket" then
-					FoundMO = ToACRocket(FoundMO);
-				elseif FoundMO.ClassName == "ACDropShip" then
-					FoundMO = ToACDropShip(FoundMO);
-				elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() then
-					FoundMO = ToADoor(FoundMO);
-				elseif FoundMO.ClassName == "Actor" then
-					FoundMO = ToActor(FoundMO);
-				else
-					FoundMO = nil;
-				end
+				FoundMO = nil;
+			end
 
-				if FoundMO and FoundMO.Status < Actor.INACTIVE then
-					if self.Target then
-						-- check if this MO should be targeted instead
-						if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5 then
-							self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y);
-							self.Target = FoundMO;
-							self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
-							if self.NextBehaviorName ~= "ShootTarget" then
-								self:CreateAttackBehavior(Owner);
-							end
-						end
-					else
-						self.OldTargetPos = nil;
+			if FoundMO and FoundMO.Status < Actor.INACTIVE then
+				if self.Target then
+					-- check if this MO should be targeted instead
+					if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(self.Target, Owner) + 0.5 then
+						self.OldTargetPos = Vector(self.Target.Pos.X, self.Target.Pos.Y);
 						self.Target = FoundMO;
 						self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
-						self:CreateAttackBehavior(Owner);
+						if self.NextBehaviorName ~= "ShootTarget" then
+							self:CreateAttackBehavior(Owner);
+						end
 					end
+				else
+					self.OldTargetPos = nil;
+					self.Target = FoundMO;
+					self.TargetOffset = SceneMan:ShortestDistance(self.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
+					self:CreateAttackBehavior(Owner);
 				end
 			end
 		end
@@ -594,7 +583,7 @@ function NativeHumanAI:Update(Owner)
 	if (not self.jump and Owner.Vel.Y > 18) then
 		self.jump = true;
 	end
-	if self.jump and Owner.JetTimeLeft > TimerMan.DeltaTimeMS then
+	if self.jump and Owner.JetTimeLeft > TimerMan.AIDeltaTimeMS then
 		if self.jumpState == AHuman.PREJUMP then
 			self.jumpState = AHuman.UPJUMP;
 		elseif self.jumpState ~= AHuman.UPJUMP then	-- the jetpack is off
@@ -715,7 +704,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	self.ReloadTimer:Reset();
 	self.TargetLostTimer:Reset();
 
-	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false).Magnitude;
+	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false);
 
 	if IsADoor(self.Target) and Owner.AIMode ~= Actor.AIMODE_SQUAD then
 		--TODO: Include other explosive weapons with varying effective ranges!
@@ -731,7 +720,7 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 		end
 	-- favor grenades as the initiator to a sneak attack
 	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner.AIMode ~= Actor.AIMODE_SENTRY and self.Target.HFlipped == Owner.HFlipped and Owner:EquipDeviceInGroup("Bombs - Grenades", true)
-	and dist > 100 and dist < ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM() and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
+	and dist:MagnitudeIsGreaterThan(100) and dist:MagnitudeIsLessThan(ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) and (self.Target.Pos.Y + 20) > Owner.Pos.Y then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
 		self.NextBehaviorName = "ThrowTarget";
 	elseif Owner:EquipFirearm(true) then
@@ -742,10 +731,10 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 			self.NextBehavior = coroutine.create(HumanBehaviors.ShootTarget);
 			self.NextBehaviorName = "ShootTarget";
 		end
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist < (ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipThrowable(true) and dist:MagnitudeIsLessThan(ToThrownDevice(Owner.EquippedItem):GetCalculatedMaxThrowVelIncludingArmThrowStrength() * GetPPM()) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
 		self.NextBehaviorName = "ThrowTarget";
-	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist < 250 then
+	elseif Owner.AIMode ~= Actor.AIMODE_SQUAD and Owner:EquipDiggingTool(true) and dist:MagnitudeIsLessThan(250) then
 		self.NextBehavior = coroutine.create(HumanBehaviors.AttackTarget);
 		self.NextBehaviorName = "AttackTarget";
 	else	-- unarmed or far away
@@ -806,15 +795,6 @@ function NativeHumanAI:CreateSuppressBehavior(Owner)
 		AI.UnseenTarget = nil;
 		AI.deviceState = AHuman.STILL;
 		AI.proneState = AHuman.NOTPRONE;
-	end
-end
-
-function NativeHumanAI:CreateMoveAroundBehavior(Owner)
-	self.NextGoTo = coroutine.create(HumanBehaviors.MoveAroundActor);
-	self.NextGoToName = "MoveAroundActor";
-	self.NextGoToCleanup = function(AI)
-		AI.lateralMoveState = Actor.LAT_STILL;
-		AI.jump = false;
 	end
 end
 

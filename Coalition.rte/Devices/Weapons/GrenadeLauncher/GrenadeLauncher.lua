@@ -1,6 +1,6 @@
 function OnAttach(self, newParent)
 	local rootParent = self:GetRootParent();
-	if IsActor(rootParent) then
+	if IsActor(rootParent) and MovableMan:IsActor(rootParent) then
 		local subPieMenuPieSlice = ToActor(rootParent).PieMenu:GetFirstPieSliceByPresetName("Coalition Grenade Launcher Options");
 		if subPieMenuPieSlice ~= nil then
 			local grenadeLauncherSubPieMenu = subPieMenuPieSlice.SubPieMenu;

@@ -57,7 +57,6 @@ function NativeCrabAI:Update(Owner)
 			self.Target = nil;
 			self.UnseenTarget = nil;
 			self.OldTargetPos = nil;
-			self.BlockingMO = nil;
 			self.fire = false;
 			self.SentryFacing = Owner.HFlipped;
 			self.lastAIMode = Actor.AIMODE_NONE;
@@ -262,7 +261,6 @@ function NativeCrabAI:Update(Owner)
 			if self.BlockedTimer:IsPastSimMS(10000) then
 				self.BlockedTimer:Reset();
 				self.teamBlockState = Actor.IGNORINGBLOCK;
-				self.BlockingMO = nil;
 			end
 		else
 			self.BlockedTimer:Reset();
