@@ -56,7 +56,7 @@ function Update(self)
 			if totalSurroundingTerrain < totalTolerance then
 				local skeleton = self.minion:Clone();
 				local weapon = CreateHDFirearm(self.weapons[math.random(#self.weapons)]);
-				weapon:AddScript("Uzira.rte/Actors/Brains/Uzira/GibOnDetach.lua");
+				weapon:AddScript("Base.rte/Scripts/Shared/GibOnDetach.lua");
 				weapon.GibSound = nil;
 				weapon:EnableDeepCheck(false);
 				skeleton:AddInventoryItem(weapon);
