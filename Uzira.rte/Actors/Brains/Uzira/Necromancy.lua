@@ -58,6 +58,7 @@ function Update(self)
 				local weapon = CreateHDFirearm(self.weapons[math.random(#self.weapons)]);
 				weapon:AddScript("Uzira.rte/Actors/Brains/Uzira/GibOnDetach.lua");
 				weapon.GibSound = nil;
+				weapon:EnableDeepCheck(false);
 				skeleton:AddInventoryItem(weapon);
 				skeleton.Pos = spawnPos;
 				skeleton.HFlipped = self.HFlipped;
