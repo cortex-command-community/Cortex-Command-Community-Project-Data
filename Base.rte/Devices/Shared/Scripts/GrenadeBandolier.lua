@@ -33,20 +33,13 @@ function Create(self)
 	self.attachable:SetNumberValue("GrenadeCount", self.grenadeCount);
 end
 
-function OnDetach(self, oldParent)
-	self.addedBandolier = false;
-end
-
--- Note: OnAttach won't always trigger on game start (e.g. with pre-placed units or brains sometimes) so it's safer to just use Update for this.
-function Update(self)
-	if self:IsAttached() then
-		local rootParent = self:GetRootParent();
-		if IsAHuman(rootParent) then
-			rootParent = ToAHuman(rootParent);
-		end
-		if rootParent and not rootParent:NumberValueExists(self.bandolierKey) then
-			rootParent:AddAttachable(self.attachable);
-			self.ToDelete = true;
-		end
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsAHuman(rootParent) then
+		rootParent = ToAHuman(rootParent);
+	end
+	if rootParent and not rootParent:NumberValueExists(self.bandolierKey) then
+		rootParent:AddAttachable(self.attachable);
+		self.ToDelete = true;
 	end
 end
