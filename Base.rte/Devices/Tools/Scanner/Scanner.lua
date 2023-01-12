@@ -1,54 +1,30 @@
 function Create(self)
-	self.ScanTimer = Timer();
-
-	self.scanDelay = self:GetNumberValue("ScanDelay");
-	self.maxScanRange = self:GetNumberValue("MaxScanRange");
-	self.scanDisruption = self:GetNumberValue("ScanDisruption");
-	self.scanSpacing = self:GetNumberValue("ScanSpacing");
-	self.numberOfScans = self:GetNumberValue("NumberOfScans");
-
-	self.scanSpreadAngle = self.ParticleSpreadRange; --Degrees!
+	self.signalStrength = 1000;
+	self.maxScanRange = 400;
+	self.scanSpacing = 20;
+	self.dotCount = math.floor(self.maxScanRange/self.scanSpacing);
+	self.scanSpreadAngle = math.rad(self.ParticleSpreadRange);
 end
 
-function Update(self)
-	if self:IsActivated() then
-		if self.ScanTimer:IsPastSimMS(self.scanDelay) then
-			self.ScanTimer:Reset();
-			local actor = MovableMan:GetMOFromID(self.RootID);
-			if MovableMan:IsActor(actor) then
-				self.parent = ToActor(actor);
-				for x = 1, self.numberOfScans do
-					local angleVariance = (-self.scanSpreadAngle * 0.5) + (math.random() * self.scanSpreadAngle);
-					local terrHitCount = 0;
-					local dots = math.floor(self.maxScanRange/self.scanSpacing);
-					for i = 1, dots do
-						local checkPos = self.MuzzlePos + Vector((self.scanSpacing * i) * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(angleVariance);
-						if SceneMan.SceneWrapsX == true then
-							if checkPos.X > SceneMan.SceneWidth then
-								checkPos = Vector(checkPos.X - SceneMan.SceneWidth, checkPos.Y);
-							elseif checkPos.X < 0 then
-								checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
-							end
-						end
-						local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
-						if terrCheck ~= rte.airID then
-							terrHitCount = terrHitCount + 1;
-						end
-					end
-					local scanLength = math.floor((self.maxScanRange - (self.scanDisruption * (terrHitCount/dots)))/self.scanSpacing);
-					for i = 1, scanLength do
-						local checkPos = self.MuzzlePos + Vector((self.scanSpacing * i) * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(angleVariance);
-						if SceneMan.SceneWrapsX == true then
-							if checkPos.X > SceneMan.SceneWidth then
-								checkPos = Vector(checkPos.X - SceneMan.SceneWidth, checkPos.Y);
-							elseif checkPos.X < 0 then
-								checkPos = Vector(SceneMan.SceneWidth + checkPos.X, checkPos.Y);
-							end
-						end
-						SceneMan:RevealUnseen(checkPos.X, checkPos.Y, self.parent.Team);
-					end
-				end
+function OnFire(self)
+	local signalStrength = self.signalStrength;
+	local angleVariance = self.scanSpreadAngle * 0.5 - (math.random() * self.scanSpreadAngle);
+	for i = 1, self.dotCount do
+		local checkPos = self.MuzzlePos + Vector((self.scanSpacing * i) * self.FlipFactor, 0):RadRotate(self.RotAngle + angleVariance);
+		if SceneMan.SceneWrapsX then
+			if checkPos.X > SceneMan.SceneWidth then
+				checkPos = Vector(checkPos.X - SceneMan.SceneWidth, checkPos.Y);
+			elseif checkPos.X < 0 then
+				checkPos = Vector(checkPos.X + SceneMan.SceneWidth, checkPos.Y);
 			end
+		end
+		signalStrength = signalStrength - (40 + SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(checkPos.X, checkPos.Y)).StructuralIntegrity);
+		if signalStrength < 0 then
+			break;
+		end
+		if SceneMan:IsUnseen(checkPos.X, checkPos.Y, self.Team) then
+			SceneMan:RevealUnseen(checkPos.X, checkPos.Y, self.Team);
+			break;
 		end
 	end
 end
