@@ -85,15 +85,15 @@ function Update(self)
 						for _, terrainMaterial in pairs(self.suitableMaterials) do
 							if material == terrainMaterial then
 								hits = hits + 1;
-								if hits > rayCount * 0.5 then
-									resource = resource + 10;
-									parent:SetNumberValue("RoninShovelResource", resource);
-									parent.PieMenu:GetFirstPieSliceByPresetName("Ronin Shovel Fill Sandbag PieSlice").Enabled = resource >= 10;
-									self.collectSound:Play(self.Pos);
-									break;
-								end
 								break;
 							end
+						end
+						if hits > rayCount * 0.5 then
+							resource = resource + 1;
+							parent:SetNumberValue("RoninShovelResource", resource);
+							parent.PieMenu:GetFirstPieSliceByPresetName("Ronin Shovel Fill Sandbag PieSlice").Enabled = resource >= 10;
+							self.collectSound:Play(self.Pos);
+							break;
 						end
 					end
 				end
