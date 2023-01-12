@@ -1,6 +1,21 @@
+function Create(self)
+	if self.Status ~= Actor.STABLE and self.PinStrength > 0 then
+		self.rising = true;
+		self.RotAngle = RangeRand(3, 4) * (math.random() < 0.5 and -1 or 1);
+	end
+end
 function Update(self)
-	if self.Health > 0 and self.FGArm and (self.FGLeg or self.BGLeg) then
-		local limbs = {self.Head, self.FGArm, self.BGArm, self.FGLeg, self.BGLeg};
-		self.Health = self.MaxHealth * (1 - self.WoundCount/self:GetGibWoundLimit(true, false, false)) * #limbs/5;
+	if self.rising then
+		self.Pos = self.Pos + Vector(RangeRand(-1, 1), -math.random());
+		self.RotAngle = self.RotAngle * 0.96;
+		if SceneMan:GetTerrMatter(self.Pos.X, self.Pos.Y) == rte.airID then
+			self.Vel = Vector(-SceneMan.GlobalAcc.X, -SceneMan.GlobalAcc.Y) * 0.2;
+			self.PinStrength = 0;
+			self:MoveOutOfTerrain(70);
+			self.rising = false;
+			self:UpdateMovePath();
+		end
+	else
+		self:DisableScript("Uzira.rte/Actors/Shared/Undead.lua");
 	end
 end
