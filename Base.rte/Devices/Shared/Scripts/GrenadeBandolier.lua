@@ -12,7 +12,8 @@ function Create(self)
 	self.replenishDelay = self:NumberValueExists("ReplenishDelay") and self:GetNumberValue("ReplenishDelay") or 0;
 
 	self.grenadeMass = self:NumberValueExists("GrenadeMass") and self:GetNumberValue("GrenadeMass") or self.grenadeObject.Mass;
-	self.grenadeCount = self:NumberValueExists("GrenadeCount") and self:GetNumberValue("GrenadeCount") or 3;
+	self.grenadesPerBandolier = self:NumberValueExists("GrenadeCount") and self:GetNumberValue("GrenadeCount") or 3;
+	self.grenadesRemainingInBandolier = self:NumberValueExists("GrenadesRemainingInBandolier") and self:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
 
 	----------------------------------------
 	-- Setup Grenade Bandolier Attachable --
@@ -30,23 +31,19 @@ function Create(self)
 		self.attachable:SetNumberValue("GrenadeIsThrownDevice", 1);
 	end
 	self.attachable:SetNumberValue("GrenadeMass", self.grenadeMass);
-	self.attachable:SetNumberValue("GrenadeCount", self.grenadeCount);
+	self.attachable:SetNumberValue("GrenadesPerBandolier", self.grenadesPerBandolier);
+	if self.grenadesPerBandolier ~= self.grenadesRemainingInBandolier then
+		self.attachable:SetNumberValue("GrenadesRemainingInBandolier", self.grenadesRemainingInBandolier);
+	end
 end
 
-function OnDetach(self, oldParent)
-	self.addedBandolier = false;
-end
-
--- Note: OnAttach won't always trigger on game start (e.g. with pre-placed units or brains sometimes) so it's safer to just use Update for this.
-function Update(self)
-	if self:IsAttached() then
-		local rootParent = self:GetRootParent();
-		if IsAHuman(rootParent) then
-			rootParent = ToAHuman(rootParent);
-		end
-		if rootParent and not rootParent:NumberValueExists(self.bandolierKey) then
-			rootParent:AddAttachable(self.attachable);
-			self.ToDelete = true;
-		end
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsAHuman(rootParent) then
+		rootParent = ToAHuman(rootParent);
+	end
+	if rootParent and not rootParent:NumberValueExists(self.bandolierKey) then
+		rootParent:AddAttachable(self.attachable);
+		self.ToDelete = true;
 	end
 end
