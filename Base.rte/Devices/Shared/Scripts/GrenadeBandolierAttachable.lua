@@ -21,7 +21,7 @@ local replenishGrenade = function(self, forceEquipGrenade)
 
 	if forceEquipGrenade or self.grenadeReplenishDelay < 100 then
 		self:modifyGrenadeCount(-1);
-		return self.rootParent:EquipNamedDevice(self.grenadeTech, self.grenadeName, true);
+		return self.grenadePreviouslyHeldByRootParent and self.rootParent:EquipNamedDevice(self.grenadeTech, self.grenadeName, true);
 	else
 		self.grenadeReplenishGUITimer:Reset();
 		self:modifyGrenadeCount(-1, true);
@@ -59,11 +59,13 @@ function Create(self)
 	self.grenadeReplenishTimer:SetSimTimeLimitMS(self.grenadeReplenishDelay);
 
 	self.grenadeMass = self:GetNumberValue("GrenadeMass");
-	self.grenadesPerBandolier = self:GetNumberValue("GrenadeCount");
+	self.grenadesPerBandolier = self:GetNumberValue("GrenadesPerBandolier");
 	self.grenadeObjectGoldValue = self.grenadeObject:GetGoldValue(self.grenadeObject.ModuleID, 1, 1);
 
 	self.currentGrenadeCount = self.rootParent:GetNumberValue(self.bandolierKey);
-	self:modifyGrenadeCount(self.currentGrenadeCount == 0 and self.grenadesPerBandolier or 0);
+	local grenadesToAdd = self:NumberValueExists("GrenadesRemainingInBandolier") and self:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
+	self:RemoveNumberValue("GrenadesRemainingInBandolier");
+	self:modifyGrenadeCount(self.currentGrenadeCount == 0 and grenadesToAdd or 0);
 
 	self.grenadeAmmoIcon = CreateMOSParticle("Ammo Icon", "Base.rte");
 
@@ -73,6 +75,8 @@ function Create(self)
 	self.grenadeReplenishIcon = self.grenadeObject;
 	-- TODO maybe change sprite or at least sprite colour for refresh plus
 	self.grenadeReplenishPlusIcon = CreateMOSParticle("Particle Heal Effect", "Base.rte");
+	
+	self.bandolierObjectForDropping = appropriateGrenadeCreateFunction(self.bandolierName, self.grenadeTech);
 
 	self:replenishGrenade(true);
 end
@@ -84,8 +88,10 @@ function Update(self)
 
 		-- If the root parent is holding a grenade bandolier, merge it and replace it with a grenade.
 		if rootParentEquippedItemModuleAndPresetName == self.bandolierKey then
-			ToAttachable(self.rootParent.EquippedItem):RemoveFromParent();
-			self:modifyGrenadeCount(self.grenadesPerBandolier);
+			local rootParentEquippedItemAsAttachable = ToAttachable(self.rootParent.EquippedItem);
+			rootParentEquippedItemAsAttachable:RemoveFromParent();
+			local bandolierGrenadeCount = rootParentEquippedItemAsAttachable:NumberValueExists("GrenadesRemainingInBandolier") and rootParentEquippedItemAsAttachable:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
+			self:modifyGrenadeCount(bandolierGrenadeCount);
 			rootParentIsHoldingGrenade = self:replenishGrenade(true);
 		end
 
@@ -133,11 +139,22 @@ function Update(self)
 		elseif self.currentGrenadeCount <= 0 and self.grenadeReplenishGUITimer:IsPastSimTimeLimit() then
 			self.ToDelete = true;
 		end
+		
+		self.grenadePreviouslyHeldByRootParent = rootParentIsHoldingGrenade and self.rootParent.EquippedItem or nil;
 	end
 end
 
 function Destroy(self)
 	if self.rootParent and MovableMan:IsActor(self.rootParent) then
 		self.rootParent:RemoveNumberValue(self.bandolierKey);
+	end
+	if self.currentGrenadeCount > 0 then
+		if self.grenadePreviouslyHeldByRootParent then
+			self.grenadePreviouslyHeldByRootParent.ToDelete = true;
+		end
+		self.bandolierObjectForDropping:SetNumberValue("GrenadesRemainingInBandolier", self.currentGrenadeCount + 1);
+		self.bandolierObjectForDropping.Pos = self.Pos;
+		self.bandolierObjectForDropping.Mass = self.bandolierMass + (self.grenadeMass * self.currentGrenadeCount);
+		MovableMan:AddItem(self.bandolierObjectForDropping);
 	end
 end
