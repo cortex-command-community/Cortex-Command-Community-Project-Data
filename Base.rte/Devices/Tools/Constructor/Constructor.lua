@@ -1,18 +1,3 @@
-function OnAttach(self, newParent)
-	local rootParent = self:GetRootParent();
-	if IsActor(rootParent) then
-		local pieMenu = ToActor(rootParent).PieMenu;
-		local subPieMenuPieSlice = pieMenu:GetFirstPieSliceByPresetName("Constructor Options");
-		if subPieMenuPieSlice ~= nil then
-			pieMenu = subPieMenuPieSlice.SubPieMenu;
-		end
-
-		local mode = self:GetStringValue("ConstructorMode");
-		local pieSliceToAddPresetName = mode == "Dig" and "Constructor Spray Mode" or "Constructor Dig Mode";
-		pieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
-	end
-end
-
 function ConstructorWrapPos(checkPos)
 	if SceneMan.SceneWrapsX then
 		if checkPos.X > SceneMan.SceneWidth then
@@ -199,10 +184,20 @@ function Create(self)
 		Vector(0, -1),
 		Vector(1, -1),
 	};
+end
 
-	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety. Need the safety check for its existence cause, for some reason, it can not exist in the metagame.
-	if OnAttach then
-		OnAttach(self);
+function OnAttach(self, newParent)
+	local rootParent = self:GetRootParent();
+	if IsActor(rootParent) and MovableMan:IsActor(rootParent) then
+		local pieMenu = ToActor(rootParent).PieMenu;
+		local subPieMenuPieSlice = pieMenu:GetFirstPieSliceByPresetName("Constructor Options");
+		if subPieMenuPieSlice ~= nil then
+			pieMenu = subPieMenuPieSlice.SubPieMenu;
+		end
+
+		local mode = self:GetStringValue("ConstructorMode");
+		local pieSliceToAddPresetName = mode == "Dig" and "Constructor Spray Mode" or "Constructor Dig Mode";
+		pieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
 	end
 end
 
