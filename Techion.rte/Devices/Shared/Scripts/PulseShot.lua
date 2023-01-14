@@ -1,5 +1,6 @@
 function Create(self)
-	self.disintegrationStrength = 50;
+	self.penetrationStrength = 200;
+	self.disintegrationStrength = 250;
 	self.EffectRotAngle = self.Vel.AbsRadAngle;
 	--Check backward (second argument) on the first frame as the projectile might be bouncing off something immediately
 	PulsarDissipate(self, true);
@@ -34,18 +35,28 @@ function PulsarDissipate(self, inverted)
 	local skipPx = math.sqrt(self.Vel.Magnitude) * 0.5;
 
 	local moid = SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx) >= 0 and SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y) or self.HitWhatMOID;
-
-	if moid ~= rte.NoMOID then
-		local mo = MovableMan:GetMOFromID(moid);
-		if mo then
-			hit = true;
-
-			local melt = CreateMOPixel("Disintegrator");
-			melt.Pos = self.Pos;
-			melt.Team = self.Team;
-			melt.Sharpness = mo.RootID;
-			melt.PinStrength = self.disintegrationStrength or 1;
-			MovableMan:AddMO(melt);
+	local mo = MovableMan:GetMOFromID(moid);
+	
+	if mo then
+		hit = true;
+		if IsMOSRotating(mo) and self.penetrationStrength > mo.Material.StructuralIntegrity then
+			mo = ToMOSRotating(mo);
+			local woundName = mo:GetEntryWoundPresetName();
+			if woundName ~= "" then
+				local wound = CreateAEmitter(woundName);
+				wound.BurstDamage = wound.BurstDamage * self.WoundDamageMultiplier;
+				local woundOffset = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
+				woundOffset.X = woundOffset.X * mo.FlipFactor;
+				wound.InheritedRotAngleOffset = woundOffset.AbsRadAngle - (mo.HFlipped and math.pi or 0);
+				mo:AddWound(wound, woundOffset:RadRotate(-mo.RotAngle * mo.FlipFactor), true);
+				
+				local melter = CreateMOPixel("Disintegrator");
+				melter.Pos = self.Pos;
+				melter.Team = self.Team;
+				melter.Sharpness = mo.RootID;
+				melter.PinStrength = self.disintegrationStrength or 1;
+				MovableMan:AddMO(melter);
+			end
 		end
 	else
 		local penetration = self.Mass * self.Sharpness * self.Vel.Magnitude;

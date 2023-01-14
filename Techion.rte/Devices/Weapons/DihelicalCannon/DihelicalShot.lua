@@ -38,11 +38,8 @@ function Create(self)
 	--Count MO and terrain hits.
 	self.hits = 0;
 
-	--Amount of damage pixels.
-	self.damageStrength = math.floor(math.sqrt(self.Vel.Magnitude * 0.1) + 0.5);
-
 	--Disintegration strength.
-	self.disintegrationStrength = 50;
+	self.disintegrationStrength = 500;
 end
 
 function Update(self)
@@ -86,28 +83,6 @@ function Update(self)
 			frontA.Vel = (fireVector * 0.5 - waveOffset) * 0.2;
 			MovableMan:AddParticle(frontA);
 		end
-		if i % self.damageInterval == 0 then
-			--Check for a target.
-			local moRay = SceneMan:CastMORay(upPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 2);
-			if moRay ~= rte.NoMOID then
-				--Add the damage particle.
-				for i = 1, self.damageStrength do
-					local damageA = CreateMOPixel("Techion.rte/Dihelical Damage Particle");
-					damageA.Pos = upPos;
-					damageA.Vel = fireVector;
-					damageA.Team = self.Team;
-					damageA.IgnoresTeamHits = true;
-					MovableMan:AddParticle(damageA);
-				end
-				--Add the dissipate effect.
-				local effect = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
-				effect.Pos = upPos;
-				MovableMan:AddParticle(effect);
-				effect:GibThis();
-
-				self.hits = self.hits + 1;
-			end
-		end
 		--Add the blue wave effect.
 		local partB = CreateMOPixel("Techion.rte/Dihelical Cannon Effect Particle");
 		partB.Pos = downPos;
@@ -121,36 +96,46 @@ function Update(self)
 		MovableMan:AddParticle(frontB);
 
 		if i % self.damageInterval == 0 then
-			local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
-			--Check for a target.
-			local moRay = SceneMan:CastMORay(downPos, fireVector * rte.PxTravelledPerFrame, rte.NoMOID, self.Team, rte.airID, true, 2);
-			if moRay ~= rte.NoMOID then
-				--Add the damage particles.
-				local mo = MovableMan:GetMOFromID(moRay);
-				local rootMO = MovableMan:GetMOFromID(mo.RootID);
-				if IsActor(rootMO) then
-					local melt = CreateMOPixel("Disintegrator");
-					melt.Pos = downPos;
-					melt.Team = self.Team;
-					melt.Sharpness = ToActor(rootMO).ID;
-					melt.PinStrength = self.disintegrationStrength;
-					MovableMan:AddMO(melt);
+			local pos = {upPos, downPos};
+			local hitID = rte.NoMOID;
+			for i = 1, #pos do
+				local checkPos = pos[i];
+				local hitPos = Vector();
+				local hitID = SceneMan:CastObstacleRay(checkPos, fireVector * rte.PxTravelledPerFrame, hitPos, Vector(), hitID, self.Team, rte.airID, 2) >= 0 and SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y) or rte.NoMOID;
+				local mo = MovableMan:GetMOFromID(hitID);
+				if mo and IsMOSRotating(mo) then
+					mo = ToMOSRotating(mo);
+					
+					local wounds = {mo:GetEntryWoundPresetName(), mo:GetExitWoundPresetName()};
+					--Center beam creates both entry and exit wounds.
+					for j = 1, i do
+						local woundName = wounds[j];
+						if woundName ~= "" and not mo.ToDelete then
+							local wound = CreateAEmitter(woundName);
+							wound.BurstDamage = wound.BurstDamage * self.WoundDamageMultiplier;
+							local woundOffset = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
+							woundOffset.X = woundOffset.X * mo.FlipFactor;
+							wound.InheritedRotAngleOffset = woundOffset.AbsRadAngle - (mo.HFlipped and math.pi or 0);
+							mo:AddWound(wound, woundOffset:RadRotate(-mo.RotAngle * mo.FlipFactor), true);
+						end
+					end
+					local rootMO = mo:GetRootParent();
+					if i == 2 and IsActor(rootMO) then
+						local melter = CreateMOPixel("Disintegrator");
+						melter.Pos = hitPos;
+						melter.Team = self.Team;
+						melter.Sharpness = rootMO.ID;
+						melter.PinStrength = self.disintegrationStrength;
+						MovableMan:AddMO(melter);
+					end
+					self.hits = self.hits + (i == 2 and math.sqrt(mo.Material.StructuralIntegrity) + math.sqrt(mo.Radius + mo.Mass) * 0.1 or 1);
+					
+					--Add the dissipate effect.
+					local effect = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
+					effect.Pos = checkPos;
+					MovableMan:AddParticle(effect);
+					effect:GibThis();
 				end
-				self.hits = self.hits + math.sqrt(mo.Material.StructuralIntegrity) + math.sqrt(mo.Radius + mo.Mass) * 0.1;
-
-				for i = 1, self.damageStrength do
-					local damageB = CreateMOPixel("Techion.rte/Dihelical Damage Particle");
-					damageB.Pos = downPos;
-					damageB.Vel = fireVector;
-					damageB.Team = self.Team;
-					damageB.IgnoresTeamHits = true;
-					MovableMan:AddParticle(damageB);
-				end
-				--Add the dissipate effect.
-				local effect = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
-				effect.Pos = downPos;
-				MovableMan:AddParticle(effect);
-				effect:GibThis();
 			end
 		end
 		if (self.lastAmplitude > 0 and amplitude < 0) or (self.lastAmplitude < 0 and amplitude > 0) then
