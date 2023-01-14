@@ -12,7 +12,8 @@ function Create(self)
 	self.replenishDelay = self:NumberValueExists("ReplenishDelay") and self:GetNumberValue("ReplenishDelay") or 0;
 
 	self.grenadeMass = self:NumberValueExists("GrenadeMass") and self:GetNumberValue("GrenadeMass") or self.grenadeObject.Mass;
-	self.grenadeCount = self:NumberValueExists("GrenadeCount") and self:GetNumberValue("GrenadeCount") or 3;
+	self.grenadesPerBandolier = self:NumberValueExists("GrenadeCount") and self:GetNumberValue("GrenadeCount") or 3;
+	self.grenadesRemainingInBandolier = self:NumberValueExists("GrenadesRemainingInBandolier") and self:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
 
 	----------------------------------------
 	-- Setup Grenade Bandolier Attachable --
@@ -30,7 +31,10 @@ function Create(self)
 		self.attachable:SetNumberValue("GrenadeIsThrownDevice", 1);
 	end
 	self.attachable:SetNumberValue("GrenadeMass", self.grenadeMass);
-	self.attachable:SetNumberValue("GrenadeCount", self.grenadeCount);
+	self.attachable:SetNumberValue("GrenadesPerBandolier", self.grenadesPerBandolier);
+	if self.grenadesPerBandolier ~= self.grenadesRemainingInBandolier then
+		self.attachable:SetNumberValue("GrenadesRemainingInBandolier", self.grenadesRemainingInBandolier);
+	end
 end
 
 function OnAttach(self, newParent)
