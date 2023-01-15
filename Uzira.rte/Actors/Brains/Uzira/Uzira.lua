@@ -1,6 +1,6 @@
 function Create(self)
 	self.minion = CreateAHuman("Skeleton", "Uzira.rte");
-	self.weapons = {"Uzira.rte/Blunderpop", "Uzira.rte/Blunderbuss", "Uzira.rte/Musket"};
+	self.weapons = {"Uzira.rte/Blunderpop", "Uzira.rte/Blunderbuss", "Uzira.rte/Musket", "Uzira.rte/Boomstick", "Uzira.rte/Crossbow"};
 	self.spawnRadius = math.max(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight) * 0.1;
 	self.boundsRadius = self.spawnRadius * 4 + self.minion.Radius;
 	self.spawnTerrainTolerance = 70;
