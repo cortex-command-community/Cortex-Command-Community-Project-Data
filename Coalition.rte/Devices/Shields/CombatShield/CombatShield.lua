@@ -25,6 +25,7 @@ function Coalition_AttachCombatShield(self)
 		errorSound:Play(self.Pos);
 	end
 end
+
 function Create(self)
 	local parent = self:GetRootParent();
 	if IsAHuman(parent) then
@@ -37,12 +38,14 @@ function Create(self)
 		end
 	end
 end
+
 function CoalitionShieldAttach(pieMenu, pieSlice, pieMenuOwner)
 	local device = pieMenuOwner.EquippedItem;
 	if device and IsHeldDevice(device) then
 		Coalition_AttachCombatShield(ToHeldDevice(device));
 	end
 end
+
 function CoalitionShieldDetach(pieMenu, pieSlice, pieMenuOwner)
 	local device = pieMenuOwner.EquippedItem;
 	if device and IsHDFirearm(device) then
