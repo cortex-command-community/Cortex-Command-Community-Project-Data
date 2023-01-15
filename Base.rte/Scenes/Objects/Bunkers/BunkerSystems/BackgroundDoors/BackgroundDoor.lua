@@ -1,13 +1,13 @@
 function Create(self)
 	self.Frame = 0;
-	
+
 	self.isStayingOpen = false;
 	self.isClosing = false;
-	
+
 	self.stayOpenTimer = Timer();
 	self.stayOpenTimer:SetSimTimeLimitMS(self:NumberValueExists("StayOpenDuration") and self:GetNumberValue("StayOpenDuration") or 2000);
-	
-	self.openCloseSound = CreateSoundContainer("Animated Background Door Open Close Sound", "Base.rte");
+
+	self.openCloseSound = CreateSoundContainer("Background Door Open Close Sound", "Base.rte");
 	self.openCloseSound.Pos = self.Pos;
 	self.openCloseSound:Play();
 end
