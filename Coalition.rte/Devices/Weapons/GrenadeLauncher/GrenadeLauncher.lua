@@ -1,3 +1,15 @@
+function Create(self)
+	self.grenadeTableA = {};
+	self.grenadeTableB = {};
+	self.maxActiveGrenades = 12;
+
+	self.impactModePieSlice = nil;
+	self.bounceModePieSlice = nil;
+	self.remoteModePieSlice = nil;
+	self.removeGrenadesPieSlice = nil;
+	self.detonateGrenadesPieSlice = nil;
+end
+
 function OnAttach(self, newParent)
 	local rootParent = self:GetRootParent();
 	if IsActor(rootParent) and MovableMan:IsActor(rootParent) then
@@ -33,23 +45,6 @@ function WhilePieMenuOpen(self, pieMenu)
 	end
 	if self.detonateGrenadesPieSlice ~= nil then
 		self.detonateGrenadesPieSlice.Enabled = grenadeCount > 0;
-	end
-end
-
-function Create(self)
-	self.grenadeTableA = {};
-	self.grenadeTableB = {};
-	self.maxActiveGrenades = 12;
-
-	self.impactModePieSlice = nil;
-	self.bounceModePieSlice = nil;
-	self.remoteModePieSlice = nil;
-	self.removeGrenadesPieSlice = nil;
-	self.detonateGrenadesPieSlice = nil;
-
-	-- OnAttach doesn't get run if the device was added to a brain in edit mode, so re-run it here for safety. Need the safety check for its existence cause, for some reason, it can not exist in the metagame.
-	if OnAttach then
-		OnAttach(self);
 	end
 end
 

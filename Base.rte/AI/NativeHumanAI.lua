@@ -444,7 +444,7 @@ function NativeHumanAI:Update(Owner)
 		if self.GoToBehavior then
 			local msg, done = coroutine.resume(self.GoToBehavior, self, Owner, false);
 			if not msg then
-				ConsoleMan:PrintString(Owner.PresetName .. " " .. self.GoToName .. " error:\n" .. done); -- print the error message
+				ConsoleMan:PrintString(Owner.PresetName .. " " .. self.GoToName .. " error:\n" .. done  .. debug.traceback(self.GoToBehavior)); -- print the error message
 				done = true;
 			end
 

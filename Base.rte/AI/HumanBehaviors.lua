@@ -849,7 +849,14 @@ function HumanBehaviors.BrainSearch(AI, Owner, Abort)
 					local height = 0;
 					local pathLength = 0;
 					local pathObstMaxHeight = 0;
-					for Wpt in Owner.MovePath do
+
+					local PathDump = {}
+					-- copy the MovePath to a temporary table so we can yield safely while working on the path
+					for WptPos in Owner.MovePath do
+						table.insert(PathDump, WptPos);
+					end
+
+					for _, Wpt in pairs(PathDump) do
 						pathLength = pathLength + 1;
 						if OldWpt then
 							deltaY = OldWpt.Y - Wpt.Y;
@@ -1905,6 +1912,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				-- copy useful waypoints to a temporary path
 				local TmpWpts = {};
 				table.insert(TmpWpts, {Pos=Owner.Pos});
+
 				local Origin;
 				local LastPos = PathDump[1];
 				local index = 1;
@@ -1921,6 +1929,11 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					LastPos = WptPos;
 					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
 					if _abrt then return true end
+				end
+
+				-- No path
+				if #PathDump == 0 then
+					break;
 				end
 
 				table.insert(TmpWpts, {Pos=PathDump[#PathDump]}); -- add the last waypoint in the MovePath

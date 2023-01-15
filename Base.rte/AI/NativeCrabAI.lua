@@ -231,7 +231,7 @@ function NativeCrabAI:Update(Owner)
 		if self.Behavior then
 			local msg, done = coroutine.resume(self.Behavior, self, Owner, false);
 			if not msg then
-				ConsoleMan:PrintString(Owner.PresetName .. " behavior " .. self.BehaviorName .. " error:\n" .. done); -- print the error message
+				ConsoleMan:PrintString(Owner.PresetName .. " behavior " .. self.BehaviorName .. " error:\n" .. done .. debug.traceback(self.Behavior)); -- print the error message
 				done = true;
 			end
 

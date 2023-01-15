@@ -956,7 +956,7 @@ function MetaFight:UpdateActivity()
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(player);
 						-- Reset the screen occlusion if any players are still in menus
-						SceneMan:SetScreenOcclusion(Vector(), self:ScreenOfPlayer(player));
+						CameraMan:SetScreenOcclusion(Vector(), self:ScreenOfPlayer(player));
 					end
 				end
 			end

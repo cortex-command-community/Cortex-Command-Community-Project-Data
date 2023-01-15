@@ -100,7 +100,7 @@ function ZombieCaveMission:StartActivity()
 					self:SetPlayerBrain(foundBrain, player);
 					self:SetViewState(Activity.ACTORSELECT, player);
 	--				self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
-	--				SceneMan:SetScroll(self:GetPlayerBrain(player).Pos, player);
+	--				CameraMan:SetScroll(self:GetPlayerBrain(player).Pos, player);
 					self:SetActorSelectCursor(Vector(3024, 324), player);
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode

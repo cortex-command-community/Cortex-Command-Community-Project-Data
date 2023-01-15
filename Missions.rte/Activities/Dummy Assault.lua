@@ -34,7 +34,7 @@ function DummyAssault:StartActivity()
 
 				-- Set the found brain to be the selected actor at start
 				self:SetPlayerBrain(brain, player);
-				SceneMan:SetScroll(brain.Pos, player);
+				CameraMan:SetScroll(brain.Pos, player);
 				self:SetLandingZone(brain.Pos, player);
 
 				-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
