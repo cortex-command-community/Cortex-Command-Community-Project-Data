@@ -1,5 +1,4 @@
-function Create(self)
-	local parent = self:GetParent();
+function OnAttach(self, parent)
 	if parent then
 		if IsLeg(parent) and ToLeg(parent).Foot then
 			ToLeg(parent).Foot = CreateAttachable(string.sub(ToLeg(parent).Foot.PresetName, 1, -2) .. "B");

@@ -1,7 +1,8 @@
 function Create(self)
-	if self.Status ~= Actor.STABLE and self.PinStrength > 0 then
+	if self.PinStrength > 0 then
 		self.rising = true;
 		self.RotAngle = RangeRand(3, 4) * (math.random() < 0.5 and -1 or 1);
+		self.Status = Actor.UNSTABLE;
 	end
 end
 function Update(self)
