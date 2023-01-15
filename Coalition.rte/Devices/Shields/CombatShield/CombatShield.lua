@@ -7,7 +7,7 @@ function Coalition_AttachCombatShield(self)
 		for attachable in device.Attachables do
 			if attachable:GetModuleAndPresetName() == "Coalition.rte/Combat Shield" then
 				if parent:IsPlayerControlled() then
-					errorSound:Play(self.Pos);
+					errorSound:Play(self.Pos, parent:GetController().Player);
 				end
 				return;
 			end
@@ -22,7 +22,7 @@ function Coalition_AttachCombatShield(self)
 		self.ToDelete = true;
 		parent:GetController():SetState(Controller.WEAPON_CHANGE_NEXT, true);
 	elseif parent:IsPlayerControlled() then
-		errorSound:Play(self.Pos);
+		errorSound:Play(self.Pos, parent:GetController().Player);
 	end
 end
 function Create(self)
