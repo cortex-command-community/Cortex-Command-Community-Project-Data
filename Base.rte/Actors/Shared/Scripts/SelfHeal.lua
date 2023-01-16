@@ -3,6 +3,7 @@ function Create(self)
 	self.baseHealDelay = 500;
 	self.PieMenu:AddPieSlice(CreatePieSlice("Self Heal"), self);
 end
+
 function Update(self)
 	if self.EquippedItem or self.EquippedBGItem then
 		self.healing = nil;
@@ -84,9 +85,11 @@ function Update(self)
 		end
 	end
 end
+
 function WhilePieMenuOpen(self, openedPieMenu)
 	openedPieMenu:GetFirstPieSliceByPresetName("Self Heal").Enabled = self.WoundCount > 0;
 end
+
 function SelfHeal(pieMenu, pieSlice, pieMenuOwner)
 	if pieMenuOwner and IsAHuman(pieMenuOwner) then 
 		pieMenuOwner = ToAHuman(pieMenuOwner);
