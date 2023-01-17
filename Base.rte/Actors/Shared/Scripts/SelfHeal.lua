@@ -5,11 +5,8 @@ function Create(self)
 end
 
 function Update(self)
-	if self.EquippedItem or self.EquippedBGItem then
-		self.healing = nil;
-		self:RemoveNumberValue("SelfHeal");
-	end
 	if self.healing and self.healing.part then
+		local controller = self:GetController();
 		if self.healing.wound then
 			if self.healing.timer:IsPastSimMS(self.healing.delay) then
 				self.healing.timer:Reset();
@@ -22,24 +19,39 @@ function Update(self)
 						self.healing.delay = self.baseHealDelay * math.sqrt(self.healing.wound.Radius);
 					end
 				end
+				local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
+				cross.Pos = self.AboveHUDPos + Vector(0, 4);
+				MovableMan:AddParticle(cross);
 			else
-				for state = 1, 15 do
-					self.controller:SetState(state, false);
-				end
 				local timerRatio = self.healing.timer.ElapsedSimTimeMS/self.healing.delay;
 				local arms = {self.FGArm, self.BGArm};
+				if self.Head and self.healing.part.ID == self.Head.ID then
+					self.Head.RotAngle = self.RotAngle - 0.5 * self.FlipFactor * math.sin(timerRatio * math.pi);
+				end
 				for _, arm in pairs(arms) do
-					if arm and self.healing.part.ID ~= arm.ID then
-						local offset = SceneMan:ShortestDistance(arm.JointPos, self.healing.wound.Pos, SceneMan.SceneWrapsX) + Vector(-math.max(self.healing.wound.Radius - 2, 1), 0):RadRotate(math.pi * 4 * timerRatio);
-						arm.HandPos = arm.JointPos + Vector(offset.X, offset.Y):SetMagnitude(math.min(offset.Magnitude, arm.MaxLength));
+					if arm then
+						if self.healing.part.ID ~= arm.ID then
+							local offset = SceneMan:ShortestDistance(arm.JointPos, self.healing.wound.Pos, SceneMan.SceneWrapsX) + Vector(-math.max(self.healing.wound.Radius - 2, 1), 0):RadRotate(math.pi * 2 * timerRatio);
+							arm.HandPos = arm.JointPos + Vector(offset.X, offset.Y):SetMagnitude(math.min(offset.Magnitude, arm.MaxLength));
+						else
+							arm.HandPos = arm.JointPos + Vector(arm.MaxLength * (0.5 + math.sin(timerRatio * math.pi) * 0.5) * self.FlipFactor, 0):RadRotate(self.RotAngle);
+						end
 					end
 				end
 				self.healing.wound.Scale = math.min(self.healing.wound.Scale, self.healing.wound.Scale * (1 - timerRatio));
 			end
-		else
+		else	
 			self.healing = nil;
 		end
-		self.controller:SetState(Controller.BODY_CROUCH, true);
+		if self.EquippedItem or self.EquippedBGItem or controller:IsState(Controller.BODY_JUMP) or (self.FGArm or self.BGArm) == nil then
+			self.healing = nil;
+			self:RemoveNumberValue("SelfHeal");
+		else
+			for state = 1, 15 do
+				controller:SetState(state, false);
+			end
+			controller:SetState(Controller.BODY_CROUCH, true);
+		end
 	elseif self:NumberValueExists("SelfHeal") then
 		self.healing = {};
 		local priority = self:GetWoundCount(false, false, false) * self.DamageMultiplier;
@@ -87,13 +99,13 @@ function Update(self)
 end
 
 function WhilePieMenuOpen(self, openedPieMenu)
-	openedPieMenu:GetFirstPieSliceByPresetName("Self Heal").Enabled = self.WoundCount > 0;
+	openedPieMenu:GetFirstPieSliceByPresetName("Self Heal").Enabled = self.WoundCount > 0 and (self.FGArm or self.BGArm) ~= nil;
 end
 
 function SelfHeal(pieMenu, pieSlice, pieMenuOwner)
 	if pieMenuOwner and IsAHuman(pieMenuOwner) then 
 		pieMenuOwner = ToAHuman(pieMenuOwner);
-		if pieMenuOwner.WoundCount > 0 then
+		if pieMenuOwner.WoundCount > 0 and (pieMenuOwner.FGArm or pieMenuOwner.BGArm) ~= nil then
 			pieMenuOwner:SetNumberValue("SelfHeal", 1);
 		else
 			local errorSound = CreateSoundContainer("Error", "Base.rte");
