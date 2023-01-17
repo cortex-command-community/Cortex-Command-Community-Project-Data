@@ -163,6 +163,7 @@ function Create(self)
 	self.minionTemplate = CreateAHuman("Skeleton", "Uzira.rte");
 	self.minionTemplate.Team = self.Team;
 	self.minionTemplate.HUDVisible = false;
+	self.minionTemplate.PlayerControllable = false;
 	-- TODO minions need to be unselectable when swapping actors!
 	self.minionTemplate.PinStrength = self.minionTemplate.Mass;
 	self.minionTemplate:AddScript("Uzira.rte/Actors/Shared/Undead.lua");
