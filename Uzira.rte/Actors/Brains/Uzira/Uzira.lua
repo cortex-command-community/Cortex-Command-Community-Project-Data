@@ -188,10 +188,6 @@ function Create(self)
 	self.minionFrenzyTimer = Timer();
 	self.minionFrenzyTimer:SetSimTimeLimitMS(60000);
 	
-	self.regenTimer = Timer();
-	self.regenTimer:SetSimTimeLimitMS(1000);
-	self.prevHealth = self.Health;
-	
 	self.minionManagementSubPieMenu = self.PieMenu:GetFirstPieSliceByPresetName("MinionManagement").SubPieMenu;
 	self.minionManagementPieSliceTemplates = {
 		EnableMinionSpawning = CreatePieSlice("EnableMinionSpawning", "Uzira.rte"),
@@ -204,14 +200,6 @@ function Create(self)
 end
 
 function Update(self)
-	if self.regenTimer:IsPastSimTimeLimit() then
-		if self.Health < self.MaxHealth and self.Health + 2 > self.prevHealth then
-			self.Health = math.min(self.Health + 1, self.MaxHealth);
-		end
-		self.prevHealth = self.Health;
-		self.regenTimer:Reset();
-	end
-	
 	if self:NumberValueExists("EnableMinionSpawning") then
 		self.enableMinionSpawning = self:GetNumberValue("EnableMinionSpawning") ~= 0;
 		self:RemoveNumberValue("EnableMinionSpawning");
