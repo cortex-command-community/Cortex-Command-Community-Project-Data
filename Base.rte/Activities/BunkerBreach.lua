@@ -176,7 +176,7 @@ function BunkerBreach:SetupDefenderInternalReinforcementAreas()
 	if self.AI.isDefenderTeam then
 		local internalReinforcementsArea = SceneMan.Scene:GetOptionalArea("Internal Reinforcements");
 		if internalReinforcementsArea ~= nil then
-			self.AI.internalReinforcementsDoorParticle = CreateMOSRotating("Animated Background Door", "Base.rte");
+			self.AI.internalReinforcementsDoorParticle = CreateMOSRotating("Background Door", "Base.rte");
 			self.AI.internalReinforcementPositions = {};
 			for internalReinforcementsBox in internalReinforcementsArea.Boxes do
 				local backgroundDoor = CreateTerrainObject("Module Back Middle E", "Base.rte");

@@ -21,7 +21,8 @@ local replenishGrenade = function(self, forceEquipGrenade)
 
 	if forceEquipGrenade or self.grenadeReplenishDelay < 100 then
 		self:modifyGrenadeCount(-1);
-		return self.grenadePreviouslyHeldByRootParent and self.rootParent:EquipNamedDevice(self.grenadeTech, self.grenadeName, true);
+		-- Only actually equip the grenade if the root parent was previously holding one, or we're forcing it to equip it. This avoids issues when, for example, removing a grenade from the root paren'ts inventory via Lua.
+		return (forceEquipGrenade or self.grenadePreviouslyHeldByRootParent) and self.rootParent:EquipNamedDevice(self.grenadeTech, self.grenadeName, true);
 	else
 		self.grenadeReplenishGUITimer:Reset();
 		self:modifyGrenadeCount(-1, true);
@@ -88,6 +89,7 @@ function Update(self)
 
 		-- If the root parent is holding a grenade bandolier, merge it and replace it with a grenade.
 		if rootParentEquippedItemModuleAndPresetName == self.bandolierKey then
+			--TODO Once Arm branch is merged, no need to cast to Attachable.
 			local rootParentEquippedItemAsAttachable = ToAttachable(self.rootParent.EquippedItem);
 			rootParentEquippedItemAsAttachable:RemoveFromParent();
 			local bandolierGrenadeCount = rootParentEquippedItemAsAttachable:NumberValueExists("GrenadesRemainingInBandolier") and rootParentEquippedItemAsAttachable:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
