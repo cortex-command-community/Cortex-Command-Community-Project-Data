@@ -5,16 +5,17 @@ local setupMinionAIMode = function(self, minion)
 		minion:AddAIMOWaypoint(self);
 	else
 		minion.AIMode = Actor.AIMODE_SENTRY;
-		if math.random() < 0.25 then
+		local random = math.random();
+		if random < 0.25 then
 			minion.AIMode = Actor.AIMODE_PATROL;
-		elseif math.random() < 0.1 then
+		elseif random < 0.35 then
 			local target = MovableMan:GetClosestEnemyActor(minion.Team, self.Pos, self.enemySearchRadius, Vector());
 			if target then
 				minion.AIMode = Actor.AIMODE_GOTO;
 				minion:ClearMovePath();
 				minion:AddAIMOWaypoint(target);
 			end
-		elseif math.random() < 0.1 then
+		elseif random < 0.45 then
 			minion.AIMode = Actor.AIMODE_BRAINHUNT;
 		end
 	end
