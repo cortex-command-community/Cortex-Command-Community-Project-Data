@@ -16,8 +16,7 @@ function ConstructorDigMode(pieMenu, pieSlice, pieMenuOwner)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("ConstructorMode", "Dig");
-		pieMenu:RemovePieSlicesByPresetName(pieSlice.PresetName);
-		pieMenu:AddPieSlice(CreatePieSlice("Constructor Spray Mode", "Base.rte"), gun);
+		pieMenu:ReplacePieSlice(pieSlice, CreatePieSlice("Constructor Spray Mode", "Base.rte"));
 	end
 end
 
@@ -25,7 +24,6 @@ function ConstructorSprayMode(pieMenu, pieSlice, pieMenuOwner)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("ConstructorMode", "Spray");
-		pieMenu:RemovePieSlicesByPresetName(pieSlice.PresetName);
-		pieMenu:AddPieSlice(CreatePieSlice("Constructor Dig Mode", "Base.rte"), gun);
+		pieMenu:ReplacePieSlice(pieSlice, CreatePieSlice("Constructor Dig Mode", "Base.rte"));
 	end
 end

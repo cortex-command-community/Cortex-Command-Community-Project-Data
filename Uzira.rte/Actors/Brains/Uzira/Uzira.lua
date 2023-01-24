@@ -5,16 +5,17 @@ local setupMinionAIMode = function(self, minion)
 		minion:AddAIMOWaypoint(self);
 	else
 		minion.AIMode = Actor.AIMODE_SENTRY;
-		if math.random() < 0.25 then
+		local random = math.random();
+		if random < 0.25 then
 			minion.AIMode = Actor.AIMODE_PATROL;
-		elseif math.random() < 0.1 then
+		elseif random < 0.35 then
 			local target = MovableMan:GetClosestEnemyActor(minion.Team, self.Pos, self.enemySearchRadius, Vector());
 			if target then
 				minion.AIMode = Actor.AIMODE_GOTO;
 				minion:ClearMovePath();
 				minion:AddAIMOWaypoint(target);
 			end
-		elseif math.random() < 0.1 then
+		elseif random < 0.45 then
 			minion.AIMode = Actor.AIMODE_BRAINHUNT;
 		end
 	end
@@ -189,14 +190,17 @@ function Create(self)
 	self.minionFrenzyTimer:SetSimTimeLimitMS(60000);
 	
 	self.minionManagementSubPieMenu = self.PieMenu:GetFirstPieSliceByPresetName("MinionManagement").SubPieMenu;
-	self.minionManagementPieSliceTemplates = {
-		EnableMinionSpawning = CreatePieSlice("EnableMinionSpawning", "Uzira.rte"),
-		DisableMinionSpawning = CreatePieSlice("DisableMinionSpawning", "Uzira.rte"),
-		MinionsGather = CreatePieSlice("MinionsGather", "Uzira.rte"),
-		MinionsStandby = CreatePieSlice("MinionsStandby", "Uzira.rte"),
-	};
+	
+	self.enableMinionSpawning = self:NumberValueExists("EnableMinionSpawning") and (self:GetNumberValue("EnableMinionSpawning") ~= 0) or true;
+	self.minionManagementSubPieMenu:RemovePieSlicesByPresetName((self.enableMinionSpawning and "EnableMinionSpawning" or "DisableMinionSpawning"));
+	
+	self.minionsShouldGather = self:NumberValueExists("MinionsGather") and (self:GetNumberValue("MinionsGather") ~= 0) or false;
+	self.minionManagementSubPieMenu:RemovePieSlicesByPresetName((self.minionsShouldGather and "MinionsGather" or "MinionsStandby"));
+	
 	self.minionsFrenzyPieSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName("MinionsFrenzy");
-	self.minionsFrenzyPieSliceDescriptions = {[false] = "I Must Recharge My Powers!", [true] = self.minionsFrenzyPieSlice.Description};
+	self.minionsFrenzyPieSlice.Enabled = false;
+	self.minionsFrenzyPieSliceOriginalDescription = self.minionsFrenzyPieSlice.Description;
+	self.minionsFrenzyPieSlice.Description = "I Must Recharge My Powers!";
 end
 
 function Update(self)
@@ -206,8 +210,7 @@ function Update(self)
 		
 		local sliceNameToRemove = self.enableMinionSpawning and "EnableMinionSpawning" or "DisableMinionSpawning";
 		local sliceNameToAdd = self.enableMinionSpawning and "DisableMinionSpawning" or "EnableMinionSpawning";
-		self.minionManagementSubPieMenu:RemovePieSlicesByPresetName(sliceNameToRemove);
-		self.minionManagementSubPieMenu:AddPieSliceIfPresetNameIsUnique(self.minionManagementPieSliceTemplates[sliceNameToAdd]:Clone(), self);
+		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), self.minionManagementPieSliceTemplates[sliceNameToAdd]:Clone(), self);
 	end
 	
 	if self:NumberValueExists("MinionsGather") then
@@ -216,18 +219,12 @@ function Update(self)
 		
 		local sliceNameToRemove = self.minionsShouldGather and "MinionsGather" or "MinionsStandby";
 		local sliceNameToAdd = self.minionsShouldGather and "MinionsStandby" or "MinionsGather";
-		self.minionManagementSubPieMenu:RemovePieSlicesByPresetName(sliceNameToRemove);
-		self.minionManagementSubPieMenu:AddPieSliceIfPresetNameIsUnique(self.minionManagementPieSliceTemplates[sliceNameToAdd]:Clone(), self);
+		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), self.minionManagementPieSliceTemplates[sliceNameToAdd]:Clone(), self);
 		
 		self:cleanupDeadMinions();
 		for i = 1, #self.minions do
 			self:setupMinionAIMode(self.minions[i]);
 		end
-	end
-	
-	if self.minionsFrenzyPieSlice.Enabled ~= self.minionFrenzyTimer:IsPastSimTimeLimit() then
-		self.minionsFrenzyPieSlice.Enabled = self.minionFrenzyTimer:IsPastSimTimeLimit();
-		self.minionsFrenzyPieSlice.Description = self.minionsFrenzyPieSliceDescriptions[self.minionsFrenzyPieSlice.Enabled];
 	end
 	
 	if self:NumberValueExists("MinionsFrenzy") then
@@ -242,6 +239,11 @@ function Update(self)
 		end
 		self.minions = {};
 		self:updateFrenziedMinions();
+	end
+	
+	if not self.minionsFrenzyPieSlice.Enabled and self.minionFrenzyTimer:IsPastSimTimeLimit() then
+		self.minionsFrenzyPieSlice.Enabled = true;
+		self.minionsFrenzyPieSlice.Description = self.minionsFrenzyPieSliceOriginalDescription;
 	end
 	
 	if self.enableMinionSpawning then
