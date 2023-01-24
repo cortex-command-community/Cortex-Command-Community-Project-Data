@@ -5,7 +5,7 @@ local modifyGrenadeCount = function(self, numberOfGrenadesToAddOrRemove, doNotDe
 		return;
 	end
 
-	self.currentGrenadeCount = self.currentGrenadeCount + numberOfGrenadesToAddOrRemove;
+	self.currentGrenadeCount = self.infiniteGrenades and 1 or (self.currentGrenadeCount + numberOfGrenadesToAddOrRemove);
 	self.Mass = self.bandolierMass + (self.grenadeMass * self.currentGrenadeCount);
 	self.rootParent:SetNumberValue(self.bandolierKey, self.currentGrenadeCount);
 	self.rootParent:SetGoldValue(self.rootParent:GetGoldValue(self.rootParent.ModuleID, 1, 1) + (self.grenadeObjectGoldValue * numberOfGrenadesToAddOrRemove));
@@ -21,6 +21,7 @@ local replenishGrenade = function(self, forceEquipGrenade)
 
 	if forceEquipGrenade or self.grenadeReplenishDelay < 100 then
 		self:modifyGrenadeCount(-1);
+		self.rootParent.UpperBodyState = AHuman.WEAPON_READY;
 		-- Only actually equip the grenade if the root parent was previously holding one, or we're forcing it to equip it. This avoids issues when, for example, removing a grenade from the root paren'ts inventory via Lua.
 		return (forceEquipGrenade or self.grenadePreviouslyHeldByRootParent) and self.rootParent:EquipNamedDevice(self.grenadeTech, self.grenadeName, true);
 	else
@@ -61,6 +62,9 @@ function Create(self)
 
 	self.grenadeMass = self:GetNumberValue("GrenadeMass");
 	self.grenadesPerBandolier = self:GetNumberValue("GrenadesPerBandolier");
+	if self.grenadesPerBandolier == -1 then
+		self.infiniteGrenades = true;
+	end
 	self.grenadeObjectGoldValue = self.grenadeObject:GetGoldValue(self.grenadeObject.ModuleID, 1, 1);
 
 	self.currentGrenadeCount = self.rootParent:GetNumberValue(self.bandolierKey);
@@ -122,7 +126,7 @@ function Update(self)
 
 			PrimitiveMan:DrawBitmapPrimitive(self.rootParentController.Player, drawPosition, self.grenadeAmmoIcon, math.pi, 0, true, true);
 			drawPosition = drawPosition + Vector(distanceBetweenIconAndText, -self.grenadeAmmoIcon:GetSpriteHeight() * 0.5);
-			PrimitiveMan:DrawTextPrimitive(self.rootParentController.Player, drawPosition, tostring(self.currentGrenadeCount + 1), true, 0);
+			PrimitiveMan:DrawTextPrimitive(self.rootParentController.Player, drawPosition, (self.infiniteGrenades and "Infinite" or tostring(self.currentGrenadeCount + 1)), true, 0);
 		end
 
 		-- Give the root parent a grenade if the timer is ready and they don't already have a copy of the grenade.
