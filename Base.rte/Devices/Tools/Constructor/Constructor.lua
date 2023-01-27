@@ -87,7 +87,7 @@ function Create(self)
 	self.blockSize = 24;
 	self.fullBlock = 64 * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
 	self.maxResource = 12 * self.fullBlock;
-	self.startResource = 6;
+	self.startResource = 3;
 	self.resource = self.startResource * self.fullBlock;
 	self.tunnelFillTimer = Timer();
 
