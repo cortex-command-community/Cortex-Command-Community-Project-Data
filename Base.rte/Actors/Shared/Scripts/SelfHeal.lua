@@ -5,8 +5,8 @@ function Create(self)
 end
 
 function Update(self)
+	local controller = self:GetController();
 	if self.healing and self.healing.part then
-		local controller = self:GetController();
 		if self.healing.wound then
 			if self.healing.timer:IsPastSimMS(self.healing.delay) then
 				self.healing.timer:Reset();
@@ -92,7 +92,7 @@ function Update(self)
 			self:UnequipArms();
 		else
 			self.healing = nil;
-			self:EquipFirearm(true);
+			controller:SetState(Controller.WEAPON_CHANGE_PREV, true);
 			self:RemoveNumberValue("SelfHeal");
 		end
 	end
