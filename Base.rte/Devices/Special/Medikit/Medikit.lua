@@ -1,5 +1,5 @@
 function Create(self)
-	self.baseStrength = 10;
+	self.baseStrength = 14;
 
 	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
 	self.errorSound = CreateSoundContainer("Error", "Base.rte");
@@ -21,12 +21,14 @@ function Update(self)
 				end
 			end
 			if target and (target.Health < target.MaxHealth or target.WoundCount > 0) then
-				local strength = self.baseStrength + math.ceil(3000/(1 + math.abs(target.Mass - target.InventoryMass + target.Material.StructuralIntegrity) * 0.5));
+				local targetToughnessCoefficient = math.ceil((700/(1 + math.abs(target.Mass - target.InventoryMass + target.Material.StructuralIntegrity)))^1.6);
+				local strength = self.baseStrength + targetToughnessCoefficient;
+				
 				if target.Health < target.MaxHealth then
 					target.Health = math.min(target.Health + strength, target.MaxHealth);
 				end
 				if target.WoundCount > 0 then
-					target:RemoveWounds(math.ceil(strength * 0.15), true, false, false);
+					target:RemoveWounds(math.ceil(strength * 1), true, false, false);
 				end
 				target:FlashWhite(50);
 				self.confirmSound:Play(self.Pos);
