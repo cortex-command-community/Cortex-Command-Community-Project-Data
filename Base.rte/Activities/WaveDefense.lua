@@ -230,7 +230,7 @@ function WaveDefense:UpdateActivity()
 				end
 			end
 
-			if UInputMan:KeyPressed(75) then	-- spacebar
+			if UInputMan:KeyPressed(Key.SPACE) then	-- spacebar
 				self.prepareForNextWave = false;
 				self.ActivityState = Activity.EDITING;
 
@@ -418,108 +418,106 @@ function WaveDefense:UpdateActivity()
 
 			-- The AI have money to buy units
 			if self:GetTeamFunds(self.CPUTeam) > 0 then
-				if MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
-					if self.AI.SpawnTimer:IsPastSimMS(self.AI.timeToSpawn) then
-						if self.AI.AttackPos then	-- Search for a LZ from where to attack the target
-							local easyPathLZx, easyPathLZobst, closeLZx, closeLZobst = self.AI.LZmap:FindLZ(self.CPUTeam, self.AI.AttackPos);
-							if easyPathLZx then	-- Search done
-								self.AI.SpawnTimer:Reset();
+				if self.AI.SpawnTimer:IsPastSimMS(self.AI.timeToSpawn) then
+					if self.AI.AttackPos then	-- Search for a LZ from where to attack the target
+						local easyPathLZx, easyPathLZobst, closeLZx, closeLZobst = self.AI.LZmap:FindLZ(self.CPUTeam, self.AI.AttackPos);
+						if easyPathLZx then	-- Search done
+							self.AI.SpawnTimer:Reset();
 
-								local xPosLZ, obstacleHeight;
-								if closeLZobst < 25 and easyPathLZobst < 25 then
-									if math.random() < 0.5 then
-										xPosLZ = closeLZx;
-										obstacleHeight = closeLZobst;
-									else
-										xPosLZ = easyPathLZx;
-										obstacleHeight = easyPathLZobst;
-									end
-								elseif closeLZobst > 100 then
+							local xPosLZ, obstacleHeight;
+							if closeLZobst < 25 and easyPathLZobst < 25 then
+								if math.random() < 0.5 then
+									xPosLZ = closeLZx;
+									obstacleHeight = closeLZobst;
+								else
 									xPosLZ = easyPathLZx;
 									obstacleHeight = easyPathLZobst;
+								end
+							elseif closeLZobst > 100 then
+								xPosLZ = easyPathLZx;
+								obstacleHeight = easyPathLZobst;
+							else
+								if math.random() < 0.4 then
+									xPosLZ = closeLZx;
+									obstacleHeight = closeLZobst;
 								else
-									if math.random() < 0.4 then
-										xPosLZ = closeLZx;
-										obstacleHeight = closeLZobst;
-									else
-										xPosLZ = easyPathLZx;
-										obstacleHeight = easyPathLZobst;
-									end
+									xPosLZ = easyPathLZx;
+									obstacleHeight = easyPathLZobst;
+								end
+							end
+
+							if obstacleHeight > 200 and math.random() < 0.4 then
+								-- This target is very difficult to reach: cancel this attack and search for another target again soon
+								self.AI.timeToSpawn = 500;
+								self.AI.AttackTarget = nil;
+								self.AI.AttackPos = nil;
+							else
+								self.AI.timeToSpawn = (self.AI.baseSpawnTime + math.random(self.AI.randomSpawnTime)) * rte.SpawnIntervalScale;
+
+								if obstacleHeight < 30 then
+									self:CreateHeavyDrop(xPosLZ, self.AI.AttackPos);
+								elseif obstacleHeight < 100 then
+									self:CreateMediumDrop(xPosLZ, self.AI.AttackPos);
+								elseif obstacleHeight < 250 then
+									self:CreateLightDrop(xPosLZ, self.AI.AttackPos);
+								else
+									self:CreateScoutDrop(xPosLZ, self.AI.AttackPos);
+
+									-- This target is very difficult to reach: change target for the next attack
+									self.AI.AttackTarget = nil;
+									self.AI.AttackPos = nil;
 								end
 
-								if obstacleHeight > 200 and math.random() < 0.4 then
-									-- This target is very difficult to reach: cancel this attack and search for another target again soon
-									self.AI.timeToSpawn = 500;
+								if not MovableMan:IsActor(self.AI.AttackTarget) or math.random() < 0.4 then
+									-- Change target for the next attack
 									self.AI.AttackTarget = nil;
 									self.AI.AttackPos = nil;
 								else
-									self.AI.timeToSpawn = (self.AI.baseSpawnTime + math.random(self.AI.randomSpawnTime)) * rte.SpawnIntervalScale;
-
-									if obstacleHeight < 30 then
-										self:CreateHeavyDrop(xPosLZ, self.AI.AttackPos);
-									elseif obstacleHeight < 100 then
-										self:CreateMediumDrop(xPosLZ, self.AI.AttackPos);
-									elseif obstacleHeight < 250 then
-										self:CreateLightDrop(xPosLZ, self.AI.AttackPos);
-									else
-										self:CreateScoutDrop(xPosLZ, self.AI.AttackPos);
-
-										-- This target is very difficult to reach: change target for the next attack
-										self.AI.AttackTarget = nil;
-										self.AI.AttackPos = nil;
-									end
-
-									if not MovableMan:IsActor(self.AI.AttackTarget) or math.random() < 0.4 then
-										-- Change target for the next attack
-										self.AI.AttackTarget = nil;
-										self.AI.AttackPos = nil;
-									else
-										self.AI.AttackPos = Vector(self.AI.AttackTarget.Pos.X, self.AI.AttackTarget.Pos.Y);
-									end
+									self.AI.AttackPos = Vector(self.AI.AttackTarget.Pos.X, self.AI.AttackTarget.Pos.Y);
 								end
-							end
-						else	-- Select a player actor as a target for the next attack
-							local safePosX = self.AI.LZmap:FindSafeLZ(self.CPUTeam) or math.random(SceneMan.SceneWidth-1);
-							local TargetActors = {};
-
-							for Act in MovableMan.Actors do
-								if self.AI.OnPlayerTeam[Act.Team] and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab" or Act.ClassName == "Actor") then
-									local distance = 20 * (SceneMan:ShortestDistance(Vector(safePosX, Act.Pos.Y), Act.Pos, false).Largest / SceneMan.SceneWidth);
-									distance = distance + self.AI.LZmap:SurfaceProximity(Act.Pos);
-									if Act:HasObjectInGroup("Brains") then
-										distance = distance * 0.8; -- Increase the likelihood of targeting the brain
-									end
-
-									table.insert(TargetActors, {Act=Act, score=distance});
-								end
-							end
-
-							self.AI.AttackTarget = self:SelectTarget(TargetActors);
-							if self.AI.AttackTarget then
-								self.AI.AttackPos = Vector(self.AI.AttackTarget.Pos.X, self.AI.AttackTarget.Pos.Y);
-							else
-								-- No target found
-								self.AI.SpawnTimer:Reset();
-								self.AI.timeToSpawn = 5000;
 							end
 						end
-					end
+					else	-- Select a player actor as a target for the next attack
+						local safePosX = self.AI.LZmap:FindSafeLZ(self.CPUTeam) or math.random(SceneMan.SceneWidth-1);
+						local TargetActors = {};
 
-					if self.AI.BombTimer:IsPastSimMS(self.AI.timeToBomb) then
-						self.AI.BombTimer:Reset();
-						self.AI.timeToBomb = math.random(20, 30) * 1000;
-
-						if math.random() < self.AI.bombChance then
-							local bombPosX = self.AI.LZmap:FindBombTarget(self.CPUTeam);
-							if bombPosX then
-								if self.Difficulty > 45 and math.random() < (0.7-(1-self.Difficulty*0.004)^2) then	-- 3% to 34% chance
-									self.AI.bombChance = math.max(self.AI.bombChance*0.96, 0.01);
-									self.AI.timeToBomb = self.AI.timeToBomb * 0.75;
-									self:CreateTrollDrop(bombPosX);
-								else
-									self.AI.bombChance = math.max(self.AI.bombChance*0.87, 0.01);
-									self:CreateBombDrop(bombPosX);
+						for Act in MovableMan.Actors do
+							if self.AI.OnPlayerTeam[Act.Team] and (Act.ClassName == "AHuman" or Act.ClassName == "ACrab" or Act.ClassName == "Actor") then
+								local distance = 20 * (SceneMan:ShortestDistance(Vector(safePosX, Act.Pos.Y), Act.Pos, false).Largest / SceneMan.SceneWidth);
+								distance = distance + self.AI.LZmap:SurfaceProximity(Act.Pos);
+								if Act:HasObjectInGroup("Brains") then
+									distance = distance * 0.8; -- Increase the likelihood of targeting the brain
 								end
+
+								table.insert(TargetActors, {Act=Act, score=distance});
+							end
+						end
+
+						self.AI.AttackTarget = self:SelectTarget(TargetActors);
+						if self.AI.AttackTarget then
+							self.AI.AttackPos = Vector(self.AI.AttackTarget.Pos.X, self.AI.AttackTarget.Pos.Y);
+						else
+							-- No target found
+							self.AI.SpawnTimer:Reset();
+							self.AI.timeToSpawn = 5000;
+						end
+					end
+				end
+
+				if self.AI.BombTimer:IsPastSimMS(self.AI.timeToBomb) then
+					self.AI.BombTimer:Reset();
+					self.AI.timeToBomb = math.random(20, 30) * 1000;
+
+					if math.random() < self.AI.bombChance then
+						local bombPosX = self.AI.LZmap:FindBombTarget(self.CPUTeam);
+						if bombPosX then
+							if self.Difficulty > 45 and math.random() < (0.7-(1-self.Difficulty*0.004)^2) then	-- 3% to 34% chance
+								self.AI.bombChance = math.max(self.AI.bombChance*0.96, 0.01);
+								self.AI.timeToBomb = self.AI.timeToBomb * 0.75;
+								self:CreateTrollDrop(bombPosX);
+							else
+								self.AI.bombChance = math.max(self.AI.bombChance*0.87, 0.01);
+								self:CreateBombDrop(bombPosX);
 							end
 						end
 					end
