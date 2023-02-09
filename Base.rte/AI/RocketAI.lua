@@ -48,7 +48,7 @@ function Create(self)
 	-- The controllers
 	self.AngPID = RegulatorPID:New{p=2.7, i=0.01, d=0.9, last_input=self.RotAngle, filter_leak=0.6, integral_max=150};
 	self.XposPID = RegulatorPID:New{p=0.2, d=0.5, filter_leak=0.6, integral_max=100};
-	self.YposPID = RegulatorPID:New{p=0.012, i=0.07, d=4, last_input=self.LZpos.Y, filter_leak=0.5, integral_max=30};
+	self.YposPID = RegulatorPID:New{p=0.018, i=0.07, d=4, last_input=self.LZpos.Y, filter_leak=0.5, integral_max=30};
 
 	-- Check if this team is controlled by a human
 	if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() and ActivityMan:GetActivity():IsHumanTeam(self.Team) then
@@ -90,47 +90,44 @@ function UpdateAI(self)
 
 	-- Delivery Sequence logic
 	if self.DeliveryState == ACraft.FALL then
-		self.checkLZ = not self.checkLZ;	-- Only check every second frame
-		if self.checkLZ then
-			-- Move Landing Zone closer to the rocket if it is about to collide with something
-			if (self.LZpos.Y - self.Pos.Y) > self.Radius then
-				local Speed = (self.Vel + Vector(0, 4)) * 15;
-				if SceneMan:CastObstacleRay(self.Pos, Speed, Vector(), Vector(), self.ID, self.IgnoresWhichTeam, 0, 10) > -1 then
-					self:MoveLZ();
-				end
+		-- Move Landing Zone closer to the rocket if it is about to collide with something
+		if (self.LZpos.Y - self.Pos.Y) > self.Radius then
+			local Speed = (self.Vel + Vector(0, 4)) * 15;
+			if SceneMan:CastObstacleRay(self.Pos, Speed, Vector(), Vector(), self.ID, self.IgnoresWhichTeam, 0, 10) > -1 then
+				self:MoveLZ();
 			end
-		else
-			-- Check for something in the way of our descent, and move to the side to avoid it
-			if self.ObstacleTimer:IsPastSimTimeLimit() then
-				self.ObstacleTimer:Reset();
+		end
 
-				local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.max(self.Vel.Y, 2)) * 40;
-				local obstID = SceneMan:CastMORay(self.Pos, Trace, self.ID, self.IgnoresWhichTeam, 0, false, 5);
-				if obstID ~= rte.NoMOID then
-					local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
-					if MO.ClassName == "ACDropShip" or MO.ClassName == "ACRocket" then
-						self.LZpos:SetXY(MO.Pos.X + MO.Radius * 3, math.max(self.Pos.Y - 200, 0));
-						self.ObstacleTimer:SetSimTimeLimitMS(750);
-						self.obstacle = true;
-					elseif MovableMan:IsActor(MO) and MO.Team == self.Team then
-						local newLZx = MO.Pos.X + MO.Diameter + self.Diameter;
+		-- Check for something in the way of our descent, and move to the side to avoid it
+		if self.ObstacleTimer:IsPastSimTimeLimit() then
+			self.ObstacleTimer:Reset();
 
-						-- Make sure newLZx is inside the scene
-						if newLZx > SceneMan.SceneWidth then
-							if SceneMan.SceneWrapsX then
-								newLZx = newLZx - SceneMan.SceneWidth;
-							else
-								newLZx = MO.Pos.X - (MO.Diameter + self.Diameter);
-							end
+			local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.max(self.Vel.Y, 2)) * 40;
+			local obstID = SceneMan:CastMORay(self.Pos, Trace, self.ID, self.IgnoresWhichTeam, 0, false, 5);
+			if obstID ~= rte.NoMOID then
+				local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
+				if MO.ClassName == "ACDropShip" or MO.ClassName == "ACRocket" then
+					self.LZpos:SetXY(MO.Pos.X + MO.Radius * 3, math.max(self.Pos.Y - 200, 0));
+					self.ObstacleTimer:SetSimTimeLimitMS(750);
+					self.obstacle = true;
+				elseif MovableMan:IsActor(MO) and MO.Team == self.Team then
+					local newLZx = MO.Pos.X + MO.Diameter + self.Diameter;
+
+					-- Make sure newLZx is inside the scene
+					if newLZx > SceneMan.SceneWidth then
+						if SceneMan.SceneWrapsX then
+							newLZx = newLZx - SceneMan.SceneWidth;
+						else
+							newLZx = MO.Pos.X - (MO.Diameter + self.Diameter);
 						end
-
-						self.LZpos:SetXY(newLZx, math.max(MO.Pos.Y - 200, 0));
 					end
-				elseif self.obstacle then
-					self.obstacle = false;
-					self:MoveLZ();
-					self.ObstacleTimer:SetSimTimeLimitMS(100);
+
+					self.LZpos:SetXY(newLZx, math.max(MO.Pos.Y - 200, 0));
 				end
+			elseif self.obstacle then
+				self.obstacle = false;
+				self:MoveLZ();
+				self.ObstacleTimer:SetSimTimeLimitMS(100);
 			end
 		end
 
