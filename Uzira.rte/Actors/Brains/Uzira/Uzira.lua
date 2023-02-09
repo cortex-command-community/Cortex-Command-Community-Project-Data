@@ -210,7 +210,7 @@ function Update(self)
 		
 		local sliceNameToRemove = self.enableMinionSpawning and "EnableMinionSpawning" or "DisableMinionSpawning";
 		local sliceNameToAdd = self.enableMinionSpawning and "DisableMinionSpawning" or "EnableMinionSpawning";
-		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), self.minionManagementPieSliceTemplates[sliceNameToAdd]:Clone(), self);
+		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), CreatePieSlice(sliceNameToAdd, "Uzira.rte"));
 	end
 	
 	if self:NumberValueExists("MinionsGather") then
@@ -219,7 +219,7 @@ function Update(self)
 		
 		local sliceNameToRemove = self.minionsShouldGather and "MinionsGather" or "MinionsStandby";
 		local sliceNameToAdd = self.minionsShouldGather and "MinionsStandby" or "MinionsGather";
-		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), self.minionManagementPieSliceTemplates[sliceNameToAdd]:Clone(), self);
+		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), CreatePieSlice(sliceNameToAdd, "Uzira.rte"));
 		
 		self:cleanupDeadMinions();
 		for i = 1, #self.minions do
