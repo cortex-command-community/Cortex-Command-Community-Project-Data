@@ -1,11 +1,8 @@
 function Create(self)
 	--Get the target from Sharpness.
-	for id = 1, MovableMan:GetMOIDCount() - 1 do
-		local mo = MovableMan:GetMOFromID(id);
-		if mo and mo.UniqueID == self.Sharpness then
-			self.target = ToMOSRotating(mo);
-			break;
-		end
+	local mo = MovableMan:FindObjectByUniqueID(self.Sharpness);
+	if mo and IsMOSRotating(mo) then
+		self.target = ToMOSRotating(mo);
 	end
 	if self.target == nil then
 		self.ToDelete = true;

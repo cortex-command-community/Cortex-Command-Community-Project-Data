@@ -5,10 +5,9 @@ function Create(self)
 
 	local longDist = 800;
 	local shortDist = 98;
-	--To-do: fix this garbage targeting system?
-	for i = 1, MovableMan:GetMOIDCount() - 1 do
-		local mo = MovableMan:GetMOFromID(i);
-		if mo and mo.ClassName ~= "ADoor" and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
+	--To-do: rewrite this garbage targeting system?
+	for mo in MovableMan:GetMOsInRadius(self.Pos, longDist) do
+		if mo and IsMOSRotating(mo) and mo.Team ~= self.Team and mo.GetsHitByMOs then
 
 			local distCheck = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 			if distCheck.Magnitude - mo.Radius < longDist then
