@@ -1,6 +1,7 @@
 function Create(self)
 	self.multiplier = 0.8;
 	self.IgnoresTeamHits = false;
+	self.Team = Activity.NOTEAM;
 	self.width = 3;
 end
 
