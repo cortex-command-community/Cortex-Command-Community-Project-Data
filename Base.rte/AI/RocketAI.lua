@@ -48,7 +48,7 @@ function Create(self)
 	-- The controllers
 	self.AngPID = RegulatorPID:New{p=2.7, i=0.01, d=0.9, last_input=self.RotAngle, filter_leak=0.6, integral_max=150};
 	self.XposPID = RegulatorPID:New{p=0.2, d=0.5, filter_leak=0.6, integral_max=100};
-	self.YposPID = RegulatorPID:New{p=0.012, i=0.07, d=4, last_input=self.LZpos.Y, filter_leak=0.5, integral_max=30};
+	self.YposPID = RegulatorPID:New{p=0.018, i=0.07, d=4, last_input=self.LZpos.Y, filter_leak=0.5, integral_max=30};
 
 	-- Check if this team is controlled by a human
 	if self.AIMode == Actor.AIMODE_DELIVER and self:IsInventoryEmpty() and ActivityMan:GetActivity():IsHumanTeam(self.Team) then
@@ -194,8 +194,8 @@ function UpdateAI(self)
 				self.burstUp = nil;
 				self.Ctrl:SetState(Controller.MOVE_UP, true);	-- Don't burst when returning to orbit
 			else
-				if change > 8 and not self.burstUp then
-					self.burstUp = math.max(12 - change, 2); -- Wait n frames until next burst (lower -> better control)
+				if change > 11 and not self.burstUp then
+					self.burstUp = math.max(16 - change, 2); -- Wait n frames until next burst (lower -> better control)
 				elseif change < -20 then
 					self.burstUp = nil;
 					self.Ctrl:SetState(Controller.MOVE_DOWN, true);
