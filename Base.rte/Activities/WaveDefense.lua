@@ -230,7 +230,7 @@ function WaveDefense:UpdateActivity()
 				end
 			end
 
-			if UInputMan:KeyPressed(Key.SPACE) then	-- spacebar
+			if UInputMan:KeyPressed(75) then	-- spacebar
 				self.prepareForNextWave = false;
 				self.ActivityState = Activity.EDITING;
 
