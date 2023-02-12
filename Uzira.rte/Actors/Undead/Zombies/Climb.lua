@@ -1,47 +1,48 @@
-require("AI/NativeHumanAI"); -- or NativeCrabAI or NativeTurretAI
-
 function Create(self)
-	self.moved = false;
-	self.grabFront = false;
-	self.stepBottom = false;
+	self.width = self:GetSpriteWidth();
 end
 
 function Update(self)
-	local frontCheck = SceneMan:CastMORay(self.Pos, Vector(10 * self.FlipFactor, 0), self.ID, -2, rte.airID, false, 1);
-	if frontCheck ~= rte.NoMOID then
-		local mo = MovableMan:GetMOFromID(frontCheck):GetRootParent();
-		if mo and mo.Team == self.Team and mo.ClassName ~= "AEmitter" and mo.ClassName ~= "MOSRotating" then
-			self.grabFront = true;
+	local controller = self:GetController();
+	if self.Status == Actor.STABLE and not controller:IsState(Controller.BODY_JUMP) then
+		local grabbedMO;
+		
+		for _, foot in pairs ({self.FGFoot, self.BGFoot}) do
+			if foot then
+				local lowerCheck = SceneMan:CastMORay(foot.Pos, Vector(0, 1), self.ID, -2, rte.airID, false, 1);
+				if lowerCheck ~= rte.NoMOID then
+					local mo = MovableMan:GetMOFromID(lowerCheck):GetRootParent();
+					if mo and mo.Team == self.Team and IsActor(mo) then
+						grabbedMO = ToActor(mo);
+						break;
+					end
+				end
+			end
+		end
+
+		if grabbedMO then
+			grabbedMO:AddForce(self.Vel * self.Mass, Vector());
+			--If the ID of the grabbed MO is lower than this actor's, it will have its forces applied to it before this, so halve the anti-gravitational force
+			if grabbedMO.ID < self.ID then
+				self.Vel = (self.Vel + grabbedMO.Vel - SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs) * 0.5;
+			else
+				self.Vel = (self.Vel + grabbedMO.Vel) * 0.5 - SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs;
+			end
+			self.AngularVel = (self.AngularVel - grabbedMO.AngularVel) * 0.5;
+		end
+		
+		local dir = 0;
+		if controller:IsState(Controller.MOVE_RIGHT) then
+			dir = 1;
+		elseif controller:IsState(Controller.MOVE_LEFT) then
+			dir = -1
+		end
+		if dir ~= 0 then
+			if SceneMan:CastStrengthRay(self.Pos, Vector(self.width * self.FlipFactor, 0), 10, Vector(), 1, rte.airID, SceneMan.SceneWrapsX) then
+				self.Vel = self.Vel * 0.5 + Vector(0, -1);
+			elseif grabbedMO then
+				self.Vel = self.Vel * 0.5 + Vector(dir, -1);
+			end
 		end
 	end
-
-	local lowerCheck = SceneMan:CastMORay(self.Pos + Vector(0, 17), Vector(0, 1), self.ID, -2, rte.airID, false, 1);
-	if lowerCheck ~= rte.NoMOID then
-		local mo = MovableMan:GetMOFromID(lowerCheck):GetRootParent();
-		if mo and mo.Team == self.Team and mo.ClassName ~= "AEmitter" and mo.ClassName ~= "MOSRotating" then
-			self.stepBottom = true;
-		end
-	end
-
-	local groundcheck = SceneMan:CastStrengthRay(self.Pos + Vector(0, 17), Vector(0, 4), 0, Vector(), 0, rte.airID, SceneMan.SceneWrapsX);
-	local wallcheck = SceneMan:CastStrengthRay(self.Pos, Vector(8 * self.FlipFactor, 0), 0, Vector(), 0, rte.airID, SceneMan.SceneWrapsX);
-
-	if (self:GetController():IsState(Controller.MOVE_LEFT) or self:GetController():IsState(Controller.MOVE_RIGHT)) then
-		self.moved = true;
-	end
-
-	if self.moved and self.grabFront and groundcheck and not(wallcheck) then
-		self.Vel = Vector(0.5 * self.FlipFactor, -4);
-	end
-
-	if self.stepBottom and self.moved then
-		self.Vel = Vector(math.floor(self.Vel.X * 0.5), -2);
-		if not(wallcheck) then
-			self.Vel = Vector(2 * self.FlipFactor, -2);
-		end
-	end
-
-	self.moved = false;
-	self.grabFront = false;
-	self.stepBottom = false;
 end
