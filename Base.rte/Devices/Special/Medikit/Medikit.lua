@@ -1,5 +1,6 @@
 function Create(self)
-	self.baseStrength = 10;
+	self.baseStrength = 8;
+	self.maxStrength = self.baseStrength * 5;
 
 	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
 	self.errorSound = CreateSoundContainer("Error", "Base.rte");
@@ -12,21 +13,20 @@ function OnFire(self)
 		local target = parent;
 		local extend = parent:GetController():IsState(Controller.AIM_SHARP) and self.Radius or 0;
 
-		for actor in MovableMan.Actors do
-			local dist = SceneMan:ShortestDistance(self.MuzzlePos, actor.Pos, SceneMan.SceneWrapsX);
-			if dist:MagnitudeIsLessThan(actor.Radius + extend) and actor.Team == self.Team and actor.ID ~= parent.ID then
-				target = actor;
-				break;
-			end
+		local moCheck = SceneMan:CastMORay(self.MuzzlePos, Vector(self.IndividualRadius + 5, 0), parent.ID, Activity.NOTEAM, rte.airID, false, 1);
+		local mo = MovableMan:GetMOFromID(moCheck)
+		if mo and IsMOSRotating(mo) and IsActor(ToMOSRotating(mo):GetRootParent()) then
+			target = ToActor(ToMOSRotating(mo):GetRootParent());
 		end
 		if target and (target.Health < target.MaxHealth or target.WoundCount > 0) then
-			local strength = self.baseStrength + math.ceil(3000/(1 + math.abs(target.Mass - target.InventoryMass + target.Material.StructuralIntegrity) * 0.5));
-			if target.Health < target.MaxHealth then
-				target.Health = math.min(target.Health + strength, target.MaxHealth);
-			end
+			local targetToughnessCoefficient = 1/(math.sqrt(math.abs(target.Mass - target.InventoryMass)) * 0.1 + target.Material.StructuralIntegrity * 0.01);
+			local strength = self.baseStrength + (self.maxStrength - self.baseStrength) * targetToughnessCoefficient;
+			local wounds = {};
 			if target.WoundCount > 0 then
-				target:RemoveWounds(math.ceil(strength * 0.15), true, false, false);
+				strength = math.max(strength - target:RemoveWounds(math.ceil(strength), true, false, false), self.baseStrength);
 			end
+			target.Health = math.min(target.Health + strength, target.MaxHealth);
+			
 			target:FlashWhite(50);
 			self.confirmSound:Play(self.Pos);
 
