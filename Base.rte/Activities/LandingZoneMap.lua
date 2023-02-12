@@ -489,7 +489,7 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 	for k, LZ in pairs(GoodLZs) do
 		if SceneMan.Scene:CalculatePath(Vector(LZ.X, LZ.Y), Destination, false, digStrenght) > -1 then
 			local Path = {};
-			for Wpt in SceneMan.Scene.ScenePath do
+			for Wpt in SceneMan.Scene:GetScenePath() do
 				table.insert(Path, Wpt);
 			end
 
