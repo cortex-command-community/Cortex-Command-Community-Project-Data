@@ -102,7 +102,7 @@ function UpdateAI(self)
 		if self.ObstacleTimer:IsPastSimTimeLimit() then
 			self.ObstacleTimer:Reset();
 
-			local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.max(self.Vel.Y, 2)) * 40;
+			local Trace = Vector(self.Vel.X + RangeRand(-1, 1), math.max(self.Vel.Y, 5)) * 40;
 			local obstID = SceneMan:CastMORay(self.Pos, Trace, self.ID, self.IgnoresWhichTeam, 0, false, 5);
 			if obstID ~= rte.NoMOID then
 				local MO = MovableMan:GetMOFromID(MovableMan:GetRootMOID(obstID));
