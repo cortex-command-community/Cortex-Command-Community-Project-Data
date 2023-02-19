@@ -47,6 +47,9 @@ luac.out
 
 **/desktop.ini
 
+# MacOS stuff
+.DS_Store
+
 .vs/
 _Screenshots/
 Base.rte/Settings.ini
