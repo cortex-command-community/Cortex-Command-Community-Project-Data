@@ -9,15 +9,23 @@ function Create(self)
 end
 
 function Update(self)
+	if self.FiredFrame then
+		self.ammoCounter = self.ammoCounter - 1;
+	end
 	if self.Magazine then
 		if self.loadedShell then
+			self.ammoCounter = self.ammoCounter + 1;
+			self.Magazine.RoundCount = self.ammoCounter;
 			self.loadedShell = false;
-			self.Magazine.RoundCount = self.ammoCounter + 1;
-		else
-			self.ammoCounter = self.Magazine.RoundCount;
 		end
-		if self.Magazine.RoundCount == self.Magazine.Capacity then
+		if self:IsFull() then
 			self.reloadCycle = false;
+		end
+		if self.reloadCycle and self.reloadTimer:IsPastSimMS(self.reloadDelay) then
+			local actor = self:GetRootParent();
+			if MovableMan:IsActor(actor) then
+				self:Reload();
+			end
 		end
 	else
 		self.reloadTimer:Reset();
@@ -25,13 +33,6 @@ function Update(self)
 		self.loadedShell = true;
 	end
 	if self:IsActivated() then
-		self.reloadCycle = false;
-	end
-	if self.reloadCycle and self.reloadTimer:IsPastSimMS(self.reloadDelay) and self:IsFull() == false then
-		local actor = MovableMan:GetMOFromID(self.RootID);
-		if MovableMan:IsActor(actor) then
-			self:Reload();
-		end
 		self.reloadCycle = false;
 	end
 end
