@@ -113,9 +113,8 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(screen, self.guideTable[#self.guideTable] + lineVector:RadRotate(self.crossLineAngle) * 0.5, self.guideTable[#self.guideTable] + lineVector * 1.5, self.guideColor);
 			end
 			if self.viewCorrection > 0 then
-				local viewLength = SceneMan:ShortestDistance(actor.EyePos, actor.ViewPoint, SceneMan.SceneWrapsX).Magnitude;
-				local viewPoint = actor.ViewPoint + SceneMan:ShortestDistance(actor.ViewPoint, self.guideTable[#self.guideTable], SceneMan.SceneWrapsX):SetMagnitude(viewLength);
-				CameraMan:SetScrollTarget(viewPoint, self.viewCorrection, false, screen);
+				local viewPoint = actor.ViewPoint + SceneMan:ShortestDistance(actor.ViewPoint, self.guideTable[#self.guideTable], SceneMan.SceneWrapsX) * self.viewCorrection * actor.SharpAimProgress;
+				CameraMan:SetScrollTarget(viewPoint, 0.1, false, screen);
 			end
 		end
 	end
