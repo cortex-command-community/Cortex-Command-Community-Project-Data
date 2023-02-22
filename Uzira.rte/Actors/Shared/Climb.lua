@@ -4,7 +4,7 @@ end
 
 function Update(self)
 	local controller = self:GetController();
-	if self.Status == Actor.STABLE and not controller:IsState(Controller.BODY_JUMP) then
+	if self.Status == Actor.STABLE and not (controller:IsState(Controller.BODY_JUMP) or controller:IsState(Controller.BODY_CROUCH)) then
 		local grabbedMO;
 		
 		for _, foot in pairs ({self.FGFoot, self.BGFoot}) do
@@ -39,7 +39,7 @@ function Update(self)
 		end
 		if dir ~= 0 then
 			if SceneMan:CastStrengthRay(self.Pos, Vector(self.width * self.FlipFactor, 0), 10, Vector(), 1, rte.airID, SceneMan.SceneWrapsX) then
-				self.Vel = self.Vel * 0.5 + Vector(0, -1);
+				self.Vel = Vector(self.Vel.X * 0.75, self.Vel.X * 0.5 - 1);
 			elseif grabbedMO then
 				self.Vel = self.Vel * 0.5 + Vector(dir, -1);
 			end
