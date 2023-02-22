@@ -21,5 +21,4 @@ end
 function MinionsFrenzy(pieMenu, pieSlice, pieMenuOwner)
 	pieMenuOwner:SetNumberValue("MinionsFrenzy", 1);
 	pieSlice.Enabled = false;
-	pieSlice.Description = "I Must Recharge My Powers!";
 end

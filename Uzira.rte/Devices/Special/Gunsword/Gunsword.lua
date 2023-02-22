@@ -8,7 +8,7 @@ function Create(self)
 	self.throwSpeed = 0;
 	self.swingSound = CreateSoundContainer("Uzira.rte/Swing");
 	
-	self.particle = CreateMOPixel("Base.rte/Smack Particle Light");
+	self.particle = CreateMOPixel("Base.rte/Smack Particle");
 	self.particle.IgnoresTeamHits = true;
 	self.particle:SetWhichMOToNotHit(self, -1);
 	self.particle.Mass = 2;

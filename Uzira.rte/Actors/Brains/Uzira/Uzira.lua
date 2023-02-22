@@ -27,7 +27,7 @@ local handleMinionSpawning = function(self)
 		self.spawnTimer:SetSimTimeLimitMS(self.baseSpawnTime);
 		local funds = ActivityMan:GetActivity():GetTeamFunds(self.Team);
 		local enemyCount = 0;
-		if funds > self.spawnCost then
+		if funds >= self.spawnCost or self.GoldCarried >= self.spawnCost then
 			local spawnPos = self.Pos + Vector(0, self.Radius + RangeRand(0, self.spawnRadius)):RadRotate(RangeRand(-1, 1));
 			if SceneMan:CastMaxStrengthRay(self.Pos, spawnPos, 8) < self.spawnTerrainTolerance * 2 then
 
@@ -61,7 +61,11 @@ local handleMinionSpawning = function(self)
 					MovableMan:AddActor(newMinion);
 					table.insert(self.minions, newMinion);
 		
-					ActivityMan:GetActivity():SetTeamFunds(funds - self.spawnCost, self.Team);
+					if self.GoldCarried >= self.spawnCost then
+						self.GoldCarried = self.GoldCarried - self.spawnCost;
+					else
+						ActivityMan:GetActivity():SetTeamFunds(funds - self.spawnCost, self.Team);
+					end
 					self.spawnTimer:SetSimTimeLimitMS(self.baseSpawnTime * #self.minions);
 				end
 			end
@@ -83,23 +87,30 @@ local cleanupDeadMinions = function(self)
 end
 
 local updateMinions = function(self)
-	self:cleanupDeadMinions();
-	
-	local enemyCount = 0;
-	for actor in MovableMan.Actors do
-		if actor.Team ~= self.Team and actor.Team ~= Activity.NOTEAM and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-			enemyCount = enemyCount + 1;
-		end
-	end
-	
-	for i = 1, #self.minions do
-		local minion = self.minions[i];
+	if self.updateMinionTimer:IsPastSimTimeLimit() then
+		self.updateMinionTimer:Reset();
+			
+		self:cleanupDeadMinions();
+		self.minionsFrenzyPieSlice.Enabled = false;
 		
-		if SceneMan:ShortestDistance(self.Pos, minion.Pos, SceneMan.SceneWrapsX).Magnitude > self.minionDecayRadius then
-			minion.Health = minion.Health - 1;
-			if minion.Health <= 0 or math.random() < ((1 - (minion.Health / minion.MaxHealth)) * 0.1) then
+		local enemyCount = 0;
+		for actor in MovableMan.Actors do
+			if actor.Team ~= self.Team and actor.Team ~= Activity.NOTEAM and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+				enemyCount = enemyCount + 1;
+			end
+		end
+		
+		for i = 1, #self.minions do
+			local minion = self.minions[i];
+			
+			if SceneMan:ShortestDistance(self.Pos, minion.Pos, SceneMan.SceneWrapsX).Magnitude > self.minionDecayRadius then
+				minion.Health = minion.Health - 1;
 				for attachable in minion.Attachables do
-					if math.random() < 0.5 then
+					local smoke = CreateMOSParticle("Small Smoke Ball 1");
+					smoke.Pos = attachable.Pos;
+					smoke.Lifetime = smoke.Lifetime * RangeRand(0.25, 1.5);
+					MovableMan:AddParticle(smoke);
+					if minion.Health < math.random(10) then
 						minion:RemoveAttachable(attachable, true, true);
 						if minion.Health > 0 then
 							break;
@@ -107,14 +118,22 @@ local updateMinions = function(self)
 					end
 				end
 				if minion.Health <= 0 then
-					ActivityMan:GetActivity():ReportDeath(self.Team, -1);
+					ActivityMan:GetActivity():ReportDeath(minion.Team, -1);
 				end
 			end
+			self.minionsFrenzyPieSlice.Enabled = true;
+			
+			if self.isAIControlled and #self.minions > enemyCount then
+				self:SetNumberValue("MinionsFrenzy", 1);
+			end
 		end
-		
-		if self.isAITeam and #self.minions > enemyCount and self.minionFrenzyTimer:IsPastSimTimeLimit() then
-			self:frenzyMinions();
-			self.minionFrenzyTimer:Reset();
+		self:updateFrenziedMinions();
+	end
+	if self:IsPlayerControlled() and self.HUDVisible then
+		for _, minion in pairs(self.minions) do
+			if minion.Age > 1000 then
+				PrimitiveMan:DrawBitmapPrimitive(ActivityMan:GetActivity():ScreenOfPlayer(self:GetController().Player), minion.AboveHUDPos + Vector(0, math.sin(self.Age * 0.01) * 2 - 3), self.indicatorArrow, self.Team, 0, false, false);
+			end
 		end
 	end
 end
@@ -153,8 +172,8 @@ function Create(self)
 	self.updateMinions = updateMinions;
 	self.updateFrenziedMinions = updateFrenziedMinions;
 
-	self.isAITeam = not ActivityMan:GetActivity():PlayerHuman(self:GetController().Player);
-	if self.isAITeam then
+	self.isAIControlled = not ActivityMan:GetActivity():PlayerHuman(self:GetController().Player);
+	if self.isAIControlled then
 		self.enableMinionSpawning = true;
 		self:RemoveNumberValue("EnableNecromancy");
 		self.minionsShouldGather = false;
@@ -180,14 +199,11 @@ function Create(self)
 	self.frenziedMinions = {};
 
 	self.spawnTimer = Timer();
-	self.baseSpawnTime = 1000;
+	self.baseSpawnTime = 750;
 	self.spawnTimer:SetSimTimeLimitMS(self.baseSpawnTime);
 	
 	self.updateMinionTimer = Timer();
 	self.updateMinionTimer:SetSimTimeLimitMS(500);
-	
-	self.minionFrenzyTimer = Timer();
-	self.minionFrenzyTimer:SetSimTimeLimitMS(60000);
 	
 	self.minionManagementSubPieMenu = self.PieMenu:GetFirstPieSliceByPresetName("MinionManagement").SubPieMenu;
 	
@@ -199,11 +215,18 @@ function Create(self)
 	
 	self.minionsFrenzyPieSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName("MinionsFrenzy");
 	self.minionsFrenzyPieSlice.Enabled = false;
-	self.minionsFrenzyPieSliceOriginalDescription = self.minionsFrenzyPieSlice.Description;
-	self.minionsFrenzyPieSlice.Description = "I Must Recharge My Powers!";
+	
+	self.indicatorArrow = CreateMOSParticle("Indicator Arrow", "Uzira.rte");
+end
+
+function WhilePieMenuOpen(self, pieMenu)
 end
 
 function Update(self)
+	if self.isAIControlled and self:IsPlayerControlled() then
+		self.isAIControlled = false;
+	end
+	
 	if self:NumberValueExists("EnableMinionSpawning") then
 		self.enableMinionSpawning = self:GetNumberValue("EnableMinionSpawning") ~= 0;
 		self:RemoveNumberValue("EnableMinionSpawning");
@@ -229,21 +252,13 @@ function Update(self)
 	
 	if self:NumberValueExists("MinionsFrenzy") then
 		self:RemoveNumberValue("MinionsFrenzy");
-		self.minionFrenzyTimer:Reset();
 	
 		self:cleanupDeadMinions();
 		for i = 1, #self.minions do
 			self.frenziedMinions[#self.frenziedMinions + 1] = self.minions[i];
-			
-			--TODO give frenzied minions eyetrails or glows or something, and buffs
 		end
 		self.minions = {};
 		self:updateFrenziedMinions();
-	end
-	
-	if not self.minionsFrenzyPieSlice.Enabled and self.minionFrenzyTimer:IsPastSimTimeLimit() then
-		self.minionsFrenzyPieSlice.Enabled = true;
-		self.minionsFrenzyPieSlice.Description = self.minionsFrenzyPieSliceOriginalDescription;
 	end
 	
 	if self.enableMinionSpawning then
@@ -252,9 +267,5 @@ function Update(self)
 		self.spawnTimer:Reset();
 	end
 	
-	if self.updateMinionTimer:IsPastSimTimeLimit() then
-		self.updateMinionTimer:Reset();
-		self:updateMinions();
-		self:updateFrenziedMinions();
-	end
+	self:updateMinions();
 end
