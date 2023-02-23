@@ -67,7 +67,23 @@ local handleMinionSpawning = function(self)
 						ActivityMan:GetActivity():SetTeamFunds(funds - self.spawnCost, self.Team);
 					end
 					self.spawnTimer:SetSimTimeLimitMS(self.baseSpawnTime * #self.minions);
+							
+					local spawnSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(self.enableMinionSpawning and "DisableMinionSpawning" or "EnableMinionSpawning");
+					if spawnSlice then
+						spawnSlice.Description = self.enableMinionSpawning and "Let the dead sleep..." or "Raise the living dead!";
+					end
+					local gatherSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(self.minionsShouldGather and "MinionsStandby" or "MinionsGather");
+					if gatherSlice then
+						gatherSlice.Description = self.minionsShouldGather and "Attend me, my dread horde!" or "Leave me to my solitude!";
+					end
+					return;
 				end
+			end
+		end
+		if #self.minions == 0 and #self.frenziedMinions == 0 then
+			local spawnSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(self.enableMinionSpawning and "DisableMinionSpawning" or "EnableMinionSpawning");
+			if spawnSlice then
+				spawnSlice.Description = self.enableMinionSpawning and "From dust they came..." or "...To dust they return.";
 			end
 		end
 	end
@@ -234,6 +250,13 @@ function Update(self)
 		local sliceNameToRemove = self.enableMinionSpawning and "EnableMinionSpawning" or "DisableMinionSpawning";
 		local sliceNameToAdd = self.enableMinionSpawning and "DisableMinionSpawning" or "EnableMinionSpawning";
 		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), CreatePieSlice(sliceNameToAdd, "Uzira.rte"));
+
+		local newSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToAdd);
+		if #self.minions == 0 and #self.frenziedMinions == 0 then
+			newSlice.Description = self.enableMinionSpawning and "From dust they came..." or "...To dust they return.";
+		else
+			newSlice.Description = self.enableMinionSpawning and "Let the dead sleep..." or "Raise the living dead!";
+		end
 	end
 	
 	if self:NumberValueExists("MinionsGather") then
@@ -245,8 +268,14 @@ function Update(self)
 		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), CreatePieSlice(sliceNameToAdd, "Uzira.rte"));
 		
 		self:cleanupDeadMinions();
-		for i = 1, #self.minions do
-			self:setupMinionAIMode(self.minions[i]);
+		local newSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToAdd);
+		if #self.minions == 0 and #self.frenziedMinions == 0 then
+			newSlice.Description = "I and what army?";
+		else
+			newSlice.Description = self.minionsShouldGather and "Attend me, my dread horde!" or "Leave me to my solitude!";
+			for i = 1, #self.minions do
+				self:setupMinionAIMode(self.minions[i]);
+			end
 		end
 	end
 	
