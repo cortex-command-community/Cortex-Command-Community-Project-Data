@@ -74,7 +74,7 @@ local handleMinionSpawning = function(self)
 					end
 					local gatherSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(self.minionsShouldGather and "MinionsStandby" or "MinionsGather");
 					if gatherSlice then
-						gatherSlice.Description = self.minionsShouldGather and "Attend me, my dread horde!" or "Leave me to my solitude!";
+						gatherSlice.Description = self.minionsShouldGather and "Leave me to my solitude!" or "Attend me, my dread horde!";
 					end
 					return;
 				end
@@ -268,14 +268,8 @@ function Update(self)
 		self.minionManagementSubPieMenu:ReplacePieSlice(self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToRemove), CreatePieSlice(sliceNameToAdd, "Uzira.rte"));
 		
 		self:cleanupDeadMinions();
-		local newSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(sliceNameToAdd);
-		if #self.minions == 0 and #self.frenziedMinions == 0 then
-			newSlice.Description = "I and what army?";
-		else
-			newSlice.Description = self.minionsShouldGather and "Attend me, my dread horde!" or "Leave me to my solitude!";
-			for i = 1, #self.minions do
-				self:setupMinionAIMode(self.minions[i]);
-			end
+		for i = 1, #self.minions do
+			self:setupMinionAIMode(self.minions[i]);
 		end
 	end
 	
