@@ -1,6 +1,9 @@
 function Update(self)
 	if self.FiredFrame then
 		self.Frame = self.FrameCount - 1;
+		if self.Magazine then
+			self.Magazine.ToDelete = true;
+		end
 	elseif self:IsReloading() then
 		local inverseProgress = 1 - self.ReloadProgress;
 		self.Frame = math.min(math.ceil((self.FrameCount) * inverseProgress), self.Frame);
@@ -15,14 +18,14 @@ function Update(self)
 		end
 	elseif self:DoneReloading() then
 		self.Frame = 0;
+	elseif self.Frame ~= 0 and self.Frame ~= self.FrameCount - 1 then
+		self.Frame = self.FrameCount - 1;
 	end
-end
-function OnDetach(self, exParent)
-	if MovableMan:ValidMO(self) then
-		if self.Magazine then
-			self:RemoveAttachable(self.Magazine, true, true);
+	if self.Magazine and not self:GetParent() and self.TravelImpulse:MagnitudeIsGreaterThan(self.Mass) then
+		if math.random() < 0.5 then
+			self:Activate();
 		else
-			self.Frame = self.FrameCount - 1;
+			self:RemoveAttachable(self.Magazine, true, true);
 		end
 	end
 end
