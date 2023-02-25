@@ -61,7 +61,7 @@ function Update(self)
 						local offset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(moAngle):SetMagnitude(dist.Magnitude - (wound.Radius - 1) * wound.Scale);
 						local traceOffset = Vector(trace.X * mo.FlipFactor, trace.Y):RadRotate(moAngle);
 
-						wound.InheritedRotAngleOffset = traceOffset.AbsRadAngle - (mo.HFlipped and 0 or math.pi);
+						wound.InheritedRotAngleOffset = traceOffset.AbsRadAngle;
 						mo:AddWound(wound, Vector(offset.X, offset.Y), true);
 					end
 				end

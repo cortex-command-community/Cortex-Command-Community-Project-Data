@@ -17,7 +17,7 @@ function OnCollideWithMO(self, mo, rootMO)
 				local wound = CreateAEmitter(woundName);
 				local dist = SceneMan:ShortestDistance(mo.Pos, self.Pos, SceneMan.SceneWrapsX);
 				local stickOffset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(-mo.RotAngle * mo.FlipFactor);
-				wound.InheritedRotAngleOffset = stickOffset.AbsRadAngle - (mo.HFlipped and math.pi or 0);
+				wound.InheritedRotAngleOffset = stickOffset.AbsRadAngle;
 				mo:AddWound(wound, Vector(stickOffset.X, stickOffset.Y):SetMagnitude(stickOffset.Magnitude - self.Radius), true);
 			end
 		end

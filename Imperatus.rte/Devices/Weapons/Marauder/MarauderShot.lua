@@ -19,7 +19,7 @@ function OnCollideWithMO(self, mo, rootMO)
 					
 					local dist = SceneMan:ShortestDistance(mo.Pos, checkPos, SceneMan.SceneWrapsX);
 					local setOffset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(-mo.RotAngle * mo.FlipFactor):SetMagnitude(dist.Magnitude - self.width);
-					local setAngle = trace.AbsRadAngle - mo.RotAngle + (mo.HFlipped and 0 or math.pi);
+					local setAngle = trace.AbsRadAngle - mo.RotAngle;
 
 					local woundName = mo:GetEntryWoundPresetName();
 					local multiplier = math.min(penetration, self.WoundDamageMultiplier);

@@ -78,7 +78,7 @@ function Update(self)
 				local woundName = ToMOSRotating(self.target):GetEntryWoundPresetName();
 				if woundName ~= "" then
 					local wound = CreateAEmitter(woundName);
-					wound.EmitAngle = self.targetOffset.AbsRadAngle + RangeRand(-0.1, 0.1);
+					wound.InheritedRotAngleOffset = self.targetOffset.AbsRadAngle + RangeRand(-0.1, 0.1);
 					ToMOSRotating(self.target):AddWound(wound, self.targetOffset + Vector(math.random(-1, 1), math.random(-1, 1)), true);
 				end
 			end

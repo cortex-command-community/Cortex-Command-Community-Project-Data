@@ -47,7 +47,7 @@ function PulsarDissipate(self, inverted)
 				wound.BurstDamage = wound.BurstDamage * self.WoundDamageMultiplier;
 				local woundOffset = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
 				woundOffset.X = woundOffset.X * mo.FlipFactor;
-				wound.InheritedRotAngleOffset = woundOffset.AbsRadAngle - (mo.HFlipped and math.pi or 0);
+				wound.InheritedRotAngleOffset = woundOffset.AbsRadAngle;
 				mo:AddWound(wound, woundOffset:RadRotate(-mo.RotAngle * mo.FlipFactor), true);
 				
 				local melter = CreateMOPixel("Disintegrator");
