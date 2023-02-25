@@ -13,7 +13,7 @@ function OnFire(self)
 		local target = parent;
 		local extend = parent:GetController():IsState(Controller.AIM_SHARP) and self.Radius or 0;
 
-		local moCheck = SceneMan:CastMORay(self.MuzzlePos, Vector(self.IndividualRadius + 5, 0), parent.ID, Activity.NOTEAM, rte.airID, false, 1);
+		local moCheck = SceneMan:CastMORay(self.MuzzlePos, Vector(self.IndividualRadius + 5, 0):RadRotate(parent:GetAimAngle(true)), parent.ID, Activity.NOTEAM, rte.airID, false, 1);
 		local mo = MovableMan:GetMOFromID(moCheck)
 		if mo and IsMOSRotating(mo) and IsActor(ToMOSRotating(mo):GetRootParent()) then
 			target = ToActor(ToMOSRotating(mo):GetRootParent());
