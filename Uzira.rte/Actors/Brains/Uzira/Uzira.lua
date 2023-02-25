@@ -72,10 +72,6 @@ local handleMinionSpawning = function(self)
 					if spawnSlice then
 						spawnSlice.Description = self.enableMinionSpawning and "Let the dead sleep..." or "Raise the living dead!";
 					end
-					local gatherSlice = self.minionManagementSubPieMenu:GetFirstPieSliceByPresetName(self.minionsShouldGather and "MinionsStandby" or "MinionsGather");
-					if gatherSlice then
-						gatherSlice.Description = self.minionsShouldGather and "Leave me to my solitude!" or "Attend me, my dread horde!";
-					end
 					return;
 				end
 			end
