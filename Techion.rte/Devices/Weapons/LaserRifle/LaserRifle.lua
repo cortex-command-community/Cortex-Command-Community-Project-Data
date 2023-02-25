@@ -58,11 +58,9 @@ function Update(self)
 						local wound = CreateAEmitter(woundName);
 
 						local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX);
-						local offset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(moAngle):SetMagnitude(dist.Magnitude - (wound.Radius - 1) * wound.Scale);
-						local traceOffset = Vector(trace.X * mo.FlipFactor, trace.Y):RadRotate(moAngle);
-
-						wound.InheritedRotAngleOffset = traceOffset.AbsRadAngle;
-						mo:AddWound(wound, Vector(offset.X, offset.Y), true);
+						local woundOffset = Vector(dist.X * mo.FlipFactor, dist.Y):RadRotate(moAngle):SetMagnitude(dist.Magnitude - (wound.Radius - 1) * wound.Scale);
+						wound.InheritedRotAngleOffset = woundOffset.AbsRadAngle;
+						mo:AddWound(wound, woundOffset:RadRotate(-mo.RotAngle), true);
 					end
 				end
 			end
