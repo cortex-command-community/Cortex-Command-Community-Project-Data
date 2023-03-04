@@ -1,7 +1,82 @@
-function Harvester:StartActivity()
+function Harvester:StartActivity(isNewGame)
+	SceneMan.Scene:GetArea("LZ Team 1");
+	SceneMan.Scene:GetArea("LZ All");
+
+	self.startMessageTimer = Timer();
+	self.enemySpawnTimer = Timer();
+
+	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+
+	if isNewGame then
+		self:StartNewGame();
+	else
+		self:ResumeLoadedGame();
+	end
+end
+
+function Harvester:OnSave()
+	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
+	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
+
+	self:SaveNumber("humanTeamFundsAfterInitialEditingPhase", self.humanTeamFundsAfterInitialEditingPhase or -1);
+
+	self:SaveNumber("goldNeeded", self.goldNeeded);
+	self:SaveString("goldDisplay", self.goldDisplay);
+	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
+	self:SaveNumber("randomSpawnTime", self.randomSpawnTime);
+	self:SaveNumber("enemySpawnTimeLimit", self.enemySpawnTimeLimit);
+end
+
+function Harvester:StartNewGame()
+	self:SetTeamFunds(1000000, self.CPUTeam);
+	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+	self.humanTeamFundsAfterInitialEditingPhase = -1;
+
+	self.addFogOfWar = self:GetFogOfWarEnabled();
+
+	for actor in MovableMan.AddedActors do
+		actor.Team = Activity.TEAM_1;
+	end
+
+	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
+		self.goldNeeded = 1000;
+		self.goldDisplay = "one thousand";
+		self.baseSpawnTime = 10000;
+		self.randomSpawnTime = 8000;
+	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
+		self.goldNeeded = 2000;
+		self.goldDisplay = "two thousand";
+		self.baseSpawnTime = 9500;
+		self.randomSpawnTime = 7000;
+	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
+		self.goldNeeded = 3000;
+		self.goldDisplay = "three thousand";
+		self.baseSpawnTime = 9000;
+		self.randomSpawnTime = 6000;
+	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
+		self.goldNeeded = 5000;
+		self.goldDisplay = "five thousand";
+		self.baseSpawnTime = 8500;
+		self.randomSpawnTime = 5000;
+	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
+		self.goldNeeded = 7500;
+		self.goldDisplay = "sevent thousand five hundred";
+		self.baseSpawnTime = 8000;
+		self.randomSpawnTime = 4500;
+	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
+		self.goldNeeded = 10000;
+		self.goldDisplay = "ten thousand";
+		self.baseSpawnTime = 7500;
+		self.randomSpawnTime = 4000;
+	end
+	self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime)) * rte.SpawnIntervalScale;
+
+	self:SetupHumanPlayerBrains();
+end
+
+function Harvester:SetupHumanPlayerBrains()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
@@ -20,68 +95,37 @@ function Harvester:StartActivity()
 			end
 		end
 	end
-
-	-- Select a tech for the CPU player
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-	self.ESpawnTimer = Timer();
-	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
-	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
-	self.Fog = true;
-
-	self.HarvesterTimer = Timer();
-
-	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
-		self.goldNeeded = 1000;
-		self.goldDisplay = "one thousand";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 10000;
-		self.RandomSpawnTime = 8000;
-	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
-		self.goldNeeded = 2000;
-		self.goldDisplay = "two thousand";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 9500;
-		self.RandomSpawnTime = 7000;
-	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		self.goldNeeded = 3000;
-		self.goldDisplay = "three thousand";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 9000;
-		self.RandomSpawnTime = 6000;
-	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
-		self.goldNeeded = 5000;
-		self.goldDisplay = "five thousand";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 8500;
-		self.RandomSpawnTime = 5000;
-	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
-		self.goldNeeded = 7500;
-		self.goldDisplay = "sevent thousand five hundred";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 8000;
-		self.RandomSpawnTime = 4500;
-	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
-		self.goldNeeded = 10000;
-		self.goldDisplay = "ten thousand";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 7500;
-		self.RandomSpawnTime = 4000;
-	end
-
-	-- CPU Funds are unlimited
-	self:SetTeamFunds(1000000, self.CPUTeam);
-
-	self.StartTimer = Timer();
-	self.StartingGold = nil;
-
-	self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime)) * rte.SpawnIntervalScale;
-
-	-- Take scene ownership
-	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1;
-	end
 end
 
+function Harvester:ResumeLoadedGame()
+	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
+	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
+
+	self.humanTeamFundsAfterInitialEditingPhase = self:LoadNumber("humanTeamFundsAfterInitialEditingPhase");
+
+	self.goldNeeded = self:LoadNumber("goldNeeded");
+	self.goldDisplay = self:LoadString("goldDisplay");
+	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
+	self.randomSpawnTime = self:LoadNumber("goldNeeded");
+	self.enemySpawnTimeLimit = self:LoadNumber("enemySpawnTimeLimit");
+
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			if not self:GetPlayerBrain(player) then
+				local team = self:GetTeamOfPlayer(player);
+				local foundBrain = MovableMan:GetUnassignedBrain(team);
+				if foundBrain then
+					--Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
+					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
+				end
+			end
+		end
+	end
+end
 
 function Harvester:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -102,19 +146,18 @@ function Harvester:EndActivity()
 	end
 end
 
-
 function Harvester:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER and self.ActivityState ~= Activity.EDITING then
 		--Determine how much gold the players started with.
-		if self.StartingGold == nil then
-			self.StartingGold = self:GetTeamFunds(Activity.TEAM_1);
+		if self.humanTeamFundsAfterInitialEditingPhase == -1 then
+			self.humanTeamFundsAfterInitialEditingPhase = self:GetTeamFunds(Activity.TEAM_1);
 		end
 
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
-				if self.StartTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(self.goldNeeded - (self:GetTeamFunds(Activity.TEAM_1) - self.StartingGold) .. " oz of gold left", player, 0, 1000, false);
+				if self.startMessageTimer:IsPastSimMS(3000) then
+					FrameMan:SetScreenText(self.goldNeeded - (math.ceil(self:GetTeamFunds(Activity.TEAM_1)) - self.humanTeamFundsAfterInitialEditingPhase) .. " oz of gold left", player, 0, 1000, false);
 				else
 					FrameMan:SetScreenText("Dig up " .. self.goldDisplay .. " oz of gold!", player, 333, 5000, true);
 				end
@@ -146,7 +189,7 @@ function Harvester:UpdateActivity()
 				end
 
 				--Check if the player has won.
-				if self:GetTeamFunds(Activity.TEAM_1) - self.StartingGold > self.goldNeeded then
+				if self:GetTeamFunds(Activity.TEAM_1) - self.humanTeamFundsAfterInitialEditingPhase > self.goldNeeded then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You dug up all the gold!", player, 333, -1, false);
@@ -165,13 +208,13 @@ function Harvester:UpdateActivity()
 			end
 		end
 
-		if self.Fog and self:GetFogOfWarEnabled() then
+		if self.addFogOfWar then
 			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1));
-			self.Fog = false;
+			self.addFogOfWar = false;
 		end
 
 		--Spawn the AI.
-		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 			local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
@@ -289,10 +332,10 @@ function Harvester:UpdateActivity()
 				end
 			end
 
-			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime)) * rte.SpawnIntervalScale;
+			self.enemySpawnTimer:Reset();
+			self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime)) * rte.SpawnIntervalScale;
 		end
 	else
-		self.StartTimer:Reset();
+		self.startMessageTimer:Reset();
 	end
 end

@@ -172,22 +172,6 @@ function BunkerBreach:SetupDefenderActors()
 	end
 end
 
-function BunkerBreach:SetupDefenderInternalReinforcementAreas()
-	if self.AI.isDefenderTeam then
-		local internalReinforcementsArea = SceneMan.Scene:GetOptionalArea("Internal Reinforcements");
-		if internalReinforcementsArea ~= nil then
-			self.AI.internalReinforcementsDoorParticle = CreateMOSRotating("Background Door", "Base.rte");
-			self.AI.internalReinforcementPositions = {};
-			for internalReinforcementsBox in internalReinforcementsArea.Boxes do
-				local backgroundDoor = CreateTerrainObject("Module Back Middle E", "Base.rte");
-				backgroundDoor.Pos = SceneMan:SnapPosition(internalReinforcementsBox.Corner, true);
-				self.AI.internalReinforcementPositions[#self.AI.internalReinforcementPositions + 1] = backgroundDoor.Pos + Vector(24, 24);
-				SceneMan:AddSceneObject(backgroundDoor);
-			end
-		end
-	end
-end
-
 function BunkerBreach:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
 		SceneMan:MakeAllUnseen(Vector(24, 24), self.attackerTeam);
@@ -212,15 +196,25 @@ function BunkerBreach:SetupFogOfWar()
 	end
 end
 
-function BunkerBreach:StartActivity()
-	collectgarbage("collect");
+function BunkerBreach:SetupDefenderInternalReinforcementAreas()
+	if self.AI.isDefenderTeam then
+		local internalReinforcementsArea = SceneMan.Scene:GetOptionalArea("Internal Reinforcements");
+		if internalReinforcementsArea ~= nil then
+			self.AI.internalReinforcementsDoorParticle = CreateMOSRotating("Background Door", "Base.rte");
+			self.AI.internalReinforcementPositions = {};
+			for internalReinforcementsBox in internalReinforcementsArea.Boxes do
+				local backgroundDoor = CreateTerrainObject("Module Back Middle E", "Base.rte");
+				backgroundDoor.Pos = SceneMan:SnapPosition(internalReinforcementsBox.Corner, true);
+				self.AI.internalReinforcementPositions[#self.AI.internalReinforcementPositions + 1] = backgroundDoor.Pos + Vector(24, 24);
+				SceneMan:AddSceneObject(backgroundDoor);
+			end
+		end
+	end
+end
 
+function BunkerBreach:StartActivity(isNewGame)
 	self.attackerTeam = Activity.TEAM_1;
 	self.defenderTeam = Activity.TEAM_2;
-
-	-- Because of game oddities, we need to set funds to match starting gold manually.
-	self:SetTeamFunds(self:GetStartingGold(), self.defenderTeam);
-	self:SetTeamFunds(self:GetStartingGold(), self.attackerTeam);
 
 	-- Setup LZ and main bunker areas, and also filter out any scenes without the "LZ Attacker" area from being usable in this Activity.
 	local attackerLZ = SceneMan.Scene:GetArea("LZ Attacker");
@@ -240,17 +234,72 @@ function BunkerBreach:StartActivity()
 		end
 	end
 
-	self:SetupAIVariables();
+	if isNewGame then
+		-- Because of game oddities, we need to set funds to match starting gold manually.
+		self:SetTeamFunds(self:GetStartingGold(), self.defenderTeam);
+		self:SetTeamFunds(self:GetStartingGold(), self.attackerTeam);
 
-	self:SetupHumanAttackerBrains();
+		self:SetupAIVariables();
 
-	self:SetupDefenderBrains();
+		self:SetupHumanAttackerBrains();
 
-	self:SetupDefenderActors();
+		self:SetupDefenderBrains();
 
+		self:SetupDefenderActors();
+
+		self:SetupFogOfWar();
+	else
+		self:ResumeLoadedGame();
+	end
 	self:SetupDefenderInternalReinforcementAreas();
+end
 
-	self:SetupFogOfWar();
+function BunkerBreach:OnSave()
+	self:SaveNumber("AI.isAttackerTeam", self.AI.isAttackerTeam and 1 or 0);
+	self:SaveNumber("AI.isDefenderTeam", self.AI.isDefenderTeam and 1 or 0);
+
+	self:SaveNumber("AI.difficultyRatio", self.AI.difficultyRatio);
+	self:SaveNumber("AI.maxDiggerCount", self.AI.maxDiggerCount);
+	self:SaveNumber("AI.spawnTimer.ElapsedSimTimeMS", self.AI.spawnTimer.ElapsedSimTimeMS);
+	self:SaveNumber("AI.spawnTimer.SimTimeLimitMS", self.AI.spawnTimer:GetSimTimeLimitMS());
+
+	self:SaveNumber("AI.maxCrabCount", self.AI.maxCrabCount);
+	self:SaveNumber("AI.majorAttackTimer.ElapsedSimTimeMS", self.AI.spawnTimer.ElapsedSimTimeMS);
+	self:SaveNumber("AI.majorAttackTimer.SimTimeLimitMS", self.AI.spawnTimer:GetSimTimeLimitMS());
+	self:SaveNumber("AI.initialMajorAttackDelay", self.AI.initialMajorAttackDelay or 0);
+	self:SaveNumber("AI.isLaunchingMajorAttack", self.AI.isLaunchingMajorAttack and 1 or 0);
+
+	self:SaveNumber("AI.internalReinforcementBudget", self.AI.internalReinforcementBudget or 0);
+
+	-- If any internal reinforcements are queued to spawn, we can't save them, so spawn them right away.
+	if self.AI.isDefenderTeam then
+		self:UpdateInternalReinforcementSpawning(true);
+	end
+end
+
+function BunkerBreach:ResumeLoadedGame()
+	self.AI = {};
+
+	self.AI.isAttackerTeam = self:LoadNumber("AI.isAttackerTeam") ~= 0;
+	self.AI.isDefenderTeam = self:LoadNumber("AI.isDefenderTeam") ~= 0;
+
+	if self.CPUTeam ~= Activity.NOTEAM then
+		self.AI.difficultyRatio = self:LoadNumber("AI.difficultyRatio");
+		self.AI.maxDiggerCount = self:LoadNumber("AI.maxDiggerCount");
+
+		self.AI.spawnTimer = Timer();
+		self.AI.spawnTimer.ElapsedSimTimeMS = self:LoadNumber("AI.spawnTimer.ElapsedSimTimeMS");
+		self.AI.spawnTimer:SetSimTimeLimitMS(self:LoadNumber("AI.spawnTimer.SimTimeLimitMS"));
+
+		self.AI.maxCrabCount = self:LoadNumber("AI.maxCrabCount");
+		self.AI.majorAttackTimer = Timer();
+		self.AI.majorAttackTimer.ElapsedSimTimeMS = self:LoadNumber("AI.majorAttackTimer.ElapsedSimTimeMS");
+		self.AI.majorAttackTimer:SetSimTimeLimitMS(self:LoadNumber("AI.majorAttackTimer.SimTimeLimitMS"));
+		self.AI.initialMajorAttackDelay = self:LoadNumber("AI.initialMajorAttackDelay");
+		self.AI.isLaunchingMajorAttack = self:LoadNumber("AI.isLaunchingMajorAttack") ~= 0
+
+		self.AI.internalReinforcementBudget = self:LoadNumber("AI.internalReinforcementBudget") ~= 0;
+	end
 end
 
 function BunkerBreach:EndActivity()
@@ -319,6 +368,18 @@ function BunkerBreach:UpdatePlayerObjectiveArrowsAndScreenText()
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				FrameMan:SetScreenText("ALERT: Enemy Alarms Have Been Triggered!", self:ScreenOfPlayer(player), 0, 2500, false);
 			end
+		end
+	end
+end
+
+function BunkerBreach:UpdateInternalReinforcementSpawning(forceInstantSpawning)
+	for internalReinforcementDoor, actorsToSpawn in pairs(self.AI.internalReinforcementDoorsAndActorsToSpawn) do
+		if MovableMan:IsParticle(internalReinforcementDoor) and (forceInstantSpawning or internalReinforcementDoor.Frame == internalReinforcementDoor.FrameCount - 1) then
+			for _, actorToSpawn in pairs(actorsToSpawn) do
+				actorToSpawn.Team = internalReinforcementDoor.Team;
+				MovableMan:AddActor(actorToSpawn);
+			end
+			self.AI.internalReinforcementDoorsAndActorsToSpawn[internalReinforcementDoor] = nil;
 		end
 	end
 end
@@ -511,15 +572,7 @@ function BunkerBreach:UpdateActivity()
 		self:UpdatePlayerObjectiveArrowsAndScreenText();
 
 		if self.AI.internalReinforcementDoorsAndActorsToSpawn then
-			for internalReinforcementDoor, actorsToSpawn in pairs(self.AI.internalReinforcementDoorsAndActorsToSpawn) do
-				if MovableMan:IsParticle(internalReinforcementDoor) and internalReinforcementDoor.Frame == internalReinforcementDoor.FrameCount - 1 then
-					for _, actorToSpawn in pairs(actorsToSpawn) do
-						actorToSpawn.Team = internalReinforcementDoor.Team;
-						MovableMan:AddActor(actorToSpawn);
-					end
-					self.AI.internalReinforcementDoorsAndActorsToSpawn[internalReinforcementDoor] = nil;
-				end
-			end
+			self:UpdateInternalReinforcementSpawning();
 		end
 
 		if self.AI.spawnTimer:IsPastSimTimeLimit() then
@@ -576,8 +629,6 @@ function BunkerBreach:CreateInternalReinforcements(loadout, numberOfReinforcemen
 
 	local internalReinforcementPositionsToEnemyTargets = self:CalculateInternalReinforcementPositionsToEnemyTargets(team, numberOfReinforcementsToCreate);
 
-local numberOfDoorsUsed = 0;
-
 	local numberOfReinforcementsCreated = 0;
 	for internalReinforcementPosition, enemyTargetsForPosition in pairs(internalReinforcementPositionsToEnemyTargets) do
 		if numberOfReinforcementsCreated < numberOfReinforcementsToCreate and self.AI.internalReinforcementBudget > 0 then
@@ -621,7 +672,6 @@ local numberOfDoorsUsed = 0;
 				end
 			end
 		end
-		numberOfDoorsUsed = numberOfDoorsUsed + 1;
 	end
 end
 

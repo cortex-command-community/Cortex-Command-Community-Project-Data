@@ -1,7 +1,80 @@
-function Massacre:StartActivity()
+function Massacre:StartActivity(isNewGame)
+	SceneMan.Scene:GetArea("LZ Team 1");
+	SceneMan.Scene:GetArea("LZ All");
+
+	self.startMessageTimer = Timer();
+	self.enemySpawnTimer = Timer();
+
+	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+
+	if isNewGame then
+		self:StartNewGame();
+	else
+		self:ResumeLoadedGame();
+	end
+end
+
+function Massacre:OnSave()
+	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
+	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
+
+	self:SaveNumber("_currentKills", self:GetTeamDeathCount((Activity.TEAM_2)));
+	self:SaveNumber("killsNeeded", self.killsNeeded);
+	self:SaveString("killsDisplay", self.killsDisplay);
+	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
+	self:SaveNumber("randomSpawnTime", self.randomSpawnTime);
+	self:SaveNumber("enemySpawnTimeLimit", self.enemySpawnTimeLimit);
+end
+
+function Massacre:StartNewGame()
+	self:SetTeamFunds(1000000, self.CPUTeam);
+	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+
+	self.addFogOfWar = self:GetFogOfWarEnabled();
+
+	for actor in MovableMan.AddedActors do
+		actor.Team = Activity.TEAM_1;
+	end
+
+	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
+		self.killsNeeded = 10;
+		self.killsDisplay = "ten";
+		self.baseSpawnTime = 6000;
+		self.randomSpawnTime = 8000;
+	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
+		self.killsNeeded = 15;
+		self.killsDisplay = "fifteen";
+		self.baseSpawnTime = 5500;
+		self.randomSpawnTime = 7000;
+	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
+		self.killsNeeded = 25;
+		self.killsDisplay = "twenty-five";
+		self.baseSpawnTime = 5000;
+		self.randomSpawnTime = 6000;
+	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
+		self.killsNeeded = 50;
+		self.killsDisplay = "fifty";
+		self.baseSpawnTime = 4500;
+		self.randomSpawnTime = 5000;
+	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
+		self.killsNeeded = 100;
+		self.killsDisplay = "one hundred";
+		self.baseSpawnTime = 4000;
+		self.randomSpawnTime = 4500;
+	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
+		self.killsNeeded = 200;
+		self.killsDisplay = "two hundred";
+		self.baseSpawnTime = 3500;
+		self.randomSpawnTime = 4000;
+	end
+	self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime)) * rte.SpawnIntervalScale;
+
+	self:SetupHumanPlayerBrains();
+end
+
+function Massacre:SetupHumanPlayerBrains()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
@@ -20,65 +93,36 @@ function Massacre:StartActivity()
 			end
 		end
 	end
-
-	-- Select a tech for the CPU player
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-	self.ESpawnTimer = Timer();
-	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
-	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
-	self.Fog = true;
-
-	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
-		self.KillsRequired = 10;
-		self.killsDisplay = "ten";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 6000;
-		self.RandomSpawnTime = 8000;
-	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
-		self.KillsRequired = 15;
-		self.killsDisplay = "fifteen";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 5500;
-		self.RandomSpawnTime = 7000;
-	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		self.KillsRequired = 25;
-		self.killsDisplay = "twenty-five";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 5000;
-		self.RandomSpawnTime = 6000;
-	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
-		self.KillsRequired = 50;
-		self.killsDisplay = "fifty";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 4500;
-		self.RandomSpawnTime = 5000;
-	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
-		self.KillsRequired = 100;
-		self.killsDisplay = "one hundred";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 4000;
-		self.RandomSpawnTime = 4500;
-	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
-		self.KillsRequired = 200;
-		self.killsDisplay = "two hundred";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 3500;
-		self.RandomSpawnTime = 4000;
-	end
-
-	-- CPU Funds are unlimited
-	self:SetTeamFunds(1000000, self.CPUTeam);
-
-	self.StartTimer = Timer();
-
-	self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime)) * rte.SpawnIntervalScale;
-
-	-- Take scene ownership
-	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1;
-	end
 end
 
+function Massacre:ResumeLoadedGame()
+	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
+	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
+
+	self:ReportDeath(Activity.TEAM_2, self:LoadNumber("_currentKills"));
+	self.killsNeeded = self:LoadNumber("killsNeeded");
+	self.killsDisplay = self:LoadString("killsDisplay");
+	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
+	self.randomSpawnTime = self:LoadNumber("randomSpawnTime");
+	self.enemySpawnTimeLimit = self:LoadNumber("enemySpawnTimeLimit");
+
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			if not self:GetPlayerBrain(player) then
+				local team = self:GetTeamOfPlayer(player);
+				local foundBrain = MovableMan:GetUnassignedBrain(team);
+				if foundBrain then
+					--Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
+					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
+				end
+			end
+		end
+	end
+end
 
 function Massacre:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -99,15 +143,14 @@ function Massacre:EndActivity()
 	end
 end
 
-
 function Massacre:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER and self.ActivityState ~= Activity.EDITING then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
-				if self.StartTimer:IsPastSimMS(3000) then
-					if self.KillsRequired - self:GetTeamDeathCount(Activity.TEAM_2) > 1 then
-						FrameMan:SetScreenText(self.KillsRequired - self:GetTeamDeathCount(Activity.TEAM_2) .. " enemies left!", Activity.PLAYER_1, 0, 1000, false);
+				if self.startMessageTimer:IsPastSimMS(3000) then
+					if self.killsNeeded - self:GetTeamDeathCount(Activity.TEAM_2) > 1 then
+						FrameMan:SetScreenText(self.killsNeeded - self:GetTeamDeathCount(Activity.TEAM_2) .. " enemies left!", Activity.PLAYER_1, 0, 1000, false);
 					else
 						FrameMan:SetScreenText("1 enemy left!", Activity.PLAYER_1, 0, 1000, false);
 					end
@@ -142,7 +185,7 @@ function Massacre:UpdateActivity()
 				end
 
 				--Check if the player has won.
-				if self:GetTeamDeathCount(Activity.TEAM_2) >= self.KillsRequired then
+				if self:GetTeamDeathCount(Activity.TEAM_2) >= self.killsNeeded then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You killed all the attackers!", player, 333, -1, false);
@@ -161,13 +204,13 @@ function Massacre:UpdateActivity()
 			end
 		end
 
-		if self.Fog and self:GetFogOfWarEnabled() then
+		if self.addFogOfWar then
 			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1));
-			self.Fog = false;
+			self.addFogOfWar = false;
 		end
 
 		--Spawn the AI.
-		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 			local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
@@ -285,10 +328,10 @@ function Massacre:UpdateActivity()
 				end
 			end
 
-			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale);
+			self.enemySpawnTimer:Reset();
+			self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime) * rte.SpawnIntervalScale);
 		end
 	else
-		self.StartTimer:Reset();
+		self.startMessageTimer:Reset();
 	end
 end

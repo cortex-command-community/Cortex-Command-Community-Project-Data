@@ -1,7 +1,79 @@
-function Survival:StartActivity()
+function Survival:StartActivity(isNewGame)
+	SceneMan.Scene:GetArea("LZ Team 1");
+	SceneMan.Scene:GetArea("LZ All");
+
+	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+
+	self.startMessageTimer = Timer();
+	self.enemySpawnTimer = Timer();
+	self.winTimer = Timer();
+
+	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+
+	if isNewGame then
+		self:StartNewGame();
+	else
+		self:ResumeLoadedGame();
+	end
+end
+
+function Survival:OnSave()
+	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
+	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
+	self:SaveNumber("winTimer.ElapsedSimTimeMS", self.winTimer.ElapsedSimTimeMS);
+
+	self:SaveNumber("timeLimit", self.timeLimit);
+	self:SaveString("timeDisplay", self.timeDisplay);
+	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
+	self:SaveNumber("randomSpawnTime", self.randomSpawnTime);
+	self:SaveNumber("enemySpawnTimeLimit", self.enemySpawnTimeLimit);
+end
+
+function Survival:StartNewGame()
+	self:SetTeamFunds(1000000, self.CPUTeam);
+	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+
+	self.addFogOfWar = self:GetFogOfWarEnabled();
+
+	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
+		self.timeLimit = 125000;
+		self.timeDisplay = "two minutes";
+		self.baseSpawnTime = 6000;
+		self.randomSpawnTime = 8000;
+	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
+		self.timeLimit = 185000;
+		self.timeDisplay = "three minutes";
+		self.baseSpawnTime = 5500;
+		self.randomSpawnTime = 7000;
+	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
+		self.timeLimit = 245000;
+		self.timeDisplay = "four minutes";
+		self.baseSpawnTime = 5000;
+		self.randomSpawnTime = 6000;
+	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
+		self.timeLimit = 305000;
+		self.timeDisplay = "five minutes";
+		self.baseSpawnTime = 4500;
+		self.randomSpawnTime = 5000;
+	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
+		self.timeLimit = 485000;
+		self.timeDisplay = "eight minutes";
+		self.baseSpawnTime = 4000;
+		self.randomSpawnTime = 4500;
+	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
+		self.timeLimit = 605000;
+		self.timeDisplay = "ten minutes";
+		self.baseSpawnTime = 3500;
+		self.randomSpawnTime = 4000;
+	end
+	self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime)) * rte.SpawnIntervalScale;
+
+	self:SetupHumanPlayerBrains();
+end
+
+function Survival:SetupHumanPlayerBrains()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-		-- Check if we already have a brain assigned
 			if not self:GetPlayerBrain(player) then
 				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
@@ -20,67 +92,19 @@ function Survival:StartActivity()
 			end
 		end
 	end
-
-	-- Select a tech for the CPU player
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-	self.ESpawnTimer = Timer();
-	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
-	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
-	self.Fog = true;
-
-	self.SurvivalTimer = Timer();
-
-	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
-		self.TimeLimit = 125000;
-		self.timeDisplay = "two minutes";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 6000;
-		self.RandomSpawnTime = 8000;
-	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
-		self.TimeLimit = 185000;
-		self.timeDisplay = "three minutes";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 5500;
-		self.RandomSpawnTime = 7000;
-	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		self.TimeLimit = 245000;
-		self.timeDisplay = "four minutes";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 5000;
-		self.RandomSpawnTime = 6000;
-	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
-		self.TimeLimit = 305000;
-		self.timeDisplay = "five minutes";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 4500;
-		self.RandomSpawnTime = 5000;
-	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
-		self.TimeLimit = 485000;
-		self.timeDisplay = "eight minutes";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 4000;
-		self.RandomSpawnTime = 4500;
-	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
-		self.TimeLimit = 605000;
-		self.timeDisplay = "ten minutes";
-		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-		self.BaseSpawnTime = 3500;
-		self.RandomSpawnTime = 4000;
-	end
-
-	-- CPU Funds are unlimited
-	self:SetTeamFunds(1000000, self.CPUTeam);
-
-	self.StartTimer = Timer();
-
-	self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime)) * rte.SpawnIntervalScale;
-
-	-- Take scene ownership
-	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1;
-	end
 end
 
+function Survival:ResumeLoadedGame()
+	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
+	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
+	self.winTimer.ElapsedSimTimeMS = self:LoadNumber("winTimer.ElapsedSimTimeMS");
+
+	self.timeLimit = self:LoadNumber("timeLimit");
+	self.timeDisplay = self:LoadString("timeDisplay");
+	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
+	self.randomSpawnTime = self:LoadNumber("goldNeeded");
+	self.enemySpawnTimeLimit = self:LoadNumber("enemySpawnTimeLimit");
+end
 
 function Survival:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -101,7 +125,6 @@ function Survival:EndActivity()
 	end
 end
 
-
 function Survival:UpdateActivity()
 	self:ClearObjectivePoints();
 
@@ -109,11 +132,10 @@ function Survival:UpdateActivity()
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
-				if self.StartTimer:IsPastSimMS(3000) then
-					local secondsLeft;
-					secondsLeft = math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) / 1000);
+				if self.startMessageTimer:IsPastSimMS(3000) then
+					local secondsLeft = math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000);
 					if (secondsLeft > 1) then
-						FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) / 1000) .. " seconds left", player, 0, 1000, false);
+						FrameMan:SetScreenText(secondsLeft .. " seconds left", player, 0, 1000, false);
 					else
 						FrameMan:SetScreenText("1 second left!", player, 0, 1000, false);
 					end
@@ -150,7 +172,7 @@ function Survival:UpdateActivity()
 				end
 
 				--Check if the player has won.
-				if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
+				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
@@ -169,13 +191,13 @@ function Survival:UpdateActivity()
 			end
 		end
 
-		if self.Fog and self:GetFogOfWarEnabled() then
+		if self.addFogOfWar then
 			SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(Activity.PLAYER_1));
-			self.Fog = false;
+			self.addFogOfWar = false;
 		end
 
 		--Spawn the AI.
-		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 		local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
@@ -280,12 +302,12 @@ function Survival:UpdateActivity()
 				end
 			end
 
-			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale);
+			self.enemySpawnTimer:Reset();
+			self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime) * rte.SpawnIntervalScale);
 		end
 	else
-		self.StartTimer:Reset();
-		self.SurvivalTimer:Reset();
+		self.startMessageTimer:Reset();
+		self.winTimer:Reset();
 	end
 
 	self:YSortObjectivePoints();
