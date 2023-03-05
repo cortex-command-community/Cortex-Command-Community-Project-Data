@@ -60,8 +60,8 @@ UserScenes.rte/
 DedicatedServerDebug.bat
 
 allegro.log
-abortscreen.bmp
-
+AbortScreen.bmp
+AbortLog.txt
 MemCleanupInfo.txt
 LogPublish.txt
 LogLoading.txt
