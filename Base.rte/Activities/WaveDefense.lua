@@ -248,7 +248,7 @@ function WaveDefense:UpdateActivity()
 			if self.Fog then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(player));
+						SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(player));
 					end
 				end
 

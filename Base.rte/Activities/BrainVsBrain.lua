@@ -101,7 +101,7 @@ function BrainvsBrain:StartNewGame()
 		local RedAreaString = "Red Build Area Center";
 		local GreenAreaString = "Green Build Area Center";
 		if SceneMan.Scene:HasArea(RedAreaString) and SceneMan.Scene:HasArea(GreenAreaString) then
-			local fogWidth = 32;
+			local fogWidth = 20;
 
 			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_1);
 			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_2);

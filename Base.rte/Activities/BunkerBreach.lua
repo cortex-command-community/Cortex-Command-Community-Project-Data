@@ -174,8 +174,8 @@ end
 
 function BunkerBreach:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(24, 24), self.attackerTeam);
-		SceneMan:MakeAllUnseen(Vector(24, 24), self.defenderTeam);
+		SceneMan:MakeAllUnseen(Vector(20, 20), self.attackerTeam);
+		SceneMan:MakeAllUnseen(Vector(20, 20), self.defenderTeam);
 
 		-- Reveal outside areas for the attacker.
 		for x = 0, SceneMan.SceneWidth - 1, 24 do
