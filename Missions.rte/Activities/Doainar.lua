@@ -141,7 +141,7 @@ function DoainarMission:ResumeLoadedGame()
 			break;
 		end
 	end
-	
+
 	if self.mamaAggressive and not self.mamaDead then
 		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
 	elseif self.passedPitfall then
