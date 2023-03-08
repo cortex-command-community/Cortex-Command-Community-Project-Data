@@ -19,12 +19,14 @@ function SignalHunt:StartActivity(isNewGame)
 
 	self.controlCaseArea = SceneMan.Scene:GetArea("Control Case");
 
-	self.fightStage = { beginFight = 0, inOuterCaveArea = 1, inInnerCaveArea = 2, inInnermostCaveArea = 3, inArtifactArea = 4, ambushAndExtraction = 5 };
+	self.fightStage = { beginFight = 0, inOuterCaveArea = 1, inInnerCaveArea = 2, inInnermostCaveArea = 3, ambushAndExtraction = 5 };
 
 	self.zombieTeam = Activity.NOTEAM;
 	self.humanTeam = Activity.TEAM_1;
 	self.ambusherTeam = Activity.TEAM_2;
 	self:ForceSetTeamAsActive(self.ambusherTeam); -- NOTE: This is necessary for the ambusher actors to work properly. WIthout it, their team is considered inactive, and their AI will be unable to shoot because of the game's spatial partitioning grid.
+	self:SetTeamAISkill(self.zombieTeam, self.Difficulty);
+	self:SetTeamAISkill(self.ambusherTeam, self.Difficulty);
 
 	--TODO this stuff may be totally pointless, but I don't really wanna do the testing to remove it.
 	self:SetLZArea(self.humanTeam, self.humanLZ);
@@ -92,7 +94,7 @@ end
 function SignalHunt:StartNewGame()
 	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
-	self.currentFightStage = self.fightStage.inInnermostCaveArea;
+	self.currentFightStage = self.fightStage.beginFight;
 	self.evacuationRocketSpawned = false;
 
 	for actor in MovableMan.AddedActors do
@@ -331,10 +333,10 @@ function SignalHunt:DoAmbush()
 	end
 end
 
-function SignalHunt:DoZombieAndBombSpawns()
+function SignalHunt:DoZombieAndBombSpawns(zombieActorCount)
 	for i = 1, 2 do
 		local generatorToUse = i == 1 and self.outerZombieGenerator or self.innerZombieGenerator;
-		local generatorEnabled = i == 1 and (self.currentFightStage >= self.fightStage.inOuterCaveArea) or (self.currentFightStage >= self.fightStage.inInnerCaveArea or self.outerZombieGenerator == nil);
+		local generatorEnabled = zombieActorCount < rte.AIMOIDMax and (i == 1 and (self.currentFightStage >= self.fightStage.inOuterCaveArea) or (self.currentFightStage >= self.fightStage.inInnerCaveArea or self.outerZombieGenerator == nil));
 		local bombMakerToUse = i == 1 and self.outerBombMaker or self.innerBombMaker;
 		local bombPickupAreaToUse = i == 1 and self.outerBombPickupArea or self.innerBombPickupArea;
 
@@ -396,7 +398,7 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 			else
 				self:AddObjectivePoint("The signal is getting stronger, proceed farther into the cave!", self.controlCase.Pos + Vector(0, -100), self.humanTeam, GameActivity.ARROWDOWN);
 			end
-		elseif self.currentFightStage < self.fightStage.inArtifactArea and self.controlCase then
+		elseif self.currentFightStage < self.fightStage.ambushAndExtraction and self.controlCase then
 			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -508,13 +510,12 @@ function SignalHunt:UpdateActivity()
 		end
 	end
 
-	self:DoZombieAndBombSpawns();
-
 	if self.controlCase and not MovableMan:IsParticle(self.controlCase) then -- Note: ValidMO cannot be used here, because it currently doesn't work with AddedParticles, so this gets lost on save/load since it isn't refereshed.
 		self.controlCase = nil;
+		self.noControlChipTimer:Reset();
 	elseif not self.controlCase and not self.controlChip then
 		for item in MovableMan.Items do
-			if item.PrsetName == "Control Chip" then
+			if item.PresetName == "Control Chip" then
 				self.controlChip = item;
 				break;
 			end
@@ -524,9 +525,13 @@ function SignalHunt:UpdateActivity()
 	end
 
 	local humanActorCount = 0;
+	local zombieActorCount = 0;
 	for actor in MovableMan.Actors do
 		if actor.Team == self.humanTeam and not actor:IsInGroup("Brains") then
 			humanActorCount = humanActorCount + 1;
+		end
+		if actor.Team == self.zombieTeam then
+			zombieActorCount = zombieActorCount + 1;
 		end
 		if actor:HasObject("Control Chip") then
 			self.actorHoldingControlChip = actor;
@@ -557,6 +562,8 @@ function SignalHunt:UpdateActivity()
 	else
 		self.noControlChipTimer:Reset();
 	end
+	
+	self:DoZombieAndBombSpawns(zombieActorCount);
 
 	self:UpdateScreenTextAndObjectiveArrows(humanActorCount);
 end
