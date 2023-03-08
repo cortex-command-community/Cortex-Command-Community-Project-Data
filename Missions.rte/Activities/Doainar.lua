@@ -47,6 +47,8 @@ function DoainarMission:OnSave()
 end
 
 function DoainarMission:StartNewGame()
+	self:SetTeamFunds(math.max(100, self:GetStartingGold()), self.PlayerTeam);
+
 	self.sacDestroyed = false;
 	self.mamaAggressive = false;
 	self.mamaDead = false;
