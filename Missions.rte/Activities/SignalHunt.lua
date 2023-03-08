@@ -226,7 +226,7 @@ function SignalHunt:ResumeLoadedGame()
 			self.controlCase = ToMOSRotating(particle);
 		end
 	end
-	
+
 	for actor in MovableMan.AddedActors do
 		if self.evacuationRocketSpawned and not self.evacuationRocket and actor.Team == self.humanTeam and actor.ClassName == "ACRocket" then
 			self.evacuationRocket = actor;
@@ -493,7 +493,7 @@ function SignalHunt:UpdateActivity()
 				actor.AIMode = Actor.AIMODE_BRAINHUNT;
 			end
 		end
-		
+
 		if not self.evacuationRocketSpawned and self.actorHoldingControlChip and self.actorHoldingControlChip.Team == self.humanTeam and not self.caveArea:IsInside(self.actorHoldingControlChip.Pos) then
 			self.evacuationRocket = CreateACRocket("Rocket MK2", "Base.rte");
 			self.evacuationRocket.Pos = Vector(self.humanLZ:GetCenterPoint().X, -100);
