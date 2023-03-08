@@ -2,26 +2,70 @@ package.loaded.Constants = nil;
 require("Constants");
 
 function ZombieCaveMission:StartActivity(isNewGame)
-	self.bombPickupArea = SceneMan.Scene:GetArea("Bomb Pickup");
-	self.bombPickupArea2 = SceneMan.Scene:GetArea("Bomb Pickup 2");
+	self.humanLZ = SceneMan.Scene:GetArea("LZ Team 1");
+	self.ambusherLZ = SceneMan.Scene:GetArea("LZ Team 2");
+
 	self.caveArea = SceneMan.Scene:GetArea("Cave");
 	self.innerCaveArea = SceneMan.Scene:GetArea("Inner Cave");
-	self.artifactArea = SceneMan.Scene:GetArea("Artifact Pickup");
+	self.innermostCaveArea = SceneMan.Scene:GetArea("Innermost Cave");
 
-	self.fightStage = { beginFight = 0, outerCave = 1, innerCave = 2, ambush = 3 };
+	self.outerZombieGeneratorArea = SceneMan.Scene:GetArea("Outer Zombie Generator");
+	self.outerBombMakerArea = SceneMan.Scene:GetArea("Outer Bomb Maker");
+	self.outerBombPickupArea = SceneMan.Scene:GetArea("Outer Bomb Pickup");
 
-	--TODO this stuff may be totally pointless, but I don't really wanna do the testing.
-	self:SetLZArea(Activity.TEAM_1, SceneMan.Scene:GetArea("LZ Team 1"));
-	self:SetLZArea(Activity.TEAM_2, SceneMan.Scene:GetArea("LZ Team 2"));
+	self.innerZombieGeneratorArea = SceneMan.Scene:GetArea("Inner Zombie Generator");
+	self.innerBombMakerArea = SceneMan.Scene:GetArea("Inner Bomb Maker");
+	self.innerBombPickupArea = SceneMan.Scene:GetArea("Inner Bomb Pickup");
+
+	self.controlCaseArea = SceneMan.Scene:GetArea("Control Case");
+
+	self.fightStage = { beginFight = 0, inOuterCaveArea = 1, inInnerCaveArea = 2, inInnermostCaveArea = 3, inArtifactArea = 4, ambushAndExtraction = 5 };
+
+	self.zombieTeam = Activity.NOTEAM;
+	self.humanTeam = Activity.TEAM_1;
+	self.ambusherTeam = Activity.TEAM_2;
+	self:ForceSetTeamAsActive(self.ambusherTeam); -- NOTE: This is necessary for the ambusher actors to work properly. WIthout it, their team is considered inactive, and their AI will be unable to shoot because of the game's spatial partitioning grid.
+
+	--TODO this stuff may be totally pointless, but I don't really wanna do the testing to remove it.
+	self:SetLZArea(self.humanTeam, self.humanLZ);
+	self:SetLZArea(self.ambusherTeam, self.ambusherLZ);
 	self:SetBrainLZWidth(Activity.PLAYER_1, 0);
 	self:SetBrainLZWidth(Activity.PLAYER_2, 0);
 	self:SetBrainLZWidth(Activity.PLAYER_3, 0);
 	self:SetBrainLZWidth(Activity.PLAYER_4, 0);
 
-	self.zombieTeam = Activity.NOTEAM;
-	self.humanTeam = Activity.TEAM_1;
-	self.ambusherTeam = Activity.TEAM_2;
-	self.ambusherTechName = "Ronin.rte";
+	self.screenTextTimer = Timer();
+	self.screenTextTimeLimit = 7500;
+	self.noControlChipTimer = Timer();
+
+	self.humanTeamTechName = self:GetTeamTech(self.humanTeam);
+	self.ambusherTeamTechName = "Ronin.rte";
+
+	self.zombieSpawnDifficultyMultiplier = 1;
+	self.numberOfLooseBombsPerBombMaker = 1;
+	self.numberOfAmbushingCraft = 3;
+	if self.Difficulty <= Activity.CAKEDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 0.25;
+		self.numberOfAmbushingCraft = 0;
+	elseif self.Difficulty <= Activity.EASYDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 0.5;
+		self.numberOfAmbushingCraft = 1;
+	elseif self.Difficulty <= Activity.MEDIUMDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 1;
+		self.numberOfAmbushingCraft = 2;
+	elseif self.Difficulty <= Activity.HARDDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 2;
+		self.numberOfLooseBombsPerBombMaker = 2;
+		self.numberOfAmbushingCraft = 3;
+	elseif self.Difficulty <= Activity.NUTSDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 3;
+		self.numberOfLooseBombsPerBombMaker = 3;
+		self.numberOfAmbushingCraft = 4;
+	else
+		self.zombieSpawnDifficultyMultiplier = 4;
+		self.numberOfLooseBombsPerBombMaker = 5;
+		self.numberOfAmbushingCraft = 5;
+	end
 
 	self.brainDead = {};
 
@@ -33,7 +77,10 @@ function ZombieCaveMission:StartActivity(isNewGame)
 end
 
 function ZombieCaveMission:OnSave()
+	self:SaveNumber("screenTextTimer.ElapsedSimTimeMS", self.screenTextTimer.ElapsedSimTimeMS);
+
 	self:SaveNumber("currentFightStage", self.currentFightStage);
+	self:SaveNumber("evacuationRocketSpawned", self.evacuationRocketSpawned and 1 or 0);
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -43,7 +90,10 @@ function ZombieCaveMission:OnSave()
 end
 
 function ZombieCaveMission:StartNewGame()
-	self.currentFightStage = self.fightStage.beginFight;
+	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
+
+	self.currentFightStage = self.fightStage.inInnermostCaveArea;
+	self.evacuationRocketSpawned = false;
 
 	for actor in MovableMan.AddedActors do
 		if actor.Team == self.zombieTeam then
@@ -51,34 +101,59 @@ function ZombieCaveMission:StartNewGame()
 		end
 	end
 
-	self.generator1 = CreateAEmitter("Zombie Generator");
-	self.generator1.Pos = SceneMan.Scene:GetArea("Zombie Generator 1"):GetCenterPoint();
-	self.generator1.Team = self.zombieTeam;
-	self.generator1:EnableEmission(false);
-	MovableMan:AddParticle(self.generator1);
+	-- Hide everything inside the cave from the human player.
+	if self:GetFogOfWarEnabled() then
+		SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
+		local topRightCornerOfCave;
+		for box in self.caveArea.Boxes do
+			topRightCornerOfCave = box.Corner + Vector(box.Width, 0); -- Note: This assumes that there's only one box in the area, so its top right corner is the top right corner of the area.
+			break;
+		end
+		SceneMan:RevealUnseenBox(topRightCornerOfCave.X, topRightCornerOfCave.Y, SceneMan.SceneWidth, SceneMan.SceneHeight, self.humanTeam)
+	end
 
-	self.generator2 = CreateAEmitter("Zombie Generator");
-	self.generator2.Pos = SceneMan.Scene:GetArea("Zombie Generator 2"):GetCenterPoint();
-	self.generator2.Team = self.zombieTeam;
-	self.generator2:EnableEmission(false);
-	MovableMan:AddParticle(self.generator2);
+	self.outerZombieGenerator = CreateAEmitter("Zombie Generator");
+	self.outerZombieGenerator.Pos = self.outerZombieGeneratorArea:GetCenterPoint();
+	self.outerZombieGenerator.Team = self.zombieTeam;
+	self.outerZombieGenerator:EnableEmission(false);
+	for emission in self.outerZombieGenerator.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute * self.zombieSpawnDifficultyMultiplier;
+	end
+	self.outerZombieGenerator.SpriteAnimDuration = self.outerZombieGenerator.SpriteAnimDuration / self.zombieSpawnDifficultyMultiplier;
+	MovableMan:AddParticle(self.outerZombieGenerator);
 
-	self.bombMaker1 = CreateAEmitter("Bomb Maker");
-	self.bombMaker1.Pos = Vector(468, 276);
-	self.bombMaker1.RotAngle = 5.1;
-	self.bombMaker1.Team = self.zombieTeam;
-	self.bombMaker1:EnableEmission(false);
-	MovableMan:AddParticle(self.bombMaker1);
+	self.outerBombMaker = CreateAEmitter("Bomb Maker");
+	self.outerBombMaker.Pos = self.outerBombMakerArea:GetCenterPoint();
+	self.outerBombMaker.RotAngle = 5.9;
+	self.outerBombMaker.Team = self.zombieTeam;
+	self.outerBombMaker:EnableEmission(false);
+	for emission in self.outerBombMaker.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute * self.zombieSpawnDifficultyMultiplier;
+	end
+	MovableMan:AddParticle(self.outerBombMaker);
 
-	self.bombMaker2 = CreateAEmitter("Bomb Maker");
-	self.bombMaker2.Pos = Vector(1128, 276);
-	self.bombMaker2.RotAngle = 5.9;
-	self.bombMaker2.Team = self.zombieTeam;
-	self.bombMaker2:EnableEmission(false);
-	MovableMan:AddParticle(self.bombMaker2);
+	self.innerZombieGenerator = CreateAEmitter("Zombie Generator");
+	self.innerZombieGenerator.Pos = self.innerZombieGeneratorArea:GetCenterPoint();
+	self.innerZombieGenerator.Team = self.zombieTeam;
+	self.innerZombieGenerator:EnableEmission(false);
+	for emission in self.innerZombieGenerator.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute * self.zombieSpawnDifficultyMultiplier;
+	end
+	self.innerZombieGenerator.SpriteAnimDuration = self.innerZombieGenerator.SpriteAnimDuration / self.zombieSpawnDifficultyMultiplier;
+	MovableMan:AddParticle(self.innerZombieGenerator);
+
+	self.innerBombMaker = CreateAEmitter("Bomb Maker");
+	self.innerBombMaker.Pos = self.innerBombMakerArea:GetCenterPoint();
+	self.innerBombMaker.RotAngle = 5.1;
+	self.innerBombMaker.Team = self.zombieTeam;
+	self.innerBombMaker:EnableEmission(false);
+	for emission in self.innerBombMaker.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute * self.zombieSpawnDifficultyMultiplier;
+	end
+	MovableMan:AddParticle(self.innerBombMaker);
 
 	self.controlCase = CreateMOSRotating("Control Chip Case");
-	self.controlCase.Pos = Vector(203, 494);
+	self.controlCase.Pos = self.controlCaseArea:GetCenterPoint();
 	self.controlCase.Team = self.zombieTeam;
 	MovableMan:AddParticle(self.controlCase);
 
@@ -90,16 +165,26 @@ function ZombieCaveMission:SetupHumanPlayerBrains()
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			if not self:GetPlayerBrain(player) and self:GetTeamOfPlayer(player) ~= self.zombieTeam then
 				self.brainDead[player] = false;
-				local brainBot = CreateAHuman("Brain Robot");
-				local gun = CreateHDFirearm("Pistol");
-				brainBot:AddInventoryItem(gun);
-				brainBot.AIMode = Actor.AIMODE_SENTRY;
 
-				local rocket = CreateACRocket("Rocket MK1");
-				rocket.Pos = Vector(3100 - 50 * (player + 1), -50);
+				local humanTeamTechId = PresetMan:GetModuleID(self.humanTeamTechName);
+				local actor;
+				if humanTeamTechId ~= -1 and team == self.attackerTeam then
+					actor = PresetMan:GetLoadout("Infantry Brain", humanTeamTechId, false);
+					actor:RemoveInventoryItem("Constructor");
+				else
+					actor = RandomAHuman("Brains", humanTeamTechId);
+					actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", humanTeamTechId));
+					actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", humanTeamTechId));
+				end
+				actor.AIMode = Actor.AIMODE_SENTRY;
+
+				local rocket = CreateACRocket("Rocket MK2");
+				rocket.Pos = Vector(3100 - 50 * (player + 1), -100);
 				rocket.Team = self:GetTeamOfPlayer(player);
+				rocket:SetGoldValue(0);
 				rocket:SetControllerMode(Controller.CIM_AI, -1);
-				rocket:AddInventoryItem(brainBot);
+				rocket.PlayerControllable = false;
+				rocket:AddInventoryItem(actor);
 				MovableMan:AddActor(rocket);
 
 				self:SetPlayerBrain(rocket, player);
@@ -113,7 +198,10 @@ function ZombieCaveMission:SetupHumanPlayerBrains()
 end
 
 function ZombieCaveMission:ResumeLoadedGame()
+	self.screenTextTimer.ElapsedSimTimeMS = self:LoadNumber("screenTextTimer.ElapsedSimTimeMS");
+
 	self.currentFightStage = self:LoadNumber("currentFightStage");
+	self.evacuationRocketSpawned = self:LoadNumber("evacuationRocketSpawned") ~= 0;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -123,32 +211,30 @@ function ZombieCaveMission:ResumeLoadedGame()
 
 	for particle in MovableMan.AddedParticles do
 		if particle.PresetName == "Zombie Generator" then
-			if SceneMan.Scene:GetArea("Zombie Generator 1"):IsInside(particle.Pos) then
-				self.generator1 = ToAEmitter(particle);
-			elseif SceneMan.Scene:GetArea("Zombie Generator 2"):IsInside(particle.Pos) then
-				self.generator2 = ToAEmitter(particle);
+			if self.innerZombieGeneratorArea:IsInside(particle.Pos) then
+				self.innerZombieGenerator = ToAEmitter(particle);
+			elseif self.outerZombieGeneratorArea:IsInside(particle.Pos) then
+				self.outerZombieGenerator = ToAEmitter(particle);
 			end
 		elseif particle.PresetName == "Bomb Maker" then
 			if (particle.Pos - Vector(468, 276)):MagnitudeIsLessThan(5) then
-				self.bombMaker1 = ToAEmitter(particle);
+				self.innerBombMaker = ToAEmitter(particle);
 			elseif (particle.Pos - Vector(1128, 276)):MagnitudeIsLessThan(5) then
-				self.bombMaker2 = ToAEmitter(particle);
+				self.outerBombMaker = ToAEmitter(particle);
 			end
 		elseif particle.PresetName == "Control Chip Case" then
 			self.controlCase = ToMOSRotating(particle);
 		end
 	end
+	
+	for actor in MovableMan.AddedActors do
+		if self.evacuationRocketSpawned and not self.evacuationRocket and actor.Team == self.humanTeam and actor.ClassName == "ACRocket" then
+			self.evacuationRocket = actor;
+		end
+	end
 end
 
 function ZombieCaveMission:EndActivity()
-	if self.humanTeam == self.WinnerTeam then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:ClearScreenText(player);
-				FrameMan:SetScreenText("Well done, you retrieved the control chip. Now to put it to use!", player, 0, -1, false);
-			end
-		end
-	end
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
@@ -167,267 +253,317 @@ function ZombieCaveMission:EndActivity()
 	end
 end
 
-function ZombieCaveMission:UpdateActivity()
-	if (self.ActivityState == Activity.EDITING) then
-		return;
-	end
+function ZombieCaveMission:DoGameOverCheck()
+	if self.WinnerTeam ~= self.humanTeam then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local team = self:GetTeamOfPlayer(player);
+				local brain = self:GetPlayerBrain(player);
+				if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
+					self:SetPlayerBrain(nil, player);
 
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			local team = self:GetTeamOfPlayer(player);
-
-			if not (self.ActivityState == Activity.OVER) then
-				if team ~= self.zombieTeam then
-					local brain = self:GetPlayerBrain(player);
-					if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
-						self:SetPlayerBrain(nil, player);
-						-- Try to find a new unasigned brain this player can use instead, or if his old brain entered a craft
-						local newBrain = MovableMan:GetUnassignedBrain(team);
-						-- Found new brain actor, assign it and keep on truckin'
-						if newBrain and self.brainDead[player] == false then
-							self:SetPlayerBrain(newBrain, player);
-							if MovableMan:IsActor(newBrain) then
-								self:SwitchToActor(newBrain, player, team);
-							end
-							self:GetBanner(GUIBanner.RED, player):ClearText();
-						else
-							FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false);
-							self.brainDead[player] = true;
-							-- Now see if all brains of self player's team are dead, and if so, end the game
-							if not MovableMan:GetFirstBrainActor(team) then
-								self.WinnerTeam = self:OtherTeam(team);
-								ActivityMan:EndActivity();
-							end
-							self:ResetMessageTimer(player);
-						end
+					local newBrain = MovableMan:GetUnassignedBrain(team);
+					if newBrain and self.brainDead[player] == false and MovableMan:IsActor(newBrain) then
+						self:SetPlayerBrain(newBrain, player);
+						self:SwitchToActor(newBrain, player, team);
+						self:GetBanner(GUIBanner.RED, player):ClearText();
 					else
-						-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-						self:SetObservationTarget(brain.Pos, player);
+						self.brainDead[player] = true;
+						if not MovableMan:GetFirstBrainActor(team) then
+							self.WinnerTeam = self:OtherTeam(team);
+							ActivityMan:EndActivity();
+						end
+						self:ResetMessageTimer(player);
 					end
-				end
-			end
-		end
-	end
-
-	--------------------------------------------
-	-- Battle logic
-
-	-- See if the player has any guys in the cave
-	local playerInCave = false;
-	for actor in MovableMan.Actors do
-		if actor.Team == Activity.TEAM_1 and self.caveArea:IsInside(actor.Pos) then
-			playerInCave = true;
-			break;
-		end
-	end
-
-	-- See if the player has any guys in the inner cave
-	local playerInInnerCave = false;
-	for actor in MovableMan.Actors do
-		if actor.Team == Activity.TEAM_1 and self.innerCaveArea:IsInside(actor.Pos) then
-			playerInInnerCave = true;
-			break;
-		end
-	end
-
-	-- See if the player has any guys in the artifact area.
-	local playerInArtifactArea = false;
-	for actor in MovableMan.Actors do
-		if actor.Team == Activity.TEAM_1 and self.artifactArea:IsInside(actor.Pos) then
-			playerInArtifactArea = true;
-			break;
-		end
-	end
-
-	if self.currentFightStage < self.fightStage.outerCave and playerInCave then
-		self.currentFightStage = self.fightStage.outerCave;
-	end
-
-	if self.currentFightStage < self.fightStage.innerCave and playerInInnerCave then
-		self.currentFightStage = self.fightStage.innerCave;
-	end
-
-	local genOuterEnabled = self.currentFightStage >= self.fightStage.outerCave;
-	local genInnerEnabled = playerInCave or self.generator2 == nil;
-
-	-- OUTER CAVE BATTLE
-	-- See if the outer generator is still alive
-	if self.generator2 and MovableMan:IsParticle(self.generator2) then
-		-- OUTER BOMB SPAWN
-		-- See if we need a new bomb
-		local bombCount = 0;
-		for item in MovableMan.Items do
-			-- See if there's a bomb in the pickup zone already, so we don't need to plop oiut a new one
-			if self.bombPickupArea2:IsInside(item.Pos) and item.PresetName == "Blue Bomb" then
-				bombCount = bombCount + 1;
-			end
-		end
-		-- Plop out new bombs if there aren't enough
-		if self.bombMaker2 and MovableMan:IsParticle(self.bombMaker2) then
-			self.bombMaker2:EnableEmission(bombCount < 1);
-		end
-
-		-- Enable/disable the zombie generator as ordered
-		self.generator2:EnableEmission(genOuterEnabled);
-	else
-		self.generator2 = nil;
-		if self.bombMaker2 and MovableMan:IsParticle(self.bombMaker2) then
-			self.bombMaker2:EnableEmission(false);
-		end
-	end
-
-	-- INNER CAVE BATTLE
-	-- Check if the generators are still alive, and if so, have the active only when the player is in the cave
-	if self.generator1 and MovableMan:IsParticle(self.generator1) then
-		-- INNER BOMB SPAWN
-		-- Determine if we need a new bomb
-		local bombCount = 0;
-		for item in MovableMan.Items do
-			-- See if there's a bomb in the pickup zone already, so we don't need to plop oiut a new one
-			if self.bombPickupArea:IsInside(item.Pos) and item.PresetName == "Blue Bomb" then
-				bombCount = bombCount + 1;
-			end
-		end
-		-- Plop out the new bomb if there aren't enough
-		if self.bombMaker1 and MovableMan:IsParticle(self.bombMaker1) then
-			self.bombMaker1:EnableEmission(bombCount < 2);
-		end
-
-		-- Enable/disable the zombie generator as ordered
-		self.generator1:EnableEmission(genInnerEnabled);
-	else
-		self.generator1 = nil;
-		if self.bombMaker1 and MovableMan:IsParticle(self.bombMaker1) then
-			self.bombMaker1:EnableEmission(false);
-		end
-	end
-
-	-- MARK THE OBJECTIVES
-	-- Clear all objective markers, they get re-added each frame
-	self:ClearObjectivePoints();
-
-	if not (self.ActivityState == Activity.OVER) then
-		-- Control box
-		if MovableMan:IsParticle(self.controlCase) then
-			self:AddObjectivePoint("Destroy!", self.controlCase.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
-			self:AddObjectivePoint("Protect!", self.controlCase.AboveHUDPos, self.zombieTeam, GameActivity.ARROWDOWN);
-		else
-			self.controlCase = nil;
-		end
-
-		-- Chip on the ground
-		for item in MovableMan.Items do
-			if item:HasObject("Control Chip") then
-				self:AddObjectivePoint("Pick up!", item.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
-				self:AddObjectivePoint("Protect!", item.AboveHUDPos, self.zombieTeam, GameActivity.ARROWDOWN);
-			end
-		end
-
-		-- Actor markers
-		local team1Count = 0;
-		for actor in MovableMan.Actors do
-			if actor.Team == Activity.TEAM_1 and not actor:IsInGroup("Brains") then
-				team1Count = team1Count + 1;
-			end
-
-			if actor:HasObject("Control Chip") then
-				if actor:IsInGroup("Craft") then
-					self:AddObjectivePoint("Launch into orbit!", actor.AboveHUDPos + Vector(0, -32), Activity.TEAM_1, GameActivity.ARROWUP);
-					self:AddObjectivePoint("Destroy!", actor.AboveHUDPos + Vector(0, -32), self.zombieTeam, GameActivity.ARROWUP);
-				elseif self.caveArea:IsInside(actor.Pos) then
-					self:AddObjectivePoint("Carry chip outside!", actor.AboveHUDPos + Vector(80, 0), Activity.TEAM_1, GameActivity.ARROWRIGHT);
-					self:AddObjectivePoint("KILL!", actor.AboveHUDPos + Vector(80, 0), self.zombieTeam, GameActivity.ARROWUP);
 				else
-					self:AddObjectivePoint("Load into a ship!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
-					self:AddObjectivePoint("KILL!", actor.AboveHUDPos, self.zombieTeam, GameActivity.ARROWDOWN);
-				end
-			elseif actor:HasObjectInGroup("Brains") then
-				self:AddObjectivePoint("Protect!", actor.AboveHUDPos, Activity.TEAM_1, GameActivity.ARROWDOWN);
-				self:AddObjectivePoint("Destroy!", actor.AboveHUDPos, self.zombieTeam, GameActivity.ARROWDOWN);
-			end
-		end
-
-		if team1Count < 1 and self.currentFightStage == self.fightStage.beginFight then
-			self:AddObjectivePoint("Buy more bodies to help you!", Vector(3060, 340), Activity.TEAM_1, GameActivity.ARROWDOWN);
-		end
-
-		-- Sort the objective points
-		self:YSortObjectivePoints();
-	end
-
-	-- ambush STAGE
-	-- Triggered ambush stage
-	if self.currentFightStage ~= self.fightStage.ambush and playerInArtifactArea == true then
-		 -- See if there is a designated LZ Area for attackers, and only land over it
-		local attackLZ = SceneMan.Scene:GetArea("LZ Team 2");
-		if attackLZ then
-			-- Take over control of screen messages
-			self:ResetMessageTimer(Activity.PLAYER_1);
-			-- Display the text of the current step
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("UNKNOWN HOSTILES ARE LANDING AT THE CAVE ENTRANCE!", player, 500, 8000, true);
+					-- Update the observation target to the brain, so that if/when it dies, the view flies to it in observation mode.
+					self:SetObservationTarget(brain.Pos, player);
 				end
 			end
-			-- Ship1 crew goes to investigate cave, ship2 goes to kill the player brain
-			local ship1 = CreateACDropShip("Dropship MK1");
-			local ronin = self:MakeEnemy(Actor.AIMODE_GOTO);
-			ronin:ClearAIWaypoints();
-			ronin:AddAISceneWaypoint(Vector(200, 500));
-			ship1:AddInventoryItem(ronin);
-			ronin = self:MakeEnemy(Actor.AIMODE_GOTO);
-			ronin:ClearAIWaypoints();
-			ronin:AddAISceneWaypoint(Vector(200, 500));
-			ship1:AddInventoryItem(ronin);
-			local ship2 = CreateACDropShip("Dropship MK1");
-			ship2:AddInventoryItem(self:MakeEnemy(Actor.AIMODE_BRAINHUNT));
-			ship2:AddInventoryItem(self:MakeEnemy(Actor.AIMODE_BRAINHUNT));
-
-			-- Only land over the proper LZ
-			ship1.Pos.X = attackLZ:GetRandomPoint().X;
-			ship2.Pos.X = 2300;
-			ship1.Pos.Y = 0;
-			ship2.Pos.Y = -50;
-			ship1.Team = self.ambusherTeam;
-			ship2.Team = self.ambusherTeam;
-
-			-- Let the spawn into the world, passing ownership
-			MovableMan:AddActor(ship1);
-			MovableMan:AddActor(ship2);
-
-			-- Advance the stage
-			self.currentFightStage = self.fightStage.ambush;
 		end
-	end
-
-	-- Any ronin guys who reach the innermost cave, should go brain hunt afterward
-	if self.currentFightStage == self.fightStage.ambush then
-		for actor in MovableMan.Actors do
-			if actor.Team == self.ambusherTeam and self.artifactArea:IsInside(actor.Pos) then
-				actor.AIMode = Actor.AIMODE_BRAINHUNT;
+	elseif self.WinnerTeam == self.humanTeam then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				self:GetBanner(GUIBanner.RED, player):ClearText();
 			end
+		end
+		if self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+			ActivityMan:EndActivity();
 		end
 	end
 end
 
-function ZombieCaveMission:MakeEnemy(whichMode)
-	local passenger = RandomAHuman("Any", self.ambusherTechName);
-	if passenger then
-		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.ambusherTechName));
-		passenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.ambusherTechName));
-		if PosRand() < 0.25 then
-			passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.ambusherTechName));
+function ZombieCaveMission:DoAmbush()
+	if self.ambusherLZ and self.numberOfAmbushingCraft > 0 then
+		for craftNumber = 1, self.numberOfAmbushingCraft do
+			local ambushingCraft = RandomACRocket("Craft", self.ambusherTeamTechName);
+			if not ambushingCraft then
+				ambushingCraft = RandomACRocket("Craft", "Base.rte");
+			end
+			ambushingCraft.Team = self.ambusherTeam;
+			for box in self.ambusherLZ.Boxes do
+				ambushingCraft.Pos = Vector(box.Corner.X + (75 * craftNumber), -100); -- Assumes only one box for LZ!
+				break;
+			end
+
+			for passengerNumber = 1, 2 do
+				local ambushingPassenger = RandomAHuman("Any", self.ambusherTeamTechName);
+				ambushingPassenger.Team = self.ambusherTeam;
+				if ambushingPassenger then
+					ambushingPassenger:AddInventoryItem(RandomHDFirearm("Weapons - Primary", self.ambusherTeamTechName));
+					ambushingPassenger:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.ambusherTeamTechName));
+					if PosRand() < 0.25 then
+						ambushingPassenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.ambusherTeamTechName));
+					end
+
+					if craftNumber == 1 then
+						ambushingPassenger.AIMode = Actor.AIMODE_GOTO;
+						ambushingPassenger:ClearAIWaypoints();
+						ambushingPassenger:AddAISceneWaypoint(self.innermostCaveArea:GetCenterPoint());
+					else
+						ambushingPassenger.AIMode = Actor.AIMODE_BRAINHUNT;
+					end
+				end
+				ambushingCraft:AddInventoryItem(ambushingPassenger);
+			end
+			MovableMan:AddActor(ambushingCraft);
+		end
+	end
+end
+
+function ZombieCaveMission:DoZombieAndBombSpawns()
+	for i = 1, 2 do
+		local generatorToUse = i == 1 and self.outerZombieGenerator or self.innerZombieGenerator;
+		local generatorEnabled = i == 1 and (self.currentFightStage >= self.fightStage.inOuterCaveArea) or (self.currentFightStage >= self.fightStage.inInnerCaveArea or self.outerZombieGenerator == nil);
+		local bombMakerToUse = i == 1 and self.outerBombMaker or self.innerBombMaker;
+		local bombPickupAreaToUse = i == 1 and self.outerBombPickupArea or self.innerBombPickupArea;
+
+		if generatorToUse and MovableMan:IsParticle(generatorToUse) then
+			local bombCount = 0;
+			for item in MovableMan.Items do
+				if bombPickupAreaToUse:IsInside(item.Pos) and item.PresetName == "Blue Bomb" then
+					bombCount = bombCount + 1;
+				end
+			end
+			if bombMakerToUse and MovableMan:IsParticle(bombMakerToUse) then
+				bombMakerToUse:EnableEmission(generatorEnabled and bombCount < self.numberOfLooseBombsPerBombMaker);
+			end
+			generatorToUse:EnableEmission(generatorEnabled);
+		else
+			bombMakerToUse:EnableEmission(false);
+		end
+	end
+end
+
+function ZombieCaveMission:UpdateScreenTextAndObjectiveArrows(humanActorCount)
+	if self.WinnerTeam ~= self.humanTeam then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local brain = self:GetPlayerBrain(player);
+				if brain and self.currentFightStage > self.fightStage.beginFight and (not self.actorHoldingControlChip or self.actorHoldingControlChip.UniqueID ~= brain.UniqueID) and (not self.evacuationRocket or self.evacuationRocket.UniqueID ~= brain.UniqueID) then
+					self:AddObjectivePoint("Protect!", brain.AboveHUDPos, self.humanTeam, GameActivity.ARROWDOWN);
+				elseif not brain then
+					FrameMan:ClearScreenText(player);
+					FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false);
+				end
+			end
+		end
+
+		if self.currentFightStage < self.fightStage.inOuterCaveArea then
+			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					if self:PlayerActive(player) and self:PlayerHuman(player) then
+						FrameMan:ClearScreenText(player);
+						FrameMan:SetScreenText("Contractor, we at Alchiral appreciate your cooperation and confidentiality on this assignment.\nPlease enter the cave to ascertain the source of the signal.", player, 0, 1, false);
+					end
+				end
+			else
+				self:AddObjectivePoint("Enter the cave to find the source of the signal!", self.outerBombPickupArea:GetCenterPoint(), self.humanTeam, GameActivity.ARROWDOWN);
+			end
+			if humanActorCount < 1 and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit * 2) and self:GetTeamFunds(self.humanTeam) > 0 then
+				self:AddObjectivePoint("More bodies are recommended to complete this contract!", self.humanLZ:GetCenterPoint(), self.humanTeam, GameActivity.ARROWDOWN);
+			end
+		elseif self.currentFightStage < self.fightStage.inInnerCaveArea then
+			self:AddObjectivePoint("Proceed farther into the cave!", self.innerBombPickupArea:GetCenterPoint(), self.humanTeam, GameActivity.ARROWDOWN);
+		elseif self.currentFightStage < self.fightStage.inInnermostCaveArea then
+			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					if self:PlayerActive(player) and self:PlayerHuman(player) then
+						FrameMan:ClearScreenText(player);
+						FrameMan:SetScreenText("Contractor, these cloning tubes are not your primary target.\nYou may destroy them if they are obstructing your progress, but your task is to find the source of the signal.\nProceed farther into the cave.", player, 0, 1, false);
+					end
+				end
+			else
+				self:AddObjectivePoint("The signal is getting stronger, proceed farther into the cave!", self.controlCase.Pos + Vector(0, -100), self.humanTeam, GameActivity.ARROWDOWN);
+			end
+		elseif self.currentFightStage < self.fightStage.inArtifactArea and self.controlCase then
+			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					if self:PlayerActive(player) and self:PlayerHuman(player) then
+						FrameMan:ClearScreenText(player);
+						FrameMan:SetScreenText("Contractor, the signal is coming from that case; there is a modified Alchiral Cloning Control Chip inside it.\nDestroy the case and retrieve our property, once the chip is outside we will send a rocket to evacuate it to orbit.", player, 0, 1, false);
+					end
+				end
+			end
+			self:AddObjectivePoint("Destroy the case and retrieve the control chip inside!", self.controlCase.Pos, self.humanTeam, GameActivity.ARROWDOWN);
+		elseif self.currentFightStage == self.fightStage.ambushAndExtraction then
+			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+				if not self.evacuationRocketSpawned and self.numberOfAmbushingCraft > 0 then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
+							FrameMan:ClearScreenText(player);
+							FrameMan:SetScreenText("ALERT: Contractor, unknown hostiles are entering the area. They must not retrieve the Cloning Control Chip!", player, 500, 8000, true);
+						end
+					end
+				elseif self.evacuationRocketSpawned then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
+							FrameMan:ClearScreenText(player);
+							FrameMan:SetScreenText("Contractor, we have sent a rocket to extract the Cloning Control Chip.", player, 500, 8000, true);
+						end
+					end
+				end
+			end
+			if self.controlChip and not self.actorHoldingControlChip then
+				self:AddObjectivePoint("Pick up the Cloning Control Chip!", self.controlChip.Pos, self.humanTeam, GameActivity.ARROWDOWN);
+			elseif self.actorHoldingControlChip then
+				if self.actorHoldingControlChip.Team == self.humanTeam and (not self.evacuationRocket or self.actorHoldingControlChip.UniqueID ~= self.evacuationRocket.UniqueID) then
+					self:AddObjectivePoint("Evacuate the Cloning Control Chip!", self.actorHoldingControlChip.AboveHUDPos, self.humanTeam, GameActivity.ARROWDOWN);
+				elseif self.actorHoldingControlChip.Team ~= self.humanTeam then
+					self:AddObjectivePoint("Kill to retrieve the Cloning Control Chip!", self.actorHoldingControlChip.AboveHUDPos, self.humanTeam, GameActivity.ARROWDOWN);
+				end
+			end
+			if self.evacuationRocket and (not self.actorHoldingControlChip or self.actorHoldingControlChip.UniqueID ~= self.evacuationRocket.UniqueID) then
+				self:AddObjectivePoint("Get the Cloning Control Chip to the rocket!", self.evacuationRocket.AboveHUDPos, self.humanTeam, GameActivity.ARROWDOWN);
+			end
+		end
+	elseif self.WinnerTeam == self.humanTeam and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				FrameMan:ClearScreenText(player);
+				FrameMan:SetScreenText("Contractor, thank you for your efficient work. Your agreed-upon fee has been deposited to your account.\nWe at Alchiral are pleased with your performance, and look forward to a productive relationship with you in future.", player, 0, 1, true);
+			end
 		end
 	end
 
-	passenger.AIMode = whichMode or 0;
-	return passenger;
+	self:YSortObjectivePoints();
+end
+
+function ZombieCaveMission:UpdateActivity()
+	self:ClearObjectivePoints();
+
+	if (self.ActivityState == Activity.OVER) then
+		return;
+	end
+
+	self:DoGameOverCheck();
+
+	if self.currentFightStage < self.fightStage.inOuterCaveArea then
+		for actor in MovableMan.Actors do
+			if actor.Team == self.humanTeam and self.caveArea:IsInside(actor.Pos) then
+				self.currentFightStage = self.fightStage.inOuterCaveArea;
+				self.screenTextTimer:Reset();
+				break;
+			end
+		end
+	elseif self.currentFightStage < self.fightStage.inInnerCaveArea then
+		for actor in MovableMan.Actors do
+			if actor.Team == self.humanTeam and self.innerCaveArea:IsInside(actor.Pos) then
+				self.currentFightStage = self.fightStage.inInnerCaveArea;
+				self.screenTextTimer:Reset();
+				break;
+			end
+		end
+	elseif self.currentFightStage < self.fightStage.inInnermostCaveArea then
+		for actor in MovableMan.Actors do
+			if actor.Team == self.humanTeam and self.innermostCaveArea:IsInside(actor.Pos) then
+				self.currentFightStage = self.fightStage.inInnermostCaveArea;
+				self.screenTextTimer:Reset();
+				break;
+			end
+		end
+	elseif self.currentFightStage < self.fightStage.ambushAndExtraction and self.controlChip then
+		self.currentFightStage = self.fightStage.ambushAndExtraction;
+		self.screenTextTimer:Reset();
+		self:DoAmbush();
+	elseif self.currentFightStage == self.fightStage.ambushAndExtraction then
+		-- Any ronin guys who reach the innermost cave should go brain hunt afterward.
+		for actor in MovableMan.Actors do
+			if actor.Team == self.ambusherTeam and self.innermostCaveArea:IsInside(actor.Pos) then
+				actor.AIMode = Actor.AIMODE_BRAINHUNT;
+			end
+		end
+		
+		if not self.evacuationRocketSpawned and self.actorHoldingControlChip and self.actorHoldingControlChip.Team == self.humanTeam and not self.caveArea:IsInside(self.actorHoldingControlChip.Pos) then
+			self.evacuationRocket = CreateACRocket("Rocket MK2", "Base.rte");
+			self.evacuationRocket.Pos = Vector(self.humanLZ:GetCenterPoint().X, -100);
+			self.evacuationRocket.Team = self.humanTeam;
+			self.evacuationRocket.PlayerControllable = false;
+			self.evacuationRocket.AIMode = Actor.AIMODE_STAY;
+			self.evacuationRocket:SetGoldValue(0);
+			self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
+			MovableMan:AddActor(self.evacuationRocket);
+			self.evacuationRocketSpawned = true;
+			self.evacuationRocketDoorsOpened = false;
+		end
+	end
+
+	self:DoZombieAndBombSpawns();
+
+	if self.controlCase and not MovableMan:IsParticle(self.controlCase) then -- Note: ValidMO cannot be used here, because it currently doesn't work with AddedParticles, so this gets lost on save/load since it isn't refereshed.
+		self.controlCase = nil;
+	elseif not self.controlCase and not self.controlChip then
+		for item in MovableMan.Items do
+			if item.PrsetName == "Control Chip" then
+				self.controlChip = item;
+				break;
+			end
+		end
+	elseif self.controlChip and not MovableMan:ValidMO(self.controlChip) then
+		self.controlChip = nil;
+	end
+
+	local humanActorCount = 0;
+	for actor in MovableMan.Actors do
+		if actor.Team == self.humanTeam and not actor:IsInGroup("Brains") then
+			humanActorCount = humanActorCount + 1;
+		end
+		if actor:HasObject("Control Chip") then
+			self.actorHoldingControlChip = actor;
+		end
+	end
+	if self.actorHoldingControlChip and (not MovableMan:ValidMO(self.actorHoldingControlChip) or not self.actorHoldingControlChip:HasObject("Control Chip")) then
+		self.actorHoldingControlChip = nil;
+	end
+
+	if self.evacuationRocket and not MovableMan:IsActor(self.evacuationRocket) then
+		self.evacuationRocket = nil;
+		self.evacuationRocketSpawned = false;
+	elseif self.evacuationRocket then
+		if self.evacuationRocket.Vel:MagnitudeIsLessThan(1) and not self.evacuationRocketDoorsOpened and self.evacuationRocket.Pos.Y > 0 then
+			self.evacuationRocket:GetController():SetState(Controller.PRESS_FACEBUTTON, true);
+			self.evacuationRocketDoorsOpened = true;
+		elseif self.evacuationRocket:HasObject("Control Chip") then
+			self.evacuationRocket.AIMode = Actor.AIMODE_RETURN;
+		end
+	end
+
+	if not self.controlCase and not self.controlChip and not self.actorHoldingControlChip then
+		if self.noControlChipTimer:IsPastSimMS(100) then
+			self.controlChip = CreateHeldDevice("Control Chip", "Missions.rte");
+			self.controlChip.Pos = self.controlCaseArea:GetCenterPoint();
+			MovableMan:AddItem(self.controlChip);
+		end
+	else
+		self.noControlChipTimer:Reset();
+	end
+
+	self:UpdateScreenTextAndObjectiveArrows(humanActorCount);
 end
 
 function ZombieCaveMission:CraftEnteredOrbit(orbitedCraft)
 	if orbitedCraft:HasObject("Control Chip") then
-		self.WinnerTeam = Activity.TEAM_1;
-		ActivityMan:EndActivity();
+		self.WinnerTeam = self.humanTeam;
+		self.screenTextTimer:Reset();
 	end
 end
