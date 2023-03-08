@@ -1,7 +1,7 @@
 package.loaded.Constants = nil;
 require("Constants");
 
-function ZombieCaveMission:StartActivity(isNewGame)
+function SignalHunt:StartActivity(isNewGame)
 	self.humanLZ = SceneMan.Scene:GetArea("LZ Team 1");
 	self.ambusherLZ = SceneMan.Scene:GetArea("LZ Team 2");
 
@@ -76,7 +76,7 @@ function ZombieCaveMission:StartActivity(isNewGame)
 	end
 end
 
-function ZombieCaveMission:OnSave()
+function SignalHunt:OnSave()
 	self:SaveNumber("screenTextTimer.ElapsedSimTimeMS", self.screenTextTimer.ElapsedSimTimeMS);
 
 	self:SaveNumber("currentFightStage", self.currentFightStage);
@@ -89,7 +89,7 @@ function ZombieCaveMission:OnSave()
 	end
 end
 
-function ZombieCaveMission:StartNewGame()
+function SignalHunt:StartNewGame()
 	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
 	self.currentFightStage = self.fightStage.inInnermostCaveArea;
@@ -160,7 +160,7 @@ function ZombieCaveMission:StartNewGame()
 	self:SetupHumanPlayerBrains();
 end
 
-function ZombieCaveMission:SetupHumanPlayerBrains()
+function SignalHunt:SetupHumanPlayerBrains()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			if not self:GetPlayerBrain(player) and self:GetTeamOfPlayer(player) ~= self.zombieTeam then
@@ -197,7 +197,7 @@ function ZombieCaveMission:SetupHumanPlayerBrains()
 	end
 end
 
-function ZombieCaveMission:ResumeLoadedGame()
+function SignalHunt:ResumeLoadedGame()
 	self.screenTextTimer.ElapsedSimTimeMS = self:LoadNumber("screenTextTimer.ElapsedSimTimeMS");
 
 	self.currentFightStage = self:LoadNumber("currentFightStage");
@@ -234,7 +234,7 @@ function ZombieCaveMission:ResumeLoadedGame()
 	end
 end
 
-function ZombieCaveMission:EndActivity()
+function SignalHunt:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
@@ -253,7 +253,7 @@ function ZombieCaveMission:EndActivity()
 	end
 end
 
-function ZombieCaveMission:DoGameOverCheck()
+function SignalHunt:DoGameOverCheck()
 	if self.WinnerTeam ~= self.humanTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -293,7 +293,7 @@ function ZombieCaveMission:DoGameOverCheck()
 	end
 end
 
-function ZombieCaveMission:DoAmbush()
+function SignalHunt:DoAmbush()
 	if self.ambusherLZ and self.numberOfAmbushingCraft > 0 then
 		for craftNumber = 1, self.numberOfAmbushingCraft do
 			local ambushingCraft = RandomACRocket("Craft", self.ambusherTeamTechName);
@@ -331,7 +331,7 @@ function ZombieCaveMission:DoAmbush()
 	end
 end
 
-function ZombieCaveMission:DoZombieAndBombSpawns()
+function SignalHunt:DoZombieAndBombSpawns()
 	for i = 1, 2 do
 		local generatorToUse = i == 1 and self.outerZombieGenerator or self.innerZombieGenerator;
 		local generatorEnabled = i == 1 and (self.currentFightStage >= self.fightStage.inOuterCaveArea) or (self.currentFightStage >= self.fightStage.inInnerCaveArea or self.outerZombieGenerator == nil);
@@ -355,7 +355,7 @@ function ZombieCaveMission:DoZombieAndBombSpawns()
 	end
 end
 
-function ZombieCaveMission:UpdateScreenTextAndObjectiveArrows(humanActorCount)
+function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 	if self.WinnerTeam ~= self.humanTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -449,7 +449,7 @@ function ZombieCaveMission:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 	self:YSortObjectivePoints();
 end
 
-function ZombieCaveMission:UpdateActivity()
+function SignalHunt:UpdateActivity()
 	self:ClearObjectivePoints();
 
 	if (self.ActivityState == Activity.OVER) then
@@ -561,7 +561,7 @@ function ZombieCaveMission:UpdateActivity()
 	self:UpdateScreenTextAndObjectiveArrows(humanActorCount);
 end
 
-function ZombieCaveMission:CraftEnteredOrbit(orbitedCraft)
+function SignalHunt:CraftEnteredOrbit(orbitedCraft)
 	if orbitedCraft:HasObject("Control Chip") then
 		self.WinnerTeam = self.humanTeam;
 		self.screenTextTimer:Reset();
