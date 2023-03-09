@@ -499,10 +499,10 @@ function SignalHunt:UpdateActivity()
 			self.evacuationRocket = CreateACRocket("Rocket MK2", "Base.rte");
 			self.evacuationRocket.Pos = Vector(self.humanLZ:GetCenterPoint().X, -100);
 			self.evacuationRocket.Team = self.humanTeam;
+			self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
 			self.evacuationRocket.PlayerControllable = false;
 			self.evacuationRocket.AIMode = Actor.AIMODE_STAY;
 			self.evacuationRocket:SetGoldValue(0);
-			self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
 			MovableMan:AddActor(self.evacuationRocket);
 			self.evacuationRocketSpawned = true;
 		end
