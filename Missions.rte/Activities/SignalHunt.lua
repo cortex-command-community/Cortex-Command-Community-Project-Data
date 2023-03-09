@@ -506,7 +506,6 @@ function SignalHunt:UpdateActivity()
 			self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
 			MovableMan:AddActor(self.evacuationRocket);
 			self.evacuationRocketSpawned = true;
-			self.evacuationRocketDoorsOpened = false;
 		end
 	end
 
@@ -545,9 +544,8 @@ function SignalHunt:UpdateActivity()
 		self.evacuationRocket = nil;
 		self.evacuationRocketSpawned = false;
 	elseif self.evacuationRocket then
-		if self.evacuationRocket.Vel:MagnitudeIsLessThan(1) and not self.evacuationRocketDoorsOpened and self.evacuationRocket.Pos.Y > 0 then
-			self.evacuationRocket:GetController():SetState(Controller.PRESS_FACEBUTTON, true);
-			self.evacuationRocketDoorsOpened = true;
+		if not self.evacuationRocket:HasObject("Control Chip") and self.evacuationRocket.Vel:MagnitudeIsLessThan(1) then
+			self.evacuationRocket:OpenHatch();
 		elseif self.evacuationRocket:HasObject("Control Chip") then
 			self.evacuationRocket.AIMode = Actor.AIMODE_RETURN;
 		end
