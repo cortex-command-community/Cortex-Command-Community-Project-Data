@@ -2,6 +2,7 @@ package.loaded.Constants = nil;
 require("Constants");
 
 function MaginotMission:StartActivity(isNewGame)
+	self.defenderLZ = SceneMan.Scene:GetArea("LZ Team 1");
 	self.attackLZ1 = SceneMan.Scene:GetArea("LZ Team 2");
 	self.attackLZ2 = SceneMan.Scene:GetArea("Enemy Sneak Spawn 2");
 	self.maginotBunkerArea = SceneMan.Scene:GetArea("Maginot Bunker");
@@ -10,19 +11,21 @@ function MaginotMission:StartActivity(isNewGame)
 
 	self.fightStage = { beginFight = 0, defendLeft = 1, defendRight = 2, evacuateBrain = 3, enterEvacuationRocket = 4 };
 
+	self.defenderTeam = Activity.TEAM_1;
+	self.attackerTeam = Activity.TEAM_2;
+	self.defenderTech = self:GetTeamTech(self.defenderTeam);
+	self.attackerTech = self:GetTeamTech(self.attackerTeam);
+	
+	self:SetLZArea(self.defenderTeam, self.defenderLZ);
+
 	self.screenTextTimer = Timer();
 	self.screenTextTimeLimit = 7500;
 	self.roundTimer = Timer();
 	self.spawnTimer = Timer();
 
-	self.brainDead = {};
-
-	self.defenderTeam = Activity.TEAM_1;
-	self.attackerTeam = Activity.TEAM_2;
-	self.defenderTech = self:GetTeamTech(self.defenderTeam);
-	self.attackerTech = self:GetTeamTech(self.attackerTeam);
-
 	self.numberOfAttackersPerCraft = math.ceil(2 * (self.Difficulty / Activity.MEDIUMDIFFICULTY));
+
+	self.brainDead = {};
 
 	if isNewGame then
 		self:StartNewGame();
@@ -44,9 +47,6 @@ end
 
 function MaginotMission:StartNewGame()
 	self:SetTeamFunds(self:GetStartingGold(), self.defenderTeam);
-	if self.Difficulty == Activity.MAXDIFFICULTY then
-		self:SetTeamFunds(0, self.defenderTeam);
-	end
 
 	self.currentFightStage = self.fightStage.beginFight;
 	self.evacuationRocketSpawned = false;
@@ -62,9 +62,6 @@ function MaginotMission:StartNewGame()
 
 	for actor in MovableMan.AddedActors do
 		actor.AIMode = Actor.AIMODE_SENTRY;
-		if actor.PresetName == "Skeleton" then
-			actor.Health = 0;
-		end
 	end
 
 	self:SetupHumanPlayerBrains();
@@ -165,8 +162,8 @@ function MaginotMission:DoGameOverCheck()
 							self.brainDead[player] = true;
 
 							local gameOver = true;
-							for plr = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-								if self:PlayerActive(plr) and self:PlayerHuman(plr) and not self.brainDead[plr] then
+							for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+								if self:PlayerActive(player) and self:PlayerHuman(player) and not self.brainDead[player] then
 									gameOver = false;
 									break;
 								end
@@ -198,7 +195,7 @@ function MaginotMission:DoGameOverCheck()
 					if self.brainDead[player] then
 						FrameMan:SetScreenText("You may have died, but your fellow brains lived to fight another day. Rest assured, you will be avenged!", player, 0, 1, false);
 					else
-						FrameMan:SetScreenText("Good job, you lived to fight another day. We've located the enemy fortress and have planned an assault on it!", player, 0, 1, false);
+						FrameMan:SetScreenText("Good job, you lived to fight another day. We've located the enemy fortress and are planning an assault on it!", player, 0, 1, false);
 					end
 				else
 					ActivityMan:EndActivity();
@@ -361,15 +358,15 @@ function MaginotMission:UpdateActivity()
 	self:DoGameOverCheck();
 
 	local difficultyTimeMultiplier = math.max(0.5, self.Difficulty / Activity.MEDIUMDIFFICULTY);
-	if self.roundTimer:IsPastSimMS(math.min(15000, 20000 / difficultyTimeMultiplier)) and self.currentFightStage < self.fightStage.defendLeft then
+	if self.roundTimer:IsPastSimMS(math.min(15000, 20000 / difficultyTimeMultiplier)) and self.currentFightStage == self.fightStage.beginFight then
 		self.currentFightStage = self.fightStage.defendLeft;
 		self.screenTextTimer:Reset();
 		self.roundTimer:Reset();
-	elseif self.roundTimer:IsPastSimMS(240000 * difficultyTimeMultiplier) and self.currentFightStage < self.fightStage.defendRight then
+	elseif self.roundTimer:IsPastSimMS(240000 * difficultyTimeMultiplier) and self.currentFightStage == self.fightStage.defendLeft then
 		self.currentFightStage = self.fightStage.defendRight;
 		self.screenTextTimer:Reset();
 		self.roundTimer:Reset();
-	elseif self.roundTimer:IsPastSimMS(180000 * difficultyTimeMultiplier) and self.currentFightStage < self.fightStage.evacuateBrain then
+	elseif self.roundTimer:IsPastSimMS(180000 * difficultyTimeMultiplier) and self.currentFightStage == self.fightStage.defendRight then
 		self:SwapBrainsToRobots();
 		self.currentFightStage = self.fightStage.evacuateBrain;
 		self.screenTextTimer:Reset();

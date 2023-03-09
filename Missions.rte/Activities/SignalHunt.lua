@@ -28,13 +28,7 @@ function SignalHunt:StartActivity(isNewGame)
 	self:SetTeamAISkill(self.zombieTeam, self.Difficulty);
 	self:SetTeamAISkill(self.ambusherTeam, self.Difficulty);
 
-	--TODO this stuff may be totally pointless, but I don't really wanna do the testing to remove it.
 	self:SetLZArea(self.humanTeam, self.humanLZ);
-	self:SetLZArea(self.ambusherTeam, self.ambusherLZ);
-	self:SetBrainLZWidth(Activity.PLAYER_1, 0);
-	self:SetBrainLZWidth(Activity.PLAYER_2, 0);
-	self:SetBrainLZWidth(Activity.PLAYER_3, 0);
-	self:SetBrainLZWidth(Activity.PLAYER_4, 0);
 
 	self.screenTextTimer = Timer();
 	self.screenTextTimeLimit = 7500;
@@ -559,7 +553,7 @@ function SignalHunt:UpdateActivity()
 	else
 		self.noControlChipTimer:Reset();
 	end
-	
+
 	self:DoZombieAndBombSpawns(zombieActorCount);
 
 	self:UpdateScreenTextAndObjectiveArrows(humanActorCount);
