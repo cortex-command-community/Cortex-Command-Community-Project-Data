@@ -902,7 +902,11 @@ function WaveDefense:CreateRandomInfantry()
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		if math.random() < 0.1 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			if math.random() < 0.75 then
+				Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI.Tech));
+			end
 		end
 
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
@@ -926,7 +930,11 @@ function WaveDefense:CreateLightInfantry()
 		elseif rand < 0.66 then
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			if math.random() < 0.75 then
+				Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI.Tech));
+			end
 		end
 
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
@@ -986,7 +994,11 @@ function WaveDefense:CreateMediumInfantry()
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		if math.random() < 0.1 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			if math.random() < 0.75 then
+				Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI.Tech));
+			end
 		end
 
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;

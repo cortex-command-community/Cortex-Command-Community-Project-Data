@@ -261,6 +261,13 @@ function Massacre:UpdateActivity()
 					if math.random() < 0.5 then
 						passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.CPUTechName));
 					end
+					if math.random() < 0.5 then
+						if math.random() < 0.75 then
+							passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.CPUTechName));
+						else
+							passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.CPUTechName));
+						end
+					end
 				end
 				-- Set AI mode and team so it knows who and what to fight for!
 				passenger.AIMode = Actor.AIMODE_BRAINHUNT;

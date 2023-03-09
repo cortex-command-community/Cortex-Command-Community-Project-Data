@@ -489,7 +489,6 @@ function SignalHunt:UpdateActivity()
 		self.screenTextTimer:Reset();
 		self:DoAmbush();
 	elseif self.currentFightStage == self.fightStage.ambushAndExtraction then
-		-- Any ronin guys who reach the innermost cave should go brain hunt afterward.
 		for actor in MovableMan.Actors do
 			if actor.Team == self.ambusherTeam and self.innermostCaveArea:IsInside(actor.Pos) then
 				actor.AIMode = Actor.AIMODE_BRAINHUNT;
