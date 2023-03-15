@@ -82,8 +82,12 @@ function Create(self)
 	self.grenadeReplenishPlusIcon = CreateMOSParticle("Particle Heal Effect", "Base.rte");
 	
 	self.bandolierObjectForDropping = appropriateGrenadeCreateFunction(self.bandolierName, self.grenadeTech);
-
-	self:replenishGrenade(true);
+	
+	local rootParentEquippedItemModuleAndPresetName = self.rootParent.EquippedItem ~= nil and self.rootParent.EquippedItem:GetModuleAndPresetName() or nil;
+	local rootParentIsHoldingGrenade = rootParentEquippedItemModuleAndPresetName == self.grenadeObject:GetModuleAndPresetName();
+	if rootParentEquippedItemModuleAndPresetName ~= self.grenadeObject:GetModuleAndPresetName() then
+		self:replenishGrenade(true);
+	end
 end
 
 function Update(self)
@@ -93,10 +97,9 @@ function Update(self)
 
 		-- If the root parent is holding a grenade bandolier, merge it and replace it with a grenade.
 		if rootParentEquippedItemModuleAndPresetName == self.bandolierKey then
-			--TODO Once Arm branch is merged, no need to cast to Attachable.
-			local rootParentEquippedItemAsAttachable = ToAttachable(self.rootParent.EquippedItem);
-			rootParentEquippedItemAsAttachable:RemoveFromParent();
-			local bandolierGrenadeCount = rootParentEquippedItemAsAttachable:NumberValueExists("GrenadesRemainingInBandolier") and rootParentEquippedItemAsAttachable:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
+			local rootParentEquippedItem = self.rootParent.EquippedItem;
+			rootParentEquippedItem:RemoveFromParent();
+			local bandolierGrenadeCount = rootParentEquippedItem:NumberValueExists("GrenadesRemainingInBandolier") and rootParentEquippedItem:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
 			self:modifyGrenadeCount(bandolierGrenadeCount);
 			rootParentIsHoldingGrenade = self:replenishGrenade(true);
 		end
