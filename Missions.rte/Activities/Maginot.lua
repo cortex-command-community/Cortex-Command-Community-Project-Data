@@ -90,6 +90,7 @@ function MaginotMission:SetupHumanPlayerBrains()
 			local emptyBrainBody = CreateAHuman("Brain Robot", "Base.rte");
 			emptyBrainBody:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.defenderTech));
 			emptyBrainBody:SetAimAngle(-0.78)
+			emptyBrainBody.HUDVisible = false;
 			emptyBrainBody.PlayerControllable = false;
 			emptyBrainBody.Pos = brain.Pos + Vector(0, 65);
 			emptyBrainBody.Head.Scale = 0;
@@ -214,6 +215,7 @@ function MaginotMission:SwapBrainsToRobots()
 			if nearestBrainRobot then
 				nearestBrainRobot = ToAHuman(nearestBrainRobot);
 				nearestBrainRobot.Head.Scale = 1;
+				nearestBrainRobot.HUDVisible = true;
 				nearestBrainRobot.PlayerControllable = true;
 				nearestBrainRobot:GetController().InputMode = Controller.CIM_AI;
 				nearestBrainRobot.PinStrength = 0;
@@ -230,6 +232,7 @@ function MaginotMission:SpawnEvacuationRocket()
 	self.evacuationRocket.Pos = Vector(self.rescueLZ:GetCenterPoint().X, -100);
 	self.evacuationRocket.Team = self.defenderTeam;
 	self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
+	self.evacuationRocket.HUDVisible = false;
 	self.evacuationRocket.PlayerControllable = false;
 	self.evacuationRocket.AIMode = Actor.AIMODE_STAY;
 	self.evacuationRocket:SetGoldValue(0);

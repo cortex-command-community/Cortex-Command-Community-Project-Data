@@ -179,6 +179,7 @@ function SignalHunt:SetupHumanPlayerBrains()
 				rocket.Team = self:GetTeamOfPlayer(player);
 				rocket:SetGoldValue(0);
 				rocket:SetControllerMode(Controller.CIM_AI, -1);
+				rocket.HUDVisible = false;
 				rocket.PlayerControllable = false;
 				rocket:AddInventoryItem(actor);
 				MovableMan:AddActor(rocket);
@@ -225,7 +226,7 @@ function SignalHunt:ResumeLoadedGame()
 
 	for actor in MovableMan.AddedActors do
 		if self.evacuationRocketSpawned and not self.evacuationRocket and actor.Team == self.humanTeam and actor.ClassName == "ACRocket" then
-			self.evacuationRocket = actor;
+			self.evacuationRocket = ToACRocket(actor);
 		end
 	end
 end
@@ -494,6 +495,7 @@ function SignalHunt:UpdateActivity()
 			self.evacuationRocket.Pos = Vector(self.humanLZ:GetCenterPoint().X, -100);
 			self.evacuationRocket.Team = self.humanTeam;
 			self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
+			rocket.HUDVisible = false;
 			self.evacuationRocket.PlayerControllable = false;
 			self.evacuationRocket.AIMode = Actor.AIMODE_STAY;
 			self.evacuationRocket:SetGoldValue(0);
