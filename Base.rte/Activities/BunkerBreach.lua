@@ -178,7 +178,7 @@ function BunkerBreach:SetupFogOfWar()
 		SceneMan:MakeAllUnseen(Vector(20, 20), self.defenderTeam);
 
 		-- Reveal outside areas for the attacker.
-		for x = 0, SceneMan.SceneWidth - 1, 24 do
+		for x = 0, SceneMan.SceneWidth - 1, 20 do
 			SceneMan:CastSeeRay(self.attackerTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
 		end
 
