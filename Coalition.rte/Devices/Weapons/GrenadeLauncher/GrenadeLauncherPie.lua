@@ -1,4 +1,4 @@
-function GrenadeLauncherImpact(pieMenu, pieSlice, pieMenuOwner)
+function GrenadeLauncherImpact(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("GrenadeMode", "Impact");
@@ -14,7 +14,7 @@ function GrenadeLauncherImpact(pieMenu, pieSlice, pieMenuOwner)
 	end
 end
 
-function GrenadeLauncherBounce(pieMenu, pieSlice, pieMenuOwner)
+function GrenadeLauncherBounce(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("GrenadeMode", "Bounce");
@@ -30,7 +30,7 @@ function GrenadeLauncherBounce(pieMenu, pieSlice, pieMenuOwner)
 	end
 end
 
-function GrenadeLauncherRemote(pieMenu, pieSlice, pieMenuOwner)
+function GrenadeLauncherRemote(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("GrenadeMode", "Remote");
@@ -46,10 +46,10 @@ function GrenadeLauncherRemote(pieMenu, pieSlice, pieMenuOwner)
 	end
 end
 
-function GrenadeLauncherRemoteDetonate(pieMenu, pieSlice, pieMenuOwner)
+function GrenadeLauncherRemoteDetonate(pieMenuOwner, pieMenu, pieSlice)
 	ToHDFirearm(ToAHuman(pieMenuOwner).EquippedItem):SetStringValue("GrenadeTrigger", "Detonate");
 end
 
-function GrenadeLauncherRemoteDelete(pieMenu, pieSlice, pieMenuOwner)
+function GrenadeLauncherRemoteDelete(pieMenuOwner, pieMenu, pieSlice)
 	ToHDFirearm(ToAHuman(pieMenuOwner).EquippedItem):SetStringValue("GrenadeTrigger", "Delete");
 end

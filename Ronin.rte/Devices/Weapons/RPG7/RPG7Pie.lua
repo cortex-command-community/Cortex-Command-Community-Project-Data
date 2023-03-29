@@ -1,4 +1,4 @@
-function RoninRPGSwitchAmmo(pieMenu, pieSlice, pieMenuOwner)
+function RoninRPGSwitchAmmo(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun and pieMenuOwner:HasObject("Shovel") then
 		local gun = ToHDFirearm(gun);

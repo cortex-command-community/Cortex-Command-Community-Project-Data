@@ -14,27 +14,6 @@ function Create(self)
 	self.grenadeMass = self:NumberValueExists("GrenadeMass") and self:GetNumberValue("GrenadeMass") or self.grenadeObject.Mass;
 	self.grenadesPerBandolier = self:NumberValueExists("GrenadeCount") and self:GetNumberValue("GrenadeCount") or 3;
 	self.grenadesRemainingInBandolier = self:NumberValueExists("GrenadesRemainingInBandolier") and self:GetNumberValue("GrenadesRemainingInBandolier") or self.grenadesPerBandolier;
-
-	----------------------------------------
-	-- Setup Grenade Bandolier Attachable --
-	----------------------------------------
-	self.attachable = CreateAttachable("Grenade Bandolier", "Base.rte");
-
-	self.attachable:SetStringValue("BandolierName", self.PresetName);
-	self.attachable:SetNumberValue("BandolierMass", self.bandolierMass);
-
-	self.attachable:SetNumberValue("ReplenishDelay", self.replenishDelay);
-
-	self.attachable:SetStringValue("GrenadeName", self.grenadeName);
-	self.attachable:SetStringValue("GrenadeTech", self.grenadeTech);
-	if self.isThrownDevice then
-		self.attachable:SetNumberValue("GrenadeIsThrownDevice", 1);
-	end
-	self.attachable:SetNumberValue("GrenadeMass", self.grenadeMass);
-	self.attachable:SetNumberValue("GrenadesPerBandolier", self.grenadesPerBandolier);
-	if self.grenadesPerBandolier ~= self.grenadesRemainingInBandolier then
-		self.attachable:SetNumberValue("GrenadesRemainingInBandolier", self.grenadesRemainingInBandolier);
-	end
 end
 
 function OnAttach(self, newParent)
@@ -43,7 +22,25 @@ function OnAttach(self, newParent)
 		rootParent = ToAHuman(rootParent);
 	end
 	if rootParent and not rootParent:NumberValueExists(self.bandolierKey) then
-		rootParent:AddAttachable(self.attachable);
+		local attachable = CreateAttachable("Grenade Bandolier", "Base.rte");
+
+		attachable:SetStringValue("BandolierName", self.PresetName);
+		attachable:SetNumberValue("BandolierMass", self.bandolierMass);
+
+		attachable:SetNumberValue("ReplenishDelay", self.replenishDelay);
+
+		attachable:SetStringValue("GrenadeName", self.grenadeName);
+		attachable:SetStringValue("GrenadeTech", self.grenadeTech);
+		if self.isThrownDevice then
+			attachable:SetNumberValue("GrenadeIsThrownDevice", 1);
+		end
+		attachable:SetNumberValue("GrenadeMass", self.grenadeMass);
+		attachable:SetNumberValue("GrenadesPerBandolier", self.grenadesPerBandolier);
+		if self.grenadesPerBandolier ~= self.grenadesRemainingInBandolier then
+			attachable:SetNumberValue("GrenadesRemainingInBandolier", self.grenadesRemainingInBandolier);
+		end
+
+		rootParent:AddAttachable(attachable);
 		self.ToDelete = true;
 	end
 end
