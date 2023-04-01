@@ -1,4 +1,4 @@
-function CowboyMode(pieMenu, pieSlice, pieMenuOwner)
+function CowboyMode(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		gun = ToHDFirearm(gun);
