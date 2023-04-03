@@ -500,7 +500,7 @@ function BunkerBreach:SendDefenderGuardsAtEnemiesInsideBunker()
 end
 
 function BunkerBreach:UpdateAISpawns()
-	if self.AI.isAttackerTeam then
+	if self.AI.isAttackerTeam and self.AI.funds > 0 then
 		if self.AI.shouldSpawnDiggers then
 			self:CreateDrop("Engineer", Actor.AIMODE_GOLDDIG, self.AI.maxDiggerCount - self.AI.diggerCount);
 		elseif self.AI.isLaunchingMajorAttack or self.AI.friendlyUnitsToEnemyUnitsValueRatio < (3 * math.max(self.AI.difficultyRatio, 0.1)) then
@@ -518,24 +518,28 @@ function BunkerBreach:UpdateAISpawns()
 		if self.AI.difficultyRatio > 0 and (self.AI.enemyHumanIsRamboing or self.AI.enemyUnitsInsideToOutsideValueRatio > RangeRand(0.25, 1.5)) and math.random() < 0.75 then
 			self:SendDefenderGuardsAtEnemiesInsideBunker();
 
-			local numberOfInternalReinforcementsToSpawn;
-			if self.AI.enemyHumanIsRamboing then
-				numberOfInternalReinforcementsToSpawn = 1 + math.ceil(4 * self.AI.difficultyRatio * math.random());
-			else
-				numberOfInternalReinforcementsToSpawn = math.ceil(math.min(5 * self.AI.difficultyRatio, self.AI.enemyUnitsInsideToOutsideValueRatio * self.AI.difficultyRatio * 2));
+			local numberOfInternalReinforcementsToSpawn = 0;
+			if self.AI.internalReinforcementBudget > 0 then
+				if self.AI.enemyHumanIsRamboing then
+					numberOfInternalReinforcementsToSpawn = 1 + math.ceil(4 * self.AI.difficultyRatio * math.random());
+				else
+					numberOfInternalReinforcementsToSpawn = math.ceil(math.min(5 * self.AI.difficultyRatio, self.AI.enemyUnitsInsideToOutsideValueRatio * self.AI.difficultyRatio * 2));
+				end
 			end
 			if #self.AI.internalReinforcementPositions > 0 then
 				self:CreateInternalReinforcements("Any", numberOfInternalReinforcementsToSpawn);
-			else
+			elseif self.AI.funds > 0 then
 				self:CreateDrop("Any", Actor.AIMODE_BRAINHUNT, 999);
 			end
 			self:CalculateAISpawnDelay(true);
-		elseif self.AI.shouldSpawnDiggers then
-			self:CreateDrop("Engineer", Actor.AIMODE_GOLDDIG, self.AI.maxDiggerCount - self.AI.diggerCount);
-			self:CalculateAISpawnDelay(true);
-		else
-			self:CreateDrop("Any", Actor.AIMODE_BRAINHUNT);
-			self:CalculateAISpawnDelay();
+		elseif self.AI.funds > 0 then
+			if self.AI.shouldSpawnDiggers then
+				self:CreateDrop("Engineer", Actor.AIMODE_GOLDDIG, self.AI.maxDiggerCount - self.AI.diggerCount);
+				self:CalculateAISpawnDelay(true);
+			else
+				self:CreateDrop("Any", Actor.AIMODE_BRAINHUNT);
+				self:CalculateAISpawnDelay();
+			end
 		end
 	end
 end
@@ -580,16 +584,16 @@ function BunkerBreach:UpdateActivity()
 
 			self:UpdateAIDecisionData();
 
-			if self.AI.funds > 0 then
+			if self.AI.funds > 0  or (self.AI.isDefenderTeam and self.AI.internalReinforcementBudget > 0) then
 				self:UpdateAISpawns();
-			elseif self.AI.isAttackerTeam or (self.AI.isDefenderTeam and self.AI.internalReinforcementBudget <= 0) then
+			else
 				self.AI.spawnTimer:SetSimTimeLimitMS(5000);
 			end
 		end
 	end
 end
 
-function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(team, numberOfReinforcementsToCreate)
+function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(numberOfReinforcementsToCreate)
 	local enemiesToTarget = {};
 	for i = 1, numberOfReinforcementsToCreate do
 		if enemiesToTarget[i] == nil then
@@ -627,7 +631,7 @@ function BunkerBreach:CreateInternalReinforcements(loadout, numberOfReinforcemen
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
 	local crabRatio = self:GetCrabToHumanSpawnRatio(techID);
 
-	local internalReinforcementPositionsToEnemyTargets = self:CalculateInternalReinforcementPositionsToEnemyTargets(team, numberOfReinforcementsToCreate);
+	local internalReinforcementPositionsToEnemyTargets = self:CalculateInternalReinforcementPositionsToEnemyTargets(numberOfReinforcementsToCreate);
 
 	local numberOfReinforcementsCreated = 0;
 	for internalReinforcementPosition, enemyTargetsForPosition in pairs(internalReinforcementPositionsToEnemyTargets) do
