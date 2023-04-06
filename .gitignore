@@ -41,6 +41,8 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
+CortexCommand
+CortexCommand_debug
 
 # Manifest files
 *.manifest
