@@ -1,4 +1,4 @@
-function ToggleDualWield(pieMenu, pieSlice, pieMenuOwner)
+function ToggleDualWield(pieMenuOwner, pieMenu, pieSlice)
 	local device = pieMenuOwner.EquippedItem;
 	if device and IsHeldDevice(device) then
 		local isDualWieldable = ToHeldDevice(device):IsDualWieldable();

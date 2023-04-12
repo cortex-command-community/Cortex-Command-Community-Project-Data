@@ -41,6 +41,8 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
+CortexCommand
+CortexCommand_debug
 
 # Manifest files
 *.manifest
@@ -60,8 +62,8 @@ UserScenes.rte/
 DedicatedServerDebug.bat
 
 allegro.log
-abortscreen.bmp
-
+AbortScreen.bmp
+AbortLog.txt
 MemCleanupInfo.txt
 LogPublish.txt
 LogLoading.txt

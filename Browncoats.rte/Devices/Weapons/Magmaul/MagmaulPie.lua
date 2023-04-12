@@ -1,4 +1,4 @@
-function MagmaulFireGrenade(pieMenu, pieSlice, pieMenuOwner)
+function MagmaulFireGrenade(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun ~= nil then
 		local gun = ToHDFirearm(gun);
@@ -11,7 +11,7 @@ function MagmaulFireGrenade(pieMenu, pieSlice, pieMenuOwner)
 	end
 end
 
-function MagmaulFuelGrenade(pieMenu, pieSlice, pieMenuOwner)
+function MagmaulFuelGrenade(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun ~= nil then
 		local gun = ToHDFirearm(gun);

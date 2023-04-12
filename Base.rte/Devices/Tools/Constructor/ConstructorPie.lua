@@ -1,18 +1,18 @@
-function ConstructorModeCancel(pieMenu, pieSlice, pieMenuOwner)
+function ConstructorModeCancel(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetNumberValue("BuildMode", 1);
 	end
 end
 
-function ConstructorModeBuild(pieMenu, pieSlice, pieMenuOwner)
+function ConstructorModeBuild(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetNumberValue("BuildMode", 2);
 	end
 end
 
-function ConstructorDigMode(pieMenu, pieSlice, pieMenuOwner)
+function ConstructorDigMode(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("ConstructorMode", "Dig");
@@ -20,7 +20,7 @@ function ConstructorDigMode(pieMenu, pieSlice, pieMenuOwner)
 	end
 end
 
-function ConstructorSprayMode(pieMenu, pieSlice, pieMenuOwner)
+function ConstructorSprayMode(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun then
 		ToMOSRotating(gun):SetStringValue("ConstructorMode", "Spray");

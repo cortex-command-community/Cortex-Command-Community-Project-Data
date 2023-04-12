@@ -1,4 +1,4 @@
-function RoninCreateSandbag(pieMenu, pieSlice, pieMenuOwner)
+function RoninCreateSandbag(pieMenuOwner, pieMenu, pieSlice)
 	if pieMenuOwner:GetNumberValue("RoninShovelResource") >= 10 then
 		pieMenuOwner = ToAHuman(pieMenuOwner);
 		pieMenuOwner:RemoveNumberValue("RoninShovelResource");
