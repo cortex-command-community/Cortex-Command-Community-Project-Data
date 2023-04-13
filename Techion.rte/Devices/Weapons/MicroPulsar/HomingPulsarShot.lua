@@ -6,8 +6,8 @@ function Create(self)
 	local longDist = 800;
 	local shortDist = 98;
 	--To-do: rewrite this garbage targeting system?
-	for mo in MovableMan:GetMOsInRadius(self.Pos, longDist) do
-		if mo and IsMOSRotating(mo) and mo.Team ~= self.Team and mo.GetsHitByMOs then
+	for mo in MovableMan:GetMOsInRadius(self.Pos, longDist, true) do
+		if mo and IsMOSRotating(mo) and mo.Team ~= self.Team then
 
 			local distCheck = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 			if distCheck.Magnitude - mo.Radius < longDist then
