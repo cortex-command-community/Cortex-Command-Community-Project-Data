@@ -2,6 +2,7 @@
 function Create(self)
 	self.baseHealDelay = 500;
 	self.PieMenu:AddPieSlice(CreatePieSlice("Self Heal"), self);
+	self.healCrossParticle = CreateMOSParticle("Particle Heal Effect", "Base.rte");
 end
 
 function Update(self)
@@ -19,7 +20,7 @@ function Update(self)
 						self.healing.delay = self.baseHealDelay * math.sqrt(self.healing.wound.Radius);
 					end
 				end
-				local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
+				local cross = self.healCrossParticle:Clone();
 				cross.Pos = self.AboveHUDPos + Vector(0, 4);
 				MovableMan:AddParticle(cross);
 			else

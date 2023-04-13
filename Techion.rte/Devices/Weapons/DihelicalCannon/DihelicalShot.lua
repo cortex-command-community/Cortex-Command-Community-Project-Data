@@ -40,6 +40,8 @@ function Create(self)
 
 	--Disintegration strength.
 	self.disintegrationStrength = 500;
+	
+	self.melter = CreateMOPixel("Disintegrator", "Techion.rte");
 end
 
 function Update(self)
@@ -121,7 +123,7 @@ function Update(self)
 					end
 					local rootMO = mo:GetRootParent();
 					if i == 2 and IsActor(rootMO) then
-						local melter = CreateMOPixel("Disintegrator");
+						local melter = self.melter:Clone();
 						melter.Pos = hitPos;
 						melter.Team = self.Team;
 						melter.Sharpness = rootMO.ID;
