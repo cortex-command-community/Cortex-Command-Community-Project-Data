@@ -231,9 +231,6 @@ function Create(self)
 	self.indicatorArrow = CreateMOSParticle("Indicator Arrow", "Uzira.rte");
 end
 
-function WhilePieMenuOpen(self, pieMenu)
-end
-
 function Update(self)
 	if self.isAIControlled and self:IsPlayerControlled() then
 		self.isAIControlled = false;
