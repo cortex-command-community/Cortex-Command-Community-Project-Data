@@ -102,7 +102,7 @@ function WhilePieMenuOpen(self, openedPieMenu)
 	openedPieMenu:GetFirstPieSliceByPresetName("Self Heal").Enabled = self.WoundCount > 0 and (self.FGArm or self.BGArm) ~= nil;
 end
 
-function SelfHeal(pieMenu, pieSlice, pieMenuOwner)
+function SelfHeal(pieMenuOwner, pieMenu, pieSlice)
 	if pieMenuOwner and IsAHuman(pieMenuOwner) then 
 		pieMenuOwner = ToAHuman(pieMenuOwner);
 		if pieMenuOwner.WoundCount > 0 and (pieMenuOwner.FGArm or pieMenuOwner.BGArm) ~= nil then

@@ -39,14 +39,14 @@ function Create(self)
 	end
 end
 
-function CoalitionShieldAttach(pieMenu, pieSlice, pieMenuOwner)
+function CoalitionShieldAttach(pieMenuOwner, pieMenu, pieSlice)
 	local device = pieMenuOwner.EquippedItem;
 	if device and IsHeldDevice(device) then
 		Coalition_AttachCombatShield(ToHeldDevice(device));
 	end
 end
 
-function CoalitionShieldDetach(pieMenu, pieSlice, pieMenuOwner)
+function CoalitionShieldDetach(pieMenuOwner, pieMenu, pieSlice)
 	local device = pieMenuOwner.EquippedItem;
 	if device and IsHDFirearm(device) then
 		device = ToHDFirearm(device);
