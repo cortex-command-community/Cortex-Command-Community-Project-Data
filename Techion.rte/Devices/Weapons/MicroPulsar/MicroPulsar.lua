@@ -12,8 +12,8 @@ function Update(self)
 			self.guidePos = nil;
 			local longDist = 800;
 			local shortDist = 98;
-			for mo in MovableMan:GetMOsInRadius(self.Pos, longDist, true) do
-				if mo and IsMOSRotating(mo) and mo.Team ~= self.Team then
+			for mo in MovableMan:GetMOsInRadius(self.Pos, longDist, self.Team, true) do
+				if mo and IsMOSRotating(mo) then
 
 					local distCheck = SceneMan:ShortestDistance(self.MuzzlePos, mo.Pos, SceneMan.SceneWrapsX);
 					if distCheck.Magnitude - mo.Radius < longDist then

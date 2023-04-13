@@ -5,7 +5,7 @@ end
 
 function Update(self)
 	--Run the effect on Update() to give other particles a chance to reach the target
-	for mo in MovableMan:GetMOsInRadius(self.Pos, self.range, true) do
+	for mo in MovableMan:GetMOsInRadius(self.Pos, self.range, -1, true) do
 		if mo.PinStrength == 0 and IsMOSRotating(mo) then
 			local dist = SceneMan:ShortestDistance(self.Pos, mo.Pos, SceneMan.SceneWrapsX);
 			local strSumCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, 3, rte.airID);
