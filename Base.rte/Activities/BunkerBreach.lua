@@ -572,7 +572,7 @@ function BunkerBreach:CreateInternalReinforcements(loadout, numberOfReinforcemen
 	end
 	local team = self.CPUTeam;
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(team));
-	local crabRatio = self:GetCrabToHumanSpawnRatio(techID);
+	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(techID);
 
 	local internalReinforcementPositionsToEnemyTargets = self:CalculateInternalReinforcementPositionsToEnemyTargets(team, numberOfReinforcementsToCreate);
 
@@ -580,22 +580,26 @@ local numberOfDoorsUsed = 0;
 
 	local numberOfReinforcementsCreated = 0;
 	for internalReinforcementPosition, enemyTargetsForPosition in pairs(internalReinforcementPositionsToEnemyTargets) do
-		if numberOfReinforcementsCreated < numberOfReinforcementsToCreate and self.AI.internalReinforcementBudget > 0 then
+		if numberOfReinforcementsCreated < numberOfReinforcementsToCreate and self.AI.internalReinforcementBudget > 0 and #enemyTargetsForPosition > 0 then
 			local doorParticle = self.AI.internalReinforcementsDoorParticle:Clone();
 			doorParticle.Pos = internalReinforcementPosition;
 			doorParticle.Team = team;
 			MovableMan:AddParticle(doorParticle);
 			self.AI.internalReinforcementDoorsAndActorsToSpawn[doorParticle] = {};
 
-			local numberOfReinforcementsToCreateAtPosition = math.min(2, #enemyTargetsForPosition);
-			if numberOfReinforcementsToCreateAtPosition == 1 and math.random() < (self.AI.difficultyRatio * 0.5) then
-				numberOfReinforcementsToCreateAtPosition = 2;
+			local numberOfInternalReinforcementsToCreateAtPosition = math.min(#enemyTargetsForPosition, 3);
+			if numberOfInternalReinforcementsToCreateAtPosition == 1 and math.random() < (self.AI.difficultyRatio * 0.75) then
+				numberOfInternalReinforcementsToCreateAtPosition = 2;
+				if math.random() < (self.AI.difficultyRatio * 0.5) then
+					numberOfInternalReinforcementsToCreateAtPosition = 3;
+				end
 			end
-			for i = 1, numberOfReinforcementsToCreateAtPosition do
+			
+			for i = 1, numberOfInternalReinforcementsToCreateAtPosition do
 				local internalReinforcement;
 				if loadout then
 					internalReinforcement = self:CreateInfantry(techID, loadout);
-				elseif math.random() < crabRatio and self.AI.crabCount < self.AI.maxCrabCount and self:GetCrabToHumanSpawnRatio(techID) > 0 then
+				elseif math.random() < crabToHumanSpawnRatio and self.AI.crabCount < self.AI.maxCrabCount then
 					local createTurretReinforcement = math.random() < 0.05;
 					internalReinforcement = self:CreateCrab(techID, createTurretReinforcement);
 				else
@@ -603,8 +607,10 @@ local numberOfDoorsUsed = 0;
 				end
 				internalReinforcement.Team = team;
 				internalReinforcement.Pos = internalReinforcementPosition;
-				if numberOfReinforcementsToCreateAtPosition == 2 then
+				if numberOfInternalReinforcementsToCreateAtPosition == 2 then
 					internalReinforcement.Pos.X = internalReinforcement.Pos.X + (i == 1 and -10 or 10);
+				elseif numberOfInternalReinforcementsToCreateAtPosition == 3 then
+					internalReinforcement.Pos.X = internalReinforcement.Pos.X - 30 + (i * 15);
 				end
 				if internalReinforcement:IsInGroup("Actors - Turrets") then
 					internalReinforcement.AIMode = Actor.AIMODE_SENTRY;
