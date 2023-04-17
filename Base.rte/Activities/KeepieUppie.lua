@@ -272,7 +272,7 @@ function KeepieUppie:UpdateActivity()
 						self:SetPlayerBrain(actor, player);
 						actor:AddToGroup("Brains");
 						self:SetObservationTarget(actor.Pos, player);
-						self:SwitchToActor(actor, player, player);
+						self:SwitchToActor(actor, player, Activity.TEAM_1);
 
 						self.playerRocketSpawned = true;
 						break;
