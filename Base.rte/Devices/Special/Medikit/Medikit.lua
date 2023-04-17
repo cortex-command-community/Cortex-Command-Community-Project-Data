@@ -3,7 +3,9 @@ function Create(self)
 	self.maxStrength = self.baseStrength * 5;
 
 	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
+	self.confirmSound.Immobile = false;
 	self.errorSound = CreateSoundContainer("Error", "Base.rte");
+	self.errorSound.Immobile = false;
 end
 
 function OnFire(self)
