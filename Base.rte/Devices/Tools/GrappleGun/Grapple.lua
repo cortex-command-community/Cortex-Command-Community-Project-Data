@@ -33,8 +33,8 @@ function Create(self)
 	self.clickSound = CreateSoundContainer("Grapple Gun Click", "Base.rte");
 	self.returnSound = CreateSoundContainer("Grapple Gun Return", "Base.rte");
 
-	for i = 1, MovableMan:GetMOIDCount() - 1 do
-		local gun = MovableMan:GetMOFromID(i);
+	--TODO: Rewrite this junk
+	for gun in MovableMan:GetMOsInRadius(self.Pos, 50) do
 		if gun and gun.ClassName == "HDFirearm" and gun.PresetName == "Grapple Gun" and SceneMan:ShortestDistance(self.Pos, ToHDFirearm(gun).MuzzlePos, self.mapWrapsX):MagnitudeIsLessThan(5) then
 			self.parentGun = ToHDFirearm(gun);
 			self.parent = MovableMan:GetMOFromID(gun.RootID);

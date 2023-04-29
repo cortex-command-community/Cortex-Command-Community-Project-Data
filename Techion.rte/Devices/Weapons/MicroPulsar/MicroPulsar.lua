@@ -1,9 +1,6 @@
 function Create(self)
 	self.delayTimer = Timer();
-	self.guidePos = null;
 	self.guideSize = 0;
-	self.guideLine = null;
-	self.guideLine2 = null;
 end
 
 function Update(self)
@@ -12,12 +9,11 @@ function Update(self)
 
 		if self.delayTimer:IsPastSimMS(50) then
 			self.delayTimer:Reset();
-			self.guidePos = null;
+			self.guidePos = nil;
 			local longDist = 800;
 			local shortDist = 98;
-			for i = 1, MovableMan:GetMOIDCount() - 1 do
-				local mo = MovableMan:GetMOFromID(i);
-				if mo and mo.ClassName ~= "ADoor" and (mo.Team ~= self.Team or mo.ClassName == "TDExplosive" or mo.ClassName == "MOSRotating" or (mo.ClassName == "AEmitter" and mo.RootID == moCheck)) then
+			for mo in MovableMan:GetMOsInRadius(self.Pos, longDist, self.Team, true) do
+				if mo and IsMOSRotating(mo) then
 
 					local distCheck = SceneMan:ShortestDistance(self.MuzzlePos, mo.Pos, SceneMan.SceneWrapsX);
 					if distCheck.Magnitude - mo.Radius < longDist then
@@ -49,7 +45,7 @@ function Update(self)
 				end
 			end
 		end
-		if self.guidePos ~= null then
+		if self.guidePos ~= nil then
 
 			local cornerPos = Vector(self.guidePos.X - self.guideSize, self.guidePos.Y - self.guideSize);
 			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(5, 0), 13);
@@ -80,6 +76,6 @@ function Update(self)
 			PrimitiveMan:DrawLinePrimitive(cornerPos, cornerPos + Vector(5, 0), 13);
 		end
 	else
-		self.guidePos = null;
+		self.guidePos = nil;
 	end
 end

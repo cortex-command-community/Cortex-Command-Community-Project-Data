@@ -1,11 +1,8 @@
 function Create(self)
 	--Get the target from Sharpness.
-	for id = 1, MovableMan:GetMOIDCount() - 1 do
-		local mo = MovableMan:GetMOFromID(id);
-		if mo and mo.UniqueID == self.Sharpness then
-			self.target = ToMOSRotating(mo);
-			break;
-		end
+	local mo = MovableMan:FindObjectByUniqueID(self.Sharpness);
+	if mo and IsMOSRotating(mo) then
+		self.target = ToMOSRotating(mo);
 	end
 	if self.target == nil then
 		self.ToDelete = true;
@@ -81,7 +78,7 @@ function Update(self)
 				local woundName = ToMOSRotating(self.target):GetEntryWoundPresetName();
 				if woundName ~= "" then
 					local wound = CreateAEmitter(woundName);
-					wound.EmitAngle = self.targetOffset.AbsRadAngle + RangeRand(-0.1, 0.1);
+					wound.InheritedRotAngleOffset = self.targetOffset.AbsRadAngle + RangeRand(-0.1, 0.1);
 					ToMOSRotating(self.target):AddWound(wound, self.targetOffset + Vector(math.random(-1, 1), math.random(-1, 1)), true);
 				end
 			end

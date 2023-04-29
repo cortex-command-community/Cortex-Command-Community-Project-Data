@@ -38,8 +38,7 @@ function Update(self)
 			local rotTotal = math.sin(self.rotFactor)/balance;
 
 			local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-			self.RotAngle = self.RotAngle + (self.FlipFactor * rotTotal);
-			self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-rotTotal * self.FlipFactor);
+			self.InheritedRotAngleOffset = rotTotal;
 
 			self.rotFactor = self.rotFactor - (math.pi * 0.0005 * self.RateOfFire);
 		end

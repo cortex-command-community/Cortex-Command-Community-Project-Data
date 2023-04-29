@@ -3,7 +3,7 @@ function Create(self)
 	self.loaded = false;
 	self.rotFactor = math.pi;
 
-	self.cockSound = CreateSoundContainer("Chamber Round", "Base.rte");
+	self.cockSound = CreateSoundContainer(self:StringValueExists("CockSound") and self:GetStringValue("CockSound") or "Base.rte/Chamber Round");
 end
 
 function Update(self)
@@ -34,9 +34,7 @@ function Update(self)
 			self.Frame = 1;
 			self.SupportOffset = Vector(1, 2);
 			local rotTotal = math.sin(self.rotFactor)/5;
-			self.RotAngle = self.RotAngle + self.FlipFactor * rotTotal;
-			local jointOffset = Vector(self.JointOffset.X * self.FlipFactor, self.JointOffset.Y):RadRotate(self.RotAngle);
-			self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-rotTotal * self.FlipFactor);
+			self.InheritedRotAngleOffset = rotTotal;
 			self.rotFactor = self.rotFactor - math.pi * 0.0005 * self.RateOfFire;
 		end
 		if self.rotFactor <= 0 then
