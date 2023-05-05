@@ -13,13 +13,15 @@ end
 
 function Movators_AddNode(node)
 	local teamMovatorData = MovatorData[node.Team];
+	
+	local movatorDefaultNodeSize = 48;
 
 	if teamMovatorData.nodeData[node] == nil then
 		for nodeKey, nodeInfo in pairs(teamMovatorData.nodeData) do
 			if type(nodeKey) ~= "string" then
 				if nodeInfo.zoneBox ~= nil then
-					local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or MovatorDefaultNodeSize;
-					local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or MovatorDefaultNodeSize;
+					local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or movatorDefaultNodeSize;
+					local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or movatorDefaultNodeSize;
 					local nodeBox = Box(Vector(node.Pos.X - width * 0.5 + 0.5, node.Pos.Y - height * 0.5), Vector(node.Pos.X + width * 0.5, node.Pos.Y + height * 0.5));
 					if nodeInfo.zoneBox:IntersectsBox(nodeBox) then
 						node.ToDelete = true;
@@ -44,8 +46,8 @@ function Movators_AddNode(node)
 		end
 		teamMovatorData.nodeDataCount = teamMovatorData.nodeDataCount + 1;
 
-		local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or MovatorDefaultNodeSize;
-		local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or MovatorDefaultNodeSize;
+		local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or movatorDefaultNodeSize;
+		local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or movatorDefaultNodeSize;
 
 		teamMovatorData.nodeData[node].size = Vector(width, height);
 		teamMovatorData.nodeData[node].zoneBox = Box(Vector(node.Pos.X - width * 0.5, node.Pos.Y - height * 0.5), Vector(node.Pos.X + width * 0.5, node.Pos.Y + height * 0.5));
