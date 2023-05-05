@@ -991,7 +991,7 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
 
-	local getDirectionForDistanceLargerAxis = function(distanceVector, minimumDistanceThreshold)
+	local function getDirectionForDistanceLargerAxis(distanceVector, minimumDistanceThreshold)
 		local direction = Directions.None;
 
 		local largerDistanceAxis = (math.abs(distanceVector.X) > math.abs(distanceVector.Y)) and "X" or "Y";

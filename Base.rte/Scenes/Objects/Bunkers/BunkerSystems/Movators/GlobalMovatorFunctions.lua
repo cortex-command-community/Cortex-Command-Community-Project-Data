@@ -9,7 +9,6 @@ if not MovatorData then
 			teleporterNodesCount = 0,
 		};
 	end
-	print("Setup movator data")
 end
 
 function Movators_AddNode(node)
@@ -83,7 +82,7 @@ function Movators_RemoveNode(node)
 	end
 end
 
-local targetNodeIsNotObstructed = function(startNode, targetNode, direction, nodeZoneSize)
+local function targetNodeIsNotObstructed(startNode, targetNode, direction, nodeZoneSize)
 	local checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
 
 	local spreadRaysHorizontally = direction == Directions.Up or direction == Directions.Down;
