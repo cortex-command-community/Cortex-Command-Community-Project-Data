@@ -11,17 +11,17 @@ if not MovatorData then
 	end
 	print("Setup movator data")
 end
-	
+
 local targetNodeIsNotObstructed = function(startNode, targetNode, direction, nodeZoneSize)
 	local checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
-	
+
 	local spreadRaysHorizontally = direction == Directions.Up or direction == Directions.Down;
 	local rayOffsets = {
 		spreadRaysHorizontally and Vector(-nodeZoneSize.X * 0.25, 0) or Vector(0, -nodeZoneSize.Y * 0.25),
 		Vector(),
 		spreadRaysHorizontally and Vector(nodeZoneSize.X * 0.25, 0) or Vector(0, nodeZoneSize.Y * 0.25),
 	};
-	
+
 	local rayVector = SceneMan:ShortestDistance(startNode.Pos, targetNode.Pos, checkWrapping);
 	for _, rayOffset in ipairs(rayOffsets) do
 		if SceneMan:CastStrengthRay(startNode.Pos + rayOffset, rayVector, 15, Vector(), 4, 0, true) then
@@ -30,19 +30,19 @@ local targetNodeIsNotObstructed = function(startNode, targetNode, direction, nod
 	end
 	return true;
 end
-	
+
 Movators_CheckConnections = function(node)
 	local teamMovatorData = MovatorData[node.Team];
-	
+
 	local nodeData = teamMovatorData.nodeData[node];
 	local nodesInDirections = { [Directions.Up] = {}, [Directions.Down] = {}, [Directions.Left] = {}, [Directions.Right] = {} };
 	local affectedNodes = {};
-	
+
 	local thisNodeIsHorizontalOnly = node.PresetName:find("Horizontal Only");
 	local thisNodeIsVerticalOnly = node.PresetName:find("Vertical Only");
-	
+
 	local checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
-	
+
 	for otherNode, otherNodeData in pairs(teamMovatorData.nodeData) do
 		if type(otherNode) ~= "string" and MovableMan:IsParticle(otherNode) and (not teamMovatorData.teleporterNodes[node] or not teamMovatorData.teleporterNodes[otherNode]) then
 			local otherNodeIsHorizontalOnly = otherNode.PresetName:find("Horizontal Only");
@@ -72,7 +72,7 @@ Movators_CheckConnections = function(node)
 				distanceToClosestNode = distanceToNode;
 			end
 		end
-		
+
 		if closestNode ~= nil then
 			if not nodeData.connectedNodeData[direction] then
 				nodeData.connectedNodeCount = nodeData.connectedNodeCount + 1;
@@ -81,7 +81,7 @@ Movators_CheckConnections = function(node)
 			if nodeData.connectingAreas[direction] == nil then
 				nodeData.connectingAreas[direction] = Area();
 			end
-			
+
 			affectedNodes[direction] = closestNode;
 		end
 	end
@@ -90,7 +90,7 @@ end
 
 Movators_AddNode = function(node)
 	local teamMovatorData = MovatorData[node.Team];
-	
+
 	if teamMovatorData.nodeData[node] == nil then
 		for nodeKey, nodeInfo in pairs(teamMovatorData.nodeData) do
 			if type(nodeKey) ~= "string" then
@@ -105,7 +105,7 @@ Movators_AddNode = function(node)
 				end
 			end
 		end
-		
+
 		teamMovatorData.nodeData[node] = {
 			connectedNodeCount = 0,
 			size = Vector(),
@@ -114,16 +114,16 @@ Movators_AddNode = function(node)
 			connectedNodeData = {},
 			connectingAreas = {},
 		}
-		
+
 		if node.PresetName == "Teleporter Node" then
 			teamMovatorData.teleporterNodes[node] = true;
 			teamMovatorData.teleporterNodesCount = teamMovatorData.teleporterNodesCount + 1;
 		end
 		teamMovatorData.nodeDataCount = teamMovatorData.nodeDataCount + 1;
-		
+
 		local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or MovatorDefaultNodeSize;
 		local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or MovatorDefaultNodeSize;
-			
+
 		teamMovatorData.nodeData[node].size = Vector(width, height);
 		teamMovatorData.nodeData[node].zoneBox = Box(Vector(node.Pos.X - width * 0.5, node.Pos.Y - height * 0.5), Vector(node.Pos.X + width * 0.5, node.Pos.Y + height * 0.5));
 		teamMovatorData.nodeData[node].zoneInternalBox = Box(Vector(node.Pos.X - width * 0.25, node.Pos.Y - height * 0.25), Vector(node.Pos.X + width * 0.25, node.Pos.Y + height * 0.25));
@@ -134,7 +134,7 @@ Movators_AddNode = function(node)
 				Movators_CheckConnections(affectedNode);
 			end
 		end
-		
+
 		return true;
 	end
 	return false;
@@ -142,7 +142,7 @@ end
 
 Movators_RemoveNode = function(node)
 	local teamMovatorData = MovatorData[node.Team];
-	
+
 	local removedNodeTable = teamMovatorData.nodeData[node];
 	if type(removedNodeTable) ~= "nil" then
 		teamMovatorData.nodeData[node] = nil;
