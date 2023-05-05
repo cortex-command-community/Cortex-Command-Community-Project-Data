@@ -230,11 +230,16 @@ function BrainvsBrain:StartNewGame()
 		self.spawnDelay = (6500 - self.Difficulty * 60) * rte.SpawnIntervalScale;
 		self.hunterDelay = self.spawnDelay + 10000;
 
-		local spawnStartingActors = function(guardAreaName, numberOfGuards, team)
-			for i = 1, numberOfGuards do
-				local guardAreaToUse = guardAreaName .. " " .. i;
-				if SceneMan.Scene:HasArea(guardAreaName .. " " .. i) then
-					local startingActor = self:CreateDefender(team);
+		local spawnStartingActors = function(areaName, numberOfActorsToSpawn, team)
+			for i = 1, numberOfActorsToSpawn do
+				local guardAreaToUse = areaName .. " " .. i;
+				if SceneMan.Scene:HasArea(areaName .. " " .. i) then
+					local startingActor;
+					if areaName:find("Miner") then
+						startingActor = self:CreateEngineer(team);
+					else
+						startingActor = self:CreateDefender(team);
+					end
 					if startingActor then
 						startingActor.Pos = SceneMan.Scene:GetArea(guardAreaToUse):GetCenterPoint();
 						MovableMan:AddActor(startingActor);
@@ -989,7 +994,7 @@ function BrainvsBrain:CreateEngineer(team, mode)
 				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.TechName[team]));
 			end
 		end
-		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]));
+		Passenger:AddInventoryItem(CreateHDFirearm("Heavy Digger", "Base.rte"));
 
 		Passenger.AIMode = mode or Actor.AIMODE_GOLDDIG;
 		Passenger.Team = team;
