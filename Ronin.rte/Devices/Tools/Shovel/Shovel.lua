@@ -80,15 +80,15 @@ function Update(self)
 						for _, terrainMaterial in pairs(self.suitableMaterials) do
 							if material == terrainMaterial then
 								hits = hits + 1;
-								if hits > rayCount * 0.5 then
-									resource = resource + 10;
-									parent:SetNumberValue("RoninShovelResource", resource);
-									parent.PieMenu:GetFirstPieSliceByPresetName("Ronin Shovel Fill Sandbag PieSlice").Enabled = resource >= 10;
-									self.collectSound:Play(self.Pos);
-									break;
-								end
 								break;
 							end
+						end
+						if hits > rayCount * 0.5 then
+							resource = resource + 1;
+							parent:SetNumberValue("RoninShovelResource", resource);
+							parent.PieMenu:GetFirstPieSliceByPresetName("Ronin Shovel Fill Sandbag PieSlice").Enabled = resource >= 10;
+							self.collectSound:Play(self.Pos);
+							break;
 						end
 					end
 				end
@@ -109,24 +109,28 @@ function Update(self)
 			self.Magazine.Scale = 0;
 		end
 		if self.lastVel:MagnitudeIsGreaterThan(25) then
-			if self.HitWhatMOID ~= rte.NoMOID then
-				local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
-				if mo then
-					local particleCount = 3;
-					local spread = self.AngularVel * TimerMan.DeltaTimeSecs * 0.5;
-					for i = 0, particleCount - 1 do
-						local damagePar = CreateMOPixel("Smack Particle", "Base.rte");
-						damagePar.Mass = self.Mass--/particleCount;
-						damagePar.Sharpness = self.Sharpness-- * particleCount;
+			local spread = 0.3 + self.AngularVel * TimerMan.DeltaTimeSecs * 0.5;
+			local mo = MovableMan:GetMOFromID(self.HitWhatMOID);
+			if mo then
+				local particleCount = math.sqrt(self.lastVel.Magnitude);
+				for i = 0, particleCount - 1 do
+					local damagePar = CreateMOPixel("Smack Particle Light", "Base.rte");
+					damagePar.Mass = self.Mass--/particleCount;
+					damagePar.Sharpness = self.Sharpness-- * particleCount;
 
-						damagePar.Pos = self.lastMuzzlePos;
-						damagePar.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * 0.5 - spread * i/(particleCount - 1)) * 1.5;
+					damagePar.Pos = self.lastMuzzlePos;
+					damagePar.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * 0.5 - spread * i/(particleCount - 1)) * 1.5;
 
-						damagePar:SetWhichMOToNotHit(self, -1);
-						MovableMan:AddParticle(damagePar);
-					end
-					self.hitSound:Play(self.MuzzlePos);
+					damagePar:SetWhichMOToNotHit(self, -1);
+					MovableMan:AddParticle(damagePar);
 				end
+				self.hitSound:Play(self.MuzzlePos);
+			end
+			for i = 1, self.lastVel.Magnitude * 0.5 do
+				local dig = CreateMOPixel("Particle Ronin Shovel 2", "Ronin.rte");
+				dig.Pos = self.Pos;
+				dig.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * RangeRand(-1, 1)) * RangeRand(0.5, 1.0);
+				MovableMan:AddParticle(dig);
 			end
 		end
 	end

@@ -17,7 +17,7 @@ function Update(self)
 		local effect = self.smokeTrailSize < 2 and CreateMOPixel("Micro Smoke Trail " .. math.random(3), "Base.rte") or CreateMOSParticle((self.smokeTrailSize < 3 and "Tiny" or "Small") .. " Smoke Trail " .. math.random(3), "Base.rte");
 		effect.Pos = self.Pos - (offset * i/trailLength) + Vector(RangeRand(-1, 1), RangeRand(-1, 1)) * self.smokeTrailRadius;
 		effect.Vel = setVel * RangeRand(0.6, 1);
-		effect.Lifetime = self.smokeTrailLifeTime * RangeRand(0.4, 1) * (self.Lifetime > 1 and 1 - self.Age/self.Lifetime or 1);
+		effect.Lifetime = math.max(self.smokeTrailLifeTime * RangeRand(0.4, 1) * (self.Lifetime > 1 and 1 - self.Age/self.Lifetime or 1), 1);
 		effect.AirResistance = effect.AirResistance * RangeRand(0.8, 1);
 		effect.AirThreshold = self.smokeAirThreshold;
 

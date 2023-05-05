@@ -44,7 +44,7 @@ function Create(self)
 
 	self.seekerDelay = 1000 - math.random(1000);
 
-	self.disintegrationStrength = 60;
+	self.disintegrationStrength = 300;
 end
 
 function Update(self)
@@ -83,7 +83,7 @@ function Update(self)
 	if self.lifeTimer:IsPastSimMS(8000) then
 		self:GibThis();
 	end
-
+	--TODO: Add wounds through Lua like the other disintegrator weapons
 	if SceneMan:GetTerrMatter(self.Pos.X, self.Pos.Y) == rte.airID then
 		local moCheck = SceneMan:GetMOIDPixel(self.Pos.X, self.Pos.Y);
 		if moCheck ~= rte.NoMOID then
@@ -91,12 +91,12 @@ function Update(self)
 			if actor and actor.Team ~= self.Team then
 				self:GibThis();
 				if IsActor(actor) then
-					local melt = CreateMOPixel("Disintegrator");
-					melt.Pos = self.Pos;
-					melt.Team = self.Team;
-					melt.Sharpness = ToActor(actor).ID;
-					melt.PinStrength = self.disintegrationStrength;
-					MovableMan:AddMO(melt);
+					local melter = CreateMOPixel("Disintegrator");
+					melter.Pos = self.Pos;
+					melter.Team = self.Team;
+					melter.Sharpness = ToActor(actor).ID;
+					melter.PinStrength = self.disintegrationStrength;
+					MovableMan:AddMO(melter);
 				end
 			end
 		end
