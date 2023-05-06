@@ -10,8 +10,6 @@ function Create(self)
 	self.trailPar.Vel = self.Vel * 0.1;
 	self.trailPar.Lifetime = 60;
 	MovableMan:AddParticle(self.trailPar);
-	
-	self.melter = CreateMOPixel("Disintegrator", "Techion.rte");
 end
 
 function Update(self)
@@ -52,7 +50,7 @@ function PulsarDissipate(self, inverted)
 				wound.InheritedRotAngleOffset = woundOffset.AbsRadAngle;
 				mo:AddWound(wound, woundOffset:RadRotate(-mo.RotAngle * mo.FlipFactor), true);
 				
-				local melter = self.melter:Clone();
+				local melter = CreateMOPixel("Disintegrator", "Techion.rte");
 				melter.Pos = self.Pos;
 				melter.Team = self.Team;
 				melter.Sharpness = mo.RootID;
