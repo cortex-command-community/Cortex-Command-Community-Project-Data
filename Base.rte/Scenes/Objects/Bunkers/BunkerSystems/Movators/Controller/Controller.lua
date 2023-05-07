@@ -98,9 +98,10 @@ function Create(self)
 	self.newActorCheckTimer = Timer(100);
 	self.actorMovementUpdateTimer = Timer(15);
 
-	self.movatorModificationHeldInputTimer = Timer(50);
+	self.heldInputTimer = Timer(50);
 
 	self.leaveMovatorNetworkPieSlice = CreatePieSlice("Leave Movator Network", "Base.rte");
+	self.chooseTeleporterPieSlice = CreatePieSlice("Choose Teleporter", "Base.rte");
 end
 
 function Update(self)
@@ -137,12 +138,33 @@ function Update(self)
 							self:setActorMovementModeToLeaveMovators(actorData);
 							actor:RemoveNumberValue("Movator_LeaveMovatorNetwork");
 						end
+						if actor:IsPlayerControlled() and actor:NumberValueExists("Movator_ChooseTeleporter") then
+							self:setupManualTeleporterData(actorData);
+							actor:RemoveNumberValue("Movator_ChooseTeleporter");
+						end
 
-						if actor:IsPlayerControlled() and actorData.movementMode ~= self.movementModes.teleporting then
-							self:updateDirectionsFromActorControllerInput(actorData);
+						if actor:IsPlayerControlled() then
+							local closestNode = self:findClosestNode(actor.Pos, nil, false, false, false);
+							if closestNode ~= nil and MovatorData[self.Team].teleporterNodes[closestNode] ~= nil and MovatorData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
+								actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice:Clone(), self);
+							else
+								actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
+							end
+							
+							if actorData.manualTeleporterData then
+								self:chooseTeleporterForPlayerControlledActor(actorData);
+								actorData.movementMode = self.movementModes.teleporting;
+							else
+								actorData.movementMode = self.movementModes.freeze;
+							end
+							
+							if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
+								self:updateDirectionsFromActorControllerInput(actorData);
+							end
 						elseif actorData.movementMode ~= self.movementModes.leaveMovators then
 							self:updateDirectionsFromWaypoints(actorData);
 						end
+						
 						if actorData.movementMode ~= self.movementModes.leaveMovators then
 							local actorController = actor:GetController();
 							actorController:SetState(Controller.MOVE_LEFT, false);
@@ -229,21 +251,21 @@ movatorUtilityFunctions.handlePieButtons = function(self)
 		self:RemoveNumberValue("SwapHumansRemainUpright");
 	end
 
-	if self:NumberValueExists("ModifyMovementSpeed") and self.movatorModificationHeldInputTimer:IsPastSimTimeLimit() then
+	if self:NumberValueExists("ModifyMovementSpeed") and self.heldInputTimer:IsPastSimTimeLimit() then
 		if self:GetController():IsState(Controller.SCROLL_UP) or self:GetController():IsState(Controller.HOLD_UP) then
 			self.movementSpeed = math.min(self.movementSpeed + 1, self.movementSpeedMax);
 		elseif self:GetController():IsState(Controller.SCROLL_DOWN) or self:GetController():IsState(Controller.HOLD_DOWN) then
 			self.movementSpeed = math.max(self.movementSpeed - 1, self.movementSpeedMin);
 		end
-		self.movatorModificationHeldInputTimer:Reset()
+		self.heldInputTimer:Reset()
 	end
-	if self:NumberValueExists("ModifyMassLimit") and self.movatorModificationHeldInputTimer:IsPastSimTimeLimit() then
+	if self:NumberValueExists("ModifyMassLimit") and self.heldInputTimer:IsPastSimTimeLimit() then
 		if self:GetController():IsState(Controller.SCROLL_UP) or self:GetController():IsState(Controller.HOLD_UP) then
 			self.massLimit = math.min(self.massLimit + 25, self.massLimitMax);
 		elseif self:GetController():IsState(Controller.SCROLL_DOWN) or self:GetController():IsState(Controller.HOLD_DOWN) then
 			self.massLimit = math.max(self.massLimit - 25, self.massLimitMin);
 		end
-		self.movatorModificationHeldInputTimer:Reset();
+		self.heldInputTimer:Reset();
 	end
 --[[
 	if self:NumberValueExists("ModifyMovatorEffectsType") then
@@ -610,6 +632,24 @@ movatorUtilityFunctions.changeScaleOfMOSRotatingAndAttachables = function(self, 
 	end
 end
 
+movatorActorFunctions.checkForNewActors = function(self)
+	for box in self.combinedMovatorArea.Boxes do
+		for movableObject in MovableMan:GetMOsInBox(box, -1, true) do
+			if IsActor(movableObject) and self.affectedActors[movableObject.UniqueID] == nil and movableObject.PinStrength == 0 then
+				local actor = ToActor(movableObject);
+				if actor.AIMode ~= Actor.AIMODE_GOLDDIG and actor.AIMode ~= Actor.AIMODE_PATROL then
+					local teamAccepted = self.acceptsAllTeams or movableObject.Team == self.Team;
+					local massAccepted = movableObject.Mass < self.massLimit;
+					local typeAccepted = self.acceptsCrafts or (not IsACRocket(movableObject) and not IsACDropShip(movableObject));
+					if teamAccepted and massAccepted and typeAccepted then
+						self:addActorToMovatorTable(actor);
+					end
+				end
+			end
+		end
+	end
+end
+
 movatorActorFunctions.addActorToMovatorTable = function(self, actor)
 	self.affectedActors[actor.UniqueID] = {
 		actor = actor,
@@ -639,6 +679,7 @@ movatorActorFunctions.removeActorFromMovatorTable = function(self, actor, option
 
 	if MovableMan:IsActor(actor) then
 		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveMovatorNetworkPieSlice.PresetName);
+		actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 	end
 	if IsAHuman(actor) then
 		ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = false;
@@ -649,6 +690,7 @@ movatorActorFunctions.setActorMovementModeToLeaveMovators = function(self, actor
 	local actor = actorData.actor;
 
 	actor.PieMenu:RemovePieSlicesByPresetName(self.leaveMovatorNetworkPieSlice.PresetName);
+	actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 	self:changeScaleOfMOSRotatingAndAttachables(actor, 1);
 	if IsAHuman(actor) then
 		ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = false;
@@ -698,22 +740,99 @@ movatorActorFunctions.convertWaypointDataToActorWaypoints = function(self, actor
 	end
 end
 
-movatorActorFunctions.checkForNewActors = function(self)
-	for box in self.combinedMovatorArea.Boxes do
-		for movableObject in MovableMan:GetMOsInBox(box, -1, true) do
-			if IsActor(movableObject) and self.affectedActors[movableObject.UniqueID] == nil and movableObject.PinStrength == 0 then
-				local actor = ToActor(movableObject);
-				if actor.AIMode ~= Actor.AIMODE_GOLDDIG and actor.AIMode ~= Actor.AIMODE_PATROL then
-					local teamAccepted = self.acceptsAllTeams or movableObject.Team == self.Team;
-					local massAccepted = movableObject.Mass < self.massLimit;
-					local typeAccepted = self.acceptsCrafts or (not IsACRocket(movableObject) and not IsACDropShip(movableObject));
-					if teamAccepted and massAccepted and typeAccepted then
-						self:addActorToMovatorTable(actor);
-					end
+movatorActorFunctions.setupManualTeleporterData = function(self, actorData)
+	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+	
+	local actor = actorData.actor;
+	
+	actorData.waypointData = nil;
+	actorData.manualTeleporterData = {};
+	manualTeleporterData = actorData.manualTeleporterData;
+	
+	manualTeleporterData.actorTeleportationStage = 0;
+	manualTeleporterData.teleporterVisualsTimer = Timer(1000);
+	
+	local startingTeleporter = self:findClosestNode(actor.Pos, nil, false, false, false);
+	manualTeleporterData.sortedTeleporters = {{ node = startingTeleporter, distance = 0 }};
+	
+	for teleporterNode, _ in pairs(teamTeleporterTable) do
+		if teleporterNode.UniqueID ~= startingTeleporter.UniqueID then
+			local xDistanceToTeleporter = SceneMan:ShortestDistance(startingTeleporter.Pos, teleporterNode.Pos, self.checkWrapping).X;
+			
+			local teleporterNodeAddedToSortedTable = false;
+			for index, sortedTeleporterData in ipairs(manualTeleporterData.sortedTeleporters) do
+				if xDistanceToTeleporter <= sortedTeleporterData.distance then
+					table.insert(manualTeleporterData.sortedTeleporters, index, { node = teleporterNode, distance = xDistanceToTeleporter });
+					teleporterNodeAddedToSortedTable = true;
+					break;
 				end
+			end
+			if not teleporterNodeAddedToSortedTable then
+				table.insert(manualTeleporterData.sortedTeleporters, #manualTeleporterData.sortedTeleporters + 1, { node = teleporterNode, distance = xDistanceToTeleporter });
 			end
 		end
 	end
+	for index, sortedTeleporterData in pairs(manualTeleporterData.sortedTeleporters) do
+		if sortedTeleporterData.node.UniqueID == startingTeleporter.UniqueID then
+			manualTeleporterData.currentChosenTeleporter = index;
+			print("Current teleporter found!")
+		--	break;
+		end
+		print(tostring(index).. ". " ..tostring(sortedTeleporterData.node.Pos))
+	end
+	
+	self.heldInputTimer:Reset(); -- Note: Because manual teleporting is done with Fire and Pie Menu, we need to reset this timer when we set things up, so we don't instantly trigger teleporting or canceling.
+end
+
+movatorActorFunctions.chooseTeleporterForPlayerControlledActor = function(self, actorData)
+	local actor = actorData.actor;
+	local actorController = actor:GetController();
+	local manualTeleporterData = actorData.manualTeleporterData;
+	
+	if manualTeleporterData.actorTeleportationStage == 0 then
+		if actorController:IsState(Controller.PRESS_LEFT) or (actorController:IsState(Controller.HOLD_LEFT) and self.heldInputTimer:IsPastSimMS(250)) then
+			manualTeleporterData.currentChosenTeleporter = manualTeleporterData.currentChosenTeleporter - 1;
+			if manualTeleporterData.currentChosenTeleporter <= 0 then
+				manualTeleporterData.currentChosenTeleporter = #manualTeleporterData.sortedTeleporters;
+			end
+			print(manualTeleporterData.currentChosenTeleporter)
+			self.heldInputTimer:Reset();
+		elseif actorController:IsState(Controller.PRESS_RIGHT) or (actorController:IsState(Controller.HOLD_RIGHT) and self.heldInputTimer:IsPastSimMS(250)) then
+			manualTeleporterData.currentChosenTeleporter = manualTeleporterData.currentChosenTeleporter + 1;
+			if manualTeleporterData.currentChosenTeleporter > #manualTeleporterData.sortedTeleporters then
+				manualTeleporterData.currentChosenTeleporter = 1;
+			end
+			print(manualTeleporterData.currentChosenTeleporter)
+			self.heldInputTimer:Reset();
+		elseif actorController:IsState(Controller.PRESS_PRIMARY) and self.heldInputTimer:IsPastSimTimeLimit() then
+			manualTeleporterData.actorTeleportationStage = 1;
+			manualTeleporterData.teleporterVisualsTimer:Reset();
+		elseif actorController:IsState(Controller.PRESS_SECONDARY) and self.heldInputTimer:IsPastSimTimeLimit() then
+			actorData.manualTeleporterData = nil;
+			return;
+		end
+		
+		local player = actorController.Player;
+		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, false, player);
+		FrameMan:ClearScreenText(player);
+		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", player, 0, 100, false);
+	else
+		self:changeScaleOfMOSRotatingAndAttachables(actor, (manualTeleporterData.actorTeleportationStage == 2 and manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress or 1 - manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress));
+		self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData, true);
+		if manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress >= 1 then
+			if manualTeleporterData.actorTeleportationStage == 1 then
+				actor.Pos = manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos;
+				manualTeleporterData.actorTeleportationStage = manualTeleporterData.actorTeleportationStage + 1;
+				manualTeleporterData.teleporterVisualsTimer:Reset();
+			else
+				actorData.manualTeleporterData = nil;
+				return;
+			end
+		end
+	end
+	actor:FlashWhite(100);
+	self:updateFrozenActor(actorData);
+	return;
 end
 
 movatorActorFunctions.updateDirectionsFromActorControllerInput = function(self, actorData)
