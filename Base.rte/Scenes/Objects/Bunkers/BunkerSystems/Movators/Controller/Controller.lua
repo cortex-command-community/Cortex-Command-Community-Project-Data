@@ -1010,7 +1010,7 @@ movatorActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActor
 	local distanceFromActorToPreviousNode = SceneMan:ShortestDistance(waypointData.previousNode.Pos, actor.Pos, self.checkWrapping);
 	local relevantAxis;
 	local distanceThreshold;
-	if actorData.direction == Directions.Any then
+	if actorData.direction == Directions.Any or actorData.direction == Directions.None then
 		relevantAxis = (math.abs(distanceFromActorToPreviousNode.X) > math.abs(distanceFromActorToPreviousNode.Y)) and "X" or "Y";
 		distanceThreshold = 0;
 	else
