@@ -47,3 +47,7 @@ end
 function CommandActorLeaveMovatorNetwork(self)
 	self:SetNumberValue("Movator_LeaveMovatorNetwork", 1);
 end
+
+function CommandActorChooseTeleporter(self)
+	self:SetNumberValue("Movator_ChooseTeleporter", 1);
+end
