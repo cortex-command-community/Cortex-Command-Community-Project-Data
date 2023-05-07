@@ -670,20 +670,22 @@ movatorActorFunctions.removeActorFromMovatorTable = function(self, actor, option
 	if actor.UniqueID ~= 0 and optionalActorUniqueID == nil then
 		optionalActorUniqueID = actor.UniqueID;
 	end
-	if self.affectedActors[optionalActorUniqueID] ~= nil then
-		self:convertWaypointDataToActorWaypoints(self.affectedActors[optionalActorUniqueID]);
-	end
-
-	self.affectedActors[optionalActorUniqueID] = nil;
-	self.affectedActorsCount = self.affectedActorsCount - 1;
 
 	if MovableMan:IsActor(actor) then
 		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveMovatorNetworkPieSlice.PresetName);
 		actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
+		
+		if IsAHuman(actor) then
+			ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = false;
+		end
+		
+		if self.affectedActors[optionalActorUniqueID] ~= nil then
+			self:convertWaypointDataToActorWaypoints(self.affectedActors[optionalActorUniqueID]);
+		end
 	end
-	if IsAHuman(actor) then
-		ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = false;
-	end
+	
+	self.affectedActors[optionalActorUniqueID] = nil;
+	self.affectedActorsCount = self.affectedActorsCount - 1;
 end
 
 movatorActorFunctions.setActorMovementModeToLeaveMovators = function(self, actorData)
