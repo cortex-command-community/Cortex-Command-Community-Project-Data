@@ -39,9 +39,9 @@ function Create(self)
 	--INI and Pie Menu Configurable Fields--
 	----------------------------------------
 	self.displayingInfoUI = self:NumberValueExists("DisplayInfoUI");
-	self.acceptsAllTeams = self:NumberValueExists("AcceptsAllTeams") and self:GetNumberValue("AcceptsAllTeams") ~= 0 or false;
+	self.acceptsAllTeams = self:NumberValueExists("AcceptsAllTeams") and self:GetNumberValue("AcceptsAllTeams") ~= 0 or true;
 	self.acceptsCrafts =  self:NumberValueExists("AcceptsCrafts") and self:GetNumberValue("AcceptsCrafts") ~= 0 or false;
-	self.humansRemainUpright = self:NumberValueExists("HumansRemainUpright") and self:GetNumberValue("HumansRemainUpright" ~= 0) or false;
+	self.humansRemainUpright = self:NumberValueExists("HumansRemainUpright") and self:GetNumberValue("HumansRemainUpright") ~= 0 or false;
 	self.movementSpeed = self:NumberValueExists("MovementSpeed") and math.max(self.movementSpeedMin, math.min(self.movementSpeedMax, self:GetNumberValue("MovementSpeed"))) or (self.movementSpeedMin * 2);
 	self.massLimit = self:NumberValueExists("MassLimit") and math.max(self.massLimitMin, math.min(self.massLimitMax, self:GetNumberValue("MassLimit"))) or (self.massLimitMin * 5);
 
@@ -1285,19 +1285,23 @@ movatorActorFunctions.updateMovingActor = function(self, actorData)
 		if actorDirection == direction then
 			actor.Vel = (actor.Vel + movementTable.acceleration):CapMagnitude(self.movementSpeed);
 			actor.Vel = actor.Vel + gravityAdjustment;
+			
+			local rotAngleGoal = 0;
+			local verticalRotationAdjustment = 1;
 			if IsAHuman(actor) then
 				if not self.humansRemainUpright then
-					local verticalRotationAdjustment = (direction == Directions.Down) and -actor.FlipFactor or 1;
-					if actor.RotAngle > movementTable.aHumanRotAngle + self.movementAcceleration then
-						actor.RotAngle = actor.RotAngle - (self.movementAcceleration * 0.25 * verticalRotationAdjustment);
-					elseif actor.RotAngle < movementTable.aHumanRotAngle - self.movementAcceleration then
-						actor.RotAngle = actor.RotAngle + (self.movementAcceleration * 0.25 * verticalRotationAdjustment);
-					else
-						actor.RotAngle = movementTable.aHumanRotAngle;
-					end
+					rotAngleGoal = movementTable.aHumanRotAngle;
+					verticalRotationAdjustment = direction == Directions.Down and -actor.FlipFactor or 1;
 					ToAHuman(actor).ProneState = movementTable.aHumanProneState;
 				end
 				actor:GetController():SetState(Controller.BODY_CROUCH, movementTable.aHumanCrouchState);
+			end
+			if actor.RotAngle > rotAngleGoal + self.movementAcceleration then
+				actor.RotAngle = actor.RotAngle - (self.movementAcceleration * 0.25 * verticalRotationAdjustment);
+			elseif actor.RotAngle < rotAngleGoal - self.movementAcceleration then
+				actor.RotAngle = actor.RotAngle + (self.movementAcceleration * 0.25 * verticalRotationAdjustment);
+			else
+				actor.RotAngle = rotAngleGoal;
 			end
 		end
 	end
