@@ -6,6 +6,7 @@ function MaginotMission:StartActivity(isNewGame)
 	self.attackLZ1 = SceneMan.Scene:GetArea("LZ Team 2");
 	self.attackLZ2 = SceneMan.Scene:GetArea("Enemy Sneak Spawn 2");
 	self.maginotBunkerArea = SceneMan.Scene:GetArea("Maginot Bunker");
+	self.evacuateTrigger = SceneMan.Scene:GetArea("Evacuate Trigger");
 	self.rescueTrigger = SceneMan.Scene:GetArea("Rescue Trigger");
 	self.rescueLZ = SceneMan.Scene:GetArea("Rescue Area");
 
@@ -22,6 +23,7 @@ function MaginotMission:StartActivity(isNewGame)
 	self.screenTextTimeLimit = 7500;
 	self.roundTimer = Timer();
 	self.spawnTimer = Timer();
+	self.evacuateCheckTimer = Timer(2500);
 
 	self.numberOfAttackersPerCraft = math.ceil(2 * (self.Difficulty / Activity.MEDIUMDIFFICULTY));
 
@@ -359,6 +361,17 @@ function MaginotMission:UpdateActivity()
 	end
 
 	self:DoGameOverCheck();
+	
+	local enemyInsideBrainEvacuateArea = false;
+	if self.currentFightStage < self.fightStage.evacuateBrain and self.evacuateCheckTimer:IsPastSimTimeLimit() then
+		for movableObject in MovableMan:GetMOsInBox(self.evacuateTrigger.FirstBox, self.defenderTeam, true) do
+			if IsAHuman(movableObject) or IsACrab(movableObject) then
+				enemyInsideBrainEvacuateArea = true;
+				break;
+			end
+		end
+		self.evacuateCheckTimer:Reset();
+	end
 
 	local difficultyTimeMultiplier = math.max(0.5, self.Difficulty / Activity.MEDIUMDIFFICULTY);
 	if self.roundTimer:IsPastSimMS(math.min(15000, 20000 / difficultyTimeMultiplier)) and self.currentFightStage == self.fightStage.beginFight then
@@ -369,7 +382,7 @@ function MaginotMission:UpdateActivity()
 		self.currentFightStage = self.fightStage.defendRight;
 		self.screenTextTimer:Reset();
 		self.roundTimer:Reset();
-	elseif self.roundTimer:IsPastSimMS(180000 * difficultyTimeMultiplier) and self.currentFightStage == self.fightStage.defendRight then
+	elseif enemyInsideBrainEvacuateArea or (self.roundTimer:IsPastSimMS(180000 * difficultyTimeMultiplier) and self.currentFightStage == self.fightStage.defendRight) then
 		self:SwapBrainsToRobots();
 		self.currentFightStage = self.fightStage.evacuateBrain;
 		self.screenTextTimer:Reset();
