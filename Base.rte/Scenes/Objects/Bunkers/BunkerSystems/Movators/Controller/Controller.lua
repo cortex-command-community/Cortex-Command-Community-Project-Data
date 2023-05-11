@@ -22,7 +22,7 @@ function Create(self)
 	self.acceptsAllTeams = self:NumberValueExists("AcceptsAllTeams") and self:GetNumberValue("AcceptsAllTeams") ~= 0 or true;
 	self.acceptsCrafts =  self:NumberValueExists("AcceptsCrafts") and self:GetNumberValue("AcceptsCrafts") ~= 0 or false;
 	self.humansRemainUpright = self:NumberValueExists("HumansRemainUpright") and self:GetNumberValue("HumansRemainUpright") ~= 0 or false;
-	self.movementSpeed = self:NumberValueExists("MovementSpeed") and math.max(self.movementSpeedMin, math.min(self.movementSpeedMax, self:GetNumberValue("MovementSpeed"))) or (self.movementSpeedMin * 2);
+	self.movementSpeed = self:NumberValueExists("MovementSpeed") and math.max(self.movementSpeedMin, math.min(self.movementSpeedMax, self:GetNumberValue("MovementSpeed"))) or (self.movementSpeedMin);
 	self.massLimit = self:NumberValueExists("MassLimit") and math.max(self.massLimitMin, math.min(self.massLimitMax, self:GetNumberValue("MassLimit"))) or (self.massLimitMin * 5);
 	self.visualEffectsSelectedType = self:StringValueExists("VisualEffectsType") and self:GetStringValue("VisualEffectsType"):lower() or "chevron";
 	self.visualEffectsSelectedSize = self:NumberValueExists("VisualEffectsSize") and math.max(self.visualEffectsSizes.small, math.min(self.visualEffectsSizes.large, self:GetNumberValue("VisualEffectsSize"))) or self.visualEffectsSizes.small;
