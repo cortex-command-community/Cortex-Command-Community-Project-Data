@@ -41,12 +41,12 @@ function Create(self)
 	-------------
 	--TODO make this an actual power system.
 	MovatorData[self.Team].energyLevel = 100;
-	
+
 	self.currentActivity = ActivityMan:GetActivity();
 	self.checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
-	
+
 	self.initialPieMenuFullInnerRadius = self.PieMenu.FullInnerRadius;
-	
+
 	self.movementModes = {
 		freeze = 0,
 		move = 1,
@@ -54,23 +54,23 @@ function Create(self)
 		teleporting = 3,
 		leaveMovators = 4,
 	};
-	
+
 	self.oppositeDirections = {
 		[Directions.Up] = Directions.Down,
 		[Directions.Down] = Directions.Up,
 		[Directions.Left] = Directions.Right,
 		[Directions.Right] = Directions.Left,
 	};
-	
+
 	self.visualEffectsMinimumNumberOfSpacesNeededForDrawingObjectEffects = 3;
-	
+
 	self.sceneWaypointThresholdForTreatingTargetAsReached = 12;
 	self.movableObjectWaypointThresholdForTreatingTargetAsReached = 48;
-	
+
 	self.movementAcceleration = self.movementSpeedMin * 0.1;
-	
+
 	self.uiLineHeight = { [true] = 10, [false] = 15 };
-	
+
 	-----------------
 	--General Setup--
 	-----------------
@@ -94,7 +94,7 @@ function Create(self)
 			end
 		end
 	end
-	
+
 	self.visualEffectsConfig = {
 		chevron = {},
 		chevronNarrow = {},
@@ -121,7 +121,7 @@ function Create(self)
 			visualEffectsConfigSizeTable.spriteSize = visualEffectsType == "chevronNarrow" and 16 or 48;
 			visualEffectsConfigSizeTable.moveTimer:SetSimTimeLimitMS(visualEffectsType == "chevronNarrow" and 55 or 80);
 		end
-		
+
 		self.visualEffectsConfig[visualEffectsType][visualEffectsSize] = visualEffectsConfigSizeTable;
 	end
 	for _, visualEffectsSize in pairs(self.visualEffectsSizes) do
@@ -201,21 +201,21 @@ function Update(self)
 							else
 								actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 							end
-							
+
 							if actorData.manualTeleporterData then
 								self:chooseTeleporterForPlayerControlledActor(actorData);
 								actorData.movementMode = self.movementModes.teleporting;
 							else
 								actorData.movementMode = self.movementModes.freeze;
 							end
-							
+
 							if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
 								self:updateDirectionsFromActorControllerInput(actorData);
 							end
 						elseif actorData.movementMode ~= self.movementModes.leaveMovators then
 							self:updateDirectionsFromWaypoints(actorData);
 						end
-						
+
 						if actorData.movementMode ~= self.movementModes.leaveMovators then
 							local actorController = actor:GetController();
 							actorController:SetState(Controller.MOVE_LEFT, false);
@@ -317,7 +317,7 @@ movatorUtilityFunctions.handlePieButtons = function(self)
 		end
 		self.heldInputTimer:Reset();
 	end
-	
+
 	if self:NumberValueExists("ModifyVisualEffectsType") then
 		local visualEffectsTypes = { "" };
 		for visualEffectsType, _ in pairs(self.visualEffectsConfig) do
@@ -684,9 +684,9 @@ movatorVisualEffectsFunctions.updateVisualEffects = function(self)
 	if self.visualEffectsSelectedType == "" then
 		return;
 	end
-	
+
 	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
-	
+
 	if selectedVisualEffects.moveTimer:IsPastSimTimeLimit() then
 		for node, nodeData in pairs(MovatorData[self.Team].nodeData) do
 			for _, direction in ipairs({Directions.Up, Directions.Left}) do
@@ -696,33 +696,33 @@ movatorVisualEffectsFunctions.updateVisualEffects = function(self)
 		self:updateVisualEffectsFrames();
 		selectedVisualEffects.moveTimer:Reset();
 	end
-	
+
 	self:drawVisualEffects();
 end
 
 movatorVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = function(self, node, nodeData, direction)
 	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
-	
+
 	local nodeConnectionDataInDirection = nodeData.connectedNodeData[direction];
 	if nodeConnectionDataInDirection == nil then
 		return;
 	end
-	
+
 	if self.visualEffectsData[node] ~= nil and self.visualEffectsData[node][direction] ~= nil and self.visualEffectsData[node][direction].endNode.UniqueID == nodeConnectionDataInDirection.node.UniqueID then
 		return;
 	end
-	
+
 	local relevantAxis = direction == Directions.Up and "Y" or "X";
 	local nodeInDirectionData = MovatorData[self.Team].nodeData[nodeConnectionDataInDirection.node];
 	local minDistanceToShowEffects = (nodeData.size[relevantAxis] * 0.5) + (nodeInDirectionData.size[relevantAxis] * 0.5) + (selectedVisualEffects.spriteSize * self.visualEffectsMinimumNumberOfSpacesNeededForDrawingObjectEffects);
 	if math.abs(nodeConnectionDataInDirection.distance[relevantAxis]) < minDistanceToShowEffects then
 		return;
 	end
-	
+
 	if self.visualEffectsData[node] == nil then
 		self.visualEffectsData[node] = {};
 	end
-	
+
 	self.visualEffectsData[node][direction] = {
 		coolDownTimer = Timer(selectedVisualEffects.coolDownInterval),
 		isGoingBackwards = false,
@@ -730,10 +730,10 @@ movatorVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = 
 		rotAngle = direction == Directions.Up and math.rad(90) or math.rad(180),
 		drawData = {},
 	};
-	
+
 	local numberOfSpritesToDraw, halfRemainderDistance = math.modf((math.abs(nodeConnectionDataInDirection.distance[relevantAxis]) - math.abs(nodeInDirectionData.size[relevantAxis])) / selectedVisualEffects.spriteSize);
 	halfRemainderDistance = halfRemainderDistance * selectedVisualEffects.spriteSize * 0.5;
-	
+
 	local relevantAxis = direction == Directions.Up and "Y" or "X";
 	local firstSpritePos = node.Pos + Vector();
 	firstSpritePos[relevantAxis] = firstSpritePos[relevantAxis] - (nodeData.size[relevantAxis] * 0.5) - (selectedVisualEffects.spriteSize * 0.5) - halfRemainderDistance;
@@ -749,7 +749,7 @@ end
 
 movatorVisualEffectsFunctions.updateVisualEffectsFrames = function(self)
 	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
-	
+
 	for node, visualEffectsData in pairs(self.visualEffectsData) do
 		for direction, visualEffectsDataInDirection in pairs(visualEffectsData) do
 			if #visualEffectsDataInDirection.drawData > 0 and visualEffectsDataInDirection.coolDownTimer:IsPastSimTimeLimit() then
@@ -759,7 +759,7 @@ movatorVisualEffectsFunctions.updateVisualEffectsFrames = function(self)
 						drawData.frame = drawData.frame + 1;
 					end
 				end
-				
+
 				local endIndex = visualEffectsDataInDirection.isGoingBackwards and 1 or #visualEffectsDataInDirection.drawData;
 				if visualEffectsDataInDirection.drawData[endIndex].frame > selectedVisualEffects.maxFrame then
 					visualEffectsDataInDirection.isGoingBackwards = not visualEffectsDataInDirection.isGoingBackwards;
@@ -831,16 +831,16 @@ movatorActorFunctions.removeActorFromMovatorTable = function(self, actor, option
 	if MovableMan:IsActor(actor) then
 		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveMovatorNetworkPieSlice.PresetName);
 		actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
-		
+
 		if IsAHuman(actor) then
 			ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = false;
 		end
-		
+
 		if self.affectedActors[optionalActorUniqueID] ~= nil then
 			self:convertWaypointDataToActorWaypoints(self.affectedActors[optionalActorUniqueID]);
 		end
 	end
-	
+
 	self.affectedActors[optionalActorUniqueID] = nil;
 	self.affectedActorsCount = self.affectedActorsCount - 1;
 end
@@ -901,23 +901,23 @@ end
 
 movatorActorFunctions.setupManualTeleporterData = function(self, actorData)
 	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
-	
+
 	local actor = actorData.actor;
-	
+
 	actorData.waypointData = nil;
 	actorData.manualTeleporterData = {};
 	manualTeleporterData = actorData.manualTeleporterData;
-	
+
 	manualTeleporterData.actorTeleportationStage = 0;
 	manualTeleporterData.teleporterVisualsTimer = Timer(1000);
-	
+
 	local startingTeleporter = self:findClosestNode(actor.Pos, nil, false, false, false);
 	manualTeleporterData.sortedTeleporters = {{ node = startingTeleporter, distance = 0 }};
-	
+
 	for teleporterNode, _ in pairs(teamTeleporterTable) do
 		if teleporterNode.UniqueID ~= startingTeleporter.UniqueID then
 			local xDistanceToTeleporter = SceneMan:ShortestDistance(startingTeleporter.Pos, teleporterNode.Pos, self.checkWrapping).X;
-			
+
 			local teleporterNodeAddedToSortedTable = false;
 			for index, sortedTeleporterData in ipairs(manualTeleporterData.sortedTeleporters) do
 				if xDistanceToTeleporter <= sortedTeleporterData.distance then
@@ -936,7 +936,7 @@ movatorActorFunctions.setupManualTeleporterData = function(self, actorData)
 			manualTeleporterData.currentChosenTeleporter = index;
 		end
 	end
-	
+
 	self.heldInputTimer:Reset(); -- Note: Because manual teleporting is done with Fire and Pie Menu, we need to reset this timer when we set things up, so we don't instantly trigger teleporting or canceling.
 end
 
@@ -944,7 +944,7 @@ movatorActorFunctions.chooseTeleporterForPlayerControlledActor = function(self, 
 	local actor = actorData.actor;
 	local actorController = actor:GetController();
 	local manualTeleporterData = actorData.manualTeleporterData;
-	
+
 	if manualTeleporterData.actorTeleportationStage == 0 then
 		if actorController:IsState(Controller.PRESS_LEFT) or (actorController:IsState(Controller.HOLD_LEFT) and self.heldInputTimer:IsPastSimMS(250)) then
 			manualTeleporterData.currentChosenTeleporter = manualTeleporterData.currentChosenTeleporter - 1;
@@ -965,7 +965,7 @@ movatorActorFunctions.chooseTeleporterForPlayerControlledActor = function(self, 
 			actorData.manualTeleporterData = nil;
 			return;
 		end
-		
+
 		local player = actorController.Player;
 		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, false, player);
 		FrameMan:ClearScreenText(player);
@@ -1415,7 +1415,7 @@ movatorActorFunctions.updateMovingActor = function(self, actorData)
 		if actorDirection == direction then
 			actor.Vel = (actor.Vel + movementTable.acceleration):CapMagnitude(self.movementSpeed);
 			actor.Vel = actor.Vel + gravityAdjustment;
-			
+
 			local rotAngleGoal = 0;
 			local verticalRotationAdjustment = 1;
 			if IsAHuman(actor) then
