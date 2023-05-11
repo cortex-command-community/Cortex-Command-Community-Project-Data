@@ -2,38 +2,18 @@ require("Scenes/Objects/Bunkers/BunkerSystems/Movators/GlobalMovatorFunctions");
 
 local movatorUtilityFunctions = {};
 local movatorActorFunctions = {};
-local uiFunctions = {};
+local movatorVisualEffectsFunctions = {};local movatorUIFunctions = {};
 
 function Create(self)
-	-------------
-	--Constants--
-	-------------
-	self.currentActivity = ActivityMan:GetActivity();
-	self.checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
-	self.initialPieMenuFullInnerRadius = self.PieMenu.FullInnerRadius;
-	self.movementModes = {
-		freeze = 0,
-		move = 1,
-		unstickActor = 2,
-		teleporting = 3,
-		leaveMovators = 4,
-	};
-	self.oppositeDirections = {
-		[Directions.Up] = Directions.Down,
-		[Directions.Down] = Directions.Up,
-		[Directions.Left] = Directions.Right,
-		[Directions.Right] = Directions.Left,
-	};
-
-	self.sceneWaypointThresholdForTreatingTargetAsReached = 12;
-	self.movableObjectWaypointThresholdForTreatingTargetAsReached = 48;
 	self.movementSpeedMin = 4;
 	self.movementSpeedMax = 16;
-	self.movementAcceleration = self.movementSpeedMin * 0.1;
 	self.massLimitMin = 100;
 	self.massLimitMax = 5000;
-
-	self.uiLineHeight = { [true] = 10, [false] = 15 };
+	self.visualEffectsSizes = {
+		small = 1,
+		medium = 2,
+		large = 3,
+	};
 
 	----------------------------------------
 	--INI and Pie Menu Configurable Fields--
@@ -44,6 +24,8 @@ function Create(self)
 	self.humansRemainUpright = self:NumberValueExists("HumansRemainUpright") and self:GetNumberValue("HumansRemainUpright") ~= 0 or false;
 	self.movementSpeed = self:NumberValueExists("MovementSpeed") and math.max(self.movementSpeedMin, math.min(self.movementSpeedMax, self:GetNumberValue("MovementSpeed"))) or (self.movementSpeedMin * 2);
 	self.massLimit = self:NumberValueExists("MassLimit") and math.max(self.massLimitMin, math.min(self.massLimitMax, self:GetNumberValue("MassLimit"))) or (self.massLimitMin * 5);
+	self.visualEffectsSelectedType = self:StringValueExists("VisualEffectsType") and self:GetStringValue("VisualEffectsType"):lower() or "chevron";
+	self.visualEffectsSelectedSize = self:NumberValueExists("VisualEffectsSize") and math.max(self.visualEffectsSizes.small, math.min(self.visualEffectsSizes.large, self:GetNumberValue("VisualEffectsSize"))) or self.visualEffectsSizes.small;
 
 	---------------------------
 	--INI Configurable Fields--
@@ -52,11 +34,47 @@ function Create(self)
 	self.infoUIBGColour = self:NumberValueExists("InfoUIBGColour") and self:GetNumberValue("InfoUIBGColour") or 127;
 	self.infoUIOutlineWidth = self:NumberValueExists("InfoUIOutlineWidth") and self:GetNumberValue("InfoUIOutlineWidth") or 2;
 	self.infoUIOutlineColour = self:NumberValueExists("InfoUIOutlineColour") and self:GetNumberValue("InfoUIOutlineColour") or 71;
+	self.infoUITransparency = self:NumberValueExists("InfoUITransparency") and math.max(0, math.min(100, self:GetNumberValue("InfoUITransparency"))) or 0;
 
+	-------------
+	--Constants--
+	-------------
+	--TODO make this an actual power system.
+	MovatorData[self.Team].energyLevel = 100;
+	
+	self.currentActivity = ActivityMan:GetActivity();
+	self.checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
+	
+	self.initialPieMenuFullInnerRadius = self.PieMenu.FullInnerRadius;
+	
+	self.movementModes = {
+		freeze = 0,
+		move = 1,
+		unstickActor = 2,
+		teleporting = 3,
+		leaveMovators = 4,
+	};
+	
+	self.oppositeDirections = {
+		[Directions.Up] = Directions.Down,
+		[Directions.Down] = Directions.Up,
+		[Directions.Left] = Directions.Right,
+		[Directions.Right] = Directions.Left,
+	};
+	
+	self.visualEffectsMinimumNumberOfSpacesNeededForDrawingObjectEffects = 3;
+	
+	self.sceneWaypointThresholdForTreatingTargetAsReached = 12;
+	self.movableObjectWaypointThresholdForTreatingTargetAsReached = 48;
+	
+	self.movementAcceleration = self.movementSpeedMin * 0.1;
+	
+	self.uiLineHeight = { [true] = 10, [false] = 15 };
+	
 	-----------------
 	--General Setup--
 	-----------------
-	for _, functionTable in ipairs({ movatorUtilityFunctions, movatorActorFunctions, uiFunctions }) do
+	for _, functionTable in ipairs({ movatorUtilityFunctions, movatorVisualEffectsFunctions, movatorActorFunctions, movatorUIFunctions }) do
 		for functionName, functionReference in pairs(functionTable) do
 			self[functionName] = functionReference;
 		end
@@ -76,8 +94,41 @@ function Create(self)
 			end
 		end
 	end
-	--TODO make this an actual power system.
-	MovatorData[self.Team].energyLevel = 100;
+	
+	self.visualEffectsConfig = {
+		chevron = {},
+		chevronNarrow = {},
+	};
+	local function addVisualEffectsConfig(self, visualEffectsSize, visualEffectsType)
+		local visualEffectsConfigSizeTable = {
+			coolDownInterval = visualEffectsSize * 1000,
+			spriteObject = nil,
+			spriteSize = 0,
+			moveTimer = Timer(),
+			minFrame = 0,
+			maxFrame = 7,
+		};
+		if visualEffectsSize == self.visualEffectsSizes.small then
+			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Movator Chevron Small", "Base.rte");
+			visualEffectsConfigSizeTable.spriteSize = visualEffectsType == "chevronNarrow" and 5.33 or 16;
+			visualEffectsConfigSizeTable.moveTimer:SetSimTimeLimitMS(visualEffectsType == "chevronNarrow" and 5 or 30);
+		elseif visualEffectsSize == self.visualEffectsSizes.medium then
+			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Movator Chevron Medium", "Base.rte");
+			visualEffectsConfigSizeTable.spriteSize = visualEffectsType == "chevronNarrow" and 10.67 or 32;
+			visualEffectsConfigSizeTable.moveTimer:SetSimTimeLimitMS(visualEffectsType == "chevronNarrow" and 30 or 60);
+		elseif visualEffectsSize == self.visualEffectsSizes.large then
+			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Movator Chevron Large", "Base.rte");
+			visualEffectsConfigSizeTable.spriteSize = visualEffectsType == "chevronNarrow" and 16 or 48;
+			visualEffectsConfigSizeTable.moveTimer:SetSimTimeLimitMS(visualEffectsType == "chevronNarrow" and 55 or 80);
+		end
+		
+		self.visualEffectsConfig[visualEffectsType][visualEffectsSize] = visualEffectsConfigSizeTable;
+	end
+	for _, visualEffectsSize in pairs(self.visualEffectsSizes) do
+		addVisualEffectsConfig(self, visualEffectsSize, "chevron");
+		addVisualEffectsConfig(self, visualEffectsSize, "chevronNarrow");
+	end
+	self.visualEffectsData = {};
 
 	self.obstructionCheckCoroutine = coroutine.create(self.checkAllObstructions);
 	self.obstructionCheckTimer = Timer(10000);
@@ -210,7 +261,7 @@ function Update(self)
 				self.actorMovementUpdateTimer:Reset();
 			end
 
-			--self:updateVisualEffects();
+			self:updateVisualEffects();
 		end
 	end
 
@@ -267,29 +318,27 @@ movatorUtilityFunctions.handlePieButtons = function(self)
 		end
 		self.heldInputTimer:Reset();
 	end
---[[
-	if self:NumberValueExists("ModifyMovatorEffectsType") then
-		self:CleanupCurrentMovatorObjectEffectsTableIfPossible();
-		local displayTypes = { "" };
-		for displayType, _ in pairs(self.EffectsTable.displayTypes) do
-			displayTypes[#displayTypes + 1] = displayType;
+	
+	if self:NumberValueExists("ModifyVisualEffectsType") then
+		local visualEffectsTypes = { "" };
+		for visualEffectsType, _ in pairs(self.visualEffectsConfig) do
+			visualEffectsTypes[#visualEffectsTypes + 1] = visualEffectsType;
 		end
 
-		for displayTypeIndex, displayType in ipairs(displayTypes) do
-			if displayType == self.EffectsTable.selectedType then
-				self.EffectsTable.selectedType = displayTypes[((displayTypeIndex % #displayTypes) + 1)];
+		for visualEffectsTypeIndex, visualEffectsType in ipairs(visualEffectsTypes) do
+			if self.visualEffectsSelectedType == visualEffectsType then
+				self.visualEffectsSelectedType = visualEffectsTypes[((visualEffectsTypeIndex % #visualEffectsTypes) + 1)];
 				break;
 			end
 		end
-		self:RemoveNumberValue("ModifyMovatorEffectsType");
+		self.visualEffectsData = {};
+		self:RemoveNumberValue("ModifyVisualEffectsType");
 	end
-	if self:NumberValueExists("ModifyMovatorEffectsSize") then
-		self:CleanupCurrentMovatorObjectEffectsTableIfPossible();
-		local largestEffectsSize = 3;
-		self.EffectsTable.selectedSize = (self.EffectsTable.selectedSize % largestEffectsSize) + 1;
-		self:RemoveNumberValue("ModifyMovatorEffectsSize");
+	if self:NumberValueExists("ModifyVisualEffectsSize") then
+		self.visualEffectsSelectedSize = (self.visualEffectsSelectedSize % self.visualEffectsSizes.large) + 1;
+		self.visualEffectsData = {};
+		self:RemoveNumberValue("ModifyVisualEffectsSize");
 	end
-	]]
 end
 
 movatorUtilityFunctions.fuzzyPositionMatch = function(self, pos1, pos2, ignoreXMatching, ignoreYMatching, fuzziness, otherDistanceMustBeNegative)
@@ -631,6 +680,115 @@ movatorUtilityFunctions.changeScaleOfMOSRotatingAndAttachables = function(self, 
 		self:changeScaleOfMOSRotatingAndAttachables(attachable, scale);
 	end
 end
+
+movatorVisualEffectsFunctions.updateVisualEffects = function(self)
+	if self.visualEffectsSelectedType == "" then
+		return;
+	end
+	
+	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
+	
+	if selectedVisualEffects.moveTimer:IsPastSimTimeLimit() then
+		for node, nodeData in pairs(MovatorData[self.Team].nodeData) do
+			for _, direction in ipairs({Directions.Up, Directions.Left}) do
+				self:setupNodeVisualEffectsForDirectionIfAppropriate(node, nodeData, direction);
+			end
+		end
+		self:updateVisualEffectsFrames();
+		selectedVisualEffects.moveTimer:Reset();
+	end
+	
+	self:drawVisualEffects();
+end
+
+movatorVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = function(self, node, nodeData, direction)
+	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
+	
+	local nodeConnectionDataInDirection = nodeData.connectedNodeData[direction];
+	if nodeConnectionDataInDirection == nil then
+		return;
+	end
+	
+	if self.visualEffectsData[node] ~= nil and self.visualEffectsData[node][direction] ~= nil and self.visualEffectsData[node][direction].endNode.UniqueID == nodeConnectionDataInDirection.node.UniqueID then
+		return;
+	end
+	
+	local relevantAxis = direction == Directions.Up and "Y" or "X";
+	local nodeInDirectionData = MovatorData[self.Team].nodeData[nodeConnectionDataInDirection.node];
+	local minDistanceToShowEffects = (nodeData.size[relevantAxis] * 0.5) + (nodeInDirectionData.size[relevantAxis] * 0.5) + (selectedVisualEffects.spriteSize * self.visualEffectsMinimumNumberOfSpacesNeededForDrawingObjectEffects);
+	if math.abs(nodeConnectionDataInDirection.distance[relevantAxis]) < minDistanceToShowEffects then
+		return;
+	end
+	
+	if self.visualEffectsData[node] == nil then
+		self.visualEffectsData[node] = {};
+	end
+	
+	self.visualEffectsData[node][direction] = {
+		coolDownTimer = Timer(selectedVisualEffects.coolDownInterval),
+		isGoingBackwards = false,
+		endNode = nodeConnectionDataInDirection.node,
+		rotAngle = direction == Directions.Up and math.rad(90) or math.rad(180),
+		drawData = {},
+	};
+	
+	local numberOfSpritesToDraw, halfRemainderDistance = math.modf((math.abs(nodeConnectionDataInDirection.distance[relevantAxis]) - math.abs(nodeInDirectionData.size[relevantAxis])) / selectedVisualEffects.spriteSize);
+	halfRemainderDistance = halfRemainderDistance * selectedVisualEffects.spriteSize * 0.5;
+	
+	local relevantAxis = direction == Directions.Up and "Y" or "X";
+	local firstSpritePos = node.Pos + Vector();
+	firstSpritePos[relevantAxis] = firstSpritePos[relevantAxis] - (nodeData.size[relevantAxis] * 0.5) - (selectedVisualEffects.spriteSize * 0.5) - halfRemainderDistance;
+	for i = 1, numberOfSpritesToDraw do
+		local spriteIndexOffset = Vector();
+		spriteIndexOffset[relevantAxis] = -(selectedVisualEffects.spriteSize * (i - 1));
+		self.visualEffectsData[node][direction].drawData[i] = {
+			position = firstSpritePos + spriteIndexOffset,
+			frame = selectedVisualEffects.minFrame - 1,
+		};
+	end
+end
+
+movatorVisualEffectsFunctions.updateVisualEffectsFrames = function(self)
+	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
+	
+	for node, visualEffectsData in pairs(self.visualEffectsData) do
+		for direction, visualEffectsDataInDirection in pairs(visualEffectsData) do
+			if #visualEffectsDataInDirection.drawData > 0 and visualEffectsDataInDirection.coolDownTimer:IsPastSimTimeLimit() then
+				for index, drawData in ipairs(visualEffectsDataInDirection.drawData) do
+					local previousIndex = visualEffectsDataInDirection.isGoingBackwards and index + 1 or index - 1;
+					if drawData.frame <= selectedVisualEffects.maxFrame and (previousIndex < 1 or previousIndex > #visualEffectsDataInDirection.drawData or visualEffectsDataInDirection.drawData[previousIndex].frame > selectedVisualEffects.minFrame) then
+						drawData.frame = drawData.frame + 1;
+					end
+				end
+				
+				local endIndex = visualEffectsDataInDirection.isGoingBackwards and 1 or #visualEffectsDataInDirection.drawData;
+				if visualEffectsDataInDirection.drawData[endIndex].frame > selectedVisualEffects.maxFrame then
+					visualEffectsDataInDirection.isGoingBackwards = not visualEffectsDataInDirection.isGoingBackwards;
+					visualEffectsDataInDirection.rotAngle = NormalizeAngleBetween0And2PI(visualEffectsDataInDirection.rotAngle + math.pi);
+					for _, drawData in pairs(visualEffectsDataInDirection.drawData) do
+						drawData.frame = selectedVisualEffects.minFrame - 1;
+					end
+					visualEffectsDataInDirection.coolDownTimer:Reset();
+				end
+			end
+		end
+	end
+end
+
+movatorVisualEffectsFunctions.drawVisualEffects = function(self)
+	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
+
+	for node, visualEffectsData in pairs(self.visualEffectsData) do
+		for direction, visualEffectsDataInDirection in pairs(visualEffectsData) do
+			for _, drawData in ipairs(visualEffectsDataInDirection.drawData) do
+				if drawData.frame >= selectedVisualEffects.minFrame and drawData.frame < selectedVisualEffects.maxFrame then
+					PrimitiveMan:DrawBitmapPrimitive(drawData.position, selectedVisualEffects.spriteObject, visualEffectsDataInDirection.rotAngle, drawData.frame);
+				end
+			end
+		end
+	end
+end
+
 
 movatorActorFunctions.checkForNewActors = function(self)
 	for box in self.combinedMovatorArea.Boxes do
@@ -1307,12 +1465,12 @@ movatorActorFunctions.updateMovingActor = function(self, actorData)
 	end
 end
 
-uiFunctions.updateInfoUI = function(self)
+movatorUIFunctions.updateInfoUI = function(self)
 	local desiredPieMenuFullInnerRadius = 128;
 
-	local formattedEffectsNameTable = {
-		displayTypes = { [""] = "None", line = "Line", chevron = "Pulse", chevron_narrow = "Tight Pulse" },
-		sizes = { "Small", "Medium", "Large" },
+	local formattedVisualEffectsNameTable = {
+		types = { [""] = "None", chevron = "Pulse", chevronNarrow = "Tight Pulse" },
+		sizes = { [self.visualEffectsSizes.small] = "Small", [self.visualEffectsSizes.medium] = "Medium", [self.visualEffectsSizes.large] = "Large" },
 	};
 	local textDataTable = {
 		"Controlled Movators: " .. tostring(MovatorData[self.Team].nodeDataCount - MovatorData[self.Team].teleporterNodesCount),
@@ -1323,11 +1481,12 @@ uiFunctions.updateInfoUI = function(self)
 		"Humans Remain Upright: " .. (self.humansRemainUpright and "True" or "False");
 		"Movement Speed: " .. tostring(self.movementSpeed),
 		"Mass Limit: " .. tostring(self.massLimit),
-		--"Selected Effects Type: " .. formattedEffectsNameTable.displayTypes[self.EffectsTable.selectedType],
 	};
-	--if self.EffectsTable.selectedType ~= "" then
-	--	textDataTable[#textDataTable + 1] = "Selected Effects Size: " .. formattedEffectsNameTable.sizes[self.EffectsTable.selectedSize];
-	--end
+	if self.visualEffectsSelectedType == "" then
+		textDataTable[#textDataTable + 1] = "Selected Visual Effects: None"
+	else
+		textDataTable[#textDataTable + 1] = "Selected Visual Effects: " .. formattedVisualEffectsNameTable.sizes[self.visualEffectsSelectedSize] .. " " .. formattedVisualEffectsNameTable.types[self.visualEffectsSelectedType];
+	end
 
 	if self:GetNumberValue("ModifyMovementSpeed") > 0 then
 		table.insert(textDataTable, 1, "---------------------------");
@@ -1343,19 +1502,23 @@ uiFunctions.updateInfoUI = function(self)
 		desiredPieMenuFullInnerRadius = 160;
 	end
 	local centerPoint = Vector(self.Pos.X, self.Pos.Y);
-	local config = { useSmallText = self.infoUIUseSmallText, bgColour = self.infoUIBGColour, outlineWidth = self.infoUIOutlineWidth, outlineColour = self.infoUIOutlineColour };
+	local config = { useSmallText = self.infoUIUseSmallText, bgColour = self.infoUIBGColour, outlineWidth = self.infoUIOutlineWidth, outlineColour = self.infoUIOutlineColour, transparency = self.infoUITransparency };
 
 	self:drawTextBox(textDataTable, centerPoint, config);
 
 	return desiredPieMenuFullInnerRadius;
 end
 
-uiFunctions.drawTextBox = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
+movatorUIFunctions.drawTextBox = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
 	config = self:setupTextBoxConfigIfNeeded(config, maxSizeBoxOrCenterPoint);
 	local centerPoint, maxSize = self:setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary(textDataTable, maxSizeBoxOrCenterPoint, config);
 	local topLeft = Vector(centerPoint.X - maxSize.X * 0.5, centerPoint.Y - maxSize.Y * 0.5);
-	PrimitiveMan:DrawBoxFillPrimitive(Vector(topLeft.X - config.padding, topLeft.Y - config.padding), Vector(topLeft.X + maxSize.X + config.padding, topLeft.Y + maxSize.Y + config.padding), config.outlineColour);
-	PrimitiveMan:DrawBoxFillPrimitive(Vector(topLeft.X - config.padding + config.outlineWidth, topLeft.Y - config.padding + config.outlineWidth), Vector(topLeft.X + maxSize.X + config.padding - config.outlineWidth, topLeft.Y + maxSize.Y + config.padding - config.outlineWidth), config.bgColour);
+
+	local boxFillPrimitives = {};
+	local player = self:GetController().Player;
+	boxFillPrimitives[#boxFillPrimitives + 1] = BoxFillPrimitive(player, Vector(topLeft.X - config.padding, topLeft.Y - config.padding), Vector(topLeft.X + maxSize.X + config.padding, topLeft.Y + maxSize.Y + config.padding), config.outlineColour);
+	boxFillPrimitives[#boxFillPrimitives + 1] = BoxFillPrimitive(player, Vector(topLeft.X - config.padding + config.outlineWidth, topLeft.Y - config.padding + config.outlineWidth), Vector(topLeft.X + maxSize.X + config.padding - config.outlineWidth, topLeft.Y + maxSize.Y + config.padding - config.outlineWidth), config.bgColour);
+	PrimitiveMan:DrawPrimitives(config.transparency, boxFillPrimitives)
 
 	for textIndex, textDataEntry in ipairs(textDataTable) do
 		local linePos = Vector(topLeft.X, topLeft.Y + (textIndex - 1) * self.uiLineHeight[config.useSmallText]);
@@ -1365,11 +1528,11 @@ uiFunctions.drawTextBox = function(self, textDataTable, maxSizeBoxOrCenterPoint,
 		elseif alignment == 2 then
 			linePos.X = linePos.X + maxSize.X;
 		end
-		PrimitiveMan:DrawTextPrimitive(linePos, textDataEntry.text, config.useSmallText, alignment);
+		PrimitiveMan:DrawTextPrimitive(player, linePos, textDataEntry.text, config.useSmallText, alignment);
 	end
 end
 
-uiFunctions.setupTextBoxConfigIfNeeded = function(self, config, maxSizeBoxOrCenterPoint)
+movatorUIFunctions.setupTextBoxConfigIfNeeded = function(self, config, maxSizeBoxOrCenterPoint)
 	if type(config) == "nil" then
 		config = {};
 	end
@@ -1394,10 +1557,13 @@ uiFunctions.setupTextBoxConfigIfNeeded = function(self, config, maxSizeBoxOrCent
 	if type(config.outlineColour) == "nil" then
 		config.outlineColour = 71;
 	end
+	if type(config.transparency) == "nil" then
+		config.transparency = 0;
+	end
 	return config;
 end
 
-uiFunctions.setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
+movatorUIFunctions.setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
 	local centerPoint = maxSizeBoxOrCenterPoint;
 	local maxSize = Vector(math.huge, math.huge);
 	if maxSizeBoxOrCenterPoint.ClassName == "Box" then
@@ -1408,7 +1574,7 @@ uiFunctions.setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary = function(
 	return centerPoint, maxSize;
 end
 
-uiFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSize, config)
+movatorUIFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSize, config)
 	local numberOfLines = 0;
 	local maxSizeIfScalingBoxToFitText = Vector(0, 0);
 	for i = 1, #textDataTable do
@@ -1440,7 +1606,7 @@ uiFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(self, text
 	return maxSize;
 end
 
-uiFunctions.getNumberOfLinesForText = function(self, textString, maxWidth, useSmallText)
+movatorUIFunctions.getNumberOfLinesForText = function(self, textString, maxWidth, useSmallText)
 	local numberOfLines = 1;
 	local stringWidth = FrameMan:CalculateTextWidth(textString, useSmallText);
 	if stringWidth > maxWidth then

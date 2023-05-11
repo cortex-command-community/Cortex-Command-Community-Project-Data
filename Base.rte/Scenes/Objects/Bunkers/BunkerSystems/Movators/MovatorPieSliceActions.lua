@@ -36,12 +36,12 @@ function CommandModifyMovatorMassLimit(self)
 	end
 end
 
-function CommandModifyMovatorEffectsType(self)
-	self:SetNumberValue("ModifyMovatorEffectsType", 1);
+function CommandModifyMovatorVisualEffectsType(self)
+	self:SetNumberValue("ModifyVisualEffectsType", 1);
 end
 
-function CommandModifyMovatorEffectsSize(self)
-	self:SetNumberValue("ModifyMovatorEffectsSize", 1);
+function CommandModifyMovatorVisualEffectsSize(self)
+	self:SetNumberValue("ModifyVisualEffectsSize", 1);
 end
 
 function CommandActorLeaveMovatorNetwork(self)
