@@ -30,6 +30,7 @@ function Create(self)
 	---------------------------
 	--INI Configurable Fields--
 	---------------------------
+	self.actorUnstickingDisabled = self:NumberValueExists("ActorUnstickingDisabled") and self:GetNumberValue("ActorUnstickingDisabled") ~= 0 or false;
 	self.infoUIUseSmallText = self:NumberValueExists("InfoUIUseSmallText") and self:GetNumberValue("InfoUIUseSmallText") ~= 0 or false;
 	self.infoUIBGColour = self:NumberValueExists("InfoUIBGColour") and self:GetNumberValue("InfoUIBGColour") or 127;
 	self.infoUIOutlineWidth = self:NumberValueExists("InfoUIOutlineWidth") and self:GetNumberValue("InfoUIOutlineWidth") or 2;
@@ -239,10 +240,12 @@ function Update(self)
 							local actorIsSlowEnoughToUseMovators = self:slowDownFastActorToMovementSpeed(actorData);
 
 							if actorIsSlowEnoughToUseMovators then
-								if actorData.direction == Directions.None or actorData.movementMode ~= self.movementModes.move or actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed - 1) then
-									actorData.unstickTimer:Reset();
-								elseif actorData.unstickTimer:IsPastSimTimeLimit() then
-									actorData.movementMode = self.movementModes.unstickActor;
+								if not self.actorUnstickingDisabled then
+									if actorData.direction == Directions.None or actorData.movementMode ~= self.movementModes.move or actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed - 1) then
+										actorData.unstickTimer:Reset();
+									elseif actorData.unstickTimer:IsPastSimTimeLimit() then
+										actorData.movementMode = self.movementModes.unstickActor;
+									end
 								end
 
 								if actorData.movementMode == self.movementModes.move or actorData.movementMode == self.movementModes.unstickActor then
