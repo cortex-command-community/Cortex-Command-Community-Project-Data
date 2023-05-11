@@ -124,9 +124,9 @@ function OneManArmyZeroG:SetupHumanPlayerBrains(actorGroup, primaryGroup, second
 					foundBrain = CreateAHuman(defaultActor);
 					--If a faction was chosen, pick the first item from faction listing
 					if tech ~= -1 then
-						local module = PresetMan:GetDataModule(tech);
+						local dataModule = PresetMan:GetDataModule(tech);
 						local primaryWeapon, secondaryWeapon, tertiaryWeapon, actor;
-						for entity in module.Presets do
+						for entity in dataModule.Presets do
 							local picked;	--Prevent duplicates
 							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).IsBuyable then
 								primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
@@ -357,10 +357,11 @@ function OneManArmyZeroG:UpdateActivity()
 				end
 				actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				actor.Team = self.CPUTeam;
-				if SceneMan.SceneWrapsX then
-					actor.Pos = Vector(math.random() * SceneMan.SceneWidth, -25);
-				else
-					actor.Pos = Vector(RangeRand(100, SceneMan.SceneWidth - 100), -25);
+				actor.Pos = Vector(math.random() * SceneMan.SceneWidth, -25);
+				actor.Vel = Vector(math.random(-15, 15), math.random(0, 10));
+				if math.random() < 0.5 then
+					actor.Pos.Y = SceneMan.SceneHeight + 25;
+					actor.Vel.Y = -10;
 				end
 				MovableMan:AddActor(actor);
 			end
