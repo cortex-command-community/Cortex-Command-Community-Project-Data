@@ -243,7 +243,6 @@ function Update(self)
 									actorData.unstickTimer:Reset();
 								elseif actorData.unstickTimer:IsPastSimTimeLimit() then
 									actorData.movementMode = self.movementModes.unstickActor;
-									print("oh no, we're stuck!")
 								end
 
 								if actorData.movementMode == self.movementModes.move or actorData.movementMode == self.movementModes.unstickActor then
@@ -935,10 +934,7 @@ movatorActorFunctions.setupManualTeleporterData = function(self, actorData)
 	for index, sortedTeleporterData in pairs(manualTeleporterData.sortedTeleporters) do
 		if sortedTeleporterData.node.UniqueID == startingTeleporter.UniqueID then
 			manualTeleporterData.currentChosenTeleporter = index;
-			print("Current teleporter found!")
-		--	break;
 		end
-		print(tostring(index).. ". " ..tostring(sortedTeleporterData.node.Pos))
 	end
 	
 	self.heldInputTimer:Reset(); -- Note: Because manual teleporting is done with Fire and Pie Menu, we need to reset this timer when we set things up, so we don't instantly trigger teleporting or canceling.
@@ -955,14 +951,12 @@ movatorActorFunctions.chooseTeleporterForPlayerControlledActor = function(self, 
 			if manualTeleporterData.currentChosenTeleporter <= 0 then
 				manualTeleporterData.currentChosenTeleporter = #manualTeleporterData.sortedTeleporters;
 			end
-			print(manualTeleporterData.currentChosenTeleporter)
 			self.heldInputTimer:Reset();
 		elseif actorController:IsState(Controller.PRESS_RIGHT) or (actorController:IsState(Controller.HOLD_RIGHT) and self.heldInputTimer:IsPastSimMS(250)) then
 			manualTeleporterData.currentChosenTeleporter = manualTeleporterData.currentChosenTeleporter + 1;
 			if manualTeleporterData.currentChosenTeleporter > #manualTeleporterData.sortedTeleporters then
 				manualTeleporterData.currentChosenTeleporter = 1;
 			end
-			print(manualTeleporterData.currentChosenTeleporter)
 			self.heldInputTimer:Reset();
 		elseif actorController:IsState(Controller.PRESS_PRIMARY) and self.heldInputTimer:IsPastSimTimeLimit() then
 			manualTeleporterData.actorTeleportationStage = 1;
@@ -1065,7 +1059,6 @@ movatorActorFunctions.setupActorWaypointData = function(self, actorData)
 	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true, false);
 	if not waypointData.previousNode then
 		self:removeActorFromMovatorTable(actor);
-		print("Couldn't find previous node, give up")
 		return;
 	end
 	local targetPosition = waypointData.movableObjectTarget ~= nil and waypointData.movableObjectTarget.Pos or waypointData.sceneTargets[1];
@@ -1077,10 +1070,8 @@ movatorActorFunctions.setupActorWaypointData = function(self, actorData)
 
 	waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, waypointData.targetIsInsideMovatorArea, true);
 	if not waypointData.endNode then
-		print("no end node 1")
 		waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false, true);
 		if not waypointData.endNode then
-			print("no end node 2")
 			waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false, false);
 		end
 
@@ -1089,7 +1080,6 @@ movatorActorFunctions.setupActorWaypointData = function(self, actorData)
 			local nonConnectedNodeThatEncompassesTargetExists = closestPotentiallyNonConnectedNode ~= nil and self.pathTable[waypointData.previousNode][closestPotentiallyNonConnectedNode] == nil;
 			if nonConnectedNodeThatEncompassesTargetExists then
 				waypointData.targetIsInsideMovatorArea = false;
-				print("There's a closer node that's not connected to the starting node. Treat the target as outside the area and go to our closest viable node")
 			end
 		end
 	end
@@ -1147,18 +1137,14 @@ movatorActorFunctions.accountForSameStartingAndEndingNodeWhenSettingUpActorWaypo
 			else
 				actorData.direction = distanceFromActorToTargetPosition[relevantAxis] > 0 and Directions.Up or Directions.Down;
 			end
-			print("Target is close to start and in same area as actor, direction set to "..tostring(actorData.direction))
 			waypointData.nextNode = waypointData.previousNode;
 			actorData.targetIsBetweenPreviousAndNextNode = true;
 		else
 			actorData.direction = self.oppositeDirections[directionOfConnectingAreaActorIsIn];
 			waypointData.nextNode = waypointData.previousNode;
-			print(directionOfConnectingAreaTargetIsIn)
 			waypointData.endNode = teamNodeTable[waypointData.previousNode].connectedNodeData[directionOfConnectingAreaTargetIsIn].node;
-			print("Target in different area than actor, moving to starting node in direction "..tostring(actorData.direction)..", next node set to node in direction "..tostring(directionOfConnectingAreaTargetIsIn).. " from that");
 		end
 	else
-		print("Starting and end node are the same, and target is outside movators, move to starting node")
 		self:makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData(actorData);
 	end
 end
@@ -1177,7 +1163,6 @@ movatorActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActor
 		relevantAxis = (actorData.direction == Directions.Up or actorData.direction == Directions.Down) and "X" or "Y";
 		distanceThreshold = 24;
 	end
-	print("Distance is "..tostring(distanceFromActorToPreviousNode) .." , relevant axis is " .. relevantAxis .. ", direction is currently " ..tostring(actorData.direction) .. " but need to move to start node first");
 	if math.abs(distanceFromActorToPreviousNode[relevantAxis]) > distanceThreshold then
 		if relevantAxis == "X" then
 			actorData.direction = distanceFromActorToPreviousNode[relevantAxis] > 0 and Directions.Left or Directions.Right;
@@ -1185,7 +1170,6 @@ movatorActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActor
 			actorData.direction = distanceFromActorToPreviousNode[relevantAxis] > 0 and Directions.Up or Directions.Down;
 		end
 		waypointData.nextNode = waypointData.previousNode;
-		print("Direction has changed to "..tostring(actorData.direction) .. " and next node has been set to starting node so things work")
 		return true;
 	end
 	return false;
@@ -1256,7 +1240,6 @@ movatorActorFunctions.handleActorInNextNodeZoneInternalBox = function(self, acto
 	if waypointData.movableObjectTarget then
 		waypointData.targetPosition = Vector(waypointData.movableObjectTarget.Pos.X, waypointData.movableObjectTarget.Pos.Y);
 	end
-	print("Change Direction")
 
 	if waypointData.nextNode.UniqueID == waypointData.endNode.UniqueID and waypointData.targetIsInsideMovatorArea then
 		local areaToCheckForTargetPos = teamNodeTable[waypointData.previousNode].connectingAreas[actorData.direction];
@@ -1276,10 +1259,8 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 		local largerDistanceAxis = (math.abs(distanceVector.X) > math.abs(distanceVector.Y)) and "X" or "Y";
 		if distanceVector[largerDistanceAxis] > minimumDistanceThreshold then
 			direction = largerDistanceAxis == "Y" and Directions.Up or Directions.Left;
-			--print("Not close to target yet, moving in direction "..tostring(direction))
 		elseif distanceVector[largerDistanceAxis] < -minimumDistanceThreshold then
 			direction = largerDistanceAxis == "Y" and Directions.Down or Directions.Right;
-			--print("Not close to target yet, moving in direction "..tostring(direction))
 		end
 		return direction;
 	end
@@ -1290,7 +1271,6 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 			local thresholdForTreatingTargetAsReached = waypointData.movableObjectTarget == nil and self.sceneWaypointThresholdForTreatingTargetAsReached or self.movableObjectWaypointThresholdForTreatingTargetAsReached;
 			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToTargetPosition, thresholdForTreatingTargetAsReached);
 			if actorData.direction == Directions.None then
-				print("Reached target inside movators!")
 				waypointData.actorReachedTargetInsideMovatorArea = true;
 				actorData.movementMode = self.movementModes.freeze;
 			end
@@ -1298,7 +1278,6 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 			actorData.movementMode = self.movementModes.freeze;
 			if waypointData.movableObjectTarget ~= nil then
 				if SceneMan:ShortestDistance(actor.Pos, waypointData.movableObjectTarget.Pos, self.checkWrapping):MagnitudeIsGreaterThan(self.movableObjectWaypointThresholdForTreatingTargetAsReached * 2) then
-					print("Target has moved away, let's find it!")
 					self:setupActorWaypointData(actorData);
 				end
 			else
@@ -1388,19 +1367,12 @@ movatorActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = f
 		for _, centeringAxis in pairs(centeringAxes) do
 			if distanceToClosestNode[centeringAxis] > centeringSpeedAndDistance then
 				actor.Vel[centeringAxis] = -centeringSpeedAndDistance + gravityAdjustment[centeringAxis];
-				if isStuck then
-				print("Centering " ..(centeringAxis == "X" and "Leftward" or "Upward"));
-				end
 			elseif distanceToClosestNode[centeringAxis] < -centeringSpeedAndDistance then
 				actor.Vel[centeringAxis] = centeringSpeedAndDistance + gravityAdjustment[centeringAxis];
-				if isStuck then
-				print("Centering " ..(centeringAxis == "X" and "Rightward" or "Downward"));
-				end
 			else
 				if isStuck then
 					actorData.movementMode = self.movementModes.move;
 					actorData.unstickTimer:Reset();
-				print("We're centered!")
 				end
 				actor.Vel[centeringAxis] = gravityAdjustment[centeringAxis];
 				actor.Pos[centeringAxis] = closestNode.Pos[centeringAxis] + actorSizeCenteringAdjustment[centeringAxis];
