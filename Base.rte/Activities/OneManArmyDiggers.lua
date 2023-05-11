@@ -1,61 +1,86 @@
-function OneManArmy:StartActivity()
+function OneManArmy:StartActivity(isNewGame)
+	SceneMan.Scene:GetArea("LZ Team 1");
+	SceneMan.Scene:GetArea("LZ All");
 
 	self.BuyMenuEnabled = false;
 
+	self.startMessageTimer = Timer();
+	self.enemySpawnTimer = Timer();
+	self.winTimer = Timer();
+
+	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+
+	if isNewGame then
+		self:StartNewGame();
+	else
+		self:ResumeLoadedGame();
+	end
+end
+
+function OneManArmy:OnSave()
+	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
+	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
+	self:SaveNumber("winTimer.ElapsedSimTimeMS", self.winTimer.ElapsedSimTimeMS);
+
+	self:SaveNumber("timeLimit", self.timeLimit);
+	self:SaveString("timeDisplay", self.timeDisplay);
+	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
+	self:SaveNumber("enemySpawnTimeLimit", self.enemySpawnTimeLimit);
+end
+
+function OneManArmy:StartNewGame()
+	self:SetTeamFunds(1000000, self.CPUTeam);
+	self:SetTeamFunds(0, Activity.TEAM_1);
+
+	local actorGroup = "Actors - Light";
 	local primaryGroup = "Weapons - Primary";
 	local secondaryGroup = "Weapons - Secondary";
-	-- Tertiary weapon is always a grenade
-	local actorGroup = "Actors - Light";
-	-- Default actors if no tech is chosen
-	local defaultActor = ("Soldier Light");
-	local defaultPrimary = ("Ronin/SPAS 12");
-	local defaultSecondary = ("Ronin/.357 Magnum");
-	local defaultTertiary = ("Ronin/Molotov Cocktail");
 
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
-		self.TimeLimit = 5 * 60000 + 5000;
+		self.timeLimit = 5 * 60000 + 5000;
 		self.timeDisplay = "five minutes";
-		self.BaseSpawnTime = 6000;
+		self.baseSpawnTime = 6000;
 
+		actorGroup = "Actors - Heavy";
 		primaryGroup = "Weapons - Heavy";
 		secondaryGroup = "Weapons - Explosive";
-		actorGroup = "Actors - Heavy";
 	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
-		self.TimeLimit = 5 * 60000 + 5000;
+		self.timeLimit = 5 * 60000 + 5000;
 		self.timeDisplay = "five minutes";
-		self.BaseSpawnTime = 5500;
+		self.baseSpawnTime = 5500;
 
+		actorGroup = "Actors - Heavy";
 		primaryGroup = "Weapons - Primary";
 		secondaryGroup = "Weapons - Light";
-		actorGroup = "Actors - Heavy";
 	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		self.TimeLimit = 5 * 60000 + 5000;
+		self.timeLimit = 5 * 60000 + 5000;
 		self.timeDisplay = "five minutes";
-		self.BaseSpawnTime = 5000;
+		self.baseSpawnTime = 5000;
 
 	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
-		self.TimeLimit = 6 * 60000 + 5000;
+		self.timeLimit = 6 * 60000 + 5000;
 		self.timeDisplay = "six minutes";
-		self.BaseSpawnTime = 4500;
+		self.baseSpawnTime = 4500;
 
 		primaryGroup = "Weapons - Light";
 		secondaryGroup = "Weapons - Secondary";
 	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
-		self.TimeLimit = 8 * 60000 + 5000;
+		self.timeLimit = 8 * 60000 + 5000;
 		self.timeDisplay = "eight minutes";
-		self.BaseSpawnTime = 4000;
+		self.baseSpawnTime = 4000;
 
 		primaryGroup = "Weapons - Secondary";
 		secondaryGroup = "Weapons - Secondary";
 	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
-		self.TimeLimit = 10 * 60000 + 5000;
+		self.timeLimit = 10 * 60000 + 5000;
 		self.timeDisplay = "ten minutes";
-		self.BaseSpawnTime = 3500;
+		self.baseSpawnTime = 3500;
 
 		primaryGroup = "Weapons - Secondary";
 		secondaryGroup = "Tools";
 	end
-	-- Destroy all doors for this Activity
+	self.enemySpawnTimeLimit = 500;
+
 	MovableMan:OpenAllDoors(true, -1);
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "ADoor" then
@@ -63,7 +88,17 @@ function OneManArmy:StartActivity()
 			actor:GibThis();
 		end
 	end
-	-- Check if we already have a brain assigned
+
+	self:SetupHumanPlayerBrains(actorGroup, primaryGroup, secondaryGroup);
+end
+
+function OneManArmy:SetupHumanPlayerBrains(actorGroup, primaryGroup, secondaryGroup)
+	-- Default actors if no tech is chosen
+	local defaultActor = ("Soldier Light");
+	local defaultPrimary = ("Ronin/SPAS 12");
+	local defaultSecondary = ("Ronin/.357 Magnum");
+	local defaultTertiary = ("Ronin/Molotov Cocktail");
+
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			if not self:GetPlayerBrain(player) then
@@ -119,6 +154,7 @@ function OneManArmy:StartActivity()
 					MovableMan:AddActor(foundBrain);
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
+					foundBrain:AddToGroup("Brains");
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
@@ -127,33 +163,40 @@ function OneManArmy:StartActivity()
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
-					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end
 	end
-
-	-- Select a tech for the CPU player
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-	self.ESpawnTimer = Timer();
-	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
-	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
-	self.SurvivalTimer = Timer();
-
-	self.StartTimer = Timer();
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_1);
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_2);
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_3);
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_4);
-
-	-- CPU Funds are unlimited
-	self:SetTeamFunds(1000000, self.CPUTeam);
-
-	self.TimeLeft = 500;
 end
 
+function OneManArmy:ResumeLoadedGame()
+	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
+	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
+	self.winTimer.ElapsedSimTimeMS = self:LoadNumber("winTimer.ElapsedSimTimeMS");
+
+	self.timeLimit = self:LoadNumber("timeLimit");
+	self.timeDisplay = self:LoadString("timeDisplay");
+	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
+	self.enemySpawnTimeLimit = self:LoadNumber("enemySpawnTimeLimit");
+
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			if not self:GetPlayerBrain(player) then
+				local team = self:GetTeamOfPlayer(player);
+				local foundBrain = MovableMan:GetUnassignedBrain(team);
+				if foundBrain then
+					--Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
+				end
+			end
+		end
+	end
+end
 
 function OneManArmy:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -174,15 +217,14 @@ function OneManArmy:EndActivity()
 	end
 end
 
-
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
 		ActivityMan:GetActivity():SetTeamFunds(0,0);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages.
-				if self.StartTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) / 1000) .. " seconds left", player, 0, 1000, false);
+				if self.startMessageTimer:IsPastSimMS(3000) then
+					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000) .. " seconds left", player, 0, 1000, false);
 				else
 					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
 				end
@@ -205,7 +247,7 @@ function OneManArmy:UpdateActivity()
 				end
 
 				--Check if the player has won.
-				if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
+				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
@@ -225,7 +267,7 @@ function OneManArmy:UpdateActivity()
 		end
 
 		--Spawn the AI.
-		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 
 			-- Set up the ship to deliver this stuff
 			local ship = RandomACRocket("Any", self.CPUTechName);
@@ -318,8 +360,8 @@ function OneManArmy:UpdateActivity()
 				end
 			end
 
-			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime + math.random(self.BaseSpawnTime) * rte.SpawnIntervalScale);
+			self.enemySpawnTimer:Reset();
+			self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.baseSpawnTime) * rte.SpawnIntervalScale);
 		end
 	end
 end

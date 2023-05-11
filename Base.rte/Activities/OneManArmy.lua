@@ -1,59 +1,82 @@
-function OneManArmy:StartActivity()
+function OneManArmy:StartActivity(isNewGame)
+	SceneMan.Scene:GetArea("LZ Team 1");
+	SceneMan.Scene:GetArea("LZ All");
 
 	self.BuyMenuEnabled = false;
-	--Brain strength multiplier
-	self.multiplier = math.ceil(11 - (self.Difficulty * 0.1));	--Med = 6, Max = 11, Min = 1
 
+	self.startMessageTimer = Timer();
+	self.enemySpawnTimer = Timer();
+	self.winTimer = Timer();
+
+	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+
+	if isNewGame then
+		self:StartNewGame();
+	else
+		self:ResumeLoadedGame();
+	end
+end
+
+function OneManArmy:OnSave()
+	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
+	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
+	self:SaveNumber("winTimer.ElapsedSimTimeMS", self.winTimer.ElapsedSimTimeMS);
+
+	self:SaveNumber("timeLimit", self.timeLimit);
+	self:SaveString("timeDisplay", self.timeDisplay);
+	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
+	self:SaveNumber("enemySpawnTimeLimit", self.enemySpawnTimeLimit);
+end
+
+function OneManArmy:StartNewGame()
+	self:SetTeamFunds(1000000, self.CPUTeam);
+	self:SetTeamFunds(0, Activity.TEAM_1);
+
+	local actorGroup = "Actors - Heavy";
 	local primaryGroup = "Weapons - Heavy";
 	local secondaryGroup = "Weapons - Light";
-	--Tertiary weapon is always a grenade
-	local actorGroup = "Actors - Heavy";
-	--Default actors if no tech is chosen
-	local defaultActor = ("Soldier Heavy");
-	local defaultPrimary = ("Coalition/Assault Rifle");
-	local defaultSecondary = ("Coalition/Auto Pistol");
-	local defaultTertiary = ("Coalition/Frag Grenade");
 
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
-		self.TimeLimit = 3 * 60000 + 5000;
+		self.timeLimit = 3 * 60000 + 5000;
 		self.timeDisplay = "three minutes";
-		self.BaseSpawnTime = 6000;
+		self.baseSpawnTime = 6000;
 
 		primaryGroup = "Weapons - Heavy";
 		secondaryGroup = "Weapons - Explosive";
 	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
-		self.TimeLimit = 4 * 60000 + 5000;
+		self.timeLimit = 4 * 60000 + 5000;
 		self.timeDisplay = "four minutes";
-		self.BaseSpawnTime = 5500;
+		self.baseSpawnTime = 5500;
 
 	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		self.TimeLimit = 5 * 60000 + 5000;
+		self.timeLimit = 5 * 60000 + 5000;
 		self.timeDisplay = "five minutes";
-		self.BaseSpawnTime = 5000;
+		self.baseSpawnTime = 5000;
 
 	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
-		self.TimeLimit = 6 * 60000 + 5000;
+		self.timeLimit = 6 * 60000 + 5000;
 		self.timeDisplay = "six minutes";
-		self.BaseSpawnTime = 4500;
+		self.baseSpawnTime = 4500;
 
 	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
-		self.TimeLimit = 7 * 60000 + 5000;
+		self.timeLimit = 7 * 60000 + 5000;
 		self.timeDisplay = "seven minutes";
-		self.BaseSpawnTime = 4000;
+		self.baseSpawnTime = 4000;
 
+		actorGroup = "Actors - Light";
 		primaryGroup = "Weapons - Primary";
 		secondaryGroup = "Weapons - Secondary";
-		actorGroup = "Actors - Light";
 	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
-		self.TimeLimit = 9 * 60000 + 5000;
+		self.timeLimit = 9 * 60000 + 5000;
 		self.timeDisplay = "nine minutes";
-		self.BaseSpawnTime = 3500;
+		self.baseSpawnTime = 3500;
 
+		actorGroup = "Actors - Light";
 		primaryGroup = "Weapons - Secondary";
 		secondaryGroup = "Weapons - Secondary";
-		actorGroup = "Actors - Light";
 	end
-	--Destroy all doors for this Activity - the enemy is not equipped to deal with them
+	self.enemySpawnTimeLimit = 500;
+
 	MovableMan:OpenAllDoors(true, -1);
 	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "ADoor" then
@@ -61,12 +84,25 @@ function OneManArmy:StartActivity()
 			actor:GibThis();
 		end
 	end
-	--Check if we already have a brain assigned
+
+	self:SetupHumanPlayerBrains(actorGroup, primaryGroup, secondaryGroup);
+end
+
+function OneManArmy:SetupHumanPlayerBrains(actorGroup, primaryGroup, secondaryGroup)
+	--Default actors if no tech is chosen
+	local defaultActor = ("Soldier Heavy");
+	local defaultPrimary = ("Coalition/Assault Rifle");
+	local defaultSecondary = ("Coalition/Auto Pistol");
+	local defaultTertiary = ("Coalition/Frag Grenade");
+
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			if not self:GetPlayerBrain(player) then
 				local team = self:GetTeamOfPlayer(player);
 				local foundBrain = MovableMan:GetUnassignedBrain(team);
+
+				local brainToughnessMultiplier = math.ceil(11 - (self.Difficulty * 0.1));	--Med = 6, Max = 11, Min = 1
+
 				--If we can't find an unassigned brain in the scene to give the player, create one
 				if not foundBrain then
 					local tech = PresetMan:GetModuleID(self:GetTeamTech(team));
@@ -100,18 +136,19 @@ function OneManArmy:StartActivity()
 						for i = 1, #weapons do
 							local item = weapons[i];
 							if item then
-								item.GibWoundLimit = item.GibWoundLimit * self.multiplier;
-								item.JointStrength = item.JointStrength * self.multiplier;
+								item.GibWoundLimit = item.GibWoundLimit * brainToughnessMultiplier;
+								item.JointStrength = item.JointStrength * brainToughnessMultiplier;
 								foundBrain:AddInventoryItem(weapons[i]);
 							end
 						end
-					else	--If no tech selected, use default items
+					else
+						--If no tech selected, use default items
 						local weapons = {defaultPrimary, defaultSecondary};
 						for i = 1, #weapons do
 							local item = CreateHDFirearm(weapons[i]);
 							if item then
-								item.GibWoundLimit = item.GibWoundLimit and item.GibWoundLimit * self.multiplier or item.GibWoundLimit;
-								item.JointStrength = item.JointStrength * self.multiplier;
+								item.GibWoundLimit = item.GibWoundLimit and item.GibWoundLimit * brainToughnessMultiplier or item.GibWoundLimit;
+								item.JointStrength = item.JointStrength * brainToughnessMultiplier;
 								foundBrain:AddInventoryItem(CreateHDFirearm(weapons[i]));
 							end
 						end
@@ -125,17 +162,17 @@ function OneManArmy:StartActivity()
 					for i = 1, #parts do
 						local part = parts[i];
 						if part then
-							part.GibWoundLimit = math.ceil(part.GibWoundLimit * self.multiplier);
-							part.DamageMultiplier = part.DamageMultiplier/self.multiplier;
+							part.GibWoundLimit = math.ceil(part.GibWoundLimit * brainToughnessMultiplier);
+							part.DamageMultiplier = part.DamageMultiplier/brainToughnessMultiplier;
 							if IsAttachable(part) then
-								ToAttachable(part).JointStrength = ToAttachable(part).JointStrength * self.multiplier;
+								ToAttachable(part).JointStrength = ToAttachable(part).JointStrength * brainToughnessMultiplier;
 							else
-								part.GibImpulseLimit = foundBrain.GibImpulseLimit * self.multiplier;
-								part.ImpulseDamageThreshold = foundBrain.GibImpulseLimit * self.multiplier;
+								part.GibImpulseLimit = foundBrain.GibImpulseLimit * brainToughnessMultiplier;
+								part.ImpulseDamageThreshold = foundBrain.GibImpulseLimit * brainToughnessMultiplier;
 							end
 							for att in part.Attachables do
-								att.GibWoundLimit = math.ceil(att.GibWoundLimit * self.multiplier);
-								att.JointStrength = att.JointStrength * self.multiplier;
+								att.GibWoundLimit = math.ceil(att.GibWoundLimit * brainToughnessMultiplier);
+								att.JointStrength = att.JointStrength * brainToughnessMultiplier;
 							end
 						end
 					end
@@ -153,6 +190,7 @@ function OneManArmy:StartActivity()
 					MovableMan:AddActor(foundBrain);
 					--Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
+					foundBrain:AddToGroup("Brains");
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
 					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
@@ -161,33 +199,40 @@ function OneManArmy:StartActivity()
 					--Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
-					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
 					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
 			end
 		end
 	end
-
-	--Select a tech for the CPU player
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-	self.ESpawnTimer = Timer();
-	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
-	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
-	self.SurvivalTimer = Timer();
-
-	self.StartTimer = Timer();
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_1);
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_2);
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_3);
-	ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_4);
-
-	--CPU Funds are "unlimited"
-	self:SetTeamFunds(1000000, self.CPUTeam);
-
-	self.TimeLeft = 500;
 end
 
+function OneManArmy:ResumeLoadedGame()
+	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
+	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
+	self.winTimer.ElapsedSimTimeMS = self:LoadNumber("winTimer.ElapsedSimTimeMS");
+
+	self.timeLimit = self:LoadNumber("timeLimit");
+	self.timeDisplay = self:LoadString("timeDisplay");
+	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
+	self.enemySpawnTimeLimit = self:LoadNumber("enemySpawnTimeLimit");
+
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			if not self:GetPlayerBrain(player) then
+				local team = self:GetTeamOfPlayer(player);
+				local foundBrain = MovableMan:GetUnassignedBrain(team);
+				if foundBrain then
+					--Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
+				end
+			end
+		end
+	end
+end
 
 function OneManArmy:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -208,15 +253,14 @@ function OneManArmy:EndActivity()
 	end
 end
 
-
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
 		ActivityMan:GetActivity():SetTeamFunds(0, 0);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				--Display messages
-				if self.StartTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) * 0.001) .. " seconds left", player, 0, 1000, false);
+				if self.startMessageTimer:IsPastSimMS(3000) then
+					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) * 0.001) .. " seconds left", player, 0, 1000, false);
 				else
 					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
 				end
@@ -236,7 +280,7 @@ function OneManArmy:UpdateActivity()
 				end
 
 				--Check if the player has won
-				if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
+				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
 					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
@@ -256,7 +300,7 @@ function OneManArmy:UpdateActivity()
 		end
 		local enemyMOIDCount = MovableMan:GetTeamMOIDCount(self.CPUTeam);
 		--Spawn the AI
-		if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and enemyMOIDCount < rte.AIMOIDMax then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and enemyMOIDCount < rte.AIMOIDMax then
 			local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
@@ -370,8 +414,8 @@ function OneManArmy:UpdateActivity()
 				end
 			end
 
-			self.ESpawnTimer:Reset();
-			self.TimeLeft = (self.BaseSpawnTime * (1 + enemyMOIDCount * 0.1) + math.random(self.BaseSpawnTime)) * rte.SpawnIntervalScale;
+			self.enemySpawnTimer:Reset();
+			self.enemySpawnTimeLimit = (self.baseSpawnTime * (1 + enemyMOIDCount * 0.1) + math.random(self.baseSpawnTime)) * rte.SpawnIntervalScale;
 		end
 	end
 end
