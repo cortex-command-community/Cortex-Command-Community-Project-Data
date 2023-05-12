@@ -1058,7 +1058,6 @@ movatorActorFunctions.setupActorWaypointData = function(self, actorData)
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
 
-	--TODO probably rename this to previousNode
 	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true, false);
 	if not waypointData.previousNode then
 		self:removeActorFromMovatorTable(actor);
