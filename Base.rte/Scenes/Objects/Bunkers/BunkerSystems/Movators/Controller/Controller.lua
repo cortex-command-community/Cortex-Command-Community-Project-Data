@@ -31,6 +31,8 @@ function Create(self)
 	--INI Configurable Fields--
 	---------------------------
 	self.actorUnstickingDisabled = self:NumberValueExists("ActorUnstickingDisabled") and self:GetNumberValue("ActorUnstickingDisabled") ~= 0 or false;
+	self.slowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled = self:NumberValueExists("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled") and self:GetNumberValue("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled") ~= 0 or false;
+	
 	self.infoUIUseSmallText = self:NumberValueExists("InfoUIUseSmallText") and self:GetNumberValue("InfoUIUseSmallText") ~= 0 or false;
 	self.infoUIBGColour = self:NumberValueExists("InfoUIBGColour") and self:GetNumberValue("InfoUIBGColour") or 127;
 	self.infoUIOutlineWidth = self:NumberValueExists("InfoUIOutlineWidth") and self:GetNumberValue("InfoUIOutlineWidth") or 2;
@@ -1439,7 +1441,7 @@ movatorActorFunctions.updateMovingActor = function(self, actorData, anyCentering
 	local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
 	for direction, movementTable in pairs(directionMovementTable) do
 		if actorDirection == direction then
-			if not anyCenteringWasDone then
+			if not anyCenteringWasDone and  not self.slowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled then
 				local slowdownAxis = (direction == Directions.Up or direction == Directions.Down) and "X" or "Y";
 				actor.Vel[slowdownAxis] = actor.Vel[slowdownAxis] * 0.75;
 			end

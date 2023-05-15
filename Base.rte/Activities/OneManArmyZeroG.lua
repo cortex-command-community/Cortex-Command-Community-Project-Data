@@ -90,6 +90,7 @@ function OneManArmyZeroG:StartNewGame()
 	movatorController.Team = -1;
 	movatorController:SetNumberValue("MovementSpeed", 16);
 	movatorController:SetNumberValue("ActorUnstickingDisabled", 1);
+	movatorController:SetNumberValue("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled", 1);
 	MovableMan:AddActor(movatorController);
 
 	local superNode = CreateMOSRotating("Movator Node 1x1", "Base.rte");
@@ -333,7 +334,7 @@ function OneManArmyZeroG:UpdateActivity()
 					if playerBrain.Pos.Y < -5 then
 						playerBrain.Pos.Y = SceneMan.SceneHeight;
 					elseif playerBrain.Pos.Y > SceneMan.SceneHeight + 5 then
-						playerBrain.Pos.Y = 0
+						playerBrain.Pos.Y = 0;
 					end
 				end
 			end
