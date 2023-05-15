@@ -1,7 +1,7 @@
-if not MovatorData then
-	MovatorData = {};
+if not AutomoverData then
+	AutomoverData = {};
 	for team = Activity.NOTEAM, Activity.TEAM_4 do
-		MovatorData[team] = {
+		AutomoverData[team] = {
 			energyLevel = 0,
 			nodeData = {},
 			nodeDataCount = 0,
@@ -11,17 +11,17 @@ if not MovatorData then
 	end
 end
 
-function Movators_AddNode(node)
-	local teamMovatorData = MovatorData[node.Team];
+function Automovers_AddNode(node)
+	local teamAutomoverData = AutomoverData[node.Team];
 	
-	local movatorDefaultNodeSize = 48;
+	local automoverDefaultNodeSize = 48;
 
-	if teamMovatorData.nodeData[node] == nil then
-		for nodeKey, nodeInfo in pairs(teamMovatorData.nodeData) do
+	if teamAutomoverData.nodeData[node] == nil then
+		for nodeKey, nodeInfo in pairs(teamAutomoverData.nodeData) do
 			if type(nodeKey) ~= "string" then
 				if nodeInfo.zoneBox ~= nil then
-					local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or movatorDefaultNodeSize;
-					local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or movatorDefaultNodeSize;
+					local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or automoverDefaultNodeSize;
+					local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or automoverDefaultNodeSize;
 					local nodeBox = Box(Vector(node.Pos.X - width * 0.5 + 0.5, node.Pos.Y - height * 0.5), Vector(node.Pos.X + width * 0.5, node.Pos.Y + height * 0.5));
 					if nodeInfo.zoneBox:IntersectsBox(nodeBox) then
 						node.ToDelete = true;
@@ -31,7 +31,7 @@ function Movators_AddNode(node)
 			end
 		end
 
-		teamMovatorData.nodeData[node] = {
+		teamAutomoverData.nodeData[node] = {
 			connectedNodeCount = 0,
 			size = Vector(),
 			zoneBox,
@@ -41,22 +41,22 @@ function Movators_AddNode(node)
 		}
 
 		if node.PresetName == "Teleporter Node" then
-			teamMovatorData.teleporterNodes[node] = true;
-			teamMovatorData.teleporterNodesCount = teamMovatorData.teleporterNodesCount + 1;
+			teamAutomoverData.teleporterNodes[node] = true;
+			teamAutomoverData.teleporterNodesCount = teamAutomoverData.teleporterNodesCount + 1;
 		end
-		teamMovatorData.nodeDataCount = teamMovatorData.nodeDataCount + 1;
+		teamAutomoverData.nodeDataCount = teamAutomoverData.nodeDataCount + 1;
 
-		local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or movatorDefaultNodeSize;
-		local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or movatorDefaultNodeSize;
+		local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or automoverDefaultNodeSize;
+		local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or automoverDefaultNodeSize;
 
-		teamMovatorData.nodeData[node].size = Vector(width, height);
-		teamMovatorData.nodeData[node].zoneBox = Box(Vector(node.Pos.X - width * 0.5, node.Pos.Y - height * 0.5), Vector(node.Pos.X + width * 0.5, node.Pos.Y + height * 0.5));
-		teamMovatorData.nodeData[node].zoneInternalBox = Box(Vector(node.Pos.X - width * 0.25, node.Pos.Y - height * 0.25), Vector(node.Pos.X + width * 0.25, node.Pos.Y + height * 0.25));
+		teamAutomoverData.nodeData[node].size = Vector(width, height);
+		teamAutomoverData.nodeData[node].zoneBox = Box(Vector(node.Pos.X - width * 0.5, node.Pos.Y - height * 0.5), Vector(node.Pos.X + width * 0.5, node.Pos.Y + height * 0.5));
+		teamAutomoverData.nodeData[node].zoneInternalBox = Box(Vector(node.Pos.X - width * 0.25, node.Pos.Y - height * 0.25), Vector(node.Pos.X + width * 0.25, node.Pos.Y + height * 0.25));
 
-		local nodesAffectedByThisMovator = Movators_CheckConnections(node);
-		if nodesAffectedByThisMovator ~= nil then
-			for _, affectedNode in pairs(nodesAffectedByThisMovator) do
-				Movators_CheckConnections(affectedNode);
+		local nodesAffectedByThisAutomover = Automovers_CheckConnections(node);
+		if nodesAffectedByThisAutomover ~= nil then
+			for _, affectedNode in pairs(nodesAffectedByThisAutomover) do
+				Automovers_CheckConnections(affectedNode);
 			end
 		end
 
@@ -65,22 +65,22 @@ function Movators_AddNode(node)
 	return false;
 end
 
-function Movators_RemoveNode(node)
-	local teamMovatorData = MovatorData[node.Team];
+function Automovers_RemoveNode(node)
+	local teamAutomoverData = AutomoverData[node.Team];
 
-	local removedNodeTable = teamMovatorData.nodeData[node];
+	local removedNodeTable = teamAutomoverData.nodeData[node];
 	if type(removedNodeTable) ~= "nil" then
-		teamMovatorData.nodeData[node] = nil;
+		teamAutomoverData.nodeData[node] = nil;
 		for direction, nodeData in pairs(removedNodeTable.connectedNodeData) do
-			teamMovatorData.nodeData[nodeData.node] = nil;
+			teamAutomoverData.nodeData[nodeData.node] = nil;
 			nodeData.node:SetNumberValue("shouldReaddNode", 1);
 		end
-		teamMovatorData.nodeDataCount = teamMovatorData.nodeDataCount - 1;
+		teamAutomoverData.nodeDataCount = teamAutomoverData.nodeDataCount - 1;
 	end
 
 	if node.PresetName == "Teleporter Node" then
-		teamMovatorData.teleporterNodes[node] = nil;
-		teamMovatorData.teleporterNodesCount = teamMovatorData.teleporterNodesCount - 1;
+		teamAutomoverData.teleporterNodes[node] = nil;
+		teamAutomoverData.teleporterNodesCount = teamAutomoverData.teleporterNodesCount - 1;
 	end
 end
 
@@ -103,10 +103,10 @@ local function targetNodeIsNotObstructed(startNode, targetNode, direction, nodeZ
 	return true;
 end
 
-function Movators_CheckConnections(node)
-	local teamMovatorData = MovatorData[node.Team];
+function Automovers_CheckConnections(node)
+	local teamAutomoverData = AutomoverData[node.Team];
 
-	local nodeData = teamMovatorData.nodeData[node];
+	local nodeData = teamAutomoverData.nodeData[node];
 	local nodesInDirections = { [Directions.Up] = {}, [Directions.Down] = {}, [Directions.Left] = {}, [Directions.Right] = {} };
 	local affectedNodes = {};
 
@@ -115,8 +115,8 @@ function Movators_CheckConnections(node)
 
 	local checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
 
-	for otherNode, otherNodeData in pairs(teamMovatorData.nodeData) do
-		if type(otherNode) ~= "string" and MovableMan:IsParticle(otherNode) and (not teamMovatorData.teleporterNodes[node] or not teamMovatorData.teleporterNodes[otherNode]) then
+	for otherNode, otherNodeData in pairs(teamAutomoverData.nodeData) do
+		if type(otherNode) ~= "string" and MovableMan:IsParticle(otherNode) and (not teamAutomoverData.teleporterNodes[node] or not teamAutomoverData.teleporterNodes[otherNode]) then
 			local otherNodeIsHorizontalOnly = otherNode.PresetName:find("Horizontal Only");
 			local otherNodeIsVerticalOnly = otherNode.PresetName:find("Vertical Only");
 			local distanceToOtherNode = SceneMan:ShortestDistance(node.Pos, otherNode.Pos, checkWrapping);

@@ -1,8 +1,8 @@
-require("Scenes/Objects/Bunkers/BunkerSystems/Movators/GlobalMovatorFunctions");
+require("Scenes/Objects/Bunkers/BunkerSystems/Automovers/GlobalAutomoverFunctions");
 
-local movatorUtilityFunctions = {};
-local movatorActorFunctions = {};
-local movatorVisualEffectsFunctions = {};local movatorUIFunctions = {};
+local automoverUtilityFunctions = {};
+local automoverActorFunctions = {};
+local automoverVisualEffectsFunctions = {};local automoverUIFunctions = {};
 
 function Create(self)
 	self.movementSpeedMin = 4;
@@ -43,7 +43,7 @@ function Create(self)
 	--Constants--
 	-------------
 	--TODO make this an actual power system.
-	MovatorData[self.Team].energyLevel = 100;
+	AutomoverData[self.Team].energyLevel = 100;
 
 	self.currentActivity = ActivityMan:GetActivity();
 	self.checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
@@ -55,7 +55,7 @@ function Create(self)
 		move = 1,
 		unstickActor = 2,
 		teleporting = 3,
-		leaveMovators = 4,
+		leaveAutomovers = 4,
 	};
 
 	self.oppositeDirections = {
@@ -77,14 +77,14 @@ function Create(self)
 	-----------------
 	--General Setup--
 	-----------------
-	for _, functionTable in ipairs({ movatorUtilityFunctions, movatorVisualEffectsFunctions, movatorActorFunctions, movatorUIFunctions }) do
+	for _, functionTable in ipairs({ automoverUtilityFunctions, automoverVisualEffectsFunctions, automoverActorFunctions, automoverUIFunctions }) do
 		for functionName, functionReference in pairs(functionTable) do
 			self[functionName] = functionReference;
 		end
 	end
 
 	for actor in MovableMan.Actors do
-		if actor.PresetName:find("Movator Controller") and actor.Team == self.Team and actor.UniqueID ~= self.UniqueID then
+		if actor.PresetName:find("Automover Controller") and actor.Team == self.Team and actor.UniqueID ~= self.UniqueID then
 			ActivityMan:GetActivity():SetTeamFunds(ActivityMan:GetActivity():GetTeamFunds(self.Team) + actor:GetGoldValue(0, 0), self.Team);
 			actor.ToDelete = true;
 		end
@@ -92,7 +92,7 @@ function Create(self)
 
 	for _, particleCollection in pairs({ MovableMan.Particles, MovableMan.AddedParticles }) do
 		for node in particleCollection do
-			if node and IsMOSRotating(node) and node.Team == team and node:IsInGroup("Movator Nodes") then
+			if node and IsMOSRotating(node) and node.Team == team and node:IsInGroup("Automover Nodes") then
 				ToMOSRotating(node):SetNumberValue("shouldReaddNode", 1);
 			end
 		end
@@ -112,15 +112,15 @@ function Create(self)
 			maxFrame = 7,
 		};
 		if visualEffectsSize == self.visualEffectsSizes.small then
-			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Movator Chevron Small", "Base.rte");
+			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Automover Chevron Small", "Base.rte");
 			visualEffectsConfigSizeTable.spriteSize = visualEffectsType == "chevronNarrow" and 5.33 or 16;
 			visualEffectsConfigSizeTable.moveTimer:SetSimTimeLimitMS(visualEffectsType == "chevronNarrow" and 5 or 30);
 		elseif visualEffectsSize == self.visualEffectsSizes.medium then
-			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Movator Chevron Medium", "Base.rte");
+			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Automover Chevron Medium", "Base.rte");
 			visualEffectsConfigSizeTable.spriteSize = visualEffectsType == "chevronNarrow" and 10.67 or 32;
 			visualEffectsConfigSizeTable.moveTimer:SetSimTimeLimitMS(visualEffectsType == "chevronNarrow" and 30 or 60);
 		elseif visualEffectsSize == self.visualEffectsSizes.large then
-			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Movator Chevron Large", "Base.rte");
+			visualEffectsConfigSizeTable.spriteObject = CreateMOSParticle("Automover Chevron Large", "Base.rte");
 			visualEffectsConfigSizeTable.spriteSize = visualEffectsType == "chevronNarrow" and 16 or 48;
 			visualEffectsConfigSizeTable.moveTimer:SetSimTimeLimitMS(visualEffectsType == "chevronNarrow" and 55 or 80);
 		end
@@ -143,7 +143,7 @@ function Create(self)
 	self.allBoxesAdded = false;
 	self.allPathsAdded = false;
 
-	self.combinedMovatorArea = Area();
+	self.combinedAutomoverArea = Area();
 	self.pathTable = {};
 
 	self.affectedActors = {};
@@ -154,7 +154,7 @@ function Create(self)
 
 	self.heldInputTimer = Timer(50);
 
-	self.leaveMovatorNetworkPieSlice = CreatePieSlice("Leave Movator Network", "Base.rte");
+	self.leaveAutomoverNetworkPieSlice = CreatePieSlice("Leave Automover Network", "Base.rte");
 	self.chooseTeleporterPieSlice = CreatePieSlice("Choose Teleporter", "Base.rte");
 end
 
@@ -185,21 +185,21 @@ function Update(self)
 			if self.actorMovementUpdateTimer:IsPastSimTimeLimit() then
 				for actorUniqueID, actorData in pairs(self.affectedActors) do
 					local actor = actorData.actor;
-					if not MovableMan:IsActor(actor) or not self.combinedMovatorArea:IsInside(actor.Pos) then
-						self:removeActorFromMovatorTable(actor, actorUniqueID);
+					if not MovableMan:IsActor(actor) or not self.combinedAutomoverArea:IsInside(actor.Pos) then
+						self:removeActorFromAutomoverTable(actor, actorUniqueID);
 					else
-						if actor:NumberValueExists("Movator_LeaveMovatorNetwork") then
-							self:setActorMovementModeToLeaveMovators(actorData);
-							actor:RemoveNumberValue("Movator_LeaveMovatorNetwork");
+						if actor:NumberValueExists("Automover_LeaveAutomoverNetwork") then
+							self:setActorMovementModeToLeaveAutomovers(actorData);
+							actor:RemoveNumberValue("Automover_LeaveAutomoverNetwork");
 						end
-						if actor:IsPlayerControlled() and actor:NumberValueExists("Movator_ChooseTeleporter") then
+						if actor:IsPlayerControlled() and actor:NumberValueExists("Automover_ChooseTeleporter") then
 							self:setupManualTeleporterData(actorData);
-							actor:RemoveNumberValue("Movator_ChooseTeleporter");
+							actor:RemoveNumberValue("Automover_ChooseTeleporter");
 						end
 
 						if actor:IsPlayerControlled() then
 							local closestNode = self:findClosestNode(actor.Pos, nil, false, false, false, nil);
-							if closestNode ~= nil and MovatorData[self.Team].teleporterNodes[closestNode] ~= nil and MovatorData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
+							if closestNode ~= nil and AutomoverData[self.Team].teleporterNodes[closestNode] ~= nil and AutomoverData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
 								actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice:Clone(), self);
 							else
 								actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
@@ -215,11 +215,11 @@ function Update(self)
 							if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
 								self:updateDirectionsFromActorControllerInput(actorData);
 							end
-						elseif actorData.movementMode ~= self.movementModes.leaveMovators then
+						elseif actorData.movementMode ~= self.movementModes.leaveAutomovers then
 							self:updateDirectionsFromWaypoints(actorData);
 						end
 
-						if actorData.movementMode ~= self.movementModes.leaveMovators then
+						if actorData.movementMode ~= self.movementModes.leaveAutomovers then
 							local actorController = actor:GetController();
 							actorController:SetState(Controller.MOVE_LEFT, false);
 							actorController:SetState(Controller.MOVE_RIGHT, false);
@@ -239,9 +239,9 @@ function Update(self)
 								actor.RotAngle = 0;
 							end
 
-							local actorIsSlowEnoughToUseMovators = self:slowDownFastActorToMovementSpeed(actorData);
+							local actorIsSlowEnoughToUseAutomovers = self:slowDownFastActorToMovementSpeed(actorData);
 
-							if actorIsSlowEnoughToUseMovators then
+							if actorIsSlowEnoughToUseAutomovers then
 								if not self.actorUnstickingDisabled then
 									if actorData.direction == Directions.None or actorData.movementMode ~= self.movementModes.move or actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed - 1) then
 										actorData.unstickTimer:Reset();
@@ -280,18 +280,18 @@ end
 
 function Destroy(self)
 	for actor in MovableMan.Actors do
-		if actor.PresetName:find("Movator Controller") and actor.Team == self.Team and actor.UniqueID ~= self.UniqueID then
+		if actor.PresetName:find("Automover Controller") and actor.Team == self.Team and actor.UniqueID ~= self.UniqueID then
 			return;
 		end
 	end
-	MovatorData[self.Team].energyLevel = 0;
-	MovatorData[self.Team].nodeData = {};
-	MovatorData[self.Team].nodeDataCount = 0;
-	MovatorData[self.Team].teleporterNodes = {};
-	MovatorData[self.Team].teleporterNodesCount = 0;
+	AutomoverData[self.Team].energyLevel = 0;
+	AutomoverData[self.Team].nodeData = {};
+	AutomoverData[self.Team].nodeDataCount = 0;
+	AutomoverData[self.Team].teleporterNodes = {};
+	AutomoverData[self.Team].teleporterNodesCount = 0;
 end
 
-movatorUtilityFunctions.handlePieButtons = function(self)
+automoverUtilityFunctions.handlePieButtons = function(self)
 	self.displayingInfoUI = self:NumberValueExists("DisplayInfoUI");
 
 	if self:NumberValueExists("SwapAcceptsAllTeams") then
@@ -346,7 +346,7 @@ movatorUtilityFunctions.handlePieButtons = function(self)
 	end
 end
 
-movatorUtilityFunctions.fuzzyPositionMatch = function(self, pos1, pos2, ignoreXMatching, ignoreYMatching, fuzziness, otherDistanceMustBeNegative)
+automoverUtilityFunctions.fuzzyPositionMatch = function(self, pos1, pos2, ignoreXMatching, ignoreYMatching, fuzziness, otherDistanceMustBeNegative)
 	local distance = SceneMan:ShortestDistance(pos1, pos2, self.checkWrapping);
 	local valuesMatch = {X = ignoreXMatching, Y = ignoreYMatching};
 	for axis, ignoreMatching in pairs(valuesMatch) do
@@ -368,9 +368,9 @@ movatorUtilityFunctions.fuzzyPositionMatch = function(self, pos1, pos2, ignoreXM
 	return valuesMatch.X and valuesMatch.Y;
 end
 
-movatorUtilityFunctions.updateActivityEditingMode = function(self)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
-	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+automoverUtilityFunctions.updateActivityEditingMode = function(self)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
 	local relevantPlayers = {};
 	for player = 0, Activity.PLAYER_4 do
@@ -381,7 +381,7 @@ movatorUtilityFunctions.updateActivityEditingMode = function(self)
 
 	for _, player in ipairs(relevantPlayers) do
 		local selectedEditorObject = ToGameActivity(self.currentActivity):GetEditorGUI(player):GetCurrentObject();
-		if selectedEditorObject ~= nil and (selectedEditorObject.PresetName:find("Movator Zone") or selectedEditorObject.PresetName:find("Teleporter Zone")) then
+		if selectedEditorObject ~= nil and (selectedEditorObject.PresetName:find("Automover Zone") or selectedEditorObject.PresetName:find("Teleporter Zone")) then
 			local selectedEditorObjectPos = selectedEditorObject.Pos;
 
 			local directionMatches = {};
@@ -432,7 +432,7 @@ movatorUtilityFunctions.updateActivityEditingMode = function(self)
 	end
 end
 
-movatorUtilityFunctions.checkForObstructions = function(self)
+automoverUtilityFunctions.checkForObstructions = function(self)
 	local coroutineIsDead, obstructionsFound = coroutine.resume(self.obstructionCheckCoroutine, self);
 	if not coroutineIsDead and not obstructionsFound then
 		self.obstructionsFound = self.obstructionsFound or obstructionsFound;
@@ -449,8 +449,8 @@ movatorUtilityFunctions.checkForObstructions = function(self)
 	end
 end
 
-movatorUtilityFunctions.checkAllObstructions = function(self)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
+automoverUtilityFunctions.checkAllObstructions = function(self)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local nodeConnectionsHaveChanged = false;
 	local checkedNodeCount = 0;
@@ -467,13 +467,13 @@ movatorUtilityFunctions.checkAllObstructions = function(self)
 		nodeData.connectedNodeCount = 0;
 		nodeData.connectedNodeData = {};
 
-		local nodesAffectedByThisMovator = Movators_CheckConnections(node);
-		if nodesAffectedByThisMovator then
-			for direction, affectedNode in pairs(nodesAffectedByThisMovator) do
+		local nodesAffectedByThisAutomover = Automovers_CheckConnections(node);
+		if nodesAffectedByThisAutomover then
+			for direction, affectedNode in pairs(nodesAffectedByThisAutomover) do
 				local affectedNodeTable = teamNodeTable[affectedNode];
 				affectedNodeTable.connectedNodeCount = affectedNodeTable.connectedNodeCount - 1;
 				affectedNodeTable.connectedNodeData[oppositeDirectionTable[direction]] = nil;
-				Movators_CheckConnections(affectedNode);
+				Automovers_CheckConnections(affectedNode);
 			end
 		end
 
@@ -489,7 +489,7 @@ movatorUtilityFunctions.checkAllObstructions = function(self)
 	return nodeConnectionsHaveChanged;
 end
 
-movatorUtilityFunctions.addAllBoxesAndPaths = function(self)
+automoverUtilityFunctions.addAllBoxesAndPaths = function(self)
 	if not self.allBoxesAdded and coroutine.status(self.addAllBoxesCoroutine) == "dead" then
 		self.addAllBoxesCoroutine = coroutine.create(self.addAllBoxes);
 	end
@@ -504,15 +504,15 @@ movatorUtilityFunctions.addAllBoxesAndPaths = function(self)
 	self.allPathsAdded = self.allPathsAdded or coroutine.status(self.addAllPathsCoroutine) == "dead";
 end
 
-movatorUtilityFunctions.addAllBoxes = function(self)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
+automoverUtilityFunctions.addAllBoxes = function(self)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local addedNodeCount = 0;
 	for node, nodeData in pairs(teamNodeTable) do
 		if nodeData.zoneBox ~= nil then
-			self.combinedMovatorArea:AddBox(nodeData.zoneBox);
+			self.combinedAutomoverArea:AddBox(nodeData.zoneBox);
 		else
-			print("Movator Error: Movator at position " .. tostring(node.Pos) .. " had no ZoneBox.");
+			print("Automover Error: Automover at position " .. tostring(node.Pos) .. " had no ZoneBox.");
 		end
 
 		for _, direction in pairs({Directions.Up, Directions.Left}) do
@@ -536,7 +536,7 @@ movatorUtilityFunctions.addAllBoxes = function(self)
 				--TODO Area::IsInside wraps things when you check it, so maybe can just store the box, if that's all we're using this for
 				for wrappedConnectingBox in SceneMan:WrapBox(Box(connectedNode.Pos + connectingBoxTopLeftCornerOffset, node.Pos + connectingBoxBottomRightCornerOffset)) do
 					nodeData.connectingAreas[direction]:AddBox(wrappedConnectingBox);
-					self.combinedMovatorArea:AddBox(wrappedConnectingBox);
+					self.combinedAutomoverArea:AddBox(wrappedConnectingBox);
 				end
 			end
 		end
@@ -555,9 +555,9 @@ movatorUtilityFunctions.addAllBoxes = function(self)
 	return true;
 end
 
-movatorUtilityFunctions.addAllPaths = function(self)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
-	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+automoverUtilityFunctions.addAllPaths = function(self)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
 	local possibleConnectionDirections = {Directions.Up, Directions.Down, Directions.Left, Directions.Right};
 
@@ -628,9 +628,9 @@ movatorUtilityFunctions.addAllPaths = function(self)
 	return true;
 end
 
-movatorUtilityFunctions.findClosestNode = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkForLineOfSight, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas, checkForShortestPathfinderPath, pathfinderTeam)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
-	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkForLineOfSight, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas, checkForShortestPathfinderPath, pathfinderTeam)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 	
 	if pathfinderTeam == nil then
 		pathfinderTeam = self.Team;
@@ -683,14 +683,14 @@ movatorUtilityFunctions.findClosestNode = function(self, positionToFindClosestNo
 	return closestNode;
 end
 
-movatorUtilityFunctions.changeScaleOfMOSRotatingAndAttachables = function(self, mosRotatingToChangeScaleOf, scale)
+automoverUtilityFunctions.changeScaleOfMOSRotatingAndAttachables = function(self, mosRotatingToChangeScaleOf, scale)
 	mosRotatingToChangeScaleOf.Scale = scale;
 	for attachable in mosRotatingToChangeScaleOf.Attachables do
 		self:changeScaleOfMOSRotatingAndAttachables(attachable, scale);
 	end
 end
 
-movatorVisualEffectsFunctions.updateVisualEffects = function(self)
+automoverVisualEffectsFunctions.updateVisualEffects = function(self)
 	if self.visualEffectsSelectedType == "" then
 		return;
 	end
@@ -698,7 +698,7 @@ movatorVisualEffectsFunctions.updateVisualEffects = function(self)
 	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
 
 	if selectedVisualEffects.moveTimer:IsPastSimTimeLimit() then
-		for node, nodeData in pairs(MovatorData[self.Team].nodeData) do
+		for node, nodeData in pairs(AutomoverData[self.Team].nodeData) do
 			for _, direction in ipairs({Directions.Up, Directions.Left}) do
 				self:setupNodeVisualEffectsForDirectionIfAppropriate(node, nodeData, direction);
 			end
@@ -710,7 +710,7 @@ movatorVisualEffectsFunctions.updateVisualEffects = function(self)
 	self:drawVisualEffects();
 end
 
-movatorVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = function(self, node, nodeData, direction)
+automoverVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = function(self, node, nodeData, direction)
 	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
 
 	local nodeConnectionDataInDirection = nodeData.connectedNodeData[direction];
@@ -723,7 +723,7 @@ movatorVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = 
 	end
 
 	local relevantAxis = direction == Directions.Up and "Y" or "X";
-	local nodeInDirectionData = MovatorData[self.Team].nodeData[nodeConnectionDataInDirection.node];
+	local nodeInDirectionData = AutomoverData[self.Team].nodeData[nodeConnectionDataInDirection.node];
 	local minDistanceToShowEffects = (nodeData.size[relevantAxis] * 0.5) + (nodeInDirectionData.size[relevantAxis] * 0.5) + (selectedVisualEffects.spriteSize * self.visualEffectsMinimumNumberOfSpacesNeededForDrawingObjectEffects);
 	if math.abs(nodeConnectionDataInDirection.distance[relevantAxis]) < minDistanceToShowEffects then
 		return;
@@ -756,7 +756,7 @@ movatorVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = 
 	end
 end
 
-movatorVisualEffectsFunctions.updateVisualEffectsFrames = function(self)
+automoverVisualEffectsFunctions.updateVisualEffectsFrames = function(self)
 	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
 
 	for node, visualEffectsData in pairs(self.visualEffectsData) do
@@ -784,7 +784,7 @@ movatorVisualEffectsFunctions.updateVisualEffectsFrames = function(self)
 	end
 end
 
-movatorVisualEffectsFunctions.drawVisualEffects = function(self)
+automoverVisualEffectsFunctions.drawVisualEffects = function(self)
 	local selectedVisualEffects = self.visualEffectsConfig[self.visualEffectsSelectedType][self.visualEffectsSelectedSize];
 
 	for node, visualEffectsData in pairs(self.visualEffectsData) do
@@ -799,8 +799,8 @@ movatorVisualEffectsFunctions.drawVisualEffects = function(self)
 end
 
 
-movatorActorFunctions.checkForNewActors = function(self)
-	for box in self.combinedMovatorArea.Boxes do
+automoverActorFunctions.checkForNewActors = function(self)
+	for box in self.combinedAutomoverArea.Boxes do
 		for movableObject in MovableMan:GetMOsInBox(box, -1, true) do
 			if IsActor(movableObject) and self.affectedActors[movableObject.UniqueID] == nil and movableObject.PinStrength == 0 then
 				local actor = ToActor(movableObject);
@@ -809,7 +809,7 @@ movatorActorFunctions.checkForNewActors = function(self)
 					local massAccepted = movableObject.Mass < self.massLimit;
 					local typeAccepted = self.acceptsCrafts or (not IsACRocket(movableObject) and not IsACDropShip(movableObject));
 					if teamAccepted and massAccepted and typeAccepted then
-						self:addActorToMovatorTable(actor);
+						self:addActorToAutomoverTable(actor);
 					end
 				end
 			end
@@ -817,7 +817,7 @@ movatorActorFunctions.checkForNewActors = function(self)
 	end
 end
 
-movatorActorFunctions.addActorToMovatorTable = function(self, actor)
+automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 	self.affectedActors[actor.UniqueID] = {
 		actor = actor,
 		movementMode = self.movementModes.freeze,
@@ -827,19 +827,19 @@ movatorActorFunctions.addActorToMovatorTable = function(self, actor)
 	};
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
-	actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveMovatorNetworkPieSlice:Clone(), self);
+	actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice:Clone(), self);
 	if IsAHuman(actor) then
 		ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = true;
 	end
 end
 
-movatorActorFunctions.removeActorFromMovatorTable = function(self, actor, optionalActorUniqueID)
+automoverActorFunctions.removeActorFromAutomoverTable = function(self, actor, optionalActorUniqueID)
 	if actor.UniqueID ~= 0 and optionalActorUniqueID == nil then
 		optionalActorUniqueID = actor.UniqueID;
 	end
 
 	if MovableMan:IsActor(actor) then
-		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveMovatorNetworkPieSlice.PresetName);
+		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveAutomoverNetworkPieSlice.PresetName);
 		actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 
 		if IsAHuman(actor) then
@@ -855,10 +855,10 @@ movatorActorFunctions.removeActorFromMovatorTable = function(self, actor, option
 	self.affectedActorsCount = self.affectedActorsCount - 1;
 end
 
-movatorActorFunctions.setActorMovementModeToLeaveMovators = function(self, actorData)
+automoverActorFunctions.setActorMovementModeToLeaveAutomovers = function(self, actorData)
 	local actor = actorData.actor;
 
-	actor.PieMenu:RemovePieSlicesByPresetName(self.leaveMovatorNetworkPieSlice.PresetName);
+	actor.PieMenu:RemovePieSlicesByPresetName(self.leaveAutomoverNetworkPieSlice.PresetName);
 	actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 	self:changeScaleOfMOSRotatingAndAttachables(actor, 1);
 	if IsAHuman(actor) then
@@ -866,10 +866,10 @@ movatorActorFunctions.setActorMovementModeToLeaveMovators = function(self, actor
 	end
 	self:convertWaypointDataToActorWaypoints(actorData);
 
-	actorData.movementMode = self.movementModes.leaveMovators;
+	actorData.movementMode = self.movementModes.leaveAutomovers;
 end
 
-movatorActorFunctions.convertActorWaypointsToWaypointData = function(self, actorData)
+automoverActorFunctions.convertActorWaypointsToWaypointData = function(self, actorData)
 	local actor = actorData.actor;
 	actorData.waypointData = {};
 	local waypointData = actorData.waypointData;
@@ -890,7 +890,7 @@ movatorActorFunctions.convertActorWaypointsToWaypointData = function(self, actor
 	actor:ClearAIWaypoints();
 end
 
-movatorActorFunctions.convertWaypointDataToActorWaypoints = function(self, actorData)
+automoverActorFunctions.convertWaypointDataToActorWaypoints = function(self, actorData)
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
 
@@ -909,8 +909,8 @@ movatorActorFunctions.convertWaypointDataToActorWaypoints = function(self, actor
 	end
 end
 
-movatorActorFunctions.setupManualTeleporterData = function(self, actorData)
-	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+automoverActorFunctions.setupManualTeleporterData = function(self, actorData)
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
 	local actor = actorData.actor;
 
@@ -950,7 +950,7 @@ movatorActorFunctions.setupManualTeleporterData = function(self, actorData)
 	self.heldInputTimer:Reset(); -- Note: Because manual teleporting is done with Fire and Pie Menu, we need to reset this timer when we set things up, so we don't instantly trigger teleporting or canceling.
 end
 
-movatorActorFunctions.chooseTeleporterForPlayerControlledActor = function(self, actorData)
+automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self, actorData)
 	local actor = actorData.actor;
 	local actorController = actor:GetController();
 	local manualTeleporterData = actorData.manualTeleporterData;
@@ -999,7 +999,7 @@ movatorActorFunctions.chooseTeleporterForPlayerControlledActor = function(self, 
 	return;
 end
 
-movatorActorFunctions.updateDirectionsFromActorControllerInput = function(self, actorData)
+automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self, actorData)
 	local actor = actorData.actor;
 	local actorController = actor:GetController();
 
@@ -1017,18 +1017,18 @@ movatorActorFunctions.updateDirectionsFromActorControllerInput = function(self, 
 		end
 	end
 	if actorData.movementMode ~= self.movementModes.unstickActor then
-		if actorData.direction == Directions.None and actorData.movementMode ~= self.movementModes.leaveMovators then
+		if actorData.direction == Directions.None and actorData.movementMode ~= self.movementModes.leaveAutomovers then
 			actorData.movementMode = self.movementModes.freeze;
 		elseif actorData.direction ~= Directions.None then
-			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveMovatorNetworkPieSlice:Clone(), self);
+			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice:Clone(), self);
 			actorData.movementMode = self.movementModes.move;
 			self:convertWaypointDataToActorWaypoints(actorData);
 		end
 	end
 end
 
-movatorActorFunctions.updateDirectionsFromWaypoints = function(self, actorData)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
+automoverActorFunctions.updateDirectionsFromWaypoints = function(self, actorData)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local actor = actorData.actor;
 
@@ -1058,39 +1058,39 @@ movatorActorFunctions.updateDirectionsFromWaypoints = function(self, actorData)
 	end
 end
 
-movatorActorFunctions.setupActorWaypointData = function(self, actorData)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
-	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+automoverActorFunctions.setupActorWaypointData = function(self, actorData)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
 
 	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true, false, nil);
 	if not waypointData.previousNode then
-		self:removeActorFromMovatorTable(actor);
+		self:removeActorFromAutomoverTable(actor);
 		return;
 	end
 	local targetPosition = waypointData.movableObjectTarget ~= nil and waypointData.movableObjectTarget.Pos or waypointData.sceneTargets[1];
 	waypointData.targetPosition = Vector(targetPosition.X, targetPosition.Y);
-	waypointData.targetIsInsideMovatorArea = self.combinedMovatorArea:IsInside(waypointData.targetPosition);
+	waypointData.targetIsInsideAutomoverArea = self.combinedAutomoverArea:IsInside(waypointData.targetPosition);
 	waypointData.targetIsBetweenPreviousAndNextNode = false;
-	waypointData.actorReachedTargetInsideMovatorArea = false;
-	waypointData.actorReachedEndNodeForTargetOutsideMovatorArea = false;
+	waypointData.actorReachedTargetInsideAutomoverArea = false;
+	waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea = false;
 	waypointData.teleporterVisualsTimer = Timer(1000);
 	waypointData.delayTimer = Timer(50);
 
-	waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, waypointData.targetIsInsideMovatorArea, true, actor.Team);
+	waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, waypointData.targetIsInsideAutomoverArea, true, actor.Team);
 	if not waypointData.endNode then
 		waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false, true, actor.Team);
 		if not waypointData.endNode then
 			waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, false, false, nil);
 		end
 
-		if waypointData.targetIsInsideMovatorArea then
+		if waypointData.targetIsInsideAutomoverArea then
 			local closestPotentiallyNonConnectedNode = self:findClosestNode(waypointData.targetPosition, nil, false, true, true, actor.Team);
 			local nonConnectedNodeThatEncompassesTargetExists = closestPotentiallyNonConnectedNode ~= nil and self.pathTable[waypointData.previousNode][closestPotentiallyNonConnectedNode] == nil;
 			if nonConnectedNodeThatEncompassesTargetExists then
-				waypointData.targetIsInsideMovatorArea = false;
+				waypointData.targetIsInsideAutomoverArea = false;
 			end
 		end
 	end
@@ -1111,19 +1111,19 @@ movatorActorFunctions.setupActorWaypointData = function(self, actorData)
 		self:makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData(actorData);
 	end
 
-	if waypointData.nextNode.UniqueID == waypointData.endNode.UniqueID and waypointData.targetIsInsideMovatorArea then
+	if waypointData.nextNode.UniqueID == waypointData.endNode.UniqueID and waypointData.targetIsInsideAutomoverArea then
 		local areaToCheckForTargetPos = teamNodeTable[waypointData.previousNode].connectingAreas[actorData.direction];
 		waypointData.targetIsBetweenPreviousAndNextNode = areaToCheckForTargetPos ~= nil and areaToCheckForTargetPos:IsInside(waypointData.targetPosition);
 	end
 end
 
-movatorActorFunctions.accountForSameStartingAndEndingNodeWhenSettingUpActorWaypointData = function(self, actorData)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
+automoverActorFunctions.accountForSameStartingAndEndingNodeWhenSettingUpActorWaypointData = function(self, actorData)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
 
-	if waypointData.targetIsInsideMovatorArea then
+	if waypointData.targetIsInsideAutomoverArea then
 		local zoneBox = teamNodeTable[waypointData.previousNode].zoneBox;
 		local actorAndTargetAreInSameArea = zoneBox:IsWithinBox(actor.Pos) or zoneBox:IsWithinBox(waypointData.targetPosition);
 		local directionOfConnectingAreaActorIsIn = Directions.None;
@@ -1160,7 +1160,7 @@ movatorActorFunctions.accountForSameStartingAndEndingNodeWhenSettingUpActorWaypo
 	end
 end
 
-movatorActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData = function(self, actorData)
+automoverActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActorWaypointData = function(self, actorData)
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
 
@@ -1186,8 +1186,8 @@ movatorActorFunctions.makeActorMoveToStartingNodeIfAppropriateWhenSettingUpActor
 	return false;
 end
 
-movatorActorFunctions.handleTeleportingActorToAppropriateTeleporterForWaypoint = function(self, actorData)
-	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+automoverActorFunctions.handleTeleportingActorToAppropriateTeleporterForWaypoint = function(self, actorData)
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
@@ -1222,9 +1222,9 @@ movatorActorFunctions.handleTeleportingActorToAppropriateTeleporterForWaypoint =
 	end
 end
 
-movatorActorFunctions.handleActorInNextNodeZoneInternalBox = function(self, actorData)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
-	local teamTeleporterTable = MovatorData[self.Team].teleporterNodes;
+automoverActorFunctions.handleActorInNextNodeZoneInternalBox = function(self, actorData)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
+	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
@@ -1252,14 +1252,14 @@ movatorActorFunctions.handleActorInNextNodeZoneInternalBox = function(self, acto
 		waypointData.targetPosition = Vector(waypointData.movableObjectTarget.Pos.X, waypointData.movableObjectTarget.Pos.Y);
 	end
 
-	if waypointData.nextNode.UniqueID == waypointData.endNode.UniqueID and waypointData.targetIsInsideMovatorArea then
+	if waypointData.nextNode.UniqueID == waypointData.endNode.UniqueID and waypointData.targetIsInsideAutomoverArea then
 		local areaToCheckForTargetPos = teamNodeTable[waypointData.previousNode].connectingAreas[actorData.direction];
 		waypointData.targetIsBetweenPreviousAndNextNode = areaToCheckForTargetPos ~= nil and areaToCheckForTargetPos:IsInside(waypointData.targetPosition);
 	end
 end
 
-movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actorData)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
+automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actorData)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local actor = actorData.actor;
 	local waypointData = actorData.waypointData;
@@ -1276,16 +1276,16 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 		return direction;
 	end
 
-	if waypointData.targetIsInsideMovatorArea then
-		if not waypointData.actorReachedTargetInsideMovatorArea then
+	if waypointData.targetIsInsideAutomoverArea then
+		if not waypointData.actorReachedTargetInsideAutomoverArea then
 			local distanceFromActorToTargetPosition = SceneMan:ShortestDistance(waypointData.targetPosition, actor.Pos, self.checkWrapping);
 			local thresholdForTreatingTargetAsReached = waypointData.movableObjectTarget == nil and self.sceneWaypointThresholdForTreatingTargetAsReached or self.movableObjectWaypointThresholdForTreatingTargetAsReached;
 			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToTargetPosition, thresholdForTreatingTargetAsReached);
 			if actorData.direction == Directions.None then
-				waypointData.actorReachedTargetInsideMovatorArea = true;
+				waypointData.actorReachedTargetInsideAutomoverArea = true;
 				actorData.movementMode = self.movementModes.freeze;
 			end
-		elseif waypointData.actorReachedTargetInsideMovatorArea then
+		elseif waypointData.actorReachedTargetInsideAutomoverArea then
 			actorData.movementMode = self.movementModes.freeze;
 			if waypointData.movableObjectTarget ~= nil then
 				if SceneMan:ShortestDistance(actor.Pos, waypointData.movableObjectTarget.Pos, self.checkWrapping):MagnitudeIsGreaterThan(self.movableObjectWaypointThresholdForTreatingTargetAsReached * 2) then
@@ -1302,9 +1302,9 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 		end
 	else
 		if teamNodeTable[waypointData.endNode].zoneBox:IsWithinBox(actor.Pos) then
-			waypointData.actorReachedEndNodeForTargetOutsideMovatorArea = true;
+			waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea = true;
 		end
-		if waypointData.actorReachedEndNodeForTargetOutsideMovatorArea and waypointData.delayTimer:IsPastSimTimeLimit() then
+		if waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea and waypointData.delayTimer:IsPastSimTimeLimit() then
 			local scenePathSize = SceneMan.Scene:CalculatePath(actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team);
 			local secondScenePathEntryPosition;
 			local scenePathEntryIndex = 0;
@@ -1330,7 +1330,7 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 	end
 end
 
-movatorActorFunctions.slowDownFastActorToMovementSpeed = function(self, actorData)
+automoverActorFunctions.slowDownFastActorToMovementSpeed = function(self, actorData)
 	local actor = actorData.actor;
 
 	if actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed * 1.1) then
@@ -1349,8 +1349,8 @@ movatorActorFunctions.slowDownFastActorToMovementSpeed = function(self, actorDat
 	return true;
 end
 
-movatorActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = function(self, actorData, forceCentring)
-	local teamNodeTable = MovatorData[self.Team].nodeData;
+automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = function(self, actorData, forceCentring)
+	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
@@ -1359,7 +1359,7 @@ movatorActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = f
 	if not closestNode then
 		actor:FlashWhite(100);
 		actor:MoveOutOfTerrain(0);
-		self:setActorMovementModeToLeaveMovators(actorData);
+		self:setActorMovementModeToLeaveAutomovers(actorData);
 		return false;
 	end
 
@@ -1409,7 +1409,7 @@ movatorActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = f
 	return false;
 end
 
-movatorActorFunctions.updateFrozenActor = function(self, actorData)
+automoverActorFunctions.updateFrozenActor = function(self, actorData)
 	local actor = actorData.actor;
 
 	local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
@@ -1427,7 +1427,7 @@ movatorActorFunctions.updateFrozenActor = function(self, actorData)
 	end
 end
 
-movatorActorFunctions.updateMovingActor = function(self, actorData, anyCenteringWasDone)
+automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteringWasDone)
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
@@ -1470,7 +1470,7 @@ movatorActorFunctions.updateMovingActor = function(self, actorData, anyCentering
 	end
 end
 
-movatorUIFunctions.updateInfoUI = function(self)
+automoverUIFunctions.updateInfoUI = function(self)
 	local desiredPieMenuFullInnerRadius = 128;
 
 	local formattedVisualEffectsNameTable = {
@@ -1478,8 +1478,8 @@ movatorUIFunctions.updateInfoUI = function(self)
 		sizes = { [self.visualEffectsSizes.small] = "Small", [self.visualEffectsSizes.medium] = "Medium", [self.visualEffectsSizes.large] = "Large" },
 	};
 	local textDataTable = {
-		"Controlled Movators: " .. tostring(MovatorData[self.Team].nodeDataCount - MovatorData[self.Team].teleporterNodesCount),
-		"Controlled Teleporters: " .. tostring(MovatorData[self.Team].teleporterNodesCount),
+		"Controlled Automovers: " .. tostring(AutomoverData[self.Team].nodeDataCount - AutomoverData[self.Team].teleporterNodesCount),
+		"Controlled Teleporters: " .. tostring(AutomoverData[self.Team].teleporterNodesCount),
 		"Number of Affected Actors: " .. tostring(self.affectedActorsCount),
 		"All Teams Accepted: " .. (self.acceptsAllTeams and "True" or "False"),
 		"Crafts Accepted: " .. (self.acceptsCrafts and "True" or "False"),
@@ -1514,7 +1514,7 @@ movatorUIFunctions.updateInfoUI = function(self)
 	return desiredPieMenuFullInnerRadius;
 end
 
-movatorUIFunctions.drawTextBox = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
+automoverUIFunctions.drawTextBox = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
 	config = self:setupTextBoxConfigIfNeeded(config, maxSizeBoxOrCenterPoint);
 	local centerPoint, maxSize = self:setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary(textDataTable, maxSizeBoxOrCenterPoint, config);
 	local topLeft = Vector(centerPoint.X - maxSize.X * 0.5, centerPoint.Y - maxSize.Y * 0.5);
@@ -1537,7 +1537,7 @@ movatorUIFunctions.drawTextBox = function(self, textDataTable, maxSizeBoxOrCente
 	end
 end
 
-movatorUIFunctions.setupTextBoxConfigIfNeeded = function(self, config, maxSizeBoxOrCenterPoint)
+automoverUIFunctions.setupTextBoxConfigIfNeeded = function(self, config, maxSizeBoxOrCenterPoint)
 	if type(config) == "nil" then
 		config = {};
 	end
@@ -1568,7 +1568,7 @@ movatorUIFunctions.setupTextBoxConfigIfNeeded = function(self, config, maxSizeBo
 	return config;
 end
 
-movatorUIFunctions.setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
+automoverUIFunctions.setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSizeBoxOrCenterPoint, config)
 	local centerPoint = maxSizeBoxOrCenterPoint;
 	local maxSize = Vector(math.huge, math.huge);
 	if maxSizeBoxOrCenterPoint.ClassName == "Box" then
@@ -1579,7 +1579,7 @@ movatorUIFunctions.setupCenterPointAndMaxSizeAndFixTextDataTableIfNecessary = fu
 	return centerPoint, maxSize;
 end
 
-movatorUIFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSize, config)
+automoverUIFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(self, textDataTable, maxSize, config)
 	local numberOfLines = 0;
 	local maxSizeIfScalingBoxToFitText = Vector(0, 0);
 	for i = 1, #textDataTable do
@@ -1611,7 +1611,7 @@ movatorUIFunctions.getScaledMaxSizeAndFixTextDataTableIfNecessary = function(sel
 	return maxSize;
 end
 
-movatorUIFunctions.getNumberOfLinesForText = function(self, textString, maxWidth, useSmallText)
+automoverUIFunctions.getNumberOfLinesForText = function(self, textString, maxWidth, useSmallText)
 	local numberOfLines = 1;
 	local stringWidth = FrameMan:CalculateTextWidth(textString, useSmallText);
 	if stringWidth > maxWidth then

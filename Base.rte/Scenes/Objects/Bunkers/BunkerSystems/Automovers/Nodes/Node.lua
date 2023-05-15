@@ -1,21 +1,21 @@
 function Create(self)
 	self.checkNodesTimer = Timer();
 	self.checkNodesTimer:SetSimTimeLimitMS(500)
-	self.myInfoGenerated = Movators_AddNode(self);
+	self.myInfoGenerated = Automovers_AddNode(self);
 
 	self:RemoveNumberValue("shouldReaddNode");
 end
 
 function Update(self)
 	if self:GetNumberValue("shouldReaddNode") > 0 then
-		self.myInfoGenerated = Movators_AddNode(self);
+		self.myInfoGenerated = Automovers_AddNode(self);
 		self:RemoveNumberValue("shouldReaddNode");
 	end
 
-	if MovatorData[self.Team].energyLevel <= 0 then
+	if AutomoverData[self.Team].energyLevel <= 0 then
 		self.Frame = 16;
-	elseif self.myInfoGenerated and self.checkNodesTimer:IsPastSimTimeLimit() and MovatorData[self.Team].nodeData[self] ~= nil then
-		local nodeTable = MovatorData[self.Team].nodeData[self];
+	elseif self.myInfoGenerated and self.checkNodesTimer:IsPastSimTimeLimit() and AutomoverData[self.Team].nodeData[self] ~= nil then
+		local nodeTable = AutomoverData[self.Team].nodeData[self];
 
 		local connectsUpBits = nodeTable.connectedNodeData[Directions.Up] ~= nil and 1 or 0;
 		local connectsDownBits = nodeTable.connectedNodeData[Directions.Down] ~= nil and 2 or 0;
@@ -29,5 +29,5 @@ end
 
 function Destroy(self)
 	ActivityMan:GetActivity():SetTeamFunds(ActivityMan:GetActivity():GetTeamFunds(self.Team) + self:GetGoldValue(0, 0), self.Team);
-	Movators_RemoveNode(self);
+	Automovers_RemoveNode(self);
 end
