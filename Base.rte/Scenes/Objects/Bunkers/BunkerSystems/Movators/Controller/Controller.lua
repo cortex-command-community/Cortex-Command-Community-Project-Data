@@ -762,7 +762,8 @@ movatorVisualEffectsFunctions.updateVisualEffectsFrames = function(self)
 			if #visualEffectsDataInDirection.drawData > 0 and visualEffectsDataInDirection.coolDownTimer:IsPastSimTimeLimit() then
 				for index, drawData in ipairs(visualEffectsDataInDirection.drawData) do
 					local previousIndex = visualEffectsDataInDirection.isGoingBackwards and index + 1 or index - 1;
-					if drawData.frame <= selectedVisualEffects.maxFrame and (previousIndex < 1 or previousIndex > #visualEffectsDataInDirection.drawData or visualEffectsDataInDirection.drawData[previousIndex].frame > selectedVisualEffects.minFrame) then
+					local minPreviousIndexFrame = visualEffectsDataInDirection.isGoingBackwards and selectedVisualEffects.minFrame or selectedVisualEffects.minFrame + 1;
+					if drawData.frame <= selectedVisualEffects.maxFrame and (previousIndex < 1 or previousIndex > #visualEffectsDataInDirection.drawData or visualEffectsDataInDirection.drawData[previousIndex].frame >= minPreviousIndexFrame) then
 						drawData.frame = drawData.frame + 1;
 					end
 				end
