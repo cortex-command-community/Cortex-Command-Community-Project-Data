@@ -248,13 +248,14 @@ function Update(self)
 									end
 								end
 
+								local anyCenteringWasDone = false;
 								if actorData.movementMode == self.movementModes.move or actorData.movementMode == self.movementModes.unstickActor then
-									self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData);
+									anyCenteringWasDone = self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData);
 								end
 								if actorData.movementMode == self.movementModes.freeze then
 									self:updateFrozenActor(actorData);
 								elseif actorData.movementMode == self.movementModes.move then
-									self:updateMovingActor(actorData);
+									self:updateMovingActor(actorData, anyCenteringWasDone);
 								end
 							end
 						end
@@ -741,7 +742,6 @@ movatorVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = 
 	local numberOfSpritesToDraw, halfRemainderDistance = math.modf((math.abs(nodeConnectionDataInDirection.distance[relevantAxis]) - math.abs(nodeInDirectionData.size[relevantAxis])) / selectedVisualEffects.spriteSize);
 	halfRemainderDistance = halfRemainderDistance * selectedVisualEffects.spriteSize * 0.5;
 
-	local relevantAxis = direction == Directions.Up and "Y" or "X";
 	local firstSpritePos = node.Pos + Vector();
 	firstSpritePos[relevantAxis] = firstSpritePos[relevantAxis] - (nodeData.size[relevantAxis] * 0.5) - (selectedVisualEffects.spriteSize * 0.5) - halfRemainderDistance;
 	for i = 1, numberOfSpritesToDraw do
@@ -1071,10 +1071,11 @@ movatorActorFunctions.setupActorWaypointData = function(self, actorData)
 	local targetPosition = waypointData.movableObjectTarget ~= nil and waypointData.movableObjectTarget.Pos or waypointData.sceneTargets[1];
 	waypointData.targetPosition = Vector(targetPosition.X, targetPosition.Y);
 	waypointData.targetIsInsideMovatorArea = self.combinedMovatorArea:IsInside(waypointData.targetPosition);
-	waypointData.actorReachedTargetInsideMovatorArea = false;
 	waypointData.targetIsBetweenPreviousAndNextNode = false;
+	waypointData.actorReachedTargetInsideMovatorArea = false;
+	waypointData.actorReachedEndNodeForTargetOutsideMovatorArea = false;
 	waypointData.teleporterVisualsTimer = Timer(1000);
-	waypointData.delayTimer = Timer(100);
+	waypointData.delayTimer = Timer(50);
 
 	waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, waypointData.targetIsInsideMovatorArea, true, actor.Team);
 	if not waypointData.endNode then
@@ -1297,20 +1298,31 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 				end
 			end
 		end
-	elseif teamNodeTable[waypointData.endNode].zoneBox:IsWithinBox(actor.Pos) and waypointData.delayTimer:IsPastSimTimeLimit() then
-		local scenePathSize = SceneMan.Scene:CalculatePath(waypointData.targetPosition, actor.Pos, false, GetPathFindingDefaultDigStrength(), self.Team);
-		local secondLastScenePathEntryPosition;
-		local scenePathEntryIndex = 0;
-		for scenePathEntryPosition in SceneMan.Scene.ScenePath do
-			if scenePathEntryIndex == scenePathSize - 2 then
-				secondLastScenePathEntryPosition = scenePathEntryPosition;
-				break;
-			end
-			scenePathEntryIndex = scenePathEntryIndex + 1;
+	else
+		if teamNodeTable[waypointData.endNode].zoneBox:IsWithinBox(actor.Pos) then
+			waypointData.actorReachedEndNodeForTargetOutsideMovatorArea = true;
 		end
-		actorData.direction = getDirectionForDistanceLargerAxis(SceneMan:ShortestDistance(secondLastScenePathEntryPosition, actor.Pos, self.checkWrapping), 0);
-		
-		waypointData.delayTimer:Reset();
+		if waypointData.actorReachedEndNodeForTargetOutsideMovatorArea and waypointData.delayTimer:IsPastSimTimeLimit() then
+			local scenePathSize = SceneMan.Scene:CalculatePath(actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team);
+			local secondScenePathEntryPosition;
+			local scenePathEntryIndex = 0;
+			for scenePathEntryPosition in SceneMan.Scene.ScenePath do
+				if scenePathEntryIndex == 2 then
+					secondScenePathEntryPosition = scenePathEntryPosition;
+					break;
+				end
+				scenePathEntryIndex = scenePathEntryIndex + 1;
+			end
+			local distanceFromActorToSecondScenePathEntryPosition = SceneMan:ShortestDistance(secondScenePathEntryPosition, actor.Pos, self.checkWrapping);
+			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToSecondScenePathEntryPosition, 0);
+			
+			local endNodeData = teamNodeTable[waypointData.endNode];
+			if not endNodeData.zoneBox:IsWithinBox(secondScenePathEntryPosition) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(secondScenePathEntryPosition)) then
+				actor.Vel = actor.Vel + (distanceFromActorToSecondScenePathEntryPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10);
+			end
+			
+			waypointData.delayTimer:Reset();
+		end
 	end
 end
 
@@ -1344,7 +1356,7 @@ movatorActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = f
 		actor:FlashWhite(100);
 		actor:MoveOutOfTerrain(0);
 		self:setActorMovementModeToLeaveMovators(actorData);
-		return;
+		return false;
 	end
 
 	local isStuck = actorData.movementMode == self.movementModes.unstickActor;
@@ -1388,7 +1400,9 @@ movatorActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = f
 				actor.Pos[centeringAxis] = closestNode.Pos[centeringAxis] + actorSizeCenteringAdjustment[centeringAxis];
 			end
 		end
+		return true;
 	end
+	return false;
 end
 
 movatorActorFunctions.updateFrozenActor = function(self, actorData)
@@ -1409,7 +1423,7 @@ movatorActorFunctions.updateFrozenActor = function(self, actorData)
 	end
 end
 
-movatorActorFunctions.updateMovingActor = function(self, actorData)
+movatorActorFunctions.updateMovingActor = function(self, actorData, anyCenteringWasDone)
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
@@ -1423,6 +1437,11 @@ movatorActorFunctions.updateMovingActor = function(self, actorData)
 	local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
 	for direction, movementTable in pairs(directionMovementTable) do
 		if actorDirection == direction then
+			if not anyCenteringWasDone then
+				local slowdownAxis = (direction == Directions.Up or direction == Directions.Down) and "X" or "Y";
+				actor.Vel[slowdownAxis] = actor.Vel[slowdownAxis] * 0.75;
+			end
+		
 			actor.Vel = (actor.Vel + movementTable.acceleration):CapMagnitude(self.movementSpeed);
 			actor.Vel = actor.Vel + gravityAdjustment;
 
