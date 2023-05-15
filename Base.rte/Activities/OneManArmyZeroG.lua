@@ -86,14 +86,14 @@ function OneManArmyZeroG:StartNewGame()
 	self.timeDisplay = timeLimitText .. " minutes";
 	self.enemySpawnTimeLimit = 500;
 	
-	local movatorController = CreateActor("Invisible Movator Controller", "Base.rte");
-	movatorController.Team = -1;
-	movatorController:SetNumberValue("MovementSpeed", 16);
-	movatorController:SetNumberValue("ActorUnstickingDisabled", 1);
-	movatorController:SetNumberValue("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled", 1);
-	MovableMan:AddActor(movatorController);
+	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
+	automoverController.Team = -1;
+	automoverController:SetNumberValue("MovementSpeed", 16);
+	automoverController:SetNumberValue("ActorUnstickingDisabled", 1);
+	automoverController:SetNumberValue("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled", 1);
+	MovableMan:AddActor(automoverController);
 
-	local superNode = CreateMOSRotating("Movator Node 1x1", "Base.rte");
+	local superNode = CreateMOSRotating("Automover Node 1x1", "Base.rte");
 	superNode.Pos = Vector(SceneMan.SceneWidth * 0.5, SceneMan.SceneHeight * 0.5);
 	superNode.Team = -1;
 	superNode.Scale = 0;
@@ -250,7 +250,7 @@ function OneManArmyZeroG:ResumeLoadedGame()
 	end
 	
 	for particle in MovableMan.AddedParticles do
-		if particle.PresetName == "Movator Node 1x1" then
+		if particle.PresetName == "Automover Node 1x1" then
 			particle.Scale = 0;
 			break;
 		end

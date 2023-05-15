@@ -166,7 +166,7 @@ function BunkerBreach:SetupDefenderActors()
 		end
 	end
 	for actor in MovableMan.AddedActors do
-		if actor.Team ~= self.defenderTeam and not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems - Movators") then
+		if actor.Team ~= self.defenderTeam and not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems - Automovers") then
 			MovableMan:ChangeActorTeam(actor, self.defenderTeam);
 		end
 	end
