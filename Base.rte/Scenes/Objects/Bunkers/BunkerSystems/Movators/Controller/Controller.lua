@@ -1313,12 +1313,14 @@ movatorActorFunctions.handleActorThatHasReachedItsEndNode = function(self, actor
 				end
 				scenePathEntryIndex = scenePathEntryIndex + 1;
 			end
-			local distanceFromActorToSecondScenePathEntryPosition = SceneMan:ShortestDistance(secondScenePathEntryPosition, actor.Pos, self.checkWrapping);
-			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToSecondScenePathEntryPosition, 0);
-			
-			local endNodeData = teamNodeTable[waypointData.endNode];
-			if not endNodeData.zoneBox:IsWithinBox(secondScenePathEntryPosition) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(secondScenePathEntryPosition)) then
-				actor.Vel = actor.Vel + (distanceFromActorToSecondScenePathEntryPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10);
+			if secondScenePathEntryPosition ~= nil then
+				local distanceFromActorToSecondScenePathEntryPosition = SceneMan:ShortestDistance(secondScenePathEntryPosition, actor.Pos, self.checkWrapping);
+				actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToSecondScenePathEntryPosition, 0);
+				
+				local endNodeData = teamNodeTable[waypointData.endNode];
+				if not endNodeData.zoneBox:IsWithinBox(secondScenePathEntryPosition) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(secondScenePathEntryPosition)) then
+					actor.Vel = actor.Vel + (distanceFromActorToSecondScenePathEntryPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10);
+				end
 			end
 			
 			waypointData.delayTimer:Reset();
