@@ -309,7 +309,7 @@ function DecisionDay:StartActivity(isNewGame)
 	end
 	--]]
 	
-	--
+	--[[
 	self.currentStage = self.stages.attackFrontBunker;
 	
 	self.aiData.internalReinforcementsEnabled = true;
@@ -317,7 +317,6 @@ function DecisionDay:StartActivity(isNewGame)
 	
 	self.bunkerRegions["Front Bunker Operations"].enabled = true;
 	self.bunkerRegions["Front Bunker Small Vault"].enabled = true;
-	self.bunkerRegions["Main Bunker Command Center"].enabled = true;
 	--]]
 end
 
