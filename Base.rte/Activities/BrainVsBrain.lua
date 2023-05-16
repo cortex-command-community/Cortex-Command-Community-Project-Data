@@ -18,11 +18,55 @@ Don't place more doors and defenders and than the MOID limit can handle (a total
 
 --]]
 
-function BrainvsBrain:StartActivity()
-	collectgarbage("collect");
+function BrainvsBrain:StartActivity(isNewGame)
+	self.winTimer = Timer();
 
-	-- Timers
-	self.WinTimer = Timer();
+	if self.CPUTeam ~= Activity.NOTEAM then
+		self.spawnTimer = Timer();
+		self.hunterTimer = Timer();
+
+		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
+		self.LZMap = require("Activities/LandingZoneMap");
+		--self.LZMap = dofile("Base.rte/Activities/LandingZoneMap.lua");
+		self.LZMap:Initialize({self.CPUTeam});	-- a list of AI teams
+
+		-- Store data about player teams: OnPlayerTeam[A.Team] is true if "A" is an enemy to the AI
+		self.OnPlayerTeam = {};
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				self.OnPlayerTeam[self:GetTeamOfPlayer(player)] = true;
+			end
+		end
+	end
+
+	self.TechName = {};
+	self.TechName[Activity.TEAM_1] = self:GetTeamTech(Activity.TEAM_1);
+	self.TechName[Activity.TEAM_2] = self:GetTeamTech(Activity.TEAM_2);
+
+	if self.CPUTeam ~= Activity.NOTEAM then
+		self.CPUTechID = PresetMan:GetModuleID(self.TechName[self.CPUTeam]);
+	end
+
+	if isNewGame then
+		self:StartNewGame();
+	else
+		self:ResumeLoadedGame();
+	end
+end
+
+function BrainvsBrain:OnSave()
+	if self.CPUTeam ~= Activity.NOTEAM then
+		self:SaveNumber("CPUTechID", self.CPUTechID);
+
+		self:SaveNumber("bombChance", self.bombChance);
+		self:SaveNumber("spawnDelay", self.spawnDelay);
+		self:SaveNumber("spawnTimerElapsedSimTimeMS", self.spawnTimer.ElapsedSimTimeMS)
+		self:SaveNumber("hunterDelay", self.hunterDelay);
+		self:SaveNumber("hunterTimerElapsedSimTimeMS", self.hunterTimer.ElapsedSimTimeMS);
+	end
+end
+
+function BrainvsBrain:StartNewGame()
 	self.first_update = true;
 
 	-- Add a CPU team if we only have one player
@@ -57,7 +101,7 @@ function BrainvsBrain:StartActivity()
 		local RedAreaString = "Red Build Area Center";
 		local GreenAreaString = "Green Build Area Center";
 		if SceneMan.Scene:HasArea(RedAreaString) and SceneMan.Scene:HasArea(GreenAreaString) then
-			local fogWidth = 32;
+			local fogWidth = 20;
 
 			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_1);
 			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_2);
@@ -139,10 +183,6 @@ function BrainvsBrain:StartActivity()
 		end
 	end
 
-	self.TechName = {};
-	self.TechName[Activity.TEAM_1] = self:GetTeamTech(Activity.TEAM_1);
-	self.TechName[Activity.TEAM_2] = self:GetTeamTech(Activity.TEAM_2);
-
 	if self.CPUTeam == Activity.NOTEAM then
 		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
 		self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_2);
@@ -153,18 +193,7 @@ function BrainvsBrain:StartActivity()
 			self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
 		end
 
-		-- Store data about player teams: OnPlayerTeam[A.Team] is true if "A" is an enemy to the AI
-		local active_players = 0;
-		self.OnPlayerTeam = {};
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				self.OnPlayerTeam[self:GetTeamOfPlayer(player)] = true;
-				active_players = active_players + 1;
-			end
-		end
-
 		self:SetTeamFunds(self:GetStartingGold()*(self.Difficulty/100+0.5), self.CPUTeam);
-		self.CPUTechID = PresetMan:GetModuleID(self.TechName[self.CPUTeam]);
 		self.bombChance = math.random(self.Difficulty*0.7, self.Difficulty) / 120;
 
 		self.CPUBrain = CreateAHuman("Brain Robot", "Base.rte");
@@ -198,71 +227,65 @@ function BrainvsBrain:StartActivity()
 			MovableMan:AddActor(self.CPUBrain);
 		end
 
-		self.SpawnTimer = Timer();
 		self.spawnDelay = (6500 - self.Difficulty * 60) * rte.SpawnIntervalScale;
-		self.HunterTimer = Timer();
-		self.HunterDelay = self.spawnDelay + 10000;
+		self.hunterDelay = self.spawnDelay + 10000;
 
-		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-		self.LZMap = require("Activities/LandingZoneMap");
-		--self.LZMap = dofile("Base.rte/Activities/LandingZoneMap.lua");
-		self.LZMap:Initialize({self.CPUTeam});	-- a list of AI teams
-
-		local GuardArea = "Red Defender ";
-		for i = 1, 7 do
-			if SceneMan.Scene:HasArea(GuardArea..i) then
-				local Guard = self:CreateDefender(Activity.TEAM_1);
-				if Guard then
-					Guard.Pos = SceneMan.Scene:GetArea(GuardArea..i):GetCenterPoint();
-					MovableMan:AddActor(Guard);
-					Guard:ReloadScripts();
+		local spawnStartingActors = function(areaName, numberOfActorsToSpawn, team)
+			for i = 1, numberOfActorsToSpawn do
+				local guardAreaToUse = areaName .. " " .. i;
+				if SceneMan.Scene:HasArea(areaName .. " " .. i) then
+					local startingActor;
+					if areaName:find("Miner") then
+						startingActor = self:CreateEngineer(team);
+					else
+						startingActor = self:CreateDefender(team);
+					end
+					if startingActor then
+						startingActor.Pos = SceneMan.Scene:GetArea(guardAreaToUse):GetCenterPoint();
+						MovableMan:AddActor(startingActor);
+					end
+				else
+					return;
 				end
-			else
-				break;
 			end
 		end
+		spawnStartingActors("Red Defender", 7, Activity.TEAM_1);
+		spawnStartingActors("Red Miner", 3, Activity.TEAM_1);
+		spawnStartingActors("Green Defender", 7, Activity.TEAM_2);
+		spawnStartingActors("Green Miner", 3, Activity.TEAM_2);
+	end
+end
 
-		GuardArea = "Red Miner ";
-		for i = 1, 3 do
-			if SceneMan.Scene:HasArea(GuardArea..i) then
-				local Guard = self:CreateEngineer(Activity.TEAM_1);
-				if Guard then
-					Guard.Pos = SceneMan.Scene:GetArea(GuardArea..i):GetCenterPoint();
-					MovableMan:AddActor(Guard);
-				end
-			else
-				break;
-			end
+function BrainvsBrain:ResumeLoadedGame()
+	if self.CPUTeam ~= Activity.NOTEAM then
+		self.bombChance = self:LoadNumber("bombChance");
+		self.spawnDelay = self:LoadNumber("spawnDelay");
+		self.spawnTimer.ElapsedSimTimeMS = self:LoadNumber("spawnTimerElapsedSimTimeMS");
+		self.hunterDelay = self:LoadNumber("hunterDelay");
+		self.hunterTimer.ElapsedSimTimeMS = self:LoadNumber("hunterTimerElapsedSimTimeMS");
+
+		if not self.CPUBrain then
+			self.CPUBrain = MovableMan:GetUnassignedBrain(self.CPUTeam);
 		end
+	end
 
-		GuardArea = "Green Defender ";
-		for i = 1, 7 do
-			if SceneMan.Scene:HasArea(GuardArea..i) then
-				local Guard = self:CreateDefender(Activity.TEAM_2);
-				if Guard then
-					Guard.Pos = SceneMan.Scene:GetArea(GuardArea..i):GetCenterPoint();
-					MovableMan:AddActor(Guard);
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			if not self:GetPlayerBrain(player) then
+				local team = self:GetTeamOfPlayer(player);
+				local foundBrain = MovableMan:GetUnassignedBrain(team);
+				if foundBrain then
+					--Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
+					--Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
-			else
-				break;
-			end
-		end
-
-		GuardArea = "Green Miner ";
-		for i = 1, 3 do
-			if SceneMan.Scene:HasArea(GuardArea..i) then
-				local Guard = self:CreateEngineer(Activity.TEAM_2);
-				if Guard then
-					Guard.Pos = SceneMan.Scene:GetArea(GuardArea..i):GetCenterPoint();
-					MovableMan:AddActor(Guard);
-				end
-			else
-				break;
 			end
 		end
 	end
 end
-
 
 function BrainvsBrain:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -283,14 +306,10 @@ function BrainvsBrain:EndActivity()
 	end
 end
 
-
 function BrainvsBrain:UpdateActivity()
 	if self.ActivityState == Activity.OVER then
 		return;
 	elseif self.ActivityState == Activity.EDITING then
-		-- Game is in editing or other modes, so open all does and reset the game running timer
-		MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-
 		-- Set all actors to sentry mode
 		for actor in MovableMan.AddedActors do
 			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
@@ -325,9 +344,6 @@ function BrainvsBrain:UpdateActivity()
 				end
 			end
 
-			-- Close all doors after placing brains so our fortresses are secure
-			MovableMan:OpenAllDoors(false, Activity.NOTEAM);
-
 			-- Set all actors to sentry mode
 			for actor in MovableMan.AddedActors do
 				if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
@@ -337,9 +353,9 @@ function BrainvsBrain:UpdateActivity()
 				end
 			end
 		else
-			if self.WinTimer:IsPastRealMS(2000) then
+			if self.winTimer:IsPastRealMS(2000) then
 				-- Check win conditions
-				self.WinTimer:Reset();
+				self.winTimer:Reset();
 
 				local red_players = 0;
 				local green_players = 0;
@@ -400,9 +416,8 @@ function BrainvsBrain:UpdateActivity()
 			if self.LZMap then
 				self.LZMap:Update();
 
-				if self.HunterTimer:IsPastSimMS(self.HunterDelay) then
-					self.HunterTimer:Reset();
-					self.HunterDelay = 11000;
+				if self.hunterTimer:IsPastSimMS(self.hunterDelay) then
+					self.hunterTimer:Reset();
 
 					for Hunter in MovableMan.Actors do
 						if Hunter.Team == self.CPUTeam and Hunter.AIMode == Actor.AIMODE_GOTO then
@@ -416,12 +431,12 @@ function BrainvsBrain:UpdateActivity()
 				end
 
 				if self:GetTeamFunds(self.CPUTeam) > 0 then
-					if self.SpawnTimer:IsPastSimMS(self.spawnDelay) and MovableMan:IsActor(self.CPUBrain) then
+					if self.spawnTimer:IsPastSimMS(self.spawnDelay) and MovableMan:IsActor(self.CPUBrain) then
 						if self.AttackActor and MovableMan:IsActor(self.AttackActor) then
 							-- We have a target actor, search for a suitable LZ;
 							local easyPathLZx, easyPathLZobst, closeLZx, closeLZobst = self.LZMap:FindLZ(self.CPUTeam, self.AttackPos);
 							if closeLZx then	-- Search done
-								self.SpawnTimer:Reset();
+								self.spawnTimer:Reset();
 
 								local xPosLZ, obstacleHeight;
 								if closeLZobst < 30 and easyPathLZobst < 30 then
@@ -451,7 +466,7 @@ function BrainvsBrain:UpdateActivity()
 									self.AttackPos = nil;
 								else
 									-- Attack target
-									self.SpawnTimer:Reset();
+									self.spawnTimer:Reset();
 									if MovableMan:IsActor(self.CPUBrain) and SceneMan:ShortestDistance(self.AttackActor.Pos, self.CPUBrain.Pos, false):MagnitudeIsLessThan(1000) then
 										-- The player is close to the AI brain so spawn again soon
 										self.spawnDelay = (25000 - self.Difficulty * 150) * rte.SpawnIntervalScale;
@@ -502,7 +517,7 @@ function BrainvsBrain:UpdateActivity()
 								end
 
 								if intruder_tally < 1 then
-									self.SpawnTimer:Reset();
+									self.spawnTimer:Reset();
 									self.spawnDelay = 10000;
 								else
 									table.sort(Intruders, function(A, B) return A.score > B.score end);	-- the nearest intruder last
@@ -514,7 +529,7 @@ function BrainvsBrain:UpdateActivity()
 									if math.random() < self.bombChance and (SceneMan:ShortestDistance(self.CPUBrain.Pos, self.AttackPos, false).Largest/SceneMan.SceneWidth) > 0.2 then
 										local bombPosX = self.LZMap:FindBombTarget(self.CPUTeam);
 										if bombPosX then
-											self.SpawnTimer:Reset();
+											self.spawnTimer:Reset();
 											self.spawnDelay = (10000 - self.Difficulty * 70) * rte.SpawnIntervalScale;
 											self.bombChance = math.max(self.bombChance*0.9, 0.05);
 											self:CreateBombDrop(bombPosX);
@@ -522,7 +537,7 @@ function BrainvsBrain:UpdateActivity()
 									end
 								end
 							else
-								self.SpawnTimer:Reset();
+								self.spawnTimer:Reset();
 								self.spawnDelay = 10000;
 							end
 						end
@@ -532,7 +547,6 @@ function BrainvsBrain:UpdateActivity()
 		end
 	end
 end
-
 
 function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 	local Craft = RandomACDropShip("Craft", self.TechName[self.CPUTeam]);	-- Pick a craft to deliver with
@@ -757,7 +771,6 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 	end
 end
 
-
 function BrainvsBrain:CreateBombDrop(bombPosX)
 	local Craft = RandomACDropShip("Craft", self.CPUTechID);	-- Pick a craft to deliver with
 	if Craft then
@@ -789,7 +802,6 @@ function BrainvsBrain:CreateBombDrop(bombPosX)
 		MovableMan:AddActor(Craft);
 	end
 end
-
 
 function BrainvsBrain:CreateCrab(team, mode)
 	local Passenger = RandomACrab("Actors - Mecha", self.TechName[team]);
@@ -982,7 +994,7 @@ function BrainvsBrain:CreateEngineer(team, mode)
 				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.TechName[team]));
 			end
 		end
-		Passenger:AddInventoryItem(RandomHDFirearm("Tools - Diggers", self.TechName[team]));
+		Passenger:AddInventoryItem(CreateHDFirearm("Heavy Digger", "Base.rte"));
 
 		Passenger.AIMode = mode or Actor.AIMODE_GOLDDIG;
 		Passenger.Team = team;

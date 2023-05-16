@@ -27,7 +27,7 @@ RoninLoadouts["Sniper"]["Headgear"] = {"Sniper Hat"};
 RoninLoadouts["Sniper"]["Primary"] = {"Kar98k", "M1 Garand"};
 RoninLoadouts["Sniper"]["Secondary"] = {"UZI", "MP5K"};
 RoninLoadouts["Sniper"]["Tertiary"] = {"Medikit", "Light Digger"};
-RoninLoadouts["Sniper"]["Throwable"] = {"Empty Bottle Bandolier", "Stone Bag"};
+RoninLoadouts["Sniper"]["Throwable"] = {"Empty Bottle Bandolier"};
 
 RoninLoadouts["Engineer"]["Headgear"] = {"Soldier Helmet"};
 RoninLoadouts["Engineer"]["Primary"] = {"UZI", "MP5K"};

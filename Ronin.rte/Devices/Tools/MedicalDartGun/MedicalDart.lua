@@ -1,6 +1,7 @@
 function Create(self)
 	self.multiplier = 0.8;
 	self.IgnoresTeamHits = false;
+	self.Team = Activity.NOTEAM;
 	self.width = 3;
 end
 
@@ -32,7 +33,7 @@ function OnCollideWithMO(self, mo, rootMO)
 							em.MaxVelocity = em.MaxVelocity * 0.75;
 							em.MinVelocity = em.MinVelocity * 0.75;
 						end
-						wound.InheritedRotAngleOffset = stickOffset.AbsRadAngle - (self.target.HFlipped and math.pi or 0);
+						wound.InheritedRotAngleOffset = stickOffset.AbsRadAngle;
 						self.target:AddWound(wound, Vector(stickOffset.X, stickOffset.Y):SetMagnitude(stickOffset.Magnitude - self.width), math.random() < 0.5);
 					end
 					self.Team = self.target.Team;

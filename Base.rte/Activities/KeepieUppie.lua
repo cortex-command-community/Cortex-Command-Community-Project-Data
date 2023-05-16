@@ -1,5 +1,74 @@
-function KeepieUppie:StartActivity()
-	print("START! -- KeepieUppie:StartActivity()!");
+function KeepieUppie:StartActivity(isNewGame)
+	SceneMan.Scene:GetArea("LZ Team 1");
+	SceneMan.Scene:GetArea("LZ All");
+
+	self.BuyMenuEnabled = false;
+
+	self.startMessageTimer = Timer();
+	self.enemySpawnTimer = Timer();
+	self.winTimer = Timer();
+
+	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+
+	if isNewGame then
+		self:StartNewGame();
+	else
+		self:ResumeLoadedGame();
+	end
+end
+
+function KeepieUppie:OnSave()
+	self:SaveNumber("playerRocketSpawned", self.playerRocketSpawned and 1 or 0);
+
+	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
+	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
+	self:SaveNumber("winTimer.ElapsedSimTimeMS", self.winTimer.ElapsedSimTimeMS);
+
+	self:SaveNumber("timeLimit", self.timeLimit);
+	self:SaveString("timeDisplay", self.timeDisplay);
+	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
+	self:SaveNumber("randomSpawnTime", self.randomSpawnTime);
+	self:SaveNumber("enemySpawnTimeLimit", self.enemySpawnTimeLimit);
+end
+
+function KeepieUppie:StartNewGame()
+	self:SetTeamFunds(1000000, self.CPUTeam);
+	self:SetTeamFunds(0, Activity.TEAM_1);
+
+	self.playerRocketSpawned = false;
+
+	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
+		self.timeLimit = 25000;
+		self.timeDisplay = "twenty seconds";
+		self.baseSpawnTime = 6000;
+		self.randomSpawnTime = 8000;
+	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
+		self.timeLimit = 45000;
+		self.timeDisplay = "forty seconds";
+		self.baseSpawnTime = 5500;
+		self.randomSpawnTime = 7000;
+	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
+		self.timeLimit = 65000;
+		self.timeDisplay = "one minute";
+		self.baseSpawnTime = 5000;
+		self.randomSpawnTime = 6000;
+	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
+		self.timeLimit = 95000;
+		self.timeDisplay = "one minute and thirty seconds";
+		self.baseSpawnTime = 4500;
+		self.randomSpawnTime = 5000;
+	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
+		self.timeLimit = 125000;
+		self.timeDisplay = "two minutes and thirty seconds";
+		self.baseSpawnTime = 4000;
+		self.randomSpawnTime = 4500;
+	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
+		self.timeLimit = 305000;
+		self.timeDisplay = "five minutes";
+		self.baseSpawnTime = 3500;
+		self.randomSpawnTime = 4000;
+	end
+	self.enemySpawnTimeLimit = 2000;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -7,57 +76,44 @@ function KeepieUppie:StartActivity()
 			self:SetViewState(Activity.LZSELECT, player);
 		end
 	end
-
-	-- Select a tech for the CPU player
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-	self.ESpawnTimer = Timer();
-	self.LZ = SceneMan.Scene:GetArea("LZ Team 1");
-	self.EnemyLZ = SceneMan.Scene:GetArea("LZ All");
-
-	self.SurvivalTimer = Timer();
-
-	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
-		self.TimeLimit = 25000;
-		self.timeDisplay = "twenty seconds";
-		self.BaseSpawnTime = 6000;
-		self.RandomSpawnTime = 8000;
-	elseif self.Difficulty <= GameActivity.EASYDIFFICULTY then
-		self.TimeLimit = 45000;
-		self.timeDisplay = "forty seconds";
-		self.BaseSpawnTime = 5500;
-		self.RandomSpawnTime = 7000;
-	elseif self.Difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		self.TimeLimit = 65000;
-		self.timeDisplay = "one minute";
-		self.BaseSpawnTime = 5000;
-		self.RandomSpawnTime = 6000;
-	elseif self.Difficulty <= GameActivity.HARDDIFFICULTY then
-		self.TimeLimit = 95000;
-		self.timeDisplay = "one minute and thirty seconds";
-		self.BaseSpawnTime = 4500;
-		self.RandomSpawnTime = 5000;
-	elseif self.Difficulty <= GameActivity.NUTSDIFFICULTY then
-		self.TimeLimit = 125000;
-		self.timeDisplay = "two minutes and thirty seconds";
-		self.BaseSpawnTime = 4000;
-		self.RandomSpawnTime = 4500;
-	elseif self.Difficulty <= GameActivity.MAXDIFFICULTY then
-		self.TimeLimit = 305000;
-		self.timeDisplay = "five minutes";
-		self.BaseSpawnTime = 3500;
-		self.RandomSpawnTime = 4000;
-	end
-
-	self:SetTeamFunds(0, Activity.TEAM_1);
-	-- CPU Funds are unlimited
-	self:SetTeamFunds(1000000, self.CPUTeam);
-
-	self.StartTimer = Timer();
-	self.started = false;
-
-	self.TimeLeft = 2000;
 end
 
+function KeepieUppie:ResumeLoadedGame()
+	self.playerRocketSpawned = self:LoadNumber("playerRocketSpawned") ~= 0;
+
+	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
+	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
+	self.winTimer.ElapsedSimTimeMS = self:LoadNumber("winTimer.ElapsedSimTimeMS");
+
+	self.timeLimit = self:LoadNumber("timeLimit");
+	self.timeDisplay = self:LoadString("timeDisplay");
+	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
+	self.randomSpawnTime = self:LoadNumber("randomSpawnTime");
+	self.enemySpawnTimeLimit = self:LoadNumber("enemySpawnTimeLimit");
+
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			for actor in MovableMan.Actors do
+				if actor.ClassName == "ACRocket" and actor.Team == Activity.TEAM_1 then
+					self:SetPlayerBrain(actor, player);
+					self:SetObservationTarget(actor.Pos, player);
+					self:SwitchToActor(actor, player, player);
+
+					self.playerRocketSpawned = true;
+				end
+			end
+		end
+	end
+	
+	if not self.playerRocketSpawned then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				self:AddOverridePurchase(CreateACRocket("Rocklet"), player);
+				self:SetViewState(Activity.LZSELECT, player);
+			end
+		end
+	end
+end
 
 function KeepieUppie:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -78,19 +134,18 @@ function KeepieUppie:EndActivity()
 	end
 end
 
-
 function KeepieUppie:UpdateActivity()
 	self:ClearObjectivePoints();
 
-	if self.started then
+	if self.playerRocketSpawned then
 		if self.ActivityState ~= Activity.OVER and self.ActivityState ~= Activity.EDITING then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
 					--Display messages.
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
-					if self.StartTimer:IsPastSimMS(3000) then
-						FrameMan:SetScreenText(math.floor(self.SurvivalTimer:LeftTillSimMS(self.TimeLimit) / 1000) .. " seconds left", player, 0, 1000, false);
+					if self.startMessageTimer:IsPastSimMS(3000) then
+						FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000) .. " seconds left", player, 0, 1000, false);
 					else
 						FrameMan:SetScreenText("Keep the rocket alive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
 					end
@@ -113,7 +168,7 @@ function KeepieUppie:UpdateActivity()
 					end
 
 					--Check if the player has won.
-					if self.SurvivalTimer:IsPastSimMS(self.TimeLimit) then
+					if self.winTimer:IsPastSimMS(self.timeLimit) then
 						self:ResetMessageTimer(player);
 						FrameMan:ClearScreenText(player);
 						FrameMan:SetScreenText("You survived!", player, 333, -1, false);
@@ -133,7 +188,7 @@ function KeepieUppie:UpdateActivity()
 			end
 
 			--Spawn the AI.
-			if self.CPUTeam ~= Activity.NOTEAM and self.ESpawnTimer:LeftTillSimMS(self.TimeLeft) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
+			if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and MovableMan:GetTeamMOIDCount(self.CPUTeam) <= rte.AIMOIDMax * 3 / self:GetActiveCPUTeamCount() then
 				local ship, actorsInCargo;
 
 				if math.random() < 0.5 then
@@ -196,26 +251,31 @@ function KeepieUppie:UpdateActivity()
 				-- Spawn the ship onto the scene
 				MovableMan:AddActor(ship);
 
-				self.ESpawnTimer:Reset();
-				self.TimeLeft = (self.BaseSpawnTime + math.random(self.RandomSpawnTime) * rte.SpawnIntervalScale);
+				self.enemySpawnTimer:Reset();
+				self.enemySpawnTimeLimit = (self.baseSpawnTime + math.random(self.randomSpawnTime) * rte.SpawnIntervalScale);
 			end
 		end
 	else
-		self.StartTimer:Reset();
-		self.SurvivalTimer:Reset();
+		self.startMessageTimer:Reset();
+		self.winTimer:Reset();
 
 		FrameMan:SetScreenText("Order your rocket...", Activity.PLAYER_1, 0, 5000, false);
 
 		--See if the rocket has spawned yet.
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				if self:GetDeliveryCount(self:GetTeamOfPlayer(player)) < 1 then
+					self:SetViewState(Activity.LZSELECT, player);
+				end
 				for actor in MovableMan.Actors do
 					if actor.ClassName == "ACRocket" and actor.Team == Activity.TEAM_1 then
 						self:SetPlayerBrain(actor, player);
+						actor:AddToGroup("Brains");
 						self:SetObservationTarget(actor.Pos, player);
-						self:SwitchToActor(actor, player, player);
+						self:SwitchToActor(actor, player, Activity.TEAM_1);
 
-						self.started = true;
+						self.playerRocketSpawned = true;
+						break;
 					end
 				end
 			end

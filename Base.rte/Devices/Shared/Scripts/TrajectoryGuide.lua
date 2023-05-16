@@ -42,7 +42,7 @@ function Update(self)
 			self.projectileGravity = self.Magazine.NextRound.NextParticle.GlobalAccScalar;
 		end
 		local hitPos;
-		if (self.isThrownDevice and controller:IsState(Controller.WEAPON_FIRE)) or (not self.isThrownDevice and controller:IsState(Controller.AIM_SHARP)) then
+		if (self.isThrownDevice and (actor.SharpAimProgress > 0.5 or controller:IsState(Controller.WEAPON_FIRE))) or (not self.isThrownDevice and actor.SharpAimProgress > 0.1) then
 			if self.laserTimer:IsPastSimTimeLimit() then
 
 				local guideParPos, guideParVel;
@@ -52,11 +52,12 @@ function Update(self)
 						self.maxTrajectoryPars = (self.fuzeDelay - self.fuze.ElapsedSimTimeMS - self.laserTimer.ElapsedSimTimeMS)/TimerMan.DeltaTimeMS * rte.PxTravelledPerFrame;
 					end
 					actor = ToAHuman(actor);
+					local throwProgress = controller:IsState(Controller.WEAPON_FIRE) and actor.ThrowProgress or actor.SharpAimProgress;
 					local maxVel = self.projectileVelMax or (actor.FGArm.ThrowStrength + math.abs(actor.AngularVel * 0.5))/math.sqrt(math.abs(self.Mass) + 1);
 					local minVel = self.projectileVelMin or maxVel * 0.2;
 					--The following offset is as found in the source code (TODO: utilize EndThrowOffset properly instead)
 					guideParPos = actor.Pos + actor.Vel * rte.PxTravelledPerFrame + Vector((actor.FGArm.ParentOffset.X + actor.FGArm.MaxLength) * actor.FlipFactor, actor.FGArm.ParentOffset.Y - actor.FGArm.MaxLength * 0.5):RadRotate(actor:GetAimAngle(false) * actor.FlipFactor);
-					guideParVel = Vector(minVel + (maxVel - minVel) * actor.ThrowProgress, 0):RadRotate(actor:GetAimAngle(true));
+					guideParVel = Vector(minVel + (maxVel - minVel) * throwProgress, 0):RadRotate(actor:GetAimAngle(true));
 				else
 					guideParPos = self.MuzzlePos;
 					guideParVel = Vector(self.projectileVel, 0):RadRotate(actor:GetAimAngle(true));
@@ -113,9 +114,9 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(screen, self.guideTable[#self.guideTable] + lineVector:RadRotate(self.crossLineAngle) * 0.5, self.guideTable[#self.guideTable] + lineVector * 1.5, self.guideColor);
 			end
 			if self.viewCorrection > 0 then
-				local viewLength = SceneMan:ShortestDistance(actor.EyePos, actor.ViewPoint, SceneMan.SceneWrapsX).Magnitude;
-				local viewPoint = actor.ViewPoint + SceneMan:ShortestDistance(actor.ViewPoint, self.guideTable[#self.guideTable], SceneMan.SceneWrapsX):SetMagnitude(viewLength);
-				CameraMan:SetScrollTarget(viewPoint, self.viewCorrection, false, screen);
+				--This part will offset the actor's view to point closer to the guide end position.
+				local viewPoint = actor.ViewPoint + SceneMan:ShortestDistance(actor.ViewPoint, self.guideTable[#self.guideTable], SceneMan.SceneWrapsX):CapMagnitude(self.SharpLength) * self.viewCorrection * actor.SharpAimProgress;
+				CameraMan:SetScrollTarget(viewPoint, 0.1, false, screen);
 			end
 		end
 	end

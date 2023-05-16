@@ -1,4 +1,4 @@
-function MagmaulFireGrenade(pieMenu, pieSlice, pieMenuOwner)
+function MagmaulFireGrenade(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun ~= nil then
 		local gun = ToHDFirearm(gun);
@@ -6,13 +6,12 @@ function MagmaulFireGrenade(pieMenu, pieSlice, pieMenuOwner)
 		if gun.Magazine == nil or (gun.Magazine ~= nil and gun.Magazine.PresetName ~= magSwitchName) then
 			gun:SetNextMagazineName(magSwitchName);
 			gun:Reload();
-			pieMenu:RemovePieSlicesByPresetName(pieSlice.PresetName);
-			pieMenu:AddPieSlice(CreatePieSlice("Magmaul Fuel Bomb", "Browncoats.rte"), gun);
+			pieMenu:ReplacePieSlice(pieSlice, CreatePieSlice("Magmaul Fuel Bomb", "Browncoats.rte"));
 		end
 	end
 end
 
-function MagmaulFuelGrenade(pieMenu, pieSlice, pieMenuOwner)
+function MagmaulFuelGrenade(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;
 	if gun ~= nil then
 		local gun = ToHDFirearm(gun);
@@ -20,8 +19,7 @@ function MagmaulFuelGrenade(pieMenu, pieSlice, pieMenuOwner)
 		if gun.Magazine == nil or (gun.Magazine ~= nil and gun.Magazine.PresetName ~= magSwitchName) then
 			gun:SetNextMagazineName(magSwitchName);
 			gun:Reload();
-			pieMenu:RemovePieSlicesByPresetName(pieSlice.PresetName);
-			pieMenu:AddPieSlice(CreatePieSlice("Magmaul Fire Bomb", "Browncoats.rte"), gun);
+			pieMenu:ReplacePieSlice(pieSlice, CreatePieSlice("Magmaul Fire Bomb", "Browncoats.rte"));
 		end
 	end
 end

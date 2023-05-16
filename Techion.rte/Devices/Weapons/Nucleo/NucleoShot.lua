@@ -15,7 +15,7 @@ function Create(self)
 	self.detDelay = 4000/math.sqrt(#NucleoCommunicationTable[self.Sharpness]);
 	self.speed = 15;
 	self.acceleration = 0.1;
-	self.disintegrationStrength = 75;
+	self.disintegrationStrength = 300;
 
 	self.linkRange = 100 + (FrameMan.PlayerScreenWidth + FrameMan.PlayerScreenHeight) * 0.25;
 	self.linkPullRatio = 0.005;
@@ -85,7 +85,7 @@ function Update(self)
 			end
 		end
 	end
-
+	--TODO: Add wounds through Lua like the other disintegrator weapons
 	if self.boom or self:NumberValueExists("GOBOOM") then
 		local particleCount = 13;
 		for i = 1, particleCount do
@@ -102,12 +102,12 @@ function Update(self)
 		if target then
 			local parent = MovableMan:GetMOFromID(target.RootID);
 			if IsActor(parent) then
-				local melt = CreateMOPixel("Disintegrator");
-				melt.Pos = self.Pos;
-				melt.Team = self.Team;
-				melt.Sharpness = ToActor(parent).ID;
-				melt.PinStrength = self.disintegrationStrength * math.sqrt(#NucleoCommunicationTable[self.Sharpness]);
-				MovableMan:AddMO(melt);
+				local melter = CreateMOPixel("Disintegrator");
+				melter.Pos = self.Pos;
+				melter.Team = self.Team;
+				melter.Sharpness = ToActor(parent).ID;
+				melter.PinStrength = self.disintegrationStrength * math.sqrt(#NucleoCommunicationTable[self.Sharpness]);
+				MovableMan:AddMO(melter);
 			end
 		end
 

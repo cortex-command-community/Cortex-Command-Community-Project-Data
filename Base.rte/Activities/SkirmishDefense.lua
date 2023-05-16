@@ -1,38 +1,4 @@
-function SkirmishDefense:StartActivity()
-	collectgarbage("collect");
-
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			-- Check if we already have a brain assigned
-			if not self:GetPlayerBrain(player) then
-				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
-				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
-				if not foundBrain then
-					self.ActivityState = Activity.EDITING;
-					-- Open all doors so we can do pathfinding through them with the brain placement
-					MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
-					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
-				else
-					-- Set the found brain to be the selected actor at start
-					self:SetPlayerBrain(foundBrain, player);
-					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
-					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
-					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
-				end
-			end
-		end
-	end
-
-	-- Set all actors defined in the ini-file to sentry mode
-	for actor in MovableMan.AddedActors do
-		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-			actor.AIMode = Actor.AIMODE_SENTRY;
-		end
-	end
-
+function SkirmishDefense:StartActivity(isNewGame)
 	-- Count CPU teams
 	self.CPUTeamCount = 0;
 	for team = 0, Activity.MAXTEAMCOUNT - 1 do
@@ -67,13 +33,84 @@ function SkirmishDefense:StartActivity()
 		end
 	end
 
-	-- If there's only one Human team, set all existing doors to that team
+	local aiTeams = {};
+	for team = 0, Activity.MAXTEAMCOUNT - 1 do
+		if self:TeamActive(team) and self:TeamIsCPU(team) then
+			table.insert(aiTeams, team);
+		end
+	end
+
+	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
+	self.LZmap = require("Activities/LandingZoneMap");
+	self.LZmap:Initialize(aiTeams);
+
+	self.startTimer = Timer();
+
+	self.AI = {};
+	for _, team in ipairs(aiTeams) do
+		self.AI[team] = {};
+		-- Store data about player teams: self.AI[team].OnPlayerTeam[Act.Team] is true if "Act" is an enemy to the AI
+		self.AI[team].OnPlayerTeam = {};
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				self.AI[team].OnPlayerTeam[self:GetTeamOfPlayer(player)] = true;
+			end
+		end
+
+		self.AI[team].TechID = PresetMan:GetModuleID(self:GetTeamTech(team));
+	end
+
+	if isNewGame then
+		self:StartNewGame(aiTeams);
+	else
+		self:ResumeLoadedGame(aiTeams);
+	end
+end
+
+function SkirmishDefense:OnSave()
+	self:SaveNumber("endless", self.endless and 1 or 0);
+
+	self:SaveNumber("startTimer.ElapsedSimTimeMS", self.startTimer.ElapsedSimTimeMS);
+
+	for team, aiData in pairs(self.AI) do
+		local teamString = "ai." .. tostring(team) .. ".";
+		for aiDataKey, aiDataValue in pairs(aiData) do
+			local keyToSave = teamString .. aiDataKey;
+			if type(aiDataValue) == "number" then
+				self:SaveNumber(keyToSave, aiDataValue);
+			elseif type(aiDataValue) == "boolean" then
+				self:SaveNumber(keyToSave, aiDataValue and 1 or 0);
+			elseif type(aiDataValue) == "string" then
+				self:SaveString(keyToSave, aiDataValue);
+			end
+		end
+
+		self:SaveNumber(teamString .. "SpawnTimer.ElapsedSimTimeMS", aiData.SpawnTimer.ElapsedSimTimeMS);
+		self:SaveNumber(teamString .. "BombTimer.ElapsedSimTimeMS", aiData.BombTimer.ElapsedSimTimeMS);
+		self:SaveNumber(teamString .. "HuntTimer.ElapsedSimTimeMS", aiData.HuntTimer.ElapsedSimTimeMS);
+		self:SaveNumber(teamString .. "EngineerTimer.ElapsedSimTimeMS", aiData.EngineerTimer.ElapsedSimTimeMS);
+	end
+end
+
+function SkirmishDefense:StartNewGame(aiTeams)
+	self.addFogOfWar = self:GetFogOfWarEnabled();
+
+	-- Set all actors defined in the ini-file to sentry mode
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+			actor.AIMode = Actor.AIMODE_SENTRY;
+		end
+	end
+
 	local soleHumanTeam = -1;
 	for team = 0, Activity.MAXTEAMCOUNT - 1 do
+		self:SetTeamFunds(self:GetStartingGold(), team);
+
 		if self:TeamActive(team) and not self:TeamIsCPU(team) then
 			soleHumanTeam = soleHumanTeam == -1 and team or false;
 		end
 	end
+	-- If there's only one Human team, set all existing doors to that team
 	if soleHumanTeam ~= false and soleHumanTeam >= 0 then
 		for actor in MovableMan.AddedActors do
 			if actor.Team ~= soleHumanTeam and actor.ClassName == "ADoor" then
@@ -82,69 +119,105 @@ function SkirmishDefense:StartActivity()
 		end
 	end
 
-	-- Initialize the AI
-	local CPUTeams = {};
-	self.AI = {};
+	-- Setup AI data variables
+	for _, team in ipairs(aiTeams) do
+		self.AI[team].defeated = false;
+		self.AI[team].bombChance = math.min(math.max(self.Difficulty/100, 0), 0.95);
+		self.AI[team].SpawnTimer = Timer();
+		self.AI[team].BombTimer = Timer();
+		self.AI[team].HuntTimer = Timer();
+		self.AI[team].EngineerTimer = Timer();
+		self.AI[team].timeToSpawn = 8000 - 50 * self.Difficulty;			-- Time before the first AI spawn: from 8s to 3s
+		self.AI[team].timeToBomb = 60000 - 400 * self.Difficulty;			-- From 60s to 20s
+		self.AI[team].timeToEngineer = 60000 - 300 * self.Difficulty;		-- From 60s to 30s
+		self.AI[team].baseSpawnTime = 16000 - 50 * self.Difficulty;			-- From 16s to 10s
+		self.AI[team].randomSpawnTime = 8000 - 40 * self.Difficulty;		-- From 8s to 4s
+		self.AI[team].digToBrainProbability = 0;
 
-	for team = 0, Activity.MAXTEAMCOUNT - 1 do
-		if self:TeamActive(team) and self:TeamIsCPU(team) then
-			table.insert(CPUTeams, team);
-
-			self.AI[team] = {};
-			self.AI[team].defeated = false;
-			self.AI[team].bombChance = math.min(math.max(self.Difficulty/100, 0), 0.95);
-			self.AI[team].SpawnTimer = Timer();
-			self.AI[team].BombTimer = Timer();
-			self.AI[team].HuntTimer = Timer();
-			self.AI[team].EngineerTimer = Timer();
-			self.AI[team].timeToSpawn = 8000 - 50 * self.Difficulty;			-- Time before the first AI spawn: from 8s to 3s
-			self.AI[team].timeToBomb = 60000 - 400 * self.Difficulty;			-- From 60s to 20s
-			self.AI[team].timeToEngineer = 60000 - 300 * self.Difficulty;		-- From 60s to 30s
-			self.AI[team].baseSpawnTime = 16000 - 50 * self.Difficulty;			-- From 16s to 10s
-			self.AI[team].randomSpawnTime = 8000 - 40 * self.Difficulty;		-- From 8s to 4s
-			self.AI[team].digToBrainProbability = 0;
-
-			if self.Difficulty > 55 then
-				self.AI[team].digToBrainProbability = self.Difficulty / 320;
-			end
-
-			-- Select a tech for the CPU player
-			self.AI[team].TechID = PresetMan:GetModuleID(self:GetTeamTech(team));
-
-			-- Store data about player teams: self.AI[team].OnPlayerTeam[Act.Team] is true if "Act" is an enemy to the AI
-			self.AI[team].OnPlayerTeam = {};
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					self.AI[team].OnPlayerTeam[self:GetTeamOfPlayer(player)] = true;
-				end
-			end
-
-			-- Switch to endless mode
-			if self:GetStartingGold() > 100000 then
-				self.endless = true;
-				self:SetTeamFunds(100000, team);
-			else
-				self:SetTeamFunds(80 * self.Difficulty + 2000, team); -- AI team gold: from 2k to 10k
-			end
-		else
-			self:SetTeamFunds(self:GetStartingGold(), team);
+		if self.Difficulty > 55 then
+			self.AI[team].digToBrainProbability = self.Difficulty / 320;
 		end
 
-		-- Set initial gold for human teams
-		if self:TeamActive(team) and not self:TeamIsCPU(team) then
-			self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+		-- Switch to endless mode
+		if self:GetStartingGold() > 100000 then
+			self.endless = true;
+			self:SetTeamFunds(100000, team);
+		else
+			self:SetTeamFunds(80 * self.Difficulty + 2000, team); -- AI team gold: from 2k to 10k
 		end
 	end
 
-	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-	self.LZmap = require("Activities/LandingZoneMap");
-	self.LZmap:Initialize(CPUTeams);
-
-	self.StartTimer = Timer();
-
-	self.Fog = self:GetFogOfWarEnabled();
+	self:SetupHumanPlayerBrains();
 end
 
+function SkirmishDefense:SetupHumanPlayerBrains()
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			-- Check if we already have a brain assigned
+			if not self:GetPlayerBrain(player) then
+				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
+				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
+				if not foundBrain then
+					self.ActivityState = Activity.EDITING;
+					-- Open all doors so we can do pathfinding through them with the brain placement
+					AudioMan:ClearMusicQueue();
+					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
+				else
+					-- Set the found brain to be the selected actor at start
+					self:SetPlayerBrain(foundBrain, player);
+					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
+					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
+				end
+			end
+		end
+	end
+end
+
+function SkirmishDefense:ResumeLoadedGame(aiTeams)
+	self.endless = self:LoadNumber("endless") ~= 0;
+
+	self.startTimer.ElapsedSimTimeMS = self:LoadNumber("startTimer.ElapsedSimTimeMS");
+
+	local loadAIData = function(self, team, aiDataKey, aiDataValueType, doReturnInsteadOfSettingValue)
+		local keyToLoad = "ai." .. tostring(team) .. "." .. aiDataKey;
+		local loadedValue;
+		if aiDataValueType == "number" then
+			loadedValue = self:LoadNumber(keyToLoad);
+		elseif aiDataValueType == "boolean" then
+			loadedValue = self:LoadNumber(keyToLoad) ~= 0;
+		elseif aiDataValueType == "string" then
+			loadedValue = self:LoadString(keyToLoad);
+		end
+		if doReturnInsteadOfSettingValue then
+			return loadedValue;
+		else
+			self.AI[team][aiDataKey] = loadedValue;
+		end
+	end
+
+	for _, team in ipairs(aiTeams) do
+		self.AI[team].SpawnTimer = Timer();
+		self.AI[team].SpawnTimer.ElapsedSimTimeMS = loadAIData(self, team, "SpawnTimer.ElapsedSimTimeMS", "number", true);
+		self.AI[team].BombTimer = Timer();
+		self.AI[team].BombTimer.ElapsedSimTimeMS = loadAIData(self, team, "BombTimer.ElapsedSimTimeMS", "number", true);
+		self.AI[team].HuntTimer = Timer();
+		self.AI[team].HuntTimer.ElapsedSimTimeMS = loadAIData(self, team, "HuntTimer.ElapsedSimTimeMS", "number", true);
+		self.AI[team].EngineerTimer = Timer();
+		self.AI[team].EngineerTimer.ElapsedSimTimeMS = loadAIData(self, team, "EngineerTimer.ElapsedSimTimeMS", "number", true);
+
+		loadAIData(self, team, "defeated", "boolean");
+		loadAIData(self, team, "bombChance", "number");
+		loadAIData(self, team, "timeToSpawn", "number");
+		loadAIData(self, team, "timeToBomb", "number");
+		loadAIData(self, team, "timeToEngineer", "number");
+		loadAIData(self, team, "baseSpawnTime", "number");
+		loadAIData(self, team, "randomSpawnTime", "number");
+		loadAIData(self, team, "digToBrainProbability", "number");
+	end
+end
 
 function SkirmishDefense:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
@@ -172,14 +245,9 @@ function SkirmishDefense:UpdateActivity()
 	end
 
 	if self.ActivityState == Activity.EDITING then
-		-- Game is in editing or other modes, so open all does and reset the game running timer
-		MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-		self.StartTimer:Reset();
+		self.startTimer:Reset();
 	else
-		-- Close all doors after placing brains so our fortresses are secure
-		if not self.StartTimer:IsPastSimMS(500) then
-			MovableMan:OpenAllDoors(false, Activity.NOTEAM);
-
+		if not self.startTimer:IsPastSimMS(500) then
 			-- Make sure all actors are in sentry mode
 			for Act in MovableMan.Actors do
 				if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
@@ -197,13 +265,13 @@ function SkirmishDefense:UpdateActivity()
 				end
 			end
 
-			-- Add fog
-			if self.Fog then
-				self.Fog = false; -- only run once
+			-- Add fog of war once the game is no longer in editing mode.
+			if self.addFogOfWar then
+				self.addFogOfWar = false;
 
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(player));
+						SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(player));
 					end
 				end
 
@@ -221,13 +289,13 @@ function SkirmishDefense:UpdateActivity()
 					end
 				end
 
-				for Act in MovableMan.Actors do
+				--[[for Act in MovableMan.Actors do
 					if Act.ClassName ~= "ADoor" then
 						for ang = 0, math.pi*2, 0.15 do
 							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
 						end
 					end
-				end
+				end--]]
 			end
 		end
 
@@ -239,7 +307,7 @@ function SkirmishDefense:UpdateActivity()
 		local playertally = 0;
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				if not self.StartTimer:IsPastRealMS(3000) then
+				if not self.startTimer:IsPastSimMS(3000) then
 					FrameMan:SetScreenText("Survive the assault!", player, 333, 5000, true);
 				end
 				-- The current player's team
@@ -525,20 +593,26 @@ function SkirmishDefense:UpdateActivity()
 						else
 							local enemyPresent = false;
 							local objectives = 0;
-							for Act in MovableMan.Actors do
-								if Act.Team == team and not Act:IsDead() then
-									if Act.ClassName ~= "ADoor" then
-										enemyPresent = true;
+							local maxObjectivesToShow = 5;
+							for _, actorCollection in ipairs{MovableMan.AddedActors, MovableMan.Actors} do
+								if objectives >= maxObjectivesToShow then
+									break;
+								end
+								for Act in actorCollection do
+									if Act.Team == team and not Act:IsDead() then
+										if Act.ClassName ~= "ADoor" then
+											enemyPresent = true;
 
-										-- Add objective points
-										if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
-											objectives = objectives + 1;
-											if objectives > 3 then
-												break;
-											end
+											-- Add objective points
+											if Act.ClassName == "AHuman" or Act.ClassName == "ACrab" then
+												objectives = objectives + 1;
+												if objectives > maxObjectivesToShow then
+													break;
+												end
 
-											for team = Activity.TEAM_1, Activity.TEAM_4 do
-												self:AddObjectivePoint("Destroy!", Act.AboveHUDPos, team, GameActivity.ARROWDOWN);
+												for team = Activity.TEAM_1, Activity.TEAM_4 do
+													self:AddObjectivePoint("Destroy!", Act.AboveHUDPos, team, GameActivity.ARROWDOWN);
+												end
 											end
 										end
 									end

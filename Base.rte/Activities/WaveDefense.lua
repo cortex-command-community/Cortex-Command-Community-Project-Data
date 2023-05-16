@@ -24,8 +24,6 @@ function WaveDefense:CheckBrains()
 end
 
 function WaveDefense:StartActivity(isNewGame)
-	collectgarbage("collect");
-
 	-- Get player team
 	self.playerTeam = Activity.TEAM_1;
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -42,7 +40,7 @@ function WaveDefense:StartActivity(isNewGame)
 	self.prepareForNextWave = false;
 
 	self.Fog = self:GetFogOfWarEnabled();
-	
+
 	-- Initialize the AI
 	if self.CPUTeam ~= Activity.NOTEAM then
 		self.AI = {};
@@ -92,8 +90,6 @@ function WaveDefense:OnSave()
 
 	self:SaveNumber("AI_playerValue", self.AI.playerValue or 0);
 	self:SaveNumber("AI_lastWaveValue", self.AI.lastWaveValue or 0);
-
-	self:SaveString("AI_Tech", self.AI.Tech or "");
 end
 
 function WaveDefense:StartNewGame()
@@ -130,28 +126,8 @@ function WaveDefense:ResumeLoadedGame()
 	self.AI.playerValue = self:LoadNumber("AI_playerValue");
 	self.AI.lastWaveValue = self:LoadNumber("AI_lastWaveValue");
 
-	self.AI.Tech = self:LoadString("AI_Tech");
+	self.AI.Tech = self:GetTeamTech(self.CPUTeam);
 	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech);
-
-	for actor in MovableMan.Actors do
-		if actor.Team == self.CPUTeam then
-			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-				actor.AIMode = Actor.AIMODE_BRAINHUNT;
-			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
-				actor.AIMode = Actor.AIMODE_DELIVER;
-			end
-		end
-	end
-
-	for actor in MovableMan.AddedActors do
-		if actor.Team == self.CPUTeam then
-			if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-				actor.AIMode = Actor.AIMODE_BRAINHUNT;
-			elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
-				actor.AIMode = Actor.AIMODE_DELIVER;
-			end
-		end
-	end
 end
 
 function WaveDefense:InitWave()
@@ -230,7 +206,7 @@ function WaveDefense:UpdateActivity()
 				end
 			end
 
-			if UInputMan:KeyPressed(75) then	-- spacebar
+			if UInputMan:KeyPressed(Key.SPACE) then
 				self.prepareForNextWave = false;
 				self.ActivityState = Activity.EDITING;
 
@@ -272,7 +248,7 @@ function WaveDefense:UpdateActivity()
 			if self.Fog then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(25, 25), self:GetTeamOfPlayer(player));
+						SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(player));
 					end
 				end
 
@@ -341,7 +317,7 @@ function WaveDefense:UpdateActivity()
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
 					FrameMan:ClearScreenText(player);
-					local str = "Your brain has been destroyed by wave "..self.wave.." at "..self.Difficulty.."% difficulty";
+					local str = "Your brain has been destroyed on wave "..self.wave.." at "..self.Difficulty.."% difficulty";
 					FrameMan:SetScreenText(str, player, 333, -1, false);
 				else
 					playertally = playertally + 1;
@@ -924,7 +900,11 @@ function WaveDefense:CreateRandomInfantry()
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		if math.random() < 0.1 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			if math.random() < 0.75 then
+				Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI.Tech));
+			end
 		end
 
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
@@ -948,7 +928,11 @@ function WaveDefense:CreateLightInfantry()
 		elseif rand < 0.66 then
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		else
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			if math.random() < 0.75 then
+				Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI.Tech));
+			end
 		end
 
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
@@ -1008,7 +992,11 @@ function WaveDefense:CreateMediumInfantry()
 			Passenger:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		end
 		if math.random() < 0.1 then
-			Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			if math.random() < 0.75 then
+				Passenger:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.AI.Tech));
+			else
+				Passenger:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.AI.Tech));
+			end
 		end
 
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;

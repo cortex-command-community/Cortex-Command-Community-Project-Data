@@ -25,7 +25,7 @@ function Update(self)
 		parent = ToActor(parent);
 		--Visualize heal range
 		local healRange = self.maxHealRange * (1 - (self.WoundCount/self.GibWoundLimit));
-		if (parent:IsPlayerControlled() and parent:GetController():IsState(Controller.WEAPON_FIRE)) or #self.healTargets > 0 then
+		if (parent:IsPlayerControlled() and parent:GetController():IsState(Controller.WEAPON_FIRE)) then
 			local screen = ActivityMan:GetActivity():ScreenOfPlayer(parent:GetController().Player);
 			if screen ~= -1 then
 				self.visual.Rotation = self.visual.Rotation - self.visual.RPM/(TimerMan.DeltaTimeMS * 0.5);
