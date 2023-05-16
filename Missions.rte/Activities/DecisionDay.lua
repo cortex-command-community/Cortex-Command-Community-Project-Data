@@ -161,7 +161,7 @@ function DecisionDay:StartActivity(isNewGame)
 			totalArea = scene:GetArea(bunkerRegionName),
 			captureArea = scene:GetArea(bunkerRegionName .. " Capture"),
 			captureDisplayArea = scene:GetArea(bunkerRegionName .. " Capture Display"),
-			internalReinforcementsArea = SceneMan.Scene:HasArea(bunkerRegionName .. " Internal Reinforcements") and scene:GetOptionalArea(bunkerRegionName .. " Internal Reinforcements") or nil,
+			internalReinforcementsArea = scene:HasArea(bunkerRegionName .. " Internal Reinforcements") and scene:GetOptionalArea(bunkerRegionName .. " Internal Reinforcements") or nil,
 			defenderArea = scene:GetArea(bunkerRegionName .. " Defenders"),
 			ownerTeam = self.aiTeam,
 			hasBeenCapturedAtLeastOnceByHumanTeam = false,
@@ -169,21 +169,27 @@ function DecisionDay:StartActivity(isNewGame)
 			captureLimit = 600 * self.difficultyRatio,
 			aiRegionDefenseTimer = Timer(45000 / self.difficultyRatio, 45000 / self.difficultyRatio),
 			aiRegionAttackTimer = Timer(60000 / self.difficultyRatio),
-			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0;
+			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
+			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
+			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Shield") or nil,
+			brainDoor = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Brain Door") or nil,
+			brain = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Brain") or nil,
 		};
 		if bunkerRegionName:find("Vault") then
 			self.bunkerRegions[bunkerRegionName].incomeMultiplier = bunkerRegionName:find("Large") and 2 or (bunkerRegionName:find("Medium") and 1.5 or 1);
 		end
-		if bunkerRegionName == "Main Bunker Command Center" then
-			self.bunkerRegions[bunkerRegionName].shieldedArea = scene:GetArea(bunkerRegionName .. " Shield");
-			self.bunkerRegions[bunkerRegionName].brainDoor = scene:GetArea(bunkerRegionName .. " Brain Door");
-			self.bunkerRegions[bunkerRegionName].brain = scene:GetArea(bunkerRegionName .. " Brain");
+		if bunkerRegionName == "Main Bunker Command Center" and self.bunkerRegions[bunkerRegionName].brainDoor ~= nil then
 			for movableObject in MovableMan:GetMOsInBox(self.bunkerRegions[bunkerRegionName].brainDoor.FirstBox, -1, true) do
 				if IsADoor(movableObject) then
+					MovableMan:ChangeActorTeam(ToActor(movableObject), self.aiTeam);
 					ToADoor(movableObject).Status = Actor.INACTIVE;
 					ToADoor(movableObject):CloseDoor();
 				end
 			end
+		end
+		if self.bunkerRegions[bunkerRegionName].fauxdanDisplayArea ~= nil then
+			self.bunkerRegions[bunkerRegionName].fauxdanDisplayTimer = Timer(250);
+			self.bunkerRegions[bunkerRegionName].fauxdanDisplayCurrentFrame = 0;
 		end
 	end
 	
@@ -311,6 +317,7 @@ function DecisionDay:StartActivity(isNewGame)
 	
 	self.bunkerRegions["Front Bunker Operations"].enabled = true;
 	self.bunkerRegions["Front Bunker Small Vault"].enabled = true;
+	self.bunkerRegions["Main Bunker Command Center"].enabled = true;
 	--]]
 end
 
@@ -709,7 +716,7 @@ function DecisionDay:UpdateCamera()
 	for _, player in pairs(self.humanPlayers) do
 		local adjustedCameraMinimumX = self.cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
 		if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
+			--CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
 		end
 	end
 	
@@ -1014,16 +1021,36 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 	end
 	
 	for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
-		if bunkerRegionData.enabled and bunkerRegionData.captureCount > 0 then
-			local numberOfLoginScreenFrames = 21;
-			local currentLoginScreenFrameString = "00" .. tostring(math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * numberOfLoginScreenFrames));
-			if currentLoginScreenFrameString:len() > 3 then
-				currentLoginScreenFrameString = string.sub(currentLoginScreenFrameString, currentLoginScreenFrameString:len() - 2);
+		if bunkerRegionData.enabled then
+			if bunkerRegionData.captureCount > 0 then
+				local numberOfLoginScreenFrames = 21;
+				local currentLoginScreenFrameString = "00" .. tostring(math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * numberOfLoginScreenFrames));
+				if currentLoginScreenFrameString:len() > 3 then
+					currentLoginScreenFrameString = string.sub(currentLoginScreenFrameString, currentLoginScreenFrameString:len() - 2);
+				end
+				currentLoginScreenFrameString = "Missions.rte/Objects/LoginScreen/LoginScreen" .. currentLoginScreenFrameString .. ".png";
+				for box in bunkerRegionData.captureDisplayArea.Boxes do
+					PrimitiveMan:DrawBitmapPrimitive(SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentLoginScreenFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+				end
 			end
-			currentLoginScreenFrameString = "Missions.rte/Objects/LoginScreen/LoginScreen" .. currentLoginScreenFrameString .. ".png";
-			for box in bunkerRegionData.captureDisplayArea.Boxes do
-				PrimitiveMan:DrawBitmapPrimitive(SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentLoginScreenFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+			if bunkerRegionData.fauxdanDisplayArea ~= nil then
+				local numberOfFauxdanDisplayFrames = 20;
+				if bunkerRegionData.fauxdanDisplayTimer:IsPastSimTimeLimit() then
+					bunkerRegionData.fauxdanDisplayCurrentFrame = (bunkerRegionData.fauxdanDisplayCurrentFrame + 1) % (numberOfFauxdanDisplayFrames + 1);
+					bunkerRegionData.fauxdanDisplayTimer:Reset();
+				end
+				local currentFauxdanDisplayFrameString = "00" .. tostring(bunkerRegionData.fauxdanDisplayCurrentFrame);
+				if currentFauxdanDisplayFrameString:len() > 3 then
+					currentFauxdanDisplayFrameString = string.sub(currentFauxdanDisplayFrameString, currentFauxdanDisplayFrameString:len() - 2);
+				end
+				currentFauxdanDisplayFrameString = "Missions.rte/Objects/Fauxdan/Fauxdan" .. currentFauxdanDisplayFrameString .. ".png";
+				for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
+					PrimitiveMan:DrawBitmapPrimitive(SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentFauxdanDisplayFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+				end
 			end
+		elseif bunkerRegionData.fauxdanDisplayArea ~= nil then
+			bunkerRegionData.fauxdanDisplayTimer:Reset();
+			bunkerRegionData.fauxdanDisplayCurrentFrame = 0;
 		end
 	end
 end
