@@ -1021,30 +1021,41 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 	
 	for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
 		if bunkerRegionData.enabled then
-			if bunkerRegionData.captureCount > 0 then
-				local numberOfLoginScreenFrames = 21;
-				local currentLoginScreenFrameString = "00" .. tostring(math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * numberOfLoginScreenFrames));
-				if currentLoginScreenFrameString:len() > 3 then
-					currentLoginScreenFrameString = string.sub(currentLoginScreenFrameString, currentLoginScreenFrameString:len() - 2);
-				end
-				currentLoginScreenFrameString = "Missions.rte/Objects/LoginScreen/LoginScreen" .. currentLoginScreenFrameString .. ".png";
-				for box in bunkerRegionData.captureDisplayArea.Boxes do
-					PrimitiveMan:DrawBitmapPrimitive(SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentLoginScreenFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
-				end
-			end
-			if bunkerRegionData.fauxdanDisplayArea ~= nil then
+			if bunkerRegionData.fauxdanDisplayTimer ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and bunkerRegionData.fauxdanDisplayTimer:IsPastSimTimeLimit() then
 				local numberOfFauxdanDisplayFrames = 20;
-				if bunkerRegionData.fauxdanDisplayTimer:IsPastSimTimeLimit() then
-					bunkerRegionData.fauxdanDisplayCurrentFrame = (bunkerRegionData.fauxdanDisplayCurrentFrame + 1) % (numberOfFauxdanDisplayFrames + 1);
-					bunkerRegionData.fauxdanDisplayTimer:Reset();
-				end
-				local currentFauxdanDisplayFrameString = "00" .. tostring(bunkerRegionData.fauxdanDisplayCurrentFrame);
-				if currentFauxdanDisplayFrameString:len() > 3 then
-					currentFauxdanDisplayFrameString = string.sub(currentFauxdanDisplayFrameString, currentFauxdanDisplayFrameString:len() - 2);
-				end
-				currentFauxdanDisplayFrameString = "Missions.rte/Objects/Fauxdan/Fauxdan" .. currentFauxdanDisplayFrameString .. ".png";
-				for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
-					PrimitiveMan:DrawBitmapPrimitive(SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentFauxdanDisplayFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+				bunkerRegionData.fauxdanDisplayCurrentFrame = (bunkerRegionData.fauxdanDisplayCurrentFrame + 1) % (numberOfFauxdanDisplayFrames + 1);
+				bunkerRegionData.fauxdanDisplayTimer:Reset();
+			end
+			
+			local currentFauxdanDisplayFrameString;
+			local currentLoginScreenFrameString;
+			for _, player in pairs(self.humanPlayers) do
+				if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
+					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam then
+						if currentFauxdanDisplayFrameString == nil then
+							currentFauxdanDisplayFrameString = "00" .. tostring(bunkerRegionData.fauxdanDisplayCurrentFrame);
+							if currentFauxdanDisplayFrameString:len() > 3 then
+								currentFauxdanDisplayFrameString = string.sub(currentFauxdanDisplayFrameString, currentFauxdanDisplayFrameString:len() - 2);
+							end
+							currentFauxdanDisplayFrameString = "Missions.rte/Objects/Fauxdan/Fauxdan" .. currentFauxdanDisplayFrameString .. ".png";
+						end
+						for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
+							PrimitiveMan:DrawBitmapPrimitive(player, SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentFauxdanDisplayFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+						end
+					end
+					if bunkerRegionData.captureCount > 0 then
+						if currentLoginScreenFrameString == nil then
+							local numberOfLoginScreenFrames = 21;
+							local currentLoginScreenFrameString = "00" .. tostring(math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * numberOfLoginScreenFrames));
+							if currentLoginScreenFrameString:len() > 3 then
+								currentLoginScreenFrameString = string.sub(currentLoginScreenFrameString, currentLoginScreenFrameString:len() - 2);
+							end
+							currentLoginScreenFrameString = "Missions.rte/Objects/LoginScreen/LoginScreen" .. currentLoginScreenFrameString .. ".png";
+						end
+						for box in bunkerRegionData.captureDisplayArea.Boxes do
+							PrimitiveMan:DrawBitmapPrimitive(player, SceneMan:SnapPosition(box.Center, true) + Vector(0, 0), currentLoginScreenFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+						end
+					end
 				end
 			end
 		elseif bunkerRegionData.fauxdanDisplayArea ~= nil then
