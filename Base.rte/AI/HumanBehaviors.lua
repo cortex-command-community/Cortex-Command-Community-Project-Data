@@ -2214,15 +2214,6 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 		Owner.HFlipped = true;
 	end
 
-	-- alert nearby allies	TODO: do this better engine-side
-	for i = 0.95, 0.5, -0.4 do
-		local Alert = CreateTDExplosive("Alert Device "..math.random(3), "Base.rte");
-		Alert.Pos = Owner.Pos + Dist * i;
-		Alert.Team = AI.Target.Team;
-		Alert:Activate();
-		MovableMan:AddParticle(Alert);
-	end
-
 	local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
 	if _abrt then return true end
 
