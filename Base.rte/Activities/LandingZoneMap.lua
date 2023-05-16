@@ -487,7 +487,7 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 
 	-- measure the distance to the destination
 	for k, LZ in pairs(GoodLZs) do
-		if SceneMan.Scene:CalculatePath(Vector(LZ.X, LZ.Y), Destination, false, digStrenght) > -1 then
+		if SceneMan.Scene:CalculatePath(Vector(LZ.X, LZ.Y), Destination, false, digStrenght, team) > -1 then
 			local Path = {};
 			for Wpt in SceneMan.Scene.ScenePath do
 				table.insert(Path, Wpt);
@@ -653,7 +653,7 @@ function LandingZoneMap:FindStartLZ(team, OccupiedLZs)
 		distance = nil;
 		local PosLZ = Vector(LZ.X, LZ.Y);
 		for _, PosEnemy in pairs(EnemyLocations) do
-			local wpts = SceneMan.Scene:CalculatePath(PosEnemy, PosLZ, false, 1);
+			local wpts = SceneMan.Scene:CalculatePath(PosEnemy, PosLZ, false, 1, team);
 			if wpts > -1 then
 				if distance then
 					distance = math.min(wpts, distance);

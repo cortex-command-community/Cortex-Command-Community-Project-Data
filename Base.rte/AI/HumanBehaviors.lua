@@ -951,7 +951,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		local DevicesToPickUp = {};
 		for _, Item in pairs(Devices) do
 			if MovableMan:ValidMO(Item) then
-				waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1);
+				waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1, Owner.Team);
 				if waypoints < minDist and waypoints > -1 then
 					-- estimate the walking distance to the item
 					if Item:HasObjectInGroup("Weapons - Primary") then
@@ -1062,7 +1062,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		for _, Item in pairs(Devices) do
 			if MovableMan:ValidMO(Item) and Item:HasObjectInGroup("Tools - Diggers") then
 				-- estimate the walking distance to the item
-				local waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1);
+				local waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1, Owner.Team);
 				if waypoints < minDist and waypoints > -1 then
 					table.insert(DevicesToPickUp, {HD=Item, score=waypoints});
 				end
