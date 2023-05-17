@@ -1046,14 +1046,14 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 					if bunkerRegionData.captureCount > 0 then
 						if currentLoginScreenFrameString == nil then
 							local numberOfLoginScreenFrames = 21;
-							local currentLoginScreenFrameString = "00" .. tostring(math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * numberOfLoginScreenFrames));
+							currentLoginScreenFrameString = "00" .. tostring(math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * numberOfLoginScreenFrames));
 							if currentLoginScreenFrameString:len() > 3 then
 								currentLoginScreenFrameString = string.sub(currentLoginScreenFrameString, currentLoginScreenFrameString:len() - 2);
 							end
 							currentLoginScreenFrameString = "Missions.rte/Objects/LoginScreen/LoginScreen" .. currentLoginScreenFrameString .. ".png";
 						end
 						for box in bunkerRegionData.captureDisplayArea.Boxes do
-							PrimitiveMan:DrawBitmapPrimitive(player, SceneMan:SnapPosition(box.Center, true) + Vector(0, 0), currentLoginScreenFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+							PrimitiveMan:DrawBitmapPrimitive(player, SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentLoginScreenFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
 						end
 					end
 				end
