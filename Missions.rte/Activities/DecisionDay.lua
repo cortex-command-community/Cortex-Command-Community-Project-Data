@@ -320,9 +320,8 @@ function DecisionDay:StartActivity(isNewGame)
 	--]]
 end
 
-function DecisionDay:OnSave()
-	
-end
+--function DecisionDay:OnSave()
+--end
 
 function DecisionDay:StartNewGame()
 	self:SetTeamFunds(0, self.humanTeam);
@@ -355,7 +354,7 @@ function DecisionDay:StartNewGame()
 	
 	self.cameraMinimumX = self.initialDropShipSpawnArea.Center.X - 50;
 	
-	--self:SetupFogOfWar();
+	self:SetupFogOfWar();
 	
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Pos = Vector();
@@ -715,7 +714,7 @@ function DecisionDay:UpdateCamera()
 	for _, player in pairs(self.humanPlayers) do
 		local adjustedCameraMinimumX = self.cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
 		if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-			--CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
+			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
 		end
 	end
 	
@@ -822,7 +821,6 @@ function DecisionDay:UpdateCamera()
 	
 	--TODO maybe use the camera scroll sounds that come with the game!
 	if scrollTargetAndSpeed then
-		scrollTargetAndSpeed[1].X = scrollTargetAndSpeed[1].X + (0.5 * (FrameMan.PlayerScreenWidth - 960)); -- Development was done at 960x540 upscaled, so scroll targets are based on that, and then different screen sizes are compensated for with here.
 		for _, player in pairs(self.humanPlayers) do
 			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], false, player);
 		end
