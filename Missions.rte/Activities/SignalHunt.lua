@@ -495,7 +495,7 @@ function SignalHunt:UpdateActivity()
 			self.evacuationRocket.Pos = Vector(self.humanLZ:GetCenterPoint().X, -100);
 			self.evacuationRocket.Team = self.humanTeam;
 			self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
-			rocket.HUDVisible = false;
+			self.evacuationRocket.HUDVisible = false;
 			self.evacuationRocket.PlayerControllable = false;
 			self.evacuationRocket.AIMode = Actor.AIMODE_STAY;
 			self.evacuationRocket:SetGoldValue(0);
