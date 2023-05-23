@@ -1376,7 +1376,7 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	end
 
 	if forceCentring or actorDirection == directionToUseForCentering or actorDirection == self.oppositeDirections[directionToUseForCentering] then
-		local actorSizeCenteringAdjustment = Vector(0, math.min(24, math.max(0, actor.Radius - 24)));
+		local actorSizeCenteringAdjustment = Vector(0, math.min(24, math.max(0, actor.Radius - 32)));
 		if IsACRocket(actor) or IsACDropShip(actor) then
 			actorSizeCenteringAdjustment.Y = 0;
 		end
