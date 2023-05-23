@@ -32,7 +32,6 @@ function Automovers_AddNode(node)
 		end
 
 		teamAutomoverData.nodeData[node] = {
-			connectedNodeCount = 0,
 			size = Vector(),
 			zoneBox,
 			zoneInternalBox,
@@ -44,7 +43,6 @@ function Automovers_AddNode(node)
 			teamAutomoverData.teleporterNodes[node] = true;
 			teamAutomoverData.teleporterNodesCount = teamAutomoverData.teleporterNodesCount + 1;
 		end
-		teamAutomoverData.nodeDataCount = teamAutomoverData.nodeDataCount + 1;
 
 		local width = node:NumberValueExists("ZoneWidth") and node:GetNumberValue("ZoneWidth") or automoverDefaultNodeSize;
 		local height = node:NumberValueExists("ZoneHeight") and node:GetNumberValue("ZoneHeight") or automoverDefaultNodeSize;
@@ -84,19 +82,25 @@ function Automovers_RemoveNode(node)
 	end
 end
 
-local function targetNodeIsNotObstructed(startNode, targetNode, direction, nodeZoneSize)
-	local checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
+local function pathBetweenNodesIsNotObstructed(startNode, targetNode, direction)
+	local teamAutomoverData = AutomoverData[startNode.Team];
+	
+	local startNodeData = teamAutomoverData.nodeData[startNode];
+	local targetNodeData = teamAutomoverData.nodeData[targetNode];
+	local smallerNodeZoneSize = Vector(math.min(startNodeData.size.X, targetNodeData.size.X), math.min(startNodeData.size.Y, targetNodeData.size.Y));
 
 	local spreadRaysHorizontally = direction == Directions.Up or direction == Directions.Down;
 	local rayOffsets = {
-		spreadRaysHorizontally and Vector(-nodeZoneSize.X * 0.25, 0) or Vector(0, -nodeZoneSize.Y * 0.25),
+		spreadRaysHorizontally and Vector(-smallerNodeZoneSize.X * 0.25, 0) or Vector(0, -smallerNodeZoneSize.Y * 0.25),
 		Vector(),
-		spreadRaysHorizontally and Vector(nodeZoneSize.X * 0.25, 0) or Vector(0, nodeZoneSize.Y * 0.25),
+		spreadRaysHorizontally and Vector(smallerNodeZoneSize.X * 0.25, 0) or Vector(0, smallerNodeZoneSize.Y * 0.25),
 	};
 
-	local rayVector = SceneMan:ShortestDistance(startNode.Pos, targetNode.Pos, checkWrapping);
+	local checkWrapping = SceneMan.SceneWrapsX or SceneMan.SceneWrapsY;
+	local rayVector1 = SceneMan:ShortestDistance(startNode.Pos, targetNode.Pos, checkWrapping);
+	local rayVector2 = SceneMan:ShortestDistance(targetNode.Pos, startNode.Pos, checkWrapping);
 	for _, rayOffset in ipairs(rayOffsets) do
-		if SceneMan:CastStrengthRay(startNode.Pos + rayOffset, rayVector, 15, Vector(), 4, 0, true) then
+		if SceneMan:CastStrengthRay(startNode.Pos + rayOffset, rayVector1, 15, Vector(), 4, 0, true) or SceneMan:CastStrengthRay(targetNode.Pos + rayOffset, rayVector2, 15, Vector(), 4, 0, true) then
 			return false;
 		end
 	end
@@ -139,22 +143,18 @@ function Automovers_CheckConnections(node)
 		local distanceToClosestNode;
 		for _, nodeInDirection in pairs(nodesInDirection) do
 			local distanceToNode = SceneMan:ShortestDistance(node.Pos, nodeInDirection.Pos, checkWrapping);
-			if (distanceToClosestNode == nil or distanceToNode.SqrMagnitude < distanceToClosestNode.SqrMagnitude) and targetNodeIsNotObstructed(node, nodeInDirection, direction, nodeData.size) then
+			if (distanceToClosestNode == nil or distanceToNode.SqrMagnitude < distanceToClosestNode.SqrMagnitude) then
 				closestNode = nodeInDirection;
 				distanceToClosestNode = distanceToNode;
 			end
 		end
-
-		if closestNode ~= nil then
-			if not nodeData.connectedNodeData[direction] then
-				nodeData.connectedNodeCount = nodeData.connectedNodeCount + 1;
-			end
+		
+		if closestNode ~= nil and pathBetweenNodesIsNotObstructed(node, closestNode, direction, nodeData.size) then
+			affectedNodes[direction] = closestNode;
 			nodeData.connectedNodeData[direction] = { node = closestNode, distance = distanceToClosestNode };
 			if nodeData.connectingAreas[direction] == nil then
 				nodeData.connectingAreas[direction] = Area();
 			end
-
-			affectedNodes[direction] = closestNode;
 		end
 	end
 	return affectedNodes;

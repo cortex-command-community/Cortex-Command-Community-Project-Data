@@ -433,19 +433,18 @@ automoverUtilityFunctions.updateActivityEditingMode = function(self)
 end
 
 automoverUtilityFunctions.checkForObstructions = function(self)
-	local coroutineIsDead, obstructionsFound = coroutine.resume(self.obstructionCheckCoroutine, self);
-	if not coroutineIsDead and not obstructionsFound then
-		self.obstructionsFound = self.obstructionsFound or obstructionsFound;
-		self.obstructionCheckTimer:SetSimTimeLimitMS(100);
-	else
+	local coroutineIsDead, connectionChangesFound = coroutine.resume(self.obstructionCheckCoroutine, self);
+	if connectionChangesFound then
+		coroutineIsDead = true;
+		self.allBoxesAdded = false;
+		self.allPathsAdded = false;
+	end
+	
+	if coroutineIsDead then
 		self.obstructionCheckCoroutine = coroutine.create(self.checkAllObstructions);
 		self.obstructionCheckTimer:SetSimTimeLimitMS(10000);
-
-		if self.obstructionsFound then
-			self.allBoxesAdded = false;
-			self.allPathsAdded = false;
-			self.obstructionsFound = false;
-		end
+	else
+		self.obstructionCheckTimer:SetSimTimeLimitMS(100);
 	end
 end
 
@@ -455,7 +454,7 @@ automoverUtilityFunctions.checkAllObstructions = function(self)
 	local nodeConnectionsHaveChanged = false;
 	local checkedNodeCount = 0;
 
-	local oppositeDirectionTable = {
+	local oppositeDirections = {
 		[Directions.Up] = Directions.Down,
 		[Directions.Down] = Directions.Up,
 		[Directions.Left] = Directions.Right,
@@ -463,23 +462,26 @@ automoverUtilityFunctions.checkAllObstructions = function(self)
 	};
 
 	for node, nodeData in pairs(teamNodeTable) do
-		local previousConnectedNodeCount = nodeData.connectedNodeCount;
-		nodeData.connectedNodeCount = 0;
+		local previousConnectedNodeData = nodeData.connectedNodeData;
 		nodeData.connectedNodeData = {};
 
 		local nodesAffectedByThisAutomover = Automovers_CheckConnections(node);
-		if nodesAffectedByThisAutomover then
+		if nodesAffectedByThisAutomover ~= nil then
 			for direction, affectedNode in pairs(nodesAffectedByThisAutomover) do
 				local affectedNodeTable = teamNodeTable[affectedNode];
-				affectedNodeTable.connectedNodeCount = affectedNodeTable.connectedNodeCount - 1;
-				affectedNodeTable.connectedNodeData[oppositeDirectionTable[direction]] = nil;
+				affectedNodeTable.connectedNodeData[oppositeDirections[direction]] = nil;
 				Automovers_CheckConnections(affectedNode);
 			end
 		end
 
-		if previousConnectedNodeCount ~= nodeData.connectedNodeCount then
-			nodeConnectionsHaveChanged = true;
+		for direction, _ in pairs(oppositeDirections) do
+			if type(previousConnectedNodeData[direction]) ~= type(nodeData.connectedNodeData[direction]) then
+				nodeConnectionsHaveChanged = true;
+				self.visualEffectsData[node] = {};
+				break;
+			end
 		end
+		
 
 		checkedNodeCount = checkedNodeCount + 1;
 		if checkedNodeCount % 5 == 0 then
@@ -1217,8 +1219,8 @@ automoverActorFunctions.handleTeleportingActorToAppropriateTeleporterForWaypoint
 		if not actorHasTeleported then
 			self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData, true);
 		end
-		self:updateFrozenActor(actorData);
 		actor:FlashWhite(100);
+		self:updateFrozenActor(actorData);
 	end
 end
 
