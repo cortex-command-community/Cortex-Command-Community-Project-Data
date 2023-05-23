@@ -197,29 +197,29 @@ function Update(self)
 							actor:RemoveNumberValue("Automover_ChooseTeleporter");
 						end
 
-						if actor:IsPlayerControlled() then
-							local closestNode = self:findClosestNode(actor.Pos, nil, false, false, false, nil);
-							if closestNode ~= nil and AutomoverData[self.Team].teleporterNodes[closestNode] ~= nil and AutomoverData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
-								actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice:Clone(), self);
-							else
-								actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
-							end
-
-							if actorData.manualTeleporterData then
-								self:chooseTeleporterForPlayerControlledActor(actorData);
-								actorData.movementMode = self.movementModes.teleporting;
-							else
-								actorData.movementMode = self.movementModes.freeze;
-							end
-
-							if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
-								self:updateDirectionsFromActorControllerInput(actorData);
-							end
-						elseif actorData.movementMode ~= self.movementModes.leaveAutomovers then
-							self:updateDirectionsFromWaypoints(actorData);
-						end
-
 						if actorData.movementMode ~= self.movementModes.leaveAutomovers then
+							if actor:IsPlayerControlled() then
+								local closestNode = self:findClosestNode(actor.Pos, nil, false, false, false, nil);
+								if closestNode ~= nil and AutomoverData[self.Team].teleporterNodes[closestNode] ~= nil and AutomoverData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
+									actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice:Clone(), self);
+								else
+									actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
+								end
+
+								if actorData.manualTeleporterData then
+									self:chooseTeleporterForPlayerControlledActor(actorData);
+									actorData.movementMode = self.movementModes.teleporting;
+								else
+									actorData.movementMode = self.movementModes.freeze;
+								end
+
+								if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
+									self:updateDirectionsFromActorControllerInput(actorData);
+								end
+							elseif actorData.movementMode ~= self.movementModes.leaveAutomovers then
+								self:updateDirectionsFromWaypoints(actorData);
+							end
+
 							local actorController = actor:GetController();
 							actorController:SetState(Controller.MOVE_LEFT, false);
 							actorController:SetState(Controller.MOVE_RIGHT, false);
