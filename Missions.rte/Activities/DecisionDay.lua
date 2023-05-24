@@ -352,12 +352,15 @@ function DecisionDay:StartNewGame()
 	
 	self.cameraMinimumX = self.initialDropShipSpawnArea.Center.X - 50;
 	
+
 	self:SetupFogOfWar();
-	
+
+	self:SetupStorageCrateInventories();
+
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Pos = Vector();
 	automoverController.Team = self.aiTeam;
-	automoverController:SetNumberValue("HumansRemainUpright", 1);
+	--automoverController:SetNumberValue("HumansRemainUpright", 1);
 	MovableMan:AddActor(automoverController);
 	
 	for box in self.initialDeadBodiesArea.Boxes do
@@ -427,6 +430,50 @@ function DecisionDay:SetupFogOfWar()
 		for actor in MovableMan.AddedActors do
 			for angle = 0, math.pi * 2, 0.05 do
 				SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 1, 4);
+			end
+		end
+	end
+end
+
+function DecisionDay:SetupStorageCrateInventories()
+	for actor in MovableMan.AddedActors do
+		if actor.PresetName:find("Decision Day Storage Crate") then
+			for i = 1, 99 do
+				local inventoryTypeString = "Inventory" .. tostring(i) .. "Type";
+
+				if actor:StringValueExists(inventoryTypeString) then
+					local inventoryType = actor:GetStringValue(inventoryTypeString);
+
+					local inventoryPresetNameString = "Inventory" .. tostring(i) .. "PresetName";
+					local inventoryPresetName = actor:StringValueExists(inventoryPresetNameString) and actor:GetStringValue(inventoryPresetNameString) or nil;
+
+					local inventoryGroupString = "Inventory" .. tostring(i) .. "Group";
+					local inventoryGroup = actor:StringValueExists(inventoryGroupString) and actor:GetStringValue(inventoryGroupString) or nil;
+
+					local inventoryInfantryTypeString = "Inventory" .. tostring(i) .. "InfantryType";
+					local inventoryInfantryType = actor:StringValueExists(inventoryInfantryTypeString) and actor:GetStringValue(inventoryInfantryTypeString) or nil;
+
+					local inventoryCountString = "Inventory" .. tostring(i) .. "Count";
+					local inventoryCount = actor:NumberValueExists(inventoryCountString) and actor:GetNumberValue(inventoryCountString) or 1;
+					for _ = 1, inventoryCount do
+						local inventoryItem;
+						if inventoryPresetName ~= nil then
+							inventoryItem = _G["Create" .. inventoryType](inventoryPresetName);
+						elseif inventoryGroup ~= nil then
+							inventoryItem = _G["Random" .. inventoryType](inventoryGroup, self.humanTeamTech);
+						elseif inventoryInfantryTypeString ~= nil then
+							inventoryItem = self:CreateInfantry(self.humanTeam, inventoryInfantryType);
+							inventoryItem.PlayerControllable = true;
+						end
+
+						if inventoryItem ~= nil then
+							inventoryItem.Team = self.humanTeam;
+							actor:AddInventoryItem(inventoryItem);
+						end
+					end
+				else
+					break;
+				end
 			end
 		end
 	end
