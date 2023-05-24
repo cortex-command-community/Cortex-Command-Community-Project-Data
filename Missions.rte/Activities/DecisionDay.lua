@@ -178,15 +178,6 @@ function DecisionDay:StartActivity(isNewGame)
 		if bunkerRegionName:find("Vault") then
 			self.bunkerRegions[bunkerRegionName].incomeMultiplier = bunkerRegionName:find("Large") and 2 or (bunkerRegionName:find("Medium") and 1.5 or 1);
 		end
-		if bunkerRegionName == "Main Bunker Command Center" and self.bunkerRegions[bunkerRegionName].brainDoor ~= nil then
-			for movableObject in MovableMan:GetMOsInBox(self.bunkerRegions[bunkerRegionName].brainDoor.FirstBox, -1, true) do
-				if IsADoor(movableObject) then
-					MovableMan:ChangeActorTeam(ToActor(movableObject), self.aiTeam);
-					ToADoor(movableObject).Status = Actor.INACTIVE;
-					ToADoor(movableObject):CloseDoor();
-				end
-			end
-		end
 		if self.bunkerRegions[bunkerRegionName].fauxdanDisplayArea ~= nil then
 			self.bunkerRegions[bunkerRegionName].fauxdanDisplayTimer = Timer(250);
 			self.bunkerRegions[bunkerRegionName].fauxdanDisplayCurrentFrame = 0;
@@ -295,8 +286,15 @@ function DecisionDay:StartActivity(isNewGame)
 	self.popoutTurretTemplate.RotAngle = math.pi * 0.25;
 	self.popoutTurretTemplate.AimRangeUpperLimit = 0;
 	self.popoutTurretTemplate.AimRangeLowerLimit = math.pi * 0.75;
-	
-	if isNewGame then		
+
+	-- Hangar doors are set to inactive so they don't randomly open and close, since they're useless.
+	for actor in MovableMan.AddedActors do
+		if IsADoor(actor) and actor.PresetName == "Door Rotate Long" then
+			actor.Status = Actor.INACTIVE;
+		end
+	end
+
+	if isNewGame then
 		self:StartNewGame();
 	else
 		self:ResumeLoadedGame();
@@ -655,7 +653,14 @@ function DecisionDay:UpdateCurrentStage()
 				movableObject.ToDelete = true;
 			end
 		end
-		
+		for movableObject in MovableMan:GetMOsInBox(self.bunkerRegions["Main Bunker Command Center"].brainDoor.FirstBox, -1, true) do
+			if IsADoor(movableObject) then
+				MovableMan:ChangeActorTeam(ToActor(movableObject), self.aiTeam);
+				ToADoor(movableObject).Status = Actor.INACTIVE;
+				ToADoor(movableObject):CloseDoor();
+			end
+		end
+
 		self.aiData.brainSpawned = true;
 		self.aiData.brain = CreateActor("Brain Case", "Base.rte");
 		self.aiData.brain.Team = self.aiTeam;
