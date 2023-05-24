@@ -602,9 +602,9 @@ function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(numb
 	end
 
 	local internalReinforcementPositionsToEnemyTargets = {};
-	local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 	for _, enemyToTarget in ipairs(enemiesToTarget) do
 		local internalReinforcementPositionForEnemy;
+		local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 		for _, internalReinforcementPosition in pairs(self.AI.internalReinforcementPositions) do
 			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, false, GetPathFindingDefaultDigStrength(), self.CPUTeam);
 			if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
