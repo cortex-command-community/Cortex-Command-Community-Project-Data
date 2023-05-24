@@ -433,7 +433,8 @@ automoverUtilityFunctions.updateActivityEditingMode = function(self)
 end
 
 automoverUtilityFunctions.checkForObstructions = function(self)
-	local coroutineIsDead, connectionChangesFound = coroutine.resume(self.obstructionCheckCoroutine, self);
+	local _, connectionChangesFound = coroutine.resume(self.obstructionCheckCoroutine, self);
+	local coroutineIsDead = coroutine.status(self.obstructionCheckCoroutine) == "dead";
 	if connectionChangesFound then
 		coroutineIsDead = true;
 		self.allBoxesAdded = false;
