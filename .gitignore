@@ -53,12 +53,10 @@ CortexCommand_debug
 .DS_Store
 
 .vs/
-_Screenshots/
+Screenshots/
+Mods/
+Userdata/
 Base.rte/Settings.ini
-Benchmark.rte/
-UserSavesConquest.rte/
-UserSavedGames.rte/
-UserScenes.rte/
 DedicatedServerDebug.bat
 
 allegro.log
