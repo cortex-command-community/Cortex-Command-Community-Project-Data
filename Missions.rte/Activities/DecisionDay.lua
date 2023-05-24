@@ -172,7 +172,7 @@ function DecisionDay:StartActivity(isNewGame)
 			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
 			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
 			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Shield") or nil,
-			brainDoor = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Brain Door") or nil,
+			brainDoor = scene:HasArea(bunkerRegionName .. " Brain Door") and scene:GetOptionalArea(bunkerRegionName .. " Brain Door") or nil,
 			brain = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Brain") or nil,
 		};
 		if bunkerRegionName:find("Vault") then
@@ -1034,7 +1034,7 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 			local currentLoginScreenFrameString;
 			for _, player in pairs(self.humanPlayers) do
 				if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
-					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam then
+					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage == self.stages.attackBrain then
 						if currentFauxdanDisplayFrameString == nil then
 							currentFauxdanDisplayFrameString = "00" .. tostring(bunkerRegionData.fauxdanDisplayCurrentFrame);
 							if currentFauxdanDisplayFrameString:len() > 3 then
@@ -1165,7 +1165,7 @@ function DecisionDay:UpdateRegionCapturing()
 									self.mainBunkerShieldedAreaFOWTimer.ElapsedSimTimeMS = self.mainBunkerShieldedAreaFOWTimer:GetSimTimeLimitMS();
 								end
 							end
-							self:UpdateAndCleanupDataTables(self.ownerTeam == self.humanTeam and self.aiTeam or self.humanTeam);
+							self:UpdateAndCleanupDataTables(bunkerRegionData.ownerTeam == self.humanTeam and self.aiTeam or self.humanTeam);
 							for key, actor in pairs(self.aiData.actors.internalTurrets) do
 								if key ~= "count" then
 									MovableMan:ChangeActorTeam(actor, bunkerRegionData.ownerTeam);
@@ -1515,6 +1515,7 @@ function DecisionDay:DeployHumanBrain(player)
 	if existingBrain then
 		existingBrain:SetAimAngle(-0.78);
 		existingBrain.PinStrength = 100;
+		existingBrain.Pos = SceneMan:MovePointToGround(existingBrain.Pos, existingBrain.Radius, 0);
 		existingBrain:FlashWhite(100);
 		
 		if existingBrain:IsMechanical() and IsAHuman(existingBrain) then
@@ -1629,8 +1630,7 @@ function DecisionDay:DoAIExternalSpawns()
 				actor:AddToGroup("AI Attackers");
 				self.aiData.actors.attackers[actor.UniqueID] = actor;
 				self.aiData.actors.attackers.count = self.aiData.actors.attackers.count + 1;
-				actor:AddToGroup("AI Attackers");
-				
+
 				if self.aiData.attackTarget ~= nil then
 					actor:AddAISceneWaypoint(self.aiData.attackTarget);
 					actor.AIMode = Actor.AIMODE_GOTO;
