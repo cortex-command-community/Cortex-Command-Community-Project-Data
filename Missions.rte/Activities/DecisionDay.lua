@@ -220,9 +220,11 @@ function DecisionDay:StartActivity(isNewGame)
 	self.alliedData.actors.attackers = createNewActorDataTable();
 	
 	self.aiData = {};
-	self.aiData.externalSpawnTimer = Timer(60000 / self.difficultyRatio);
-	self.aiData.internalReinforcementsTimer = Timer(30000 / self.difficultyRatio);
+	self.aiData.externalSpawnTimer = Timer(90000 / self.difficultyRatio);
+	self.aiData.internalReinforcementsTimer = Timer(60000 / self.difficultyRatio);
 	self.aiData.internalReinforcementLimit = 15 * self.difficultyRatio;
+	self.aiData.numberOfInternalReinforcementsCreated = 0;
+	self.aiData.internalReinforcementPositionsCalculationCoroutines = {};
 	self.aiData.bunkerRegionDefenseRange = math.max(500, math.min(750 * self.difficultyRatio, 1000));
 	self.aiData.attackerLimit = 10 * self.difficultyRatio;
 	self.aiData.attackersPerSpawn = 4 * self.difficultyRatio;
@@ -1302,28 +1304,35 @@ function DecisionDay:UpdateAndCleanupDataTables(teamToCleanup)
 end
 
 function DecisionDay:UpdateAIInternalReinforcements(forceInstantSpawning)
-	if self.aiData.internalReinforcementsTimer:IsPastSimTimeLimit() then
-		self:UpdateAndCleanupDataTables(self.aiTeam);
-		
-		if self.aiData.actors.internalReinforcements.count < self.aiData.internalReinforcementLimit then
-			local numberOfInternalReinforcementsToCreate = math.ceil(self.difficultyRatio * 6 * RangeRand(0.5, 1.5));
-			local numberOfInternalReinforcementsCreated = 0;
-			--print("Creating " ..tostring(numberOfInternalReinforcementsToCreate) .. " internal reinforcements")
-			for _, bunkerId in pairs(self.bunkerIds) do
-				if self.internalReinforcementsData[bunkerId].enabled and #self.aiData.enemiesInsideBunkers[bunkerId] > 0 then
-					--local n = numberOfInternalReinforcementsCreated;
-					numberOfInternalReinforcementsCreated = numberOfInternalReinforcementsCreated + self:CreateInternalReinforcements("CQB", numberOfInternalReinforcementsToCreate - numberOfInternalReinforcementsCreated, bunkerId);
-					--print("Created "..tostring(numberOfInternalReinforcementsCreated - n) .. " internal reinforcements in the " .. self:GetAreaNameForBunker(bunkerId));
-				end
-			end
-			self.aiData.internalReinforcementsTimer:Reset();
-			if numberOfInternalReinforcementsCreated / numberOfInternalReinforcementsToCreate < 0.5 then
-				--print("Only created "..tostring(numberOfInternalReinforcementsCreated) .. " internal reinforcements, try again 25% sooner soon!");
+	for index, internalReinforcementPositionsCalculationCoroutine in ipairs(self.aiData.internalReinforcementPositionsCalculationCoroutines) do
+		local _, internalReinforcementPositionsToEnemyTargets, numberOfInternalReinforcementsToCreate = coroutine.resume(internalReinforcementPositionsCalculationCoroutine, self);
+
+		if coroutine.status(internalReinforcementPositionsCalculationCoroutine) == "dead" then
+			table.remove(self.aiData.internalReinforcementPositionsCalculationCoroutines, index);
+			self.aiData.numberOfInternalReinforcementsCreated = self.aiData.numberOfInternalReinforcementsCreated + self:CreateInternalReinforcements("CQB", numberOfInternalReinforcementsToCreate - self.aiData.numberOfInternalReinforcementsCreated, internalReinforcementPositionsToEnemyTargets);
+
+			if #self.aiData.internalReinforcementPositionsCalculationCoroutines == 0 and (self.aiData.numberOfInternalReinforcementsCreated / numberOfInternalReinforcementsToCreate < 0.5) then
 				self.aiData.internalReinforcementsTimer.ElapsedSimTimeMS = self.aiData.internalReinforcementsTimer:GetSimTimeLimitMS() * 0.25;
 			end
 		end
 	end
-	
+
+	if self.aiData.internalReinforcementsTimer:IsPastSimTimeLimit() and #self.aiData.internalReinforcementPositionsCalculationCoroutines == 0 then
+		self:UpdateAndCleanupDataTables(self.aiTeam);
+		self.aiData.numberOfInternalReinforcementsCreated = 0;
+
+		if self.aiData.actors.internalReinforcements.count < self.aiData.internalReinforcementLimit then
+			local numberOfInternalReinforcementsToCreate = math.ceil(self.difficultyRatio * 6 * RangeRand(0.5, 1.5));
+			for _, bunkerId in pairs(self.bunkerIds) do
+				if self.internalReinforcementsData[bunkerId].enabled and #self.aiData.enemiesInsideBunkers[bunkerId] > 0 then
+					table.insert(self.aiData.internalReinforcementPositionsCalculationCoroutines, coroutine.create(self.CalculateInternalReinforcementPositionsToEnemyTargets));
+					coroutine.resume(self.aiData.internalReinforcementPositionsCalculationCoroutines[#self.aiData.internalReinforcementPositionsCalculationCoroutines], self, bunkerId, numberOfInternalReinforcementsToCreate);
+				end
+			end
+			self.aiData.internalReinforcementsTimer:Reset();
+		end
+	end
+
 	for internalReinforcementDoor, actorsToSpawn in pairs(self.internalReinforcementsData.doorsAndActorsToSpawn) do
 		if MovableMan:IsParticle(internalReinforcementDoor) and (forceInstantSpawning or internalReinforcementDoor.Frame == internalReinforcementDoor.FrameCount - 1) then
 			for _, actorToSpawn in pairs(actorsToSpawn) do
@@ -1352,12 +1361,12 @@ function DecisionDay:UpdateAIDecisions()
 					
 					for movableObject in MovableMan:GetMOsInRadius(captureAreaCenter, self.aiData.bunkerRegionDefenseRange, self.humanTeam, true) do
 						if (IsAHuman(movableObject) or IsACrab(movableObject)) and (not movableObject:IsInGroup("AI Region Defender") or movableObject:IsInGroup("AI Region Defender - " .. bunkerRegionName)) and movableObject.PinStrength == 0 and not movableObject:IsInGroup("Actors - Turrets")  then
-							local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, false, GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
-							if pathLengthToCaptureArea < self.aiData.bunkerRegionDefenseRange then
+							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, false, GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
+							--if pathLengthToCaptureArea < self.aiData.bunkerRegionDefenseRange then
 								local actor = ToActor(movableObject);
 								actor.AIMode = Actor.AIMODE_GOTO;
 								actor:AddAISceneWaypoint(captureAreaCenter);
-							end
+							--end
 						end
 					end
 					if self.aiData.internalReinforcementsEnabled and bunkerRegionData.internalReinforcementsArea and self.internalReinforcementsData[bunkerRegionData.bunkerId].enabled then
@@ -1377,7 +1386,7 @@ function DecisionDay:UpdateAIDecisions()
 								end
 							end
 						end
-						self:CreateInternalReinforcements("CQB", -1, bunkerRegionData.bunkerId, internalReinforcementPositionsToEnemyTargets);
+						self:CreateInternalReinforcements("CQB", -1, internalReinforcementPositionsToEnemyTargets);
 					end
 					
 					bunkerRegionData.aiRegionDefenseTimer:Reset();
@@ -1801,7 +1810,7 @@ function DecisionDay:UpdateBrainDefenderSpawning()
 						break;
 					end
 				end
-				self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining - self:CreateInternalReinforcements(infantryType, -1, bunkerRegionData.bunkerId, internalReinforcementPositionsToEnemyTargets);
+				self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining - self:CreateInternalReinforcements(infantryType, -1, internalReinforcementPositionsToEnemyTargets);
 				print("Spawned brain defenders, available defender count is now "..tostring(self.aiData.brainDefendersRemaining));
 				infantryType = "Heavy";
 				if self.aiData.brainDefendersRemaining <= 0 then
@@ -1999,28 +2008,42 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 	end
 
 	local internalReinforcementPositionsToEnemyTargets = {};
-	local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
+
+	if coroutine.running() then
+		coroutine.yield(); -- Yield after initial setup, so we can do that separately from actually running our coroutine, allowing us to store numberOfInternalReinforcementsToCreate to return at the end.
+	end
+
+	local numberOfPathsCalculated = 0;
 	for _, enemyToTarget in ipairs(enemiesToTarget) do
-		local internalReinforcementPositionForEnemy;
-		for _, internalReinforcementPosition in pairs(self.internalReinforcementsData[bunkerId].positions) do
-			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
-			if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
-				internalReinforcementPositionForEnemy = internalReinforcementPosition;
-				pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
+		if MovableMan:IsActor(enemyToTarget) then
+			local internalReinforcementPositionForEnemy;
+			local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
+			local enemyToTargetPos = enemyToTarget.Pos;
+			for _, internalReinforcementPosition in pairs(self.internalReinforcementsData[bunkerId].positions) do
+				local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTargetPos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
+				if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
+					internalReinforcementPositionForEnemy = internalReinforcementPosition;
+					pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
+				end
+
+				numberOfPathsCalculated = numberOfPathsCalculated + 1;
+				if numberOfPathsCalculated % 5 == 0 and coroutine.running() then
+					coroutine.yield();
+				end
 			end
-		end
-		if internalReinforcementPositionForEnemy then
-			if not internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy] then
-				internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy] = {};
+			if internalReinforcementPositionForEnemy then
+				if not internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy] then
+					internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy] = {};
+				end
+				table.insert(internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy], enemyToTarget);
 			end
-			table.insert(internalReinforcementPositionsToEnemyTargets[internalReinforcementPositionForEnemy], enemyToTarget);
 		end
 	end
 
-	return internalReinforcementPositionsToEnemyTargets;
+	return internalReinforcementPositionsToEnemyTargets, numberOfInternalReinforcementsToCreate;
 end
 
-function DecisionDay:CreateInternalReinforcements(loadout, numberOfInternalReinforcementsToCreate, bunkerId, internalReinforcementPositionsToEnemyTargets)
+function DecisionDay:CreateInternalReinforcements(loadout, numberOfInternalReinforcementsToCreate, internalReinforcementPositionsToEnemyTargets)
 	if loadout == "Any" then
 		loadout = nil;
 	end
@@ -2029,13 +2052,6 @@ function DecisionDay:CreateInternalReinforcements(loadout, numberOfInternalReinf
 	end
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(self.aiTeamTech);
 	crabToHumanSpawnRatio = 0;
-
-	if not internalReinforcementPositionsToEnemyTargets then
-		internalReinforcementPositionsToEnemyTargets = self:CalculateInternalReinforcementPositionsToEnemyTargets(bunkerId, numberOfInternalReinforcementsToCreate);
-		for internalReinforcementPosition, enemyTargetsForPosition in pairs(internalReinforcementPositionsToEnemyTargets) do
-			print("There are " ..tostring(#enemyTargetsForPosition) .. " targets for internal reinforcement position at "..tostring(internalReinforcementPosition))
-		end
-	end
 
 	local numberOfReinforcementsCreated = 0;
 	for internalReinforcementPosition, enemyTargetsForPosition in pairs(internalReinforcementPositionsToEnemyTargets) do
