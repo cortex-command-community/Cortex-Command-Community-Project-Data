@@ -1313,7 +1313,7 @@ function DecisionDay:UpdateAIInternalReinforcements(forceInstantSpawning)
 
 		if coroutine.status(internalReinforcementPositionsCalculationCoroutine) == "dead" then
 			table.remove(self.aiData.internalReinforcementPositionsCalculationCoroutines, index);
-			local numberOfReinforcementsCreated, remainingReinforcementFunds = self:CreateInternalReinforcements("CQB", maxNumberOfInternalReinforcementsToCreate - self.aiData.numberOfInternalReinforcementsCreated, internalReinforcementPositionsToEnemyTargets, maxFundsForInternalReinforcements);
+			local numberOfReinforcementsCreated, remainingReinforcementFunds = self:CreateInternalReinforcements("CQB", internalReinforcementPositionsToEnemyTargets, maxNumberOfInternalReinforcementsToCreate - self.aiData.numberOfInternalReinforcementsCreated, maxFundsForInternalReinforcements);
 			self.aiData.numberOfInternalReinforcementsCreated = self.aiData.numberOfInternalReinforcementsCreated + numberOfReinforcementsCreated;
 			maxFundsForInternalReinforcements = remainingReinforcementFunds;
 
@@ -1398,7 +1398,7 @@ function DecisionDay:UpdateAIDecisions()
 								end
 							end
 						end
-						self:CreateInternalReinforcements("CQB", -1, internalReinforcementPositionsToEnemyTargets);
+						self:CreateInternalReinforcements("CQB", internalReinforcementPositionsToEnemyTargets);
 					end
 
 					bunkerRegionData.aiRegionDefenseTimer:Reset();
@@ -1823,7 +1823,7 @@ function DecisionDay:UpdateBrainDefenderSpawning()
 						break;
 					end
 				end
-				self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining - self:CreateInternalReinforcements(infantryType, -1, internalReinforcementPositionsToEnemyTargets);
+				self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining - self:CreateInternalReinforcements(infantryType, internalReinforcementPositionsToEnemyTargets);
 				print("Spawned brain defenders, available defender count is now "..tostring(self.aiData.brainDefendersRemaining));
 				infantryType = "Heavy";
 				if self.aiData.brainDefendersRemaining <= 0 then
@@ -1878,7 +1878,7 @@ function DecisionDay:UpdateActivity()
 	end
 
 	if self.currentStage >= self.stages.attackFrontBunker then
-		--self:UpdateAIDecisions();
+		self:UpdateAIDecisions();
 	end
 
 	if self.currentStage >= self.stages.deployBrain then
@@ -2058,12 +2058,15 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 	return internalReinforcementPositionsToEnemyTargets, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements;
 end
 
-function DecisionDay:CreateInternalReinforcements(loadout, maxNumberOfInternalReinforcementsToCreate, internalReinforcementPositionsToEnemyTargets, maxFundsForInternalReinforcements)
+function DecisionDay:CreateInternalReinforcements(loadout, internalReinforcementPositionsToEnemyTargets, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements)
 	if loadout == "Any" then
 		loadout = nil;
 	end
-	if maxNumberOfInternalReinforcementsToCreate == -1 then
+	if maxNumberOfInternalReinforcementsToCreate == nil then
 		maxNumberOfInternalReinforcementsToCreate = 999;
+	end
+	if maxFundsForInternalReinforcements == nil then
+		maxFundsForInternalReinforcements = 999999;
 	end
 	if maxFundsForInternalReinforcements <= 0 then
 		return {}, maxFundsForInternalReinforcements;
