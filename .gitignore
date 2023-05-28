@@ -41,6 +41,7 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
+*.bat
 CortexCommand
 CortexCommand_debug
 
@@ -56,8 +57,6 @@ CortexCommand_debug
 Screenshots/
 Mods/
 Userdata/
-Base.rte/Settings.ini
-DedicatedServerDebug.bat
 
 allegro.log
 AbortScreen.bmp
@@ -69,4 +68,3 @@ LogLoadingWarning.txt
 LogConsole.txt
 Console.dump.log
 Console.input.log
-Base.rte/LoadoutsP1.ini
