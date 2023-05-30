@@ -11,6 +11,8 @@ end
 function SiteScan:StartActivity()
 	print("START! -- SiteScan:StartActivity()!");
 
+	self.GameOverPeriod = 0;
+	
 	-- Orbit Scene Scanning vars
 	self.ScanStage = { PRESCAN = 0, SCANNING = 1, POSTSCAN = 2, SCANSTAGECOUNT = 3 };
 	self.CurrentScanStage = self.ScanStage.PRESCAN;
@@ -57,6 +59,13 @@ end
 
 function SiteScan:EndActivity()
 	print("END! -- SiteScan:EndActivity()!");
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
+			self:GetBanner(GUIBanner.RED, player):ClearText();
+			self:GetBanner(GUIBanner.YELLOW, player):ClearText();
+		end
+	end
 end
 
 -----------------------------------------------------------------------------------------
@@ -86,7 +95,7 @@ function SiteScan:UpdateActivity()
 			for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 				if self:TeamActive(team) then
 					-- Time to do a scan step?
-					if self.ScanTimer[team]:IsPastRealMS(SceneMan:GetUnseenResolution(team).X * 2) then
+					if self.ScanTimer[team]:IsPastRealMS(SceneMan:GetUnseenResolution(team).X) then
 						-- Scan the column, find the end where the ray is blocked
 						SceneMan:CastSeeRay(team, Vector(self.ScanPosX[team], 0), Vector(0, SceneMan.Scene.Height), self.ScanEndPos, 50, SceneMan:GetUnseenResolution(team).Y / 2);
 						-- Adjust up a bit so one sees more of the sky than blackness
@@ -130,11 +139,8 @@ function SiteScan:UpdateActivity()
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
 						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
---[[
-						-- Create the landing crew and add to the override purchase list
-						self:SetOverridePurchaseList("Infantry Brain", player);
-						self:SetViewState(Activity.LZSELECT, player);
---]]
+						self:GetBanner(GUIBanner.RED, player):ClearText();
+						self:GetBanner(GUIBanner.YELLOW, player):ClearText();
 					end
 				end
 				self.WinnerTeam = self.ScanTeam;
