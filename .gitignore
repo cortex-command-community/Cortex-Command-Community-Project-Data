@@ -41,6 +41,7 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
+*.bat
 CortexCommand
 CortexCommand_debug
 
@@ -53,13 +54,9 @@ CortexCommand_debug
 .DS_Store
 
 .vs/
-_Screenshots/
-Base.rte/Settings.ini
-Benchmark.rte/
-UserSavesConquest.rte/
-UserSavedGames.rte/
-UserScenes.rte/
-DedicatedServerDebug.bat
+Screenshots/
+Mods/
+Userdata/
 
 allegro.log
 AbortScreen.bmp
@@ -71,4 +68,3 @@ LogLoadingWarning.txt
 LogConsole.txt
 Console.dump.log
 Console.input.log
-Base.rte/LoadoutsP1.ini
