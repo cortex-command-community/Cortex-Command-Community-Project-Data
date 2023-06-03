@@ -167,8 +167,8 @@ function DecisionDay:StartActivity(isNewGame)
 			hasBeenCapturedAtLeastOnceByHumanTeam = false,
 			captureCount = 0,
 			captureLimit = 600 * self.difficultyRatio,
-			aiRegionDefenseTimer = Timer(45000 / self.difficultyRatio, 45000 / self.difficultyRatio),
-			aiRegionAttackTimer = Timer(60000 / self.difficultyRatio),
+			aiRegionDefenseTimer = Timer(60000 / self.difficultyRatio, 60000 / self.difficultyRatio),
+			aiRegionAttackTimer = Timer(90000 / self.difficultyRatio),
 			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
 			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
 			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Shield") or nil,
@@ -220,9 +220,9 @@ function DecisionDay:StartActivity(isNewGame)
 	self.alliedData.actors.attackers = createNewActorDataTable();
 
 	self.aiData = {};
-	self.aiData.externalSpawnTimer = Timer(90000 / self.difficultyRatio);
-	self.aiData.internalReinforcementsTimer = Timer(60000 / self.difficultyRatio);
-	self.aiData.internalReinforcementLimit = 15 * self.difficultyRatio;
+	self.aiData.externalSpawnTimer = Timer(120000 / self.difficultyRatio);
+	self.aiData.internalReinforcementsTimer = Timer(90000 / self.difficultyRatio);
+	self.aiData.internalReinforcementLimit = 12 * self.difficultyRatio;
 	self.aiData.numberOfInternalReinforcementsCreated = 0;
 	self.aiData.internalReinforcementPositionsCalculationCoroutines = {};
 	self.aiData.bunkerRegionDefenseRange = math.max(500, math.min(750 * self.difficultyRatio, 1000));
@@ -482,12 +482,19 @@ end
 
 function DecisionDay:DoInitialHumanSpawns()
 	local nextActorPos = Vector(self.initialHumanSpawnArea.FirstBox.Corner.X, self.initialHumanSpawnArea.Center.Y);
-	for i = 1, 4 do
-		local actor = self:SpawnInfantry(self.humanTeam, i < 3 and "CQB" or "Heavy", nextActorPos, Actor.AIMODE_SENTRY, true);
+	local initialActorFunds = 1300 / self.difficultyRatio;
+	local spawnedActorNumber = 0;
+	while initialActorFunds > 0 do
+		spawnedActorNumber = spawnedActorNumber + 1;
+		local actor = self:SpawnInfantry(self.humanTeam, spawnedActorNumber < 3 and "CQB" or "Heavy", nextActorPos, Actor.AIMODE_SENTRY, true);
+		actor.Pos = SceneMan:MovePointToGround(actor.Pos, actor.Radius, 5);
 		actor.PlayerControllable = true;
-		if i < 3 then
+		if spawnedActorNumber < 3 then
 			actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.humanTeamTech));
+		elseif math.random() < 0.65 then
+			actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.humanTeamTech));
 		end
+		initialActorFunds = initialActorFunds - actor:GetTotalValue(self.humanTeamTech, 1);
 		nextActorPos = nextActorPos + Vector(30, 0);
 	end
 	for _, player in pairs(self.humanPlayers) do
@@ -505,7 +512,7 @@ function DecisionDay:DoInitialHumanSpawns()
 		brain.AIMode = Actor.AIMODE_SENTRY;
 		MovableMan:AddActor(brain);
 		self:SetPlayerBrain(brain, player);
-		--self:SetObservationTarget(brain.Pos, player);
+		self:SetObservationTarget(brain.Pos, player);
 	end
 end
 
@@ -770,7 +777,7 @@ function DecisionDay:UpdateCamera()
 			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
 		end
 	end
-	
+
 	local slowScroll = 0.0125;
 	local mediumScroll = 0.05;
 	local fastScroll = 0.05;
@@ -1245,7 +1252,7 @@ function DecisionDay:UpdateVaultTickIncome()
 	if self.vaultIncomeTimer:IsPastSimTimeLimit() then
 		self:ChangeTeamFunds(self.vaultTickIncome, self.aiTeam); -- Note: AI always gets one free vault worth of income, to keep their external spawns coming.
 		for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
-			if bunkerRegionName:find("Vault") then
+			if bunkerRegionName:find("Vault") and bunkerRegionData.enabled then
 				local vaultTickIncome = self.vaultTickIncome * bunkerRegionData.incomeMultiplier;
 				if bunkerRegionData.ownerTeam == self.humanTeam then
 					vaultTickIncome = vaultTickIncome / self.difficultyRatio;
@@ -1302,13 +1309,15 @@ end
 
 function DecisionDay:UpdateAIInternalReinforcements(forceInstantSpawning)
 	for index, internalReinforcementPositionsCalculationCoroutine in ipairs(self.aiData.internalReinforcementPositionsCalculationCoroutines) do
-		local _, internalReinforcementPositionsToEnemyTargets, numberOfInternalReinforcementsToCreate = coroutine.resume(internalReinforcementPositionsCalculationCoroutine, self);
+		local _, internalReinforcementPositionsToEnemyTargets, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements = coroutine.resume(internalReinforcementPositionsCalculationCoroutine, self);
 
 		if coroutine.status(internalReinforcementPositionsCalculationCoroutine) == "dead" then
 			table.remove(self.aiData.internalReinforcementPositionsCalculationCoroutines, index);
-			self.aiData.numberOfInternalReinforcementsCreated = self.aiData.numberOfInternalReinforcementsCreated + self:CreateInternalReinforcements("CQB", numberOfInternalReinforcementsToCreate - self.aiData.numberOfInternalReinforcementsCreated, internalReinforcementPositionsToEnemyTargets);
+			local numberOfReinforcementsCreated, remainingReinforcementFunds = self:CreateInternalReinforcements("CQB", internalReinforcementPositionsToEnemyTargets, maxNumberOfInternalReinforcementsToCreate - self.aiData.numberOfInternalReinforcementsCreated, maxFundsForInternalReinforcements);
+			self.aiData.numberOfInternalReinforcementsCreated = self.aiData.numberOfInternalReinforcementsCreated + numberOfReinforcementsCreated;
+			maxFundsForInternalReinforcements = remainingReinforcementFunds;
 
-			if #self.aiData.internalReinforcementPositionsCalculationCoroutines == 0 and (self.aiData.numberOfInternalReinforcementsCreated / numberOfInternalReinforcementsToCreate < 0.5) then
+			if #self.aiData.internalReinforcementPositionsCalculationCoroutines == 0 and (self.aiData.numberOfInternalReinforcementsCreated / maxNumberOfInternalReinforcementsToCreate < 0.5) then
 				self.aiData.internalReinforcementsTimer.ElapsedSimTimeMS = self.aiData.internalReinforcementsTimer:GetSimTimeLimitMS() * 0.25;
 			end
 		end
@@ -1319,14 +1328,20 @@ function DecisionDay:UpdateAIInternalReinforcements(forceInstantSpawning)
 		self.aiData.numberOfInternalReinforcementsCreated = 0;
 
 		if self.aiData.actors.internalReinforcements.count < self.aiData.internalReinforcementLimit then
-			local numberOfInternalReinforcementsToCreate = math.ceil(self.difficultyRatio * 6 * RangeRand(0.5, 1.5));
 			for _, bunkerId in pairs(self.bunkerIds) do
-				if self.internalReinforcementsData[bunkerId].enabled and #self.aiData.enemiesInsideBunkers[bunkerId] > 0 then
-					table.insert(self.aiData.internalReinforcementPositionsCalculationCoroutines, coroutine.create(self.CalculateInternalReinforcementPositionsToEnemyTargets));
-					coroutine.resume(self.aiData.internalReinforcementPositionsCalculationCoroutines[#self.aiData.internalReinforcementPositionsCalculationCoroutines], self, bunkerId, numberOfInternalReinforcementsToCreate);
+				if self.internalReinforcementsData[bunkerId].enabled then
+					local maxNumberOfInternalReinforcementsToCreate = math.ceil(self.difficultyRatio * 2 * bunkerId * RangeRand(0.5, 1.5));
+					local maxFundsForInternalReinforcements = math.ceil(self.difficultyRatio * 350 * bunkerId * RangeRand(0.75, 1.25));
+					print("Time to try making internal reinforcements. Bunker "..tostring(bunkerId)..": max number - "..tostring(maxNumberOfInternalReinforcementsToCreate)..", max funds - "..tostring(maxFundsForInternalReinforcements))
+					if self.internalReinforcementsData[bunkerId].enabled and #self.aiData.enemiesInsideBunkers[bunkerId] > 0 then
+						table.insert(self.aiData.internalReinforcementPositionsCalculationCoroutines, coroutine.create(self.CalculateInternalReinforcementPositionsToEnemyTargets));
+						coroutine.resume(self.aiData.internalReinforcementPositionsCalculationCoroutines[#self.aiData.internalReinforcementPositionsCalculationCoroutines], self, bunkerId, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements);
+					end
 				end
 			end
 			self.aiData.internalReinforcementsTimer:Reset();
+		else
+			self.aiData.internalReinforcementsTimer.ElapsedSimTimeMS = self.aiData.internalReinforcementsTimer:GetSimTimeLimitMS() * 0.5;
 		end
 	end
 
@@ -1383,7 +1398,7 @@ function DecisionDay:UpdateAIDecisions()
 								end
 							end
 						end
-						self:CreateInternalReinforcements("CQB", -1, internalReinforcementPositionsToEnemyTargets);
+						self:CreateInternalReinforcements("CQB", internalReinforcementPositionsToEnemyTargets);
 					end
 
 					bunkerRegionData.aiRegionDefenseTimer:Reset();
@@ -1694,6 +1709,7 @@ function DecisionDay:DoAIExternalSpawns()
 				end
 			end
 		end
+		print("Spawned "..tostring(numberOfActorsSpawned) .. " attackers. AI funds remaining: "..tostring(self:GetTeamFunds(self.aiTeam)))
 
 		self.aiData.externalSpawnTimer:Reset();
 	end
@@ -1807,7 +1823,7 @@ function DecisionDay:UpdateBrainDefenderSpawning()
 						break;
 					end
 				end
-				self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining - self:CreateInternalReinforcements(infantryType, -1, internalReinforcementPositionsToEnemyTargets);
+				self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining - self:CreateInternalReinforcements(infantryType, internalReinforcementPositionsToEnemyTargets);
 				print("Spawned brain defenders, available defender count is now "..tostring(self.aiData.brainDefendersRemaining));
 				infantryType = "Heavy";
 				if self.aiData.brainDefendersRemaining <= 0 then
@@ -1831,13 +1847,13 @@ function DecisionDay:UpdateActivity()
 
 	self:UpdateCurrentStage();
 
-	if self.currentStage < self.stages.frontBunkerCaptured then
-		self:SpawnAndUpdateInitialDropShips();
-	end
-
 	self:UpdateCamera();
 
 	self:UpdateMessages();
+
+	if self.WinnerTeam ~= Activity.NOTEAM then
+		return;
+	end
 
 	self:UpdateObjectiveArrowsAndRegionVisuals();
 
@@ -1845,6 +1861,9 @@ function DecisionDay:UpdateActivity()
 
 	self:UpdateVaultTickIncome();
 
+	if self.currentStage < self.stages.frontBunkerCaptured then
+		self:SpawnAndUpdateInitialDropShips();
+	end
 
 	if self.aiData.internalReinforcementsEnabled then
 		self:UpdateAIInternalReinforcements();
@@ -1859,7 +1878,7 @@ function DecisionDay:UpdateActivity()
 	end
 
 	if self.currentStage >= self.stages.attackFrontBunker then
-		--self:UpdateAIDecisions();
+		self:UpdateAIDecisions();
 	end
 
 	if self.currentStage >= self.stages.deployBrain then
@@ -1996,9 +2015,9 @@ function DecisionDay:SpawnCraft(team, avoidPreviousCraftPos, useRocketsInsteadOf
 	return craft;
 end
 
-function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunkerId, numberOfInternalReinforcementsToCreate)
+function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunkerId, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements)
 	local enemiesToTarget = {};
-	for i = 1, numberOfInternalReinforcementsToCreate do
+	for i = 1, maxNumberOfInternalReinforcementsToCreate do
 		if enemiesToTarget[i] == nil then
 			enemiesToTarget[i] = self.aiData.enemiesInsideBunkers[bunkerId][math.random(1, #self.aiData.enemiesInsideBunkers[bunkerId])];
 		end
@@ -2006,7 +2025,7 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 	local internalReinforcementPositionsToEnemyTargets = {};
 
 	if coroutine.running() then
-		coroutine.yield(); -- Yield after initial setup, so we can do that separately from actually running our coroutine, allowing us to store numberOfInternalReinforcementsToCreate to return at the end.
+		coroutine.yield(); -- Yield after initial setup, so we can set up our coroutines separately from running them.
 	end
 
 	local numberOfPathsCalculated = 0;
@@ -2036,32 +2055,40 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 		end
 	end
 
-	return internalReinforcementPositionsToEnemyTargets, numberOfInternalReinforcementsToCreate;
+	return internalReinforcementPositionsToEnemyTargets, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements;
 end
 
-function DecisionDay:CreateInternalReinforcements(loadout, numberOfInternalReinforcementsToCreate, internalReinforcementPositionsToEnemyTargets)
+function DecisionDay:CreateInternalReinforcements(loadout, internalReinforcementPositionsToEnemyTargets, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements)
 	if loadout == "Any" then
 		loadout = nil;
 	end
-	if numberOfInternalReinforcementsToCreate == -1 then
-		numberOfInternalReinforcementsToCreate = 999;
+	if maxNumberOfInternalReinforcementsToCreate == nil then
+		maxNumberOfInternalReinforcementsToCreate = 999;
+	end
+	if maxFundsForInternalReinforcements == nil then
+		maxFundsForInternalReinforcements = 999999;
+	end
+	if maxFundsForInternalReinforcements <= 0 then
+		return {}, maxFundsForInternalReinforcements;
 	end
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(self.aiTeamTech);
 	crabToHumanSpawnRatio = 0;
 
 	local numberOfReinforcementsCreated = 0;
 	for internalReinforcementPosition, enemyTargetsForPosition in pairs(internalReinforcementPositionsToEnemyTargets) do
-		if numberOfReinforcementsCreated < numberOfInternalReinforcementsToCreate then
+		if numberOfReinforcementsCreated < maxNumberOfInternalReinforcementsToCreate and maxFundsForInternalReinforcements > 0 then
 			local doorParticle = self.internalReinforcementsDoorParticle:Clone();
 			doorParticle.Pos = internalReinforcementPosition;
 			doorParticle.Team = self.aiTeam;
 			MovableMan:AddParticle(doorParticle);
 			self.internalReinforcementsData.doorsAndActorsToSpawn[doorParticle] = {};
 
+			print("Internal reinforcement position "..tostring(internalReinforcementPosition).." has "..tostring(#enemyTargetsForPosition).." enemy targets!")
+
 			local numberOfInternalReinforcementsToCreateAtPosition = math.min(#enemyTargetsForPosition, 3);
 			if numberOfInternalReinforcementsToCreateAtPosition == 1 and math.random() < (self.difficultyRatio * 0.5) then
 				numberOfInternalReinforcementsToCreateAtPosition = 2;
-				if math.random() < (self.difficultyRatio * 0.25) then
+				if math.random() < (self.difficultyRatio * 0.1) then
 					numberOfInternalReinforcementsToCreateAtPosition = 3;
 				end
 			end
@@ -2076,6 +2103,7 @@ function DecisionDay:CreateInternalReinforcements(loadout, numberOfInternalReinf
 				else
 					internalReinforcement = self:CreateInfantry(self.aiTeam);
 				end
+				print("Creating internal reinforcement "..internalReinforcement.PresetName.." who costs "..tostring(internalReinforcement:GetTotalValue(self.aiTeamTech, 1)))
 				internalReinforcement.Team = self.aiTeam;
 				internalReinforcement.Pos = internalReinforcementPosition;
 				if numberOfInternalReinforcementsToCreateAtPosition == 2 then
@@ -2098,13 +2126,14 @@ function DecisionDay:CreateInternalReinforcements(loadout, numberOfInternalReinf
 				table.insert(self.internalReinforcementsData.doorsAndActorsToSpawn[doorParticle], internalReinforcement);
 
 				numberOfReinforcementsCreated = numberOfReinforcementsCreated + 1;
-				if numberOfReinforcementsCreated >= numberOfInternalReinforcementsToCreate then
+				maxFundsForInternalReinforcements = maxFundsForInternalReinforcements - internalReinforcement:GetTotalValue(self.aiTeamTech, 1);
+				if numberOfReinforcementsCreated >= maxNumberOfInternalReinforcementsToCreate or maxFundsForInternalReinforcements <= 0 then
 					break;
 				end
 			end
 		end
 	end
-	return numberOfReinforcementsCreated;
+	return numberOfReinforcementsCreated, maxFundsForInternalReinforcements;
 end
 
 function DecisionDay:CreateInfantry(team, infantryType)
@@ -2119,6 +2148,9 @@ function DecisionDay:CreateInfantry(team, infantryType)
 	end
 
 	local actorType = (infantryType == "Heavy" or infantryType == "CQB") and "Actors - Heavy" or "Actors - Light";
+	if infantryType == "CQB" and math.random() < 0.25 then
+		actorType = "Actors - Light";
+	end
 	local actor = RandomAHuman(actorType, tech);
 	if actor.ModuleID ~= tech then
 		actor = RandomAHuman("Actors", tech);

@@ -1,5 +1,10 @@
 function Create(self)
-	
+	if self.PresetName:find("Short") then
+		self.isShort = true;
+	end
+	if self.Throttle == nil then
+		self.Throttle = 0;
+	end
 end
 
 function Update(self)
@@ -46,7 +51,6 @@ function Update(self)
 				particle.Lifetime = self.Lifetime * RangeRand(0.6, 0.9);
 				particle.Vel = self.Vel + Vector(0, -3) + Vector(math.random(), 0):RadRotate(math.random() * math.pi * 2);
 				particle.Pos = Vector(self.Pos.X, self.Pos.Y - 1);
-				particle.isShort = true;
 				MovableMan:AddParticle(particle);
 			end
 		end

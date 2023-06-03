@@ -31,7 +31,7 @@ RoninLoadouts["Sniper"]["Throwable"] = {"Empty Bottle Bandolier"};
 
 RoninLoadouts["Engineer"]["Headgear"] = {"Soldier Helmet"};
 RoninLoadouts["Engineer"]["Primary"] = {"UZI", "MP5K"};
-RoninLoadouts["Engineer"]["Secondary"] = {"Medium Digger", "Medium Digger", "Shovel"};
+RoninLoadouts["Engineer"]["Secondary"] = {"Medium Digger"};
 RoninLoadouts["Engineer"]["Throwable"] = {"Remote Explosive", "Remote Explosive", "Scrambler Bandolier"};
 
 RoninLoadouts["Medic"]["Headgear"] = {"Soldier Helmet"};
