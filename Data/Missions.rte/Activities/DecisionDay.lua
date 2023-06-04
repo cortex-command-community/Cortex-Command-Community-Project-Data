@@ -153,6 +153,8 @@ function DecisionDay:StartActivity(isNewGame)
 	bunkerRegionRecaptureWeights["Main Bunker Air Traffic Control"] = 8;
 
 	self.bunkerRegions = {};
+	self.captureDisplayScreenTemplate = CreateMOSParticle("Login Screen", "Missions.rte");
+	self.fauxdanDisplayScreenTemplate = CreateMOSParticle("Fauxdan Screen", "Missions.rte");
 	for _, bunkerRegionName in ipairs(bunkerRegionNames) do
 		self.bunkerRegions[bunkerRegionName] = {
 			enabled = false,
@@ -161,6 +163,7 @@ function DecisionDay:StartActivity(isNewGame)
 			totalArea = scene:GetArea(bunkerRegionName),
 			captureArea = scene:GetArea(bunkerRegionName .. " Capture"),
 			captureDisplayArea = scene:GetArea(bunkerRegionName .. " Capture Display"),
+			captureDisplayScreens = {},
 			internalReinforcementsArea = scene:HasArea(bunkerRegionName .. " Internal Reinforcements") and scene:GetOptionalArea(bunkerRegionName .. " Internal Reinforcements") or nil,
 			defenderArea = scene:GetArea(bunkerRegionName .. " Defenders"),
 			ownerTeam = self.aiTeam,
@@ -171,16 +174,13 @@ function DecisionDay:StartActivity(isNewGame)
 			aiRegionAttackTimer = Timer(90000 / self.difficultyRatio),
 			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
 			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
+			fauxdanDisplayScreens = {},
 			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Shield") or nil,
 			brainDoor = scene:HasArea(bunkerRegionName .. " Brain Door") and scene:GetOptionalArea(bunkerRegionName .. " Brain Door") or nil,
 			brain = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Brain") or nil,
 		};
 		if bunkerRegionName:find("Vault") then
 			self.bunkerRegions[bunkerRegionName].incomeMultiplier = bunkerRegionName:find("Large") and 2 or (bunkerRegionName:find("Medium") and 1.5 or 1);
-		end
-		if self.bunkerRegions[bunkerRegionName].fauxdanDisplayArea ~= nil then
-			self.bunkerRegions[bunkerRegionName].fauxdanDisplayTimer = Timer(250);
-			self.bunkerRegions[bunkerRegionName].fauxdanDisplayCurrentFrame = 0;
 		end
 	end
 
@@ -879,7 +879,6 @@ function DecisionDay:UpdateCamera()
 		end
 	end
 
-	--TODO maybe use the camera scroll sounds that come with the game!
 	if scrollTargetAndSpeed then
 		for _, player in pairs(self.humanPlayers) do
 			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], false, player);
@@ -1079,46 +1078,60 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 
 	for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
 		if bunkerRegionData.enabled then
-			if bunkerRegionData.fauxdanDisplayTimer ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and bunkerRegionData.fauxdanDisplayTimer:IsPastSimTimeLimit() then
-				local numberOfFauxdanDisplayFrames = 20;
-				bunkerRegionData.fauxdanDisplayCurrentFrame = (bunkerRegionData.fauxdanDisplayCurrentFrame + 1) % (numberOfFauxdanDisplayFrames + 1);
-				bunkerRegionData.fauxdanDisplayTimer:Reset();
-			end
-
 			local currentFauxdanDisplayFrameString;
 			local currentLoginScreenFrameString;
 			for _, player in pairs(self.humanPlayers) do
 				if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
 					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage == self.stages.attackBrain then
-						if currentFauxdanDisplayFrameString == nil then
-							currentFauxdanDisplayFrameString = "00" .. tostring(bunkerRegionData.fauxdanDisplayCurrentFrame);
-							if currentFauxdanDisplayFrameString:len() > 3 then
-								currentFauxdanDisplayFrameString = string.sub(currentFauxdanDisplayFrameString, currentFauxdanDisplayFrameString:len() - 2);
-							end
-							currentFauxdanDisplayFrameString = "Missions.rte/Objects/Fauxdan/Fauxdan" .. currentFauxdanDisplayFrameString .. ".png";
-						end
 						for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
-							PrimitiveMan:DrawBitmapPrimitive(player, SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentFauxdanDisplayFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
-						end
-					end
-					if bunkerRegionData.captureCount > 0 then
-						if currentLoginScreenFrameString == nil then
-							local numberOfLoginScreenFrames = 21;
-							currentLoginScreenFrameString = "00" .. tostring(math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * numberOfLoginScreenFrames));
-							if currentLoginScreenFrameString:len() > 3 then
-								currentLoginScreenFrameString = string.sub(currentLoginScreenFrameString, currentLoginScreenFrameString:len() - 2);
+							local boxCenterPos = box.Center;
+							local fauxdanDisplayScreenKey = tostring(boxCenterPos.FlooredX) .. "," .. tostring(boxCenterPos.FlooredY);
+							
+							local boxBlockedByCaptureDisplay = false;
+							if bunkerRegionData.captureCount > 0 then
+								for captureDisplayBox in bunkerRegionData.captureDisplayArea.Boxes do
+									if captureDisplayBox.Center.Floored == boxCenterPos.Floored then
+										boxBlockedByCaptureDisplay = true;
+										break;
+									end
+								end
 							end
-							currentLoginScreenFrameString = "Missions.rte/Objects/LoginScreen/LoginScreen" .. currentLoginScreenFrameString .. ".png";
+							
+							if not boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] == nil then
+								local fauxdanDisplayScreen = self.fauxdanDisplayScreenTemplate:Clone();
+								fauxdanDisplayScreen.Pos = boxCenterPos;
+								MovableMan:AddParticle(fauxdanDisplayScreen);
+								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = fauxdanDisplayScreen;
+							elseif boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] ~= nil then
+								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey].ToDelete = true;
+								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = nil;
+							end
 						end
-						for box in bunkerRegionData.captureDisplayArea.Boxes do
-							PrimitiveMan:DrawBitmapPrimitive(player, SceneMan:SnapPosition(box.Center, true) + Vector(0, 6), currentLoginScreenFrameString, 0); -- Note: the Vector(0, 6) is to account for empty space at the bottom of the sprite.
+					else
+						for _, fauxdanDisplayScreen in pairs(bunkerRegionData.fauxdanDisplayScreens) do
+							fauxdanDisplayScreen.ToDelete = true;
 						end
+						bunkerRegionData.fauxdanDisplayScreens = {};
+					end
+					
+					if bunkerRegionData.captureCount > 0 then
+						if #bunkerRegionData.captureDisplayScreens == 0 then
+							for box in bunkerRegionData.captureDisplayArea.Boxes do
+								local captureDisplayScreen = self.captureDisplayScreenTemplate:Clone();
+								captureDisplayScreen.Pos = box.Center;
+								MovableMan:AddParticle(captureDisplayScreen);
+								bunkerRegionData.captureDisplayScreens[#bunkerRegionData.captureDisplayScreens + 1] = captureDisplayScreen;
+							end
+						end
+						for _, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
+							captureDisplayScreen.Frame = math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * (captureDisplayScreen.FrameCount));
+							captureDisplayScreen.Age = 0;
+						end
+					else
+						bunkerRegionData.captureDisplayScreens = {};
 					end
 				end
 			end
-		elseif bunkerRegionData.fauxdanDisplayArea ~= nil then
-			bunkerRegionData.fauxdanDisplayTimer:Reset();
-			bunkerRegionData.fauxdanDisplayCurrentFrame = 0;
 		end
 	end
 end
@@ -1178,6 +1191,10 @@ function DecisionDay:UpdateRegionCapturing()
 					if bunkerRegionData.captureCount >= bunkerRegionData.captureLimit then
 						bunkerRegionData.ownerTeam = capturingTeam;
 						bunkerRegionData.captureCount = 0;
+						
+						for _, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
+							captureDisplayScreen.Lifetime = 2000;
+						end
 
 						local useLeftReplacementComputer = captureBox.Center.X >= bunkerRegionData.totalArea.Center.X;
 						local replacementComputer = self.controlledBunkerRegionComputerTerrainObjects[capturingTeam][useLeftReplacementComputer and "left" or "right"]:Clone();
@@ -1920,8 +1937,6 @@ function DecisionDay:UpdateActivity()
 				end
 			end
 		end
-
-		--TODO maybe keep humanTeam actors out of shielded area. Or just rely on super doors
 
 		if self.currentStage == self.stages.attackBrain then
 			self:UpdateBrainDefenderSpawning();
