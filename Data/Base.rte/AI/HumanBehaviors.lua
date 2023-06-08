@@ -915,11 +915,10 @@ end
 -- find a weapon to pick up
 function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	local minDist;
-	local Devices = {};
 	local pickupDiggers = not Owner:HasObjectInGroup("Tools - Diggers");
 
 	if AI.isPlayerOwned then
-		minDist = 100; -- don't move player actors more than 4m
+		minDist = 100; -- don't move player actors too far
 	else
 		minDist = FrameMan.PlayerScreenWidth * 0.45;
 	end
@@ -927,82 +926,89 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	if Owner.AIMode == Actor.AIMODE_SENTRY then
 		minDist = minDist * 0.6;
 	end
-
-	local itemsFound = 0;
-	for Item in MovableMan.Items do	-- store all HeldDevices of the correct type and within a certain range in a table
-		local HD = ToHeldDevice(Item);
-		if HD and HD:IsPickupableBy(Owner) and not HD:IsActivated() and HD.Vel.Largest < 3 and SceneMan:ShortestDistance(Owner.Pos, HD.Pos, SceneMan.SceneWrapsX).Largest < minDist and not SceneMan:IsUnseen(HD.Pos.X, HD.Pos.Y, Owner.Team) then
-			table.insert(Devices, HD);
-			itemsFound = itemsFound + 1;
+	
+	local devices = {};
+	local mosSearched = 0;
+	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, minDist, -1, true) do
+		mosSearched = mosSearched + 1;
+		if IsHeldDevice(movableObject) then
+			local device = ToHeldDevice(movableObject);
+			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) then
+				table.insert(devices, { device = device, distance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY) });
+			end
 		end
 	end
-
-	if itemsFound > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
+	
+	if #devices > 0 then
+		local _ai, _ownr, _abrt = coroutine.yield();
 		if _abrt then return true end
 
+		local waypointDistance = 36;
 		if AI.isPlayerOwned then
-			minDist = 10; -- # of waypoints
-		else
-			minDist = 36;
+			waypointDistance = 10;
 		end
 
 		local waypoints, score;
-		local DevicesToPickUp = {};
-		for _, Item in pairs(Devices) do
-			if MovableMan:ValidMO(Item) then
-				waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1, Owner.Team);
-				if waypoints < minDist and waypoints > -1 then
-					-- estimate the walking distance to the item
-					if Item:HasObjectInGroup("Weapons - Primary") then
-						score = waypoints * 0.4; -- prioritize primaries
-					elseif Item.ClassName == "TDExplosive" then
-						score = waypoints * 1.4; -- avoid grenades if there are other weapons
-					elseif Item:IsTool() then
-						if pickupDiggers and Item:HasObjectInGroup("Tools - Diggers") then
-							score = waypoints * 1.8; -- avoid diggers if there are other weapons
+		local devicesToPickUp = {};
+		for _, deviceEntry in pairs(devices) do
+			local device = deviceEntry.device;
+			if MovableMan:ValidMO(device) then
+				local pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true); --TODO if still laggy, just use this entirely and don't bother calcuating a path. Maybe only calculate path on smaller maps (< 10,000,000 square px)
+				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
+				
+				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or deviceEntry.distance.Magnitude / pathfinderNodeSize;
+				if distanceToTarget < waypointDistance and distanceToTarget > -1 then
+					if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
+						score = distanceToTarget * 0.4; -- prioritize primary or heavy weapons
+					elseif device.ClassName == "TDExplosive" then
+						score = distanceToTarget * 1.4; -- avoid grenades if there are other weapons
+					elseif device:IsTool() then
+						if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
+							score = distanceToTarget * 1.8; -- avoid diggers if there are other weapons
 						else
-							waypoints = minDist; -- don't pick up
+							distanceToTarget = waypointDistance;
 						end
 					else
-						score = waypoints;
+						score = distanceToTarget;
 					end
 
-					if waypoints < minDist then
-						table.insert(DevicesToPickUp, {HD=Item, score=score});
+					if distanceToTarget < waypointDistance then
+						table.insert(devicesToPickUp, {device = device, score = score});
+					end
+					for i = 1, 2 do
+						local _ai, _ownr, _abrt = coroutine.yield();
+						if _abrt then return true end
 					end
 				end
-
-				local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-				if _abrt then return true end
 			end
 		end
 
 		AI.PickupHD = nil;
-		table.sort(DevicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
-		for _, Data in pairs(DevicesToPickUp) do
-			if MovableMan:ValidMO(Data.HD) and Data.HD:IsDevice() then
-				AI.PickupHD = Data.HD;
+		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
+		for _, deviceToPickupEntry in pairs(devicesToPickUp) do
+			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
+				AI.PickupHD = deviceToPickupEntry.device;
 				break;
 			end
 		end
 
 		if AI.PickupHD then
 			-- where do we move after pick up?
-			local PrevMoveTarget, PrevSeceneWaypoint;
+			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
-				PrevMoveTarget = Owner.MOMoveTarget;
+				prevMoveTarget = Owner.MOMoveTarget;
 			else
-				PrevSeceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
+				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
 			Owner:ClearMovePath();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
-			if PrevMoveTarget then
-				Owner:AddAIMOWaypoint(PrevMoveTarget);
-			elseif PrevSeceneWaypoint then
-				Owner:AddAISceneWaypoint(PrevSeceneWaypoint);
+			if prevMoveTarget then
+				Owner:AddAIMOWaypoint(prevMoveTarget);
+			elseif prevSceneWaypoint then
+				Owner:AddAISceneWaypoint(prevSceneWaypoint);
 			end
 
 			if Owner.AIMode == Actor.AIMODE_SENTRY then
@@ -1024,7 +1030,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	if Owner.AIMode == Actor.AIMODE_GOLDDIG then
 		minDist = FrameMan.PlayerScreenWidth * 0.5; -- move up to half a screen when digging
 	elseif AI.isPlayerOwned then
-		minDist = 60; -- don't move player actors more than 3m
+		minDist = 60; -- don't move player actors too far
 	else
 		minDist = FrameMan.PlayerScreenWidth * 0.3;
 	end
@@ -1032,72 +1038,75 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	if Owner.AIMode == Actor.AIMODE_SENTRY then
 		minDist = minDist * 0.6;
 	end
-
-	local Devices = {};
-	local itemsFound = 0;
-	for Item in MovableMan.Items do	-- store all HeldDevices of the correct type and within a certain range in a table
-		local HD = ToHeldDevice(Item);
-		if HD and not HD:IsActivated() and HD.Vel.Largest < 3 and
-			SceneMan:ShortestDistance(Owner.Pos, HD.Pos, false).Largest < minDist and
-			not SceneMan:IsUnseen(HD.Pos.X, HD.Pos.Y, Owner.Team)
-		then
-			table.insert(Devices, HD);
-			itemsFound = itemsFound + 1;
+		
+	local devices = {};
+	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, minDist, -1, true) do
+		if IsHeldDevice(movableObject) then
+			local device = ToHeldDevice(movableObject);
+			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) and device:HasObjectInGroup("Tools - Diggers") then
+				table.insert(devices, { device = device, distance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY) });
+			end
 		end
 	end
-
-	if itemsFound > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
+	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
+	
+	if #devices > 0 then
+		local _ai, _ownr, _abrt = coroutine.yield();
 		if _abrt then return true end
 
+		local waypointDistance = 16;
 		if Owner.AIMode == Actor.AIMODE_GOLDDIG then
-			minDist = 30;
+			waypointDistance = 30;
 		elseif AI.isPlayerOwned then
-			minDist = 5;
-		else
-			minDist = 16;
+			waypointDistance = 5;
 		end
 
-		local DevicesToPickUp = {};
-		for _, Item in pairs(Devices) do
-			if MovableMan:ValidMO(Item) and Item:HasObjectInGroup("Tools - Diggers") then
-				-- estimate the walking distance to the item
-				local waypoints = SceneMan.Scene:CalculatePath(Owner.Pos, Item.Pos, false, 1, Owner.Team);
-				if waypoints < minDist and waypoints > -1 then
-					table.insert(DevicesToPickUp, {HD=Item, score=waypoints});
+		local waypoints, score;
+		local devicesToPickUp = {};
+		for _, deviceEntry in pairs(devices) do
+			local device = deviceEntry.device;
+			if MovableMan:ValidMO(device) then
+				local pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
+				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
+				
+				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or deviceEntry.distance.Magnitude / pathfinderNodeSize;
+				if distanceToTarget < waypointDistance and distanceToTarget > -1 then
+					table.insert(devicesToPickUp, {device = device, score = distanceToTarget});
+					
+					for i = 1, 2 do
+						local _ai, _ownr, _abrt = coroutine.yield();
+						if _abrt then return true end
+					end
 				end
-
-				local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-				if _abrt then return true end
 			end
 		end
 
 		AI.PickupHD = nil;
-		table.sort(DevicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of waypoints
-		for _, Data in pairs(DevicesToPickUp) do
-			if MovableMan:ValidMO(Data.HD) and Data.HD:IsDevice() then
-				AI.PickupHD = Data.HD;
+		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
+		for _, deviceToPickupEntry in pairs(devicesToPickUp) do
+			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
+				AI.PickupHD = deviceToPickupEntry.device;
 				break;
 			end
 		end
 
 		if AI.PickupHD then
 			-- where do we move after pick up?
-			local PrevMoveTarget, PrevSeceneWaypoint;
+			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
-				PrevMoveTarget = Owner.MOMoveTarget;
+				prevMoveTarget = Owner.MOMoveTarget;
 			else
-				PrevSeceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
+				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
 			Owner:ClearMovePath();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
 			if Owner.AIMode ~= Actor.AIMODE_GOLDDIG then
-				if PrevMoveTarget then
-					Owner:AddAIMOWaypoint(PrevMoveTarget);
-				elseif PrevSeceneWaypoint then
-					Owner:AddAISceneWaypoint(PrevSeceneWaypoint);
+				if prevMoveTarget then
+					Owner:AddAIMOWaypoint(prevMoveTarget);
+				elseif prevSceneWaypoint then
+					Owner:AddAISceneWaypoint(prevSceneWaypoint);
 				end
 
 				if Owner.AIMode == Actor.AIMODE_SENTRY then
