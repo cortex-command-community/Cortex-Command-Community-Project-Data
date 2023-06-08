@@ -221,7 +221,7 @@ function DecisionDay:StartActivity(isNewGame)
 
 	self.aiData = {};
 	self.aiData.externalSpawnTimer = Timer(120000 / self.difficultyRatio);
-	self.aiData.internalReinforcementsTimer = Timer(90000 / self.difficultyRatio);
+	self.aiData.internalReinforcementsTimer = Timer(100000 / self.difficultyRatio);
 	self.aiData.internalReinforcementLimit = 12 * self.difficultyRatio;
 	self.aiData.numberOfInternalReinforcementsCreated = 0;
 	self.aiData.internalReinforcementPositionsCalculationCoroutines = {};
@@ -1404,18 +1404,14 @@ function DecisionDay:UpdateAIDecisions()
 							for _, internalReinforcementPosition in pairs(self.internalReinforcementsData[bunkerRegionData.bunkerId].positions) do
 								if box:IsWithinBox(internalReinforcementPosition) then
 									internalReinforcementPositionsToEnemyTargets[internalReinforcementPosition] = {};
-									table.insert(internalReinforcementPositionsToEnemyTargets[internalReinforcementPosition], captureAreaCenter);
-									if self.difficultyRatio > 0.5 then
-										table.insert(internalReinforcementPositionsToEnemyTargets[internalReinforcementPosition], captureAreaCenter);
-									end
-									if self.difficultyRatio >= (1 + RangeRand(-0.25, 0.25)) then
+									for i = 1, 5 do
 										table.insert(internalReinforcementPositionsToEnemyTargets[internalReinforcementPosition], captureAreaCenter);
 									end
 									break;
 								end
 							end
 						end
-						self:CreateInternalReinforcements("CQB", internalReinforcementPositionsToEnemyTargets);
+						self:CreateInternalReinforcements(math.random() < self.difficultyRatio * 0.75 and "CQB" or "Light", internalReinforcementPositionsToEnemyTargets, nil, 450 * self.difficultyRatio);
 					end
 
 					bunkerRegionData.aiRegionDefenseTimer:Reset();
@@ -2100,7 +2096,7 @@ function DecisionDay:CreateInternalReinforcements(loadout, internalReinforcement
 
 			print("Internal reinforcement position "..tostring(internalReinforcementPosition).." has "..tostring(#enemyTargetsForPosition).." enemy targets!")
 
-			local numberOfInternalReinforcementsToCreateAtPosition = math.min(#enemyTargetsForPosition, 3);
+			local numberOfInternalReinforcementsToCreateAtPosition = math.min(#enemyTargetsForPosition, 5);
 			if numberOfInternalReinforcementsToCreateAtPosition == 1 and math.random() < (self.difficultyRatio * 0.5) then
 				numberOfInternalReinforcementsToCreateAtPosition = 2;
 				if math.random() < (self.difficultyRatio * 0.1) then
@@ -2118,14 +2114,13 @@ function DecisionDay:CreateInternalReinforcements(loadout, internalReinforcement
 				else
 					internalReinforcement = self:CreateInfantry(self.aiTeam);
 				end
-				print("Creating internal reinforcement "..internalReinforcement.PresetName.." who costs "..tostring(internalReinforcement:GetTotalValue(self.aiTeamTech, 1)))
 				internalReinforcement.Team = self.aiTeam;
 				internalReinforcement.Pos = internalReinforcementPosition;
-				if numberOfInternalReinforcementsToCreateAtPosition == 2 then
-					internalReinforcement.Pos.X = internalReinforcement.Pos.X + (i == 1 and -10 or 10);
-				elseif numberOfInternalReinforcementsToCreateAtPosition == 3 then
-					internalReinforcement.Pos.X = internalReinforcement.Pos.X - 30 + (i * 15);
+				if numberOfInternalReinforcementsToCreateAtPosition > 1 then
+					local leftmostSpawnOffset = 20;
+					internalReinforcement.Pos.X = internalReinforcement.Pos.X - leftmostSpawnOffset + ((i - 1) * ((leftmostSpawnOffset * 2) / (numberOfInternalReinforcementsToCreateAtPosition - 1)));
 				end
+				print("Creating internal reinforcement "..internalReinforcement.PresetName.." who costs "..tostring(internalReinforcement:GetTotalValue(self.aiTeamTech, 1)).. " at "..tostring(internalReinforcement.Pos))
 				if internalReinforcement:IsInGroup("Actors - Turrets") then
 					internalReinforcement.AIMode = Actor.AIMODE_SENTRY;
 				else
