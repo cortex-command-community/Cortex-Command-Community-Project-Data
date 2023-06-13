@@ -914,27 +914,38 @@ end
 
 -- find a weapon to pick up
 function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
-	local minDist;
 	local pickupDiggers = not Owner:HasObjectInGroup("Tools - Diggers");
 
+	local maxSearchDistance;
 	if AI.isPlayerOwned then
-		minDist = 100; -- don't move player actors too far
+		maxSearchDistance = 100; -- don't move player actors too far
 	else
-		minDist = FrameMan.PlayerScreenWidth * 0.45;
+		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.45;
 	end
 
 	if Owner.AIMode == Actor.AIMODE_SENTRY then
-		minDist = minDist * 0.6;
+		maxSearchDistance = maxSearchDistance * 0.6;
 	end
 	
 	local devices = {};
 	local mosSearched = 0;
-	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, minDist, -1, true) do
+	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, maxSearchDistance, -1, true) do
 		mosSearched = mosSearched + 1;
-		if IsHeldDevice(movableObject) then
+		if mosSearched % 30 == 0 then
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
+		
+		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) then
-				table.insert(devices, { device = device, distance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY) });
+				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
+				if distanceToDevice:MagnitudeIsGreaterThan(Owner.Radius * 0.75) then
+					table.insert(devices, { device = device, distance = distanceToDevice });
+				else
+					devices = {{ device = device, distance = distanceToDevice }};
+					break;
+				end
 			end
 		end
 	end
@@ -944,21 +955,24 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		local _ai, _ownr, _abrt = coroutine.yield();
 		if _abrt then return true end
 
-		local waypointDistance = 36;
+		local maxWaypointDistance = 36;
 		if AI.isPlayerOwned then
-			waypointDistance = 10;
+			maxWaypointDistance = 10;
 		end
 
-		local waypoints, score;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true); --TODO if still laggy, just use this entirely and don't bother calcuating a path. Maybe only calculate path on smaller maps (< 10,000,000 square px)
+				local pathToItemIsObstructed = false;
+				if AI.useExpensiveToolAndWeaponSearch then
+					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
+				end
 				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
 				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or deviceEntry.distance.Magnitude / pathfinderNodeSize;
-				if distanceToTarget < waypointDistance and distanceToTarget > -1 then
+				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
+				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
+					local score = distanceToTarget
 					if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
 						score = distanceToTarget * 0.4; -- prioritize primary or heavy weapons
 					elseif device.ClassName == "TDExplosive" then
@@ -967,14 +981,17 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 						if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
 							score = distanceToTarget * 1.8; -- avoid diggers if there are other weapons
 						else
-							distanceToTarget = waypointDistance;
+							distanceToTarget = maxWaypointDistance;
 						end
-					else
-						score = distanceToTarget;
 					end
 
-					if distanceToTarget < waypointDistance then
+					if distanceToTarget < maxWaypointDistance then
 						table.insert(devicesToPickUp, {device = device, score = score});
+						if not pathToItemIsObstructed or score < 1 then
+							local _ai, _ownr, _abrt = coroutine.yield();
+							if _abrt then return true end
+							break;
+						end
 					end
 					for i = 1, 2 do
 						local _ai, _ownr, _abrt = coroutine.yield();
@@ -984,9 +1001,10 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			end
 		end
 
+		
 		AI.PickupHD = nil;
-		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
-		for _, deviceToPickupEntry in pairs(devicesToPickUp) do
+		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
+		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
 				AI.PickupHD = deviceToPickupEntry.device;
 				break;
@@ -1026,25 +1044,38 @@ end
 
 -- find a tool to pick up
 function HumanBehaviors.ToolSearch(AI, Owner, Abort)
-	local minDist;
+	local maxSearchDistance;
 	if Owner.AIMode == Actor.AIMODE_GOLDDIG then
-		minDist = FrameMan.PlayerScreenWidth * 0.5; -- move up to half a screen when digging
+		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.5; -- move up to half a screen when digging
 	elseif AI.isPlayerOwned then
-		minDist = 60; -- don't move player actors too far
+		maxSearchDistance = 60; -- don't move player actors too far
 	else
-		minDist = FrameMan.PlayerScreenWidth * 0.3;
+		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.3;
 	end
 
 	if Owner.AIMode == Actor.AIMODE_SENTRY then
-		minDist = minDist * 0.6;
+		maxSearchDistance = maxSearchDistance * 0.6;
 	end
 		
 	local devices = {};
-	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, minDist, -1, true) do
-		if IsHeldDevice(movableObject) then
+	local mosSearched = 0;
+	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, maxSearchDistance, -1, true) do
+		mosSearched = mosSearched + 1;
+		if mosSearched % 30 == 0 then
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
+		
+		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) and device:HasObjectInGroup("Tools - Diggers") then
-				table.insert(devices, { device = device, distance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY) });
+				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
+				if distanceToDevice:MagnitudeIsGreaterThan(20) then
+					table.insert(devices, { device = device, distance = distanceToDevice });
+				else
+					devices = {{ device = device, distance = distanceToDevice }};
+					break;
+				end
 			end
 		end
 	end
@@ -1054,24 +1085,30 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		local _ai, _ownr, _abrt = coroutine.yield();
 		if _abrt then return true end
 
-		local waypointDistance = 16;
+		local maxWaypointDistance = 16;
 		if Owner.AIMode == Actor.AIMODE_GOLDDIG then
-			waypointDistance = 30;
+			maxWaypointDistance = 30;
 		elseif AI.isPlayerOwned then
-			waypointDistance = 5;
+			maxWaypointDistance = 5;
 		end
 
-		local waypoints, score;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
+				local pathToItemIsObstructed = false;
+				if AI.useExpensiveToolAndWeaponSearch then
+					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
+				end
 				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
 				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or deviceEntry.distance.Magnitude / pathfinderNodeSize;
-				if distanceToTarget < waypointDistance and distanceToTarget > -1 then
+				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
+				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
 					table.insert(devicesToPickUp, {device = device, score = distanceToTarget});
+					
+					if not pathToItemIsObstructed or distanceToTarget < 1 then
+						break;
+					end
 					
 					for i = 1, 2 do
 						local _ai, _ownr, _abrt = coroutine.yield();
@@ -1083,7 +1120,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 
 		AI.PickupHD = nil;
 		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
-		for _, deviceToPickupEntry in pairs(devicesToPickUp) do
+		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
 				AI.PickupHD = deviceToPickupEntry.device;
 				break;
