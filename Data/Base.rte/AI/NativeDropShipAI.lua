@@ -284,6 +284,10 @@ function NativeDropShipAI:Update(Owner)
 		Ctrl:SetState(Controller.MOVE_UP, false);
 		Ctrl:SetState(Controller.MOVE_DOWN, false);
 	end
+	
+	if Owner.LeftEngine == nil and Owner.RightEngine == nil and self.StuckTimer.ElapsedSimTimeMS < 35000 then
+		self.StuckTimer.ElapsedSimTimeMS = 35000;
+	end
 
 	-- If we are hopelessly stuck, self destruct
 	if Owner.Vel.Largest > 3 or Owner.AIMode == Actor.AIMODE_STAY then
