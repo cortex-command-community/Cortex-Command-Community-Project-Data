@@ -105,9 +105,8 @@ function DecisionDay:StartActivity(isNewGame)
 		self.popoutTurretsData[bunkerId].boxData = {};
 		for box in self.popoutTurretsData[bunkerId].totalArea.Boxes do
 			self.popoutTurretsData[bunkerId].boxData[box] = {};
-			self.popoutTurretsData[bunkerId].boxData[box].activated = false;
 			self.popoutTurretsData[bunkerId].boxData[box].movementTimer = Timer(1000);
-			self.popoutTurretsData[bunkerId].boxData[box].respawnTimer = Timer(10000);
+			self.popoutTurretsData[bunkerId].boxData[box].respawnTimer = Timer(10000, 10000);
 			self.popoutTurretsData[bunkerId].boxData[box].movementSound = CreateSoundContainer("Door Movement Loop", "Base.rte");
 			self.popoutTurretsData[bunkerId].boxData[box].movementSound.Volume = 0.5;
 			self.popoutTurretsData[bunkerId].boxData[box].movementSound.Loops = -1;
@@ -170,7 +169,7 @@ function DecisionDay:StartActivity(isNewGame)
 			hasBeenCapturedAtLeastOnceByHumanTeam = false,
 			captureCount = 0,
 			captureLimit = 600 * self.difficultyRatio,
-			aiRegionDefenseTimer = Timer(60000 / self.difficultyRatio, 60000 / self.difficultyRatio),
+			aiRegionDefenseTimer = Timer(60000 / self.difficultyRatio, 60000 / self.difficultyRatio), --TODO this can't be here for loading game
 			aiRegionAttackTimer = Timer(90000 / self.difficultyRatio),
 			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
 			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
@@ -204,10 +203,13 @@ function DecisionDay:StartActivity(isNewGame)
 		end
 	end
 
-	self.stageTimer = Timer();
+	self.currentStage = self.stages.followInitialDropShip;
+	self.currentMessageNumber = 1;
+	self.numberOfMessagesForStage = 1;
+	self.cameraMinimumX = self.initialDropShipSpawnArea.Center.X - 50;
+
 	self.messageTimer = Timer(10000);
 	self.vaultIncomeTimer = Timer(1000);
-	self.actorTableCleanupTimer = Timer(10000);
 	self.mainBunkerShieldedAreaFOWTimer = Timer(10000);
 
 	local createNewActorDataTable = function()
@@ -215,12 +217,17 @@ function DecisionDay:StartActivity(isNewGame)
 	end
 
 	self.alliedData = {};
+	self.alliedData.spawnsEnabled = false;
+	self.alliedData.spawnTimer = Timer(3000, 2500);
 	self.alliedData.actors = {};
 	self.alliedData.actors.sentries = createNewActorDataTable();
 	self.alliedData.actors.attackers = createNewActorDataTable();
+	self.alliedData.attackerLimit = 10;
 
 	self.aiData = {};
+	self.aiData.externalSpawnsEnabled = false;
 	self.aiData.externalSpawnTimer = Timer(120000 / self.difficultyRatio);
+	self.aiData.internalReinforcementsEnabled = false;
 	self.aiData.internalReinforcementsTimer = Timer(100000 / self.difficultyRatio);
 	self.aiData.internalReinforcementLimit = 12 * self.difficultyRatio;
 	self.aiData.numberOfInternalReinforcementsCreated = 0;
@@ -231,6 +238,7 @@ function DecisionDay:StartActivity(isNewGame)
 	self.aiData.attackTarget = nil;
 	self.aiData.attackRetargetTimer = Timer(15000);
 
+	self.aiData.brainSpawned = false;
 	self.aiData.brainDefenderSpawnTimer = Timer(10000 / self.difficultyRatio);
 	self.aiData.brainDefenderReplenishTimer = Timer(30000 / self.difficultyRatio);
 	self.aiData.brainDefendersTotal = 20 * self.difficultyRatio;
@@ -250,6 +258,16 @@ function DecisionDay:StartActivity(isNewGame)
 
 	self.vaultCaptureIncome = 1500;
 	self.vaultTickIncome = 6;
+
+	self.initialDropShipDestroyed = false;
+	self.anyHumanHasSeenObjectives = false;
+	self.anyHumanHasDeployedABrain = false;
+	self.tunnelHasBeenEntered = false;
+
+	self.humansAreControllingAlliedActors = false;
+
+	self.frontBunkerAlliedDefendersSpawned = false;
+	self.middleBunkerAlliedDefendersSpawned = false;
 
 	self.initialDropShipsAndVelocities = {};
 	self.previousCraftLZInfo = {};
@@ -296,6 +314,33 @@ function DecisionDay:StartActivity(isNewGame)
 		end
 	end
 
+	self.keysToSaveAndLoadValuesOf = {
+		"currentStage", "currentMessageNumber", "numberOfMessagesForStage", "cameraMinimumX",
+		"messageTimer", "vaultIncomeTimer", "mainBunkerShieldedAreaFOWTimer",
+		"alliedData.spawnsEnabled", "alliedData.spawnTimer", "alliedData.attackerLimit",
+		"aiData.externalSpawnsEnabled", "aiData.externalSpawnTimer", "aiData.internalReinforcementsEnabled", "aiData.internalReinforcementsTimer", "aiData.brainSpawned", "aiData.brainDefenderSpawnTimer", "aiData.brainDefenderReplenishTimer", "aiData.brainDefendersRemaining",
+		"initialDropShipDestroyed", "anyHumanHasSeenObjectives", "anyHumanHasDeployedABrain", "tunnelHasBeenEntered",
+		"humansAreControllingAlliedActors",
+		"frontBunkerAlliedDefendersSpawned", "middleBunkerAlliedDefendersSpawned",
+	}
+	for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
+		local bunkerRegionKeyPrefix = "bunkerRegions." .. bunkerRegionName .. ".";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = bunkerRegionKeyPrefix .. "enabled";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = bunkerRegionKeyPrefix .. "ownerTeam";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = bunkerRegionKeyPrefix .. "hasBeenCapturedAtLeastOnceByHumanTeam";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = bunkerRegionKeyPrefix .. "captureCount";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = bunkerRegionKeyPrefix .. "aiRegionDefenseTimer";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = bunkerRegionKeyPrefix .. "aiRegionAttackTimer";
+	end
+	for _, bunkerId in pairs(self.bunkerIds) do
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = "internalReinforcementsData." .. tostring(bunkerId) .. ".enabled";
+		
+		local popoutTurretDataPrefix = "popoutTurretsData." .. tostring(bunkerId) .. ".";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = popoutTurretDataPrefix .. "enabled";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = popoutTurretDataPrefix .. "turretsActivated";
+		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = popoutTurretDataPrefix .. "deactivationDelayTimer";
+	end
+
 	if isNewGame then
 		self:StartNewGame();
 	else
@@ -321,38 +366,48 @@ function DecisionDay:StartActivity(isNewGame)
 end
 
 function DecisionDay:OnSave()
+	local function getTableValueByKey(tableOrSuperTableToGetValueFrom, key)
+		local firstPeriodPosition = key:find("%.");
+		if firstPeriodPosition ~= nil then
+			local trimmedTableKey = key:sub(1, firstPeriodPosition - 1);
+			local trimmedValueKey = key:sub(firstPeriodPosition + 1);
+
+			local tableToGetValueFrom = tableOrSuperTableToGetValueFrom[tonumber(trimmedTableKey) or trimmedTableKey];
+			return getTableValueByKey(tableToGetValueFrom, tonumber(trimmedValueKey) or trimmedValueKey);
+		else
+			return tableOrSuperTableToGetValueFrom[key];
+		end
+	end
+
+	for _, key in pairs(self.keysToSaveAndLoadValuesOf) do
+		local value = getTableValueByKey(self, key);
+
+		if type(value) == "number" then
+			self:SaveNumber(key, value);
+		elseif type(value) == "string" then
+			self:SaveString(key, value);
+		elseif type(value) == "boolean" then
+			self:SaveNumber(key, value and 1 or 0);
+		elseif type(value) == "table" then
+			print("Saving Error: Tables are not supported, use . for subkeys!");
+		elseif type(value) == "userdata" then
+			if value.ElapsedSimTimeMS ~= nil then
+				self:SaveNumber(key .. ".SimTimeLimitMS", value:GetSimTimeLimitMS());
+				self:SaveNumber(key .. ".ElapsedSimTimeMS", value.ElapsedSimTimeMS);
+			else
+				print("Saving Error: The only supported userdata type is Timer!")
+			end
+		end
+	end
+
+	while #self.aiData.internalReinforcementPositionsCalculationCoroutines > 0 do
+		self:UpdateAIInternalReinforcements(true);
+	end
 end
 
 function DecisionDay:StartNewGame()
 	self:SetTeamFunds(0, self.humanTeam);
 	self.BuyMenuEnabled = false;
-
-	self.currentStage = self.stages.followInitialDropShip;
-	self.currentMessageNumber = 1;
-	self.numberOfMessagesForStage = 1;
-
-	self.cameraIsPanning = false;
-
-	self.alliedData.spawnTimer = Timer(3000);
-	self.alliedData.spawnsEnabled = false;
-	self.alliedData.attackerLimit = 10;
-	self.alliedData.spawnTimer.ElapsedSimTimeMS = 2500;
-
-	self.aiData.externalSpawnsEnabled = false;
-	self.aiData.internalReinforcementsEnabled = false;
-	self.aiData.brainSpawned = false;
-
-	self.humansAreControllingAlliedActors = false;
-
-	self.initialDropShipDestroyed = false;
-	self.anyHumanHasSeenObjectives = false;
-	self.anyHumanHasDeployedABrain = false;
-	self.tunnelHasBeenEntered = false;
-
-	self.frontBunkerAlliedDefendersSpawned = false;
-	self.middleBunkerAlliedDefendersSpawned = false;
-
-	self.cameraMinimumX = self.initialDropShipSpawnArea.Center.X - 50;
 
 	self:SetupFogOfWar();
 
@@ -503,6 +558,7 @@ function DecisionDay:DoInitialHumanSpawns()
 			brain:RemoveInventoryItem("Constructor");
 		else
 			brain = RandomAHuman("Brains", self.humanTeamTech);
+			brain:AddToGroup("Brain " .. tostring(player));
 			brain:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.humanTeamTech));
 			brain:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.humanTeamTech));
 		end
@@ -565,8 +621,8 @@ function DecisionDay:SpawnAreaDefinedAIDefenders()
 			areaCenterPointX = bunkerRegionData.totalArea.Center.X;
 			for box in bunkerRegionData.defenderArea.Boxes do
 				local actor = self:SpawnInfantry(self.aiTeam, defenderType, box.Center, Actor.AIMODE_SENTRY, box.Center.X > areaCenterPointX);
-				actor:AddToGroup("AI Region Defender");
-				actor:AddToGroup("AI Region Defender - " .. bunkerRegionName);
+				actor:AddToGroup("AI Region Defenders");
+				actor:AddToGroup("AI Region Defenders - " .. bunkerRegionName);
 				self.aiData.actors.sentries[actor.UniqueID] = actor;
 				self.aiData.actors.sentries.count = self.aiData.actors.sentries.count + 1;
 			end
@@ -574,7 +630,155 @@ function DecisionDay:SpawnAreaDefinedAIDefenders()
 	end
 end
 
+function DecisionDay:SetTableValueByKey(tableToSetValueFor, keyToLoad)
+	local tableKey = keyToLoad;
+	if tableKey:find("%.") then
+		tableKey = tableKey:sub(1 - (tableKey:reverse()):find("%."));
+		tableKey = tonumber(tableKey) or tableKey;
+	end
+
+	local existingValue = tableToSetValueFor[tableKey];
+	local existingValueType = type(existingValue);
+
+	if existingValueType == "nil" then
+		print("Loading Error: Tried to load " .. tableKey .." but there's no existing value for it!");
+	end
+
+	if existingValueType == "number" then
+		tableToSetValueFor[tableKey] = self:LoadNumber(keyToLoad);
+			--print("Key " .. tableKey .." had value " ..tostring(existingValue) .. " and now has value ".. tostring(tableToSetValueFor[tableKey]))
+	elseif existingValueType == "string" then
+		tableToSetValueFor[tableKey] = self:LoadString(keyToLoad);
+			--print("Key " .. tableKey .." had value " ..tostring(existingValue) .. " and now has value ".. tostring(tableToSetValueFor[tableKey]))
+	elseif existingValueType == "boolean" then
+		tableToSetValueFor[tableKey] = self:LoadNumber(keyToLoad) ~= 0;
+			--print("Key " .. tableKey .." had value " ..tostring(existingValue) .. " and now has value ".. tostring(tableToSetValueFor[tableKey]))
+	elseif existingValueType == "table" then
+		print("Loading Error: Tables are not supported, use . for subkeys!")
+	elseif existingValueType == "userdata" then
+		if existingValue.ElapsedSimTimeMS ~= nil then
+				--local existinglimit = existingValue:GetSimTimeLimitMS();
+				--local existingelapsed = existingValue.ElapsedSimTimeMS;
+			tableToSetValueFor[tableKey]:SetSimTimeLimitMS(self:LoadNumber(keyToLoad .. ".SimTimeLimitMS"));
+			tableToSetValueFor[tableKey].ElapsedSimTimeMS = self:LoadNumber(keyToLoad .. ".ElapsedSimTimeMS");
+				--print("Key " .. tableKey .." had SimTimeLimitMS " ..tostring(existinglimit) .. " and ElapsedSimTimeMS "..tostring(existingelapsed) .. " and now has SimTimeLimitMS ".. tostring(tableToSetValueFor[tableKey]:GetSimTimeLimitMS()) .. " and ElapsedSimTimeMS " .. tostring(tableToSetValueFor[tableKey].ElapsedSimTimeMS));
+		else
+			print("Loading Error: The only supported userdata type is Timer!");
+		end
+	end
+end
+
 function DecisionDay:ResumeLoadedGame()
+	local function getTableForFullKey(tableOrSuperTableToGetValueFrom, fullKey)
+		local firstPeriodPosition = fullKey:find("%.");
+		if firstPeriodPosition ~= nil then
+			local trimmedTableKey = fullKey:sub(1, firstPeriodPosition - 1);
+			local trimmedValueKey = fullKey:sub(firstPeriodPosition + 1);
+
+			local tableToGetValueFrom = tableOrSuperTableToGetValueFrom[tonumber(trimmedTableKey) or trimmedTableKey];
+			return getTableForFullKey(tableToGetValueFrom, tonumber(trimmedValueKey) or trimmedValueKey);
+		else
+			return tableOrSuperTableToGetValueFrom;
+		end
+	end
+
+	for _, key in pairs(self.keysToSaveAndLoadValuesOf) do
+		local tableToSetValueFor = getTableForFullKey(self, tonumber(key) or key);
+		self:SetTableValueByKey(tableToSetValueFor, key);
+	end
+	self.aiData.attackRetargetTimer.ElapsedSimTimeMS = self.aiData.attackRetargetTimer:GetSimTimeLimitMS(); -- We don't save ai attack target, so make sure we pick an attack target right away.
+
+	local function handleActorTableEntry(actor, tableToAddActorTo)
+		tableToAddActorTo[actor.UniqueID] = IsAHuman(actor) and ToAHuman(actor) or ToACrab(actor);
+		tableToAddActorTo.count = tableToAddActorTo.count + 1;
+	end
+
+	for actor in MovableMan.AddedActors do
+		if self.currentStage < self.stages.frontBunkerCaptured and actor.Team == self.humanTeam and IsACDropShip(actor) then
+			actor.ImpulseDamageThreshold = 1;
+			actor.GlobalAccScalar = 1.75;
+			self.initialDropShipsAndVelocities[#self.initialDropShipsAndVelocities + 1] = { dropShip = ToACDropShip(actor), velX = actor.Vel.X };
+		elseif actor:IsInGroup("Brains") and actor.Team == self.humanTeam then
+			for _, player in pairs(self.humanPlayers) do
+				if actor:IsInGroup("Brain " .. tostring(player)) then
+					self:SetPlayerBrain(actor, player);
+				elseif actor:IsInGroup("Deployed Brain " .. tostring(player)) then
+					self:SetPlayerBrain(actor, player);
+
+					local undeployBrainPieSlice = self.undeployBrainPieSlice:Clone();
+					undeployBrainPieSlice.Direction = Directions.Left;
+					actor.PieMenu:AddPieSliceIfPresetNameIsUnique(undeployBrainPieSlice, self);
+
+					local swapControlPieSlice = self.swapControlPieSlice:Clone();
+					swapControlPieSlice.Direction = Directions.Right;
+					actor.PieMenu:AddPieSliceIfPresetNameIsUnique(swapControlPieSlice, self);
+				elseif actor:IsInGroup("Empty Brain Body " .. tostring(player)) then
+					actor = ToAHuman(actor);
+					actor.Head.Scale = 0;
+					actor:GetController().InputMode = Controller.CIM_DISABLED;
+				end
+			end
+		elseif actor:IsInGroup("Allied Sentries") then
+			handleActorTableEntry(actor, self.alliedData.actors.sentries);
+		elseif actor:IsInGroup("Allied Attackers") then
+			handleActorTableEntry(actor, self.alliedData.actors.attackers)
+		elseif actor:IsInGroup("AI Sentries") or actor:IsInGroup("AI Region Defenders") then
+			handleActorTableEntry(actor, self.aiData.actors.sentries);
+		elseif actor:IsInGroup("AI Internal Turrets") then
+			handleActorTableEntry(actor, self.aiData.actors.internalTurrets);
+		elseif actor:IsInGroup("AI Internal Reinforcements") then
+			handleActorTableEntry(actor, self.aiData.actors.internalReinforcements);
+		elseif actor:IsInGroup("AI Attackers") then
+			handleActorTableEntry(actor, self.aiData.actors.attackers);
+		elseif IsACDropShip(actor) or IsACRocket(actor) then
+			if actor.PresetName:find("Decision Day Storage Crate") then
+				for inventory in actor.Inventory do
+					inventory.Team = self.humanTeam;
+				end
+			else
+				actor.AIMode = actor:IsInventoryEmpty() and Actor.AIMODE_RETURN or Actor.AIMODE_DELIVER;
+				for inventory in actor.Inventory do
+					if inventory:IsInGroup("Allied Attackers") then
+						handleActorTableEntry(inventory, self.alliedData.actors.attackers);
+					elseif inventory:IsInGroup("AI Attackers") then
+						handleActorTableEntry(inventory, self.aiData.actors.attackers);
+					end
+				end
+			end
+		elseif actor.PresetName == self.popoutTurretTemplate.PresetName then
+			actor.ToDelete = true;
+		elseif IsADoor(actor) then
+			if self.bunkerAreas[self.bunkerIds.mainBunker].frontDoors.FirstBox:IsWithinBox(actor.Pos) then
+				actor = ToADoor(actor);
+				local bunkerRegion = self.bunkerRegions["Main Bunker Door Controls"];
+				if actor.Team ~= bunkerRegion.ownerTeam then
+					MovableMan:ChangeActorTeam(actor, bunkerRegion.ownerTeam);
+				end
+				if bunkerRegion.ownerTeam == self.humanTeam then
+					actor.Status = Actor.INACTIVE;
+					actor:OpenDoor();
+				else
+					actor.Status = Actor.STABLE;
+				end
+			elseif self.bunkerRegions["Main Bunker Command Center"].brainDoor.FirstBox:IsWithinBox(actor.Pos) then
+				actor.Status = Actor.INACTIVE;
+				if self.bunkerRegions["Main Bunker Command Center"].ownerTeam == self.humanTeam then
+					ToADoor(actor):OpenDoor();
+				else
+					ToADoor(actor):CloseDoor();
+				end
+			end
+		end
+	end
+
+	for particle in MovableMan.AddedParticles do
+		if particle.PresetName == self.fauxdanDisplayScreenTemplate.PresetName or particle.PresetName == self.captureDisplayScreenTemplate.PresetName then
+			particle.ToDelete = true;
+		end
+	end
+
+	self:UpdateLZAreas();
+	self:UpdateAlliedAttackersWaypoint();
 end
 
 function DecisionDay:DoGameOverCheck()
@@ -584,6 +788,9 @@ function DecisionDay:DoGameOverCheck()
 			self.messageTimer:Reset();
 		elseif self.aiData.brainSpawned and not MovableMan:GetFirstBrainActor(self.aiTeam) then
 			self.WinnerTeam = self.humanTeam;
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				self:SetObservationTarget(self.bunkerRegions["Main Bunker Command Center"].brain.Center, player);
+			end
 			self.messageTimer:Reset();
 		end
 	end
@@ -698,7 +905,7 @@ function DecisionDay:UpdateCurrentStage()
 		self:DoAlliedSpawns(true);
 		self:UpdateAlliedAttackersWaypoint();
 		self.alliedData.spawnTimer:SetSimTimeLimitMS(10000);
-		self.alliedData.attackerLimit = 3;
+		self.alliedData.attackerLimit = 5;
 	elseif self.currentStage == self.stages.captureMainBunker and self.bunkerRegions["Main Bunker Shield Generator"].ownerTeam == self.humanTeam then
 		self.currentStage = self.stages.attackBrain;
 		self.numberOfMessagesForStage = 1;
@@ -717,56 +924,18 @@ function DecisionDay:UpdateCurrentStage()
 		end
 
 		self.aiData.brainSpawned = true;
-		self.aiData.brain = CreateActor("Brain Case", "Base.rte");
-		self.aiData.brain.Team = self.aiTeam;
-		self.aiData.brain.Pos = self.bunkerRegions["Main Bunker Command Center"].brain.Center;
-		MovableMan:AddActor(self.aiData.brain);
+		local aiBrain = CreateActor("Brain Case", "Base.rte");
+		aiBrain.Team = self.aiTeam;
+		aiBrain.Pos = self.bunkerRegions["Main Bunker Command Center"].brain.Center;
+		MovableMan:AddActor(aiBrain);
 
 		self.bunkerRegions["Main Bunker Shield Generator"].enabled = false;
 		self.bunkerRegions["Main Bunker Command Center"].enabled = true;
 	end
 
 	if previousStage ~= self.currentStage then
-		self.stageTimer:Reset();
 		self.messageTimer:Reset();
 		self.currentMessageNumber = 1;
-	end
-end
-
-function DecisionDay:SpawnAndUpdateInitialDropShips()
-	if self.currentStage < self.stages.attackFrontBunker and self.alliedData.spawnTimer:IsPastSimTimeLimit() then
-		local craft = RandomACDropShip("Craft", self.humanTeamTech);
-		if not craft or craft.MaxInventoryMass <= 0 then
-			craft = RandomACDropShip("Craft", "Base.rte");
-		end
-
-		craft.Pos = Vector(self.initialDropShipSpawnArea:GetRandomPoint().X, -50);
-		craft.Team = self.humanTeam;
-		craft.PlayerControllable = false;
-		craft.ImpulseDamageThreshold = 1;
-		for i = 1, 2 do
-			local actor = RandomAHuman("Actors", self.humanTeamTech);
-			actor.Team = self.humanTeam;
-			actor.Health = 0;
-			craft:AddInventoryItem(actor);
-		end
-		craft.GlobalAccScalar = 1.75;
-		MovableMan:AddActor(craft);
-		self.initialDropShipsAndVelocities[#self.initialDropShipsAndVelocities + 1] = { dropShip = craft, velX = math.random(-5, 5) };
-
-		self.alliedData.spawnTimer:Reset();
-	end
-
-	for i = #self.initialDropShipsAndVelocities, 1, -1 do
-		local initialDropShipAndVelocity = self.initialDropShipsAndVelocities[i];
-		if not MovableMan:IsActor(initialDropShipAndVelocity.dropShip) then
-			table.remove(self.initialDropShipsAndVelocities, i);
-			if i == 1 and not self.initialDropShipDestroyed then
-				self.initialDropShipDestroyed = true;
-			end
-		else
-			initialDropShipAndVelocity.dropShip.Vel.X = initialDropShipAndVelocity.velX;
-		end
 	end
 end
 
@@ -984,6 +1153,43 @@ function DecisionDay:UpdateMessages()
 	end
 end
 
+function DecisionDay:SpawnAndUpdateInitialDropShips()
+	if self.currentStage < self.stages.attackFrontBunker and self.alliedData.spawnTimer:IsPastSimTimeLimit() then
+		local craft = RandomACDropShip("Craft", self.humanTeamTech);
+		if not craft or craft.MaxInventoryMass <= 0 then
+			craft = RandomACDropShip("Craft", "Base.rte");
+		end
+
+		craft.Pos = Vector(self.initialDropShipSpawnArea:GetRandomPoint().X, -50);
+		craft.Team = self.humanTeam;
+		craft.PlayerControllable = false;
+		craft.ImpulseDamageThreshold = 1;
+		for i = 1, 2 do
+			local actor = RandomAHuman("Actors", self.humanTeamTech);
+			actor.Team = self.humanTeam;
+			actor.Health = 0;
+			craft:AddInventoryItem(actor);
+		end
+		craft.GlobalAccScalar = 1.75;
+		MovableMan:AddActor(craft);
+		self.initialDropShipsAndVelocities[#self.initialDropShipsAndVelocities + 1] = { dropShip = craft, velX = math.random(-5, 5) };
+
+		self.alliedData.spawnTimer:Reset();
+	end
+
+	for i = #self.initialDropShipsAndVelocities, 1, -1 do
+		local initialDropShipAndVelocity = self.initialDropShipsAndVelocities[i];
+		if not MovableMan:ValidMO(initialDropShipAndVelocity.dropShip) then
+			table.remove(self.initialDropShipsAndVelocities, i);
+			if i == 1 and not self.initialDropShipDestroyed then
+				self.initialDropShipDestroyed = true;
+			end
+		else
+			initialDropShipAndVelocity.dropShip.Vel.X = initialDropShipAndVelocity.velX;
+		end
+	end
+end
+
 function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 	local showStrategicVisuals = false;
 	for _, player in pairs(self.humanPlayers) do
@@ -1075,65 +1281,6 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 
 		self:YSortObjectivePoints();
 	end
-
-	for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
-		if bunkerRegionData.enabled then
-			local currentFauxdanDisplayFrameString;
-			local currentLoginScreenFrameString;
-			for _, player in pairs(self.humanPlayers) do
-				if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
-					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage == self.stages.attackBrain then
-						for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
-							local boxCenterPos = box.Center;
-							local fauxdanDisplayScreenKey = tostring(boxCenterPos.FlooredX) .. "," .. tostring(boxCenterPos.FlooredY);
-							
-							local boxBlockedByCaptureDisplay = false;
-							if bunkerRegionData.captureCount > 0 then
-								for captureDisplayBox in bunkerRegionData.captureDisplayArea.Boxes do
-									if captureDisplayBox.Center.Floored == boxCenterPos.Floored then
-										boxBlockedByCaptureDisplay = true;
-										break;
-									end
-								end
-							end
-							
-							if not boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] == nil then
-								local fauxdanDisplayScreen = self.fauxdanDisplayScreenTemplate:Clone();
-								fauxdanDisplayScreen.Pos = boxCenterPos;
-								MovableMan:AddParticle(fauxdanDisplayScreen);
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = fauxdanDisplayScreen;
-							elseif boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] ~= nil then
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey].ToDelete = true;
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = nil;
-							end
-						end
-					else
-						for _, fauxdanDisplayScreen in pairs(bunkerRegionData.fauxdanDisplayScreens) do
-							fauxdanDisplayScreen.ToDelete = true;
-						end
-						bunkerRegionData.fauxdanDisplayScreens = {};
-					end
-					
-					if bunkerRegionData.captureCount > 0 then
-						if #bunkerRegionData.captureDisplayScreens == 0 then
-							for box in bunkerRegionData.captureDisplayArea.Boxes do
-								local captureDisplayScreen = self.captureDisplayScreenTemplate:Clone();
-								captureDisplayScreen.Pos = box.Center;
-								MovableMan:AddParticle(captureDisplayScreen);
-								bunkerRegionData.captureDisplayScreens[#bunkerRegionData.captureDisplayScreens + 1] = captureDisplayScreen;
-							end
-						end
-						for _, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
-							captureDisplayScreen.Frame = math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * (captureDisplayScreen.FrameCount));
-							captureDisplayScreen.Age = 0;
-						end
-					else
-						bunkerRegionData.captureDisplayScreens = {};
-					end
-				end
-			end
-		end
-	end
 end
 
 function DecisionDay:UpdateLZAreas()
@@ -1150,7 +1297,6 @@ function DecisionDay:UpdateLZAreas()
 	if self.bunkerRegions["Main Bunker Air Traffic Control"].ownerTeam == self.humanTeam then
 		self.alliedData.lzArea = self.bunkerAreas[self.bunkerIds.mainBunker].lzArea;
 		self.aiData.lzArea = self.bunkerAreas[self.bunkerIds.mainBunker].rearLZArea;
-
 	end
 
 	self:SetLZArea(self.humanTeam, self.alliedData.lzArea);
@@ -1191,7 +1337,7 @@ function DecisionDay:UpdateRegionCapturing()
 					if bunkerRegionData.captureCount >= bunkerRegionData.captureLimit then
 						bunkerRegionData.ownerTeam = capturingTeam;
 						bunkerRegionData.captureCount = 0;
-						
+
 						for _, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
 							captureDisplayScreen.Lifetime = 2000;
 						end
@@ -1222,7 +1368,7 @@ function DecisionDay:UpdateRegionCapturing()
 								end
 							end
 							for box, boxData in pairs(self.popoutTurretsData[bunkerRegionData.bunkerId].boxData) do
-								if boxData.actor and MovableMan:IsActor(boxData.actor) then
+								if boxData.actor and MovableMan:ValidMO(boxData.actor) then
 									boxData.actor:GibThis();
 								end
 							end
@@ -1258,6 +1404,67 @@ function DecisionDay:UpdateRegionCapturing()
 						end
 
 						bunkerRegionData.hasBeenCapturedAtLeastOnceByHumanTeam = bunkerRegionData.hasBeenCapturedAtLeastOnceByHumanTeam or bunkerRegionData.ownerTeam == self.humanTeam;
+					end
+				end
+			end
+		end
+	end
+end
+
+function DecisionDay:UpdateRegionScreens()
+	for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
+		if bunkerRegionData.enabled then
+			local currentFauxdanDisplayFrameString;
+			local currentLoginScreenFrameString;
+			for _, player in pairs(self.humanPlayers) do
+				if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
+					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage == self.stages.attackBrain then
+						for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
+							local boxCenterPos = box.Center;
+							local fauxdanDisplayScreenKey = tostring(boxCenterPos.FlooredX) .. "," .. tostring(boxCenterPos.FlooredY);
+
+							local boxBlockedByCaptureDisplay = false;
+							if bunkerRegionData.captureCount > 0 then
+								for captureDisplayBox in bunkerRegionData.captureDisplayArea.Boxes do
+									if captureDisplayBox.Center.Floored == boxCenterPos.Floored then
+										boxBlockedByCaptureDisplay = true;
+										break;
+									end
+								end
+							end
+
+							if not boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] == nil then
+								local fauxdanDisplayScreen = self.fauxdanDisplayScreenTemplate:Clone();
+								fauxdanDisplayScreen.Pos = boxCenterPos;
+								MovableMan:AddParticle(fauxdanDisplayScreen);
+								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = fauxdanDisplayScreen;
+							elseif boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] ~= nil then
+								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey].ToDelete = true;
+								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = nil;
+							end
+						end
+					else
+						for _, fauxdanDisplayScreen in pairs(bunkerRegionData.fauxdanDisplayScreens) do
+							fauxdanDisplayScreen.ToDelete = true;
+						end
+						bunkerRegionData.fauxdanDisplayScreens = {};
+					end
+
+					if bunkerRegionData.captureCount > 0 then
+						if #bunkerRegionData.captureDisplayScreens == 0 then
+							for box in bunkerRegionData.captureDisplayArea.Boxes do
+								local captureDisplayScreen = self.captureDisplayScreenTemplate:Clone();
+								captureDisplayScreen.Pos = box.Center;
+								MovableMan:AddParticle(captureDisplayScreen);
+								bunkerRegionData.captureDisplayScreens[#bunkerRegionData.captureDisplayScreens + 1] = captureDisplayScreen;
+							end
+						end
+						for _, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
+							captureDisplayScreen.Frame = math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * (captureDisplayScreen.FrameCount));
+							captureDisplayScreen.Age = 0;
+						end
+					else
+						bunkerRegionData.captureDisplayScreens = {};
 					end
 				end
 			end
@@ -1363,7 +1570,7 @@ function DecisionDay:UpdateAIInternalReinforcements(forceInstantSpawning)
 	end
 
 	for internalReinforcementDoor, actorsToSpawn in pairs(self.internalReinforcementsData.doorsAndActorsToSpawn) do
-		if MovableMan:IsParticle(internalReinforcementDoor) and (forceInstantSpawning or internalReinforcementDoor.Frame == internalReinforcementDoor.FrameCount - 1) then
+		if MovableMan:ValidMO(internalReinforcementDoor) and (forceInstantSpawning or internalReinforcementDoor.Frame == internalReinforcementDoor.FrameCount - 1) then
 			for _, actorToSpawn in pairs(actorsToSpawn) do
 				actorToSpawn.Team = internalReinforcementDoor.Team;
 				actorToSpawn:AddToGroup("AI Internal Reinforcements");
@@ -1389,7 +1596,7 @@ function DecisionDay:UpdateAIDecisions()
 					local captureAreaCenter = bunkerRegionData.captureArea.Center;
 
 					for movableObject in MovableMan:GetMOsInRadius(captureAreaCenter, self.aiData.bunkerRegionDefenseRange, self.humanTeam, true) do
-						if (IsAHuman(movableObject) or IsACrab(movableObject)) and (not movableObject:IsInGroup("AI Region Defender") or movableObject:IsInGroup("AI Region Defender - " .. bunkerRegionName)) and movableObject.PinStrength == 0 and not movableObject:IsInGroup("Actors - Turrets")  then
+						if (IsAHuman(movableObject) or IsACrab(movableObject)) and (not movableObject:IsInGroup("AI Region Defenders") or movableObject:IsInGroup("AI Region Defenders - " .. bunkerRegionName)) and movableObject.PinStrength == 0 and not movableObject:IsInGroup("Actors - Turrets")  then
 							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, false, GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
 							--if pathLengthToCaptureArea < self.aiData.bunkerRegionDefenseRange then
 								local actor = ToActor(movableObject);
@@ -1398,6 +1605,7 @@ function DecisionDay:UpdateAIDecisions()
 							--end
 						end
 					end
+					print("decisions for " .. bunkerRegionName)
 					if self.aiData.internalReinforcementsEnabled and bunkerRegionData.internalReinforcementsArea and self.internalReinforcementsData[bunkerRegionData.bunkerId].enabled then
 						local internalReinforcementPositionsToEnemyTargets = {};
 						for box in bunkerRegionData.internalReinforcementsArea.Boxes do
@@ -1411,6 +1619,7 @@ function DecisionDay:UpdateAIDecisions()
 								end
 							end
 						end
+						print("Making reinforcements for " .. bunkerRegionName)
 						self:CreateInternalReinforcements(math.random() < self.difficultyRatio * 0.75 and "CQB" or "Light", internalReinforcementPositionsToEnemyTargets, nil, 450 * self.difficultyRatio);
 					end
 
@@ -1516,8 +1725,10 @@ end
 
 function DecisionDay:UpdateAlliedAttackersWaypoint(optionalSpecificActorToUpdate)
 	local targetPosition = self.bunkerAreas[self.bunkerIds.middleBunker].lzArea.FirstBox.Corner + Vector(100, 50);
-	if self.currentStage >= self.stages.middleBunkerCaptured then
+	if self.currentStage >= self.stages.captureMainBunker then
 		targetPosition = self.bunkerRegions["Main Bunker Door Controls"].captureArea.Center;
+	elseif self.currentStage >= self.stages.middleBunkerCaptured then
+		targetPosition = SceneMan:MovePointToGround(self.bunkerAreas[self.bunkerIds.mainBunker].frontDoors.FirstBox.Center + Vector(30, 0), 10, 10);
 	end
 	if optionalSpecificActorToUpdate then
 		optionalSpecificActorToUpdate:ClearAIWaypoints();
@@ -1740,7 +1951,7 @@ function DecisionDay:UpdateMainBunkerExternalPopoutTurrets()
 	local bunkerId = self.bunkerIds.mainBunker;
 	if self.popoutTurretsData[bunkerId].enabled then
 		for box, boxData in pairs(self.popoutTurretsData[bunkerId].boxData) do
-			if boxData.actor and not MovableMan:IsActor(boxData.actor) then
+			if boxData.actor and not MovableMan:ValidMO(boxData.actor) then
 				boxData.actor = nil;
 				boxData.respawnTimer:Reset();
 			elseif not boxData.actor and boxData.respawnTimer:IsPastSimTimeLimit() then
@@ -1860,7 +2071,9 @@ function DecisionDay:UpdateActivity()
 
 	self:UpdateCurrentStage();
 
-	self:UpdateCamera();
+	if self.WinnerTeam == nil then
+		self:UpdateCamera();
+	end
 
 	self:UpdateMessages();
 
@@ -1868,15 +2081,19 @@ function DecisionDay:UpdateActivity()
 		return;
 	end
 
-	self:UpdateObjectiveArrowsAndRegionVisuals();
-
-	self:UpdateRegionCapturing();
-
-	self:UpdateVaultTickIncome();
-
 	if self.currentStage < self.stages.frontBunkerCaptured then
 		self:SpawnAndUpdateInitialDropShips();
 	end
+
+	if self.currentStage >= self.stages.attackFrontBunker then
+		self:UpdateObjectiveArrowsAndRegionVisuals();
+	end
+
+	self:UpdateRegionCapturing();
+
+	self:UpdateRegionScreens();
+
+	self:UpdateVaultTickIncome();
 
 	if self.aiData.internalReinforcementsEnabled then
 		self:UpdateAIInternalReinforcements();
@@ -1988,7 +2205,7 @@ function DecisionDay:SpawnCraft(team, avoidPreviousCraftPos, useRocketsInsteadOf
 	local craftSpriteWidth = craft:GetSpriteWidth();
 	if avoidPreviousCraftPos ~= 0 and avoidPreviousCraftPos ~= false and self.previousCraftLZInfo[team] ~= nil then
 		local spaceToLeaveBetweenCrafts = (craftSpriteWidth + self.previousCraftLZInfo[team].craftSpriteWidth) * 1.5;
-		if math.abs(SceneMan:ShortestDistance(craft.Pos, Vector(self.previousCraftLZInfo[team].posX, 0), SceneMan.SceneWrapsX).X) < spaceToLeaveBetweenCrafts then
+		if math.abs(SceneMan:ShortestDistance(craft.Pos, Vector(self.previousCraftLZInfo[team].posX, 0), false).X) < spaceToLeaveBetweenCrafts then
 			if avoidPreviousCraftPos == true then
 				avoidPreviousCraftPos = math.random() < 0.5 and -1 or 1;
 			end
@@ -2028,6 +2245,7 @@ end
 
 function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunkerId, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements)
 	local enemiesToTarget = {};
+	print("Start time, organizing "..tostring(maxNumberOfInternalReinforcementsToCreate).. " reinforcements");
 	for i = 1, maxNumberOfInternalReinforcementsToCreate do
 		if enemiesToTarget[i] == nil then
 			enemiesToTarget[i] = self.aiData.enemiesInsideBunkers[bunkerId][math.random(1, #self.aiData.enemiesInsideBunkers[bunkerId])];
@@ -2039,21 +2257,18 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 		coroutine.yield(); -- Yield after initial setup, so we can set up our coroutines separately from running them.
 	end
 
-	local numberOfPathsCalculated = 0;
 	for _, enemyToTarget in ipairs(enemiesToTarget) do
-		if MovableMan:IsActor(enemyToTarget) then
+		if MovableMan:ValidMO(enemyToTarget) then
 			local internalReinforcementPositionForEnemy;
 			local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 			local enemyToTargetPos = enemyToTarget.Pos;
 			for _, internalReinforcementPosition in pairs(self.internalReinforcementsData[bunkerId].positions) do
-				local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTargetPos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
-				if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
-					internalReinforcementPositionForEnemy = internalReinforcementPosition;
-					pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
-				end
-
-				numberOfPathsCalculated = numberOfPathsCalculated + 1;
-				if numberOfPathsCalculated % 5 == 0 and coroutine.running() then
+				if SceneMan:ShortestDistance(internalReinforcementPosition, enemyToTargetPos, false):MagnitudeIsLessThan(500) then
+					local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTargetPos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
+					if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
+						internalReinforcementPositionForEnemy = internalReinforcementPosition;
+						pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
+					end
 					coroutine.yield();
 				end
 			end
@@ -2154,7 +2369,7 @@ function DecisionDay:CreateInfantry(team, infantryType)
 	end
 	local allowAdvancedEquipment = team == self.humanTeam or self.bunkerRegions["Main Bunker Armory"].ownerTeam == team;
 	if not allowAdvancedEquipment and self.difficultyRatio > 1 then
-		allowAdvancedEquipment = math.random() < (1 - (1 / self.difficultyRatio * 4 / 3));
+		allowAdvancedEquipment = math.random() < (1 - (4 / (self.difficultyRatio * 3)));
 	end
 
 	local actorType = (infantryType == "Heavy" or infantryType == "CQB") and "Actors - Heavy" or "Actors - Light";
