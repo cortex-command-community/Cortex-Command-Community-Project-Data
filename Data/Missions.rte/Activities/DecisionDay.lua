@@ -42,7 +42,16 @@ function DecisionDay:SetupInternalReinforcementsData()
 	for bunkerRegionName, bunkerRegionData in pairs(self.bunkerRegions) do
 		if bunkerRegionData.internalReinforcementsArea then
 			for box in bunkerRegionData.internalReinforcementsArea.Boxes do
-				self.internalReinforcementsData[bunkerRegionData.bunkerId].area:AddBox(box);
+				local shouldAddBox = true;
+				for internalReinforcementsAreaBox in self.internalReinforcementsData[bunkerRegionData.bunkerId].area.Boxes do
+					if internalReinforcementsAreaBox:IsWithinBox(box.Center) then
+						shouldAddBox = false;
+						break;
+					end
+				end
+				if shouldAddBox then
+					self.internalReinforcementsData[bunkerRegionData.bunkerId].area:AddBox(box);
+				end
 			end
 		end
 	end
@@ -777,8 +786,10 @@ function DecisionDay:ResumeLoadedGame()
 		end
 	end
 
-	self:UpdateLZAreas();
-	self:UpdateAlliedAttackersWaypoint();
+	if self.currentStage >= self.stages.frontBunkerCaptured then
+		self:UpdateLZAreas();
+		self:UpdateAlliedAttackersWaypoint();
+	end
 end
 
 function DecisionDay:DoGameOverCheck()
@@ -2071,7 +2082,7 @@ function DecisionDay:UpdateActivity()
 
 	self:UpdateCurrentStage();
 
-	if self.WinnerTeam == nil then
+	if self.WinnerTeam == -1 then
 		self:UpdateCamera();
 	end
 
@@ -2257,18 +2268,21 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 		coroutine.yield(); -- Yield after initial setup, so we can set up our coroutines separately from running them.
 	end
 
+	local numberOfPathsCalculated = 0;
 	for _, enemyToTarget in ipairs(enemiesToTarget) do
 		if MovableMan:ValidMO(enemyToTarget) then
 			local internalReinforcementPositionForEnemy;
 			local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 			local enemyToTargetPos = enemyToTarget.Pos;
 			for _, internalReinforcementPosition in pairs(self.internalReinforcementsData[bunkerId].positions) do
-				if SceneMan:ShortestDistance(internalReinforcementPosition, enemyToTargetPos, false):MagnitudeIsLessThan(500) then
-					local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTargetPos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
-					if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
-						internalReinforcementPositionForEnemy = internalReinforcementPosition;
-						pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
-					end
+				print("Calculating path from internalReinforcementPosition at " .. tostring(internalReinforcementPosition) .. " to enemy target at "..tostring(enemyToTargetPos)..". Shortest distance magnitude is "..tostring(SceneMan:ShortestDistance(internalReinforcementPosition, enemyToTargetPos, false).Magnitude));
+				local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTargetPos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
+				if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
+					internalReinforcementPositionForEnemy = internalReinforcementPosition;
+					pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
+				end
+				numberOfPathsCalculated = numberOfPathsCalculated + 1;
+				if numberOfPathsCalculated % 3 == 0 and coroutine.running() then
 					coroutine.yield();
 				end
 			end
