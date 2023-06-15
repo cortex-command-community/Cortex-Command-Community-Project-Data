@@ -355,23 +355,6 @@ function DecisionDay:StartActivity(isNewGame)
 	else
 		self:ResumeLoadedGame();
 	end
-
-	--[[
-	self.messageTimer:SetSimTimeLimitMS(1000);
-	for _, bunkerRegionData in pairs(self.bunkerRegions) do
-		bunkerRegionData.captureLimit = 60;
-	end
-	--]]
-
-	--[[
-	self.currentStage = self.stages.attackFrontBunker;
-
-	self.aiData.internalReinforcementsEnabled = true;
-	self.internalReinforcementsData[self.bunkerIds.frontBunker].enabled = true;
-
-	self.bunkerRegions["Front Bunker Operations"].enabled = true;
-	self.bunkerRegions["Front Bunker Small Vault"].enabled = true;
-	--]]
 end
 
 function DecisionDay:OnSave()
@@ -655,22 +638,16 @@ function DecisionDay:SetTableValueByKey(tableToSetValueFor, keyToLoad)
 
 	if existingValueType == "number" then
 		tableToSetValueFor[tableKey] = self:LoadNumber(keyToLoad);
-			--print("Key " .. tableKey .." had value " ..tostring(existingValue) .. " and now has value ".. tostring(tableToSetValueFor[tableKey]))
 	elseif existingValueType == "string" then
 		tableToSetValueFor[tableKey] = self:LoadString(keyToLoad);
-			--print("Key " .. tableKey .." had value " ..tostring(existingValue) .. " and now has value ".. tostring(tableToSetValueFor[tableKey]))
 	elseif existingValueType == "boolean" then
 		tableToSetValueFor[tableKey] = self:LoadNumber(keyToLoad) ~= 0;
-			--print("Key " .. tableKey .." had value " ..tostring(existingValue) .. " and now has value ".. tostring(tableToSetValueFor[tableKey]))
 	elseif existingValueType == "table" then
 		print("Loading Error: Tables are not supported, use . for subkeys!")
 	elseif existingValueType == "userdata" then
 		if existingValue.ElapsedSimTimeMS ~= nil then
-				--local existinglimit = existingValue:GetSimTimeLimitMS();
-				--local existingelapsed = existingValue.ElapsedSimTimeMS;
 			tableToSetValueFor[tableKey]:SetSimTimeLimitMS(self:LoadNumber(keyToLoad .. ".SimTimeLimitMS"));
 			tableToSetValueFor[tableKey].ElapsedSimTimeMS = self:LoadNumber(keyToLoad .. ".ElapsedSimTimeMS");
-				--print("Key " .. tableKey .." had SimTimeLimitMS " ..tostring(existinglimit) .. " and ElapsedSimTimeMS "..tostring(existingelapsed) .. " and now has SimTimeLimitMS ".. tostring(tableToSetValueFor[tableKey]:GetSimTimeLimitMS()) .. " and ElapsedSimTimeMS " .. tostring(tableToSetValueFor[tableKey].ElapsedSimTimeMS));
 		else
 			print("Loading Error: The only supported userdata type is Timer!");
 		end
@@ -1567,7 +1544,6 @@ function DecisionDay:UpdateAIInternalReinforcements(forceInstantSpawning)
 				if self.internalReinforcementsData[bunkerId].enabled then
 					local maxNumberOfInternalReinforcementsToCreate = math.ceil(self.difficultyRatio * 2 * bunkerId * RangeRand(0.5, 1.5));
 					local maxFundsForInternalReinforcements = math.ceil(self.difficultyRatio * 350 * bunkerId * RangeRand(0.75, 1.25));
-					print("Time to try making internal reinforcements. Bunker "..tostring(bunkerId)..": max number - "..tostring(maxNumberOfInternalReinforcementsToCreate)..", max funds - "..tostring(maxFundsForInternalReinforcements))
 					if self.internalReinforcementsData[bunkerId].enabled and #self.aiData.enemiesInsideBunkers[bunkerId] > 0 then
 						table.insert(self.aiData.internalReinforcementPositionsCalculationCoroutines, coroutine.create(self.CalculateInternalReinforcementPositionsToEnemyTargets));
 						coroutine.resume(self.aiData.internalReinforcementPositionsCalculationCoroutines[#self.aiData.internalReinforcementPositionsCalculationCoroutines], self, bunkerId, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements);
@@ -1616,7 +1592,6 @@ function DecisionDay:UpdateAIDecisions()
 							--end
 						end
 					end
-					print("decisions for " .. bunkerRegionName)
 					if self.aiData.internalReinforcementsEnabled and bunkerRegionData.internalReinforcementsArea and self.internalReinforcementsData[bunkerRegionData.bunkerId].enabled then
 						local internalReinforcementPositionsToEnemyTargets = {};
 						for box in bunkerRegionData.internalReinforcementsArea.Boxes do
@@ -1630,7 +1605,6 @@ function DecisionDay:UpdateAIDecisions()
 								end
 							end
 						end
-						print("Making reinforcements for " .. bunkerRegionName)
 						self:CreateInternalReinforcements(math.random() < self.difficultyRatio * 0.75 and "CQB" or "Light", internalReinforcementPositionsToEnemyTargets, nil, 450 * self.difficultyRatio);
 					end
 
@@ -1680,10 +1654,8 @@ function DecisionDay:UpdateAIDecisions()
 					if self.aiData.attackTarget ~= nil then
 						actor:AddAISceneWaypoint(self.aiData.attackTarget);
 						actor.AIMode = Actor.AIMODE_GOTO;
-						print("Sending ai attack actor " .. actor.PresetName .. " at pos "..tostring(actor.Pos) .. " to recapture bunker region "..bunkerRegionForAIToRecapture.bunkerRegionName);
 					else
 						actor.AIMode = Actor.AIMODE_BRAINHUNT;
-						print("No attack target, so sending ai attack actor " .. actor.PresetName .. " at pos "..tostring(actor.Pos) .. " to hunt brains");
 					end
 				end
 			end
@@ -1937,14 +1909,11 @@ function DecisionDay:DoAIExternalSpawns()
 				if self.aiData.attackTarget ~= nil then
 					actor:AddAISceneWaypoint(self.aiData.attackTarget);
 					actor.AIMode = Actor.AIMODE_GOTO;
-					print("Newly spawned ai external actor being sent to attack target at "..tostring(self.aiData.attackTarget));
 				else
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
-					print("Newly spawned ai external actor being sent to hunt brains");
 				end
 			end
 		end
-		print("Spawned "..tostring(numberOfActorsSpawned) .. " attackers. AI funds remaining: "..tostring(self:GetTeamFunds(self.aiTeam)))
 
 		self.aiData.externalSpawnTimer:Reset();
 	end
@@ -2020,7 +1989,6 @@ function DecisionDay:UpdateBrainDefenderSpawning()
 	if self.aiData.brainDefenderReplenishTimer:IsPastSimTimeLimit() then
 		if self.aiData.brainDefendersRemaining < self.aiData.brainDefendersTotal and self.bunkerRegions["Main Bunker Barracks"].ownerTeam == self.aiTeam then
 			self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining + 1;
-			print("Replenished 1 brain defender. Available defender count is now "..tostring(self.aiData.brainDefendersRemaining));
 		end
 		self.aiData.brainDefenderReplenishTimer:Reset();
 	end
@@ -2059,7 +2027,6 @@ function DecisionDay:UpdateBrainDefenderSpawning()
 					end
 				end
 				self.aiData.brainDefendersRemaining = self.aiData.brainDefendersRemaining - self:CreateInternalReinforcements(infantryType, internalReinforcementPositionsToEnemyTargets);
-				print("Spawned brain defenders, available defender count is now "..tostring(self.aiData.brainDefendersRemaining));
 				infantryType = "Heavy";
 				if self.aiData.brainDefendersRemaining <= 0 then
 					break;
@@ -2256,7 +2223,6 @@ end
 
 function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunkerId, maxNumberOfInternalReinforcementsToCreate, maxFundsForInternalReinforcements)
 	local enemiesToTarget = {};
-	print("Start time, organizing "..tostring(maxNumberOfInternalReinforcementsToCreate).. " reinforcements");
 	for i = 1, maxNumberOfInternalReinforcementsToCreate do
 		if enemiesToTarget[i] == nil then
 			enemiesToTarget[i] = self.aiData.enemiesInsideBunkers[bunkerId][math.random(1, #self.aiData.enemiesInsideBunkers[bunkerId])];
@@ -2275,7 +2241,6 @@ function DecisionDay:CalculateInternalReinforcementPositionsToEnemyTargets(bunke
 			local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 			local enemyToTargetPos = enemyToTarget.Pos;
 			for _, internalReinforcementPosition in pairs(self.internalReinforcementsData[bunkerId].positions) do
-				print("Calculating path from internalReinforcementPosition at " .. tostring(internalReinforcementPosition) .. " to enemy target at "..tostring(enemyToTargetPos)..". Shortest distance magnitude is "..tostring(SceneMan:ShortestDistance(internalReinforcementPosition, enemyToTargetPos, false).Magnitude));
 				local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTargetPos, false, GetPathFindingDefaultDigStrength(), self.aiTeam);
 				if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
 					internalReinforcementPositionForEnemy = internalReinforcementPosition;
@@ -2323,8 +2288,6 @@ function DecisionDay:CreateInternalReinforcements(loadout, internalReinforcement
 			MovableMan:AddParticle(doorParticle);
 			self.internalReinforcementsData.doorsAndActorsToSpawn[doorParticle] = {};
 
-			print("Internal reinforcement position "..tostring(internalReinforcementPosition).." has "..tostring(#enemyTargetsForPosition).." enemy targets!")
-
 			local numberOfInternalReinforcementsToCreateAtPosition = math.min(#enemyTargetsForPosition, 5);
 			if numberOfInternalReinforcementsToCreateAtPosition == 1 and math.random() < (self.difficultyRatio * 0.5) then
 				numberOfInternalReinforcementsToCreateAtPosition = 2;
@@ -2349,7 +2312,6 @@ function DecisionDay:CreateInternalReinforcements(loadout, internalReinforcement
 					local leftmostSpawnOffset = 20;
 					internalReinforcement.Pos.X = internalReinforcement.Pos.X - leftmostSpawnOffset + ((i - 1) * ((leftmostSpawnOffset * 2) / (numberOfInternalReinforcementsToCreateAtPosition - 1)));
 				end
-				print("Creating internal reinforcement "..internalReinforcement.PresetName.." who costs "..tostring(internalReinforcement:GetTotalValue(self.aiTeamTech, 1)).. " at "..tostring(internalReinforcement.Pos))
 				if internalReinforcement:IsInGroup("Actors - Turrets") then
 					internalReinforcement.AIMode = Actor.AIMODE_SENTRY;
 				else
