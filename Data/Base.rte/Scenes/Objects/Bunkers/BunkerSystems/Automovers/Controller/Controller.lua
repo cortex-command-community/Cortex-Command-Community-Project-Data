@@ -1433,6 +1433,15 @@ end
 automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteringWasDone)
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
+	
+	local actorController = actor:GetController();
+	if not actorController:IsMouseControlled() and not actorController:IsGamepadControlled() then
+		if actorDirection == Directions.Left and actor.HFlipped == false then
+			actor.HFlipped = true;
+		elseif actorDirection == Directions.Right and actor.HFlipped == true then
+			actor.HFlipped = false;
+		end
+	end
 
 	local directionMovementTable = {
 		[Directions.Up] = { acceleration = Vector(0, -self.movementAcceleration), aHumanRotAngle = 0, aHumanProneState = AHuman.NOTPRONE, aHumanCrouchState = false },
@@ -1460,7 +1469,7 @@ automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteri
 					verticalRotationAdjustment = direction == Directions.Down and -actor.FlipFactor or 1;
 					ToAHuman(actor).ProneState = movementTable.aHumanProneState;
 				end
-				actor:GetController():SetState(Controller.BODY_CROUCH, movementTable.aHumanCrouchState);
+				actorController:SetState(Controller.BODY_CROUCH, movementTable.aHumanCrouchState);
 			end
 			if actor.RotAngle > rotAngleGoal + self.movementAcceleration then
 				actor.RotAngle = actor.RotAngle - (self.movementAcceleration * 0.25 * verticalRotationAdjustment);
