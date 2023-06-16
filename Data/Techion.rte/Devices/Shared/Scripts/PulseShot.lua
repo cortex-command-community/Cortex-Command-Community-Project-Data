@@ -30,14 +30,14 @@ end
 
 function PulsarDissipate(self, inverted)
 	local trace = inverted and Vector(-self.Vel.X, -self.Vel.Y):SetMagnitude(GetPPM()) or Vector(self.Vel.X, self.Vel.Y):SetMagnitude(self.Vel.Magnitude * rte.PxTravelledPerFrame + 1);
-	local hit = false;
+	local hit = inverted == false;
 	local hitPos = Vector(self.Pos.X, self.Pos.Y);
 	local skipPx = math.sqrt(self.Vel.Magnitude) * 0.5;
 
 	local moid = SceneMan:CastObstacleRay(self.Pos, trace, hitPos, Vector(), self.ID, self.Team, rte.airID, skipPx) >= 0 and SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y) or self.HitWhatMOID;
 	local mo = MovableMan:GetMOFromID(moid);
 	
-	if mo then
+	if mo and mo.Team ~= self.Team then
 		hit = true;
 		if IsMOSRotating(mo) and self.penetrationStrength > mo.Material.StructuralIntegrity then
 			mo = ToMOSRotating(mo);
@@ -58,13 +58,8 @@ function PulsarDissipate(self, inverted)
 				MovableMan:AddMO(melter);
 			end
 		end
-	else
-		local penetration = self.Mass * self.Sharpness * self.Vel.Magnitude;
-		if SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)).StructuralIntegrity > penetration then
-			hit = true;
-		elseif self.Vel:MagnitudeIsLessThan(self.PrevVel.Magnitude * 0.5) then
-			hit = true;
-		end
+	elseif self.Vel:MagnitudeIsLessThan(1) then
+		hit = true;
 	end
 	if hit then
 		local offset = Vector(self.Vel.X, self.Vel.Y):SetMagnitude(skipPx);
