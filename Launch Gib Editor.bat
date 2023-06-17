@@ -1,1 +1,0 @@
-"Cortex Command.exe" -editor "GibEditor"

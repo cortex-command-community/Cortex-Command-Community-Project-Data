@@ -41,23 +41,26 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
+*.bat
+CortexCommand
+CortexCommand_debug
 
 # Manifest files
 *.manifest
 
 **/desktop.ini
 
+# MacOS stuff
+.DS_Store
+
 .vs/
-_Screenshots/
-Base.rte/Settings.ini
-Benchmark.rte/
-Scenes.rte/
-Metagames.rte/
-DedicatedServerDebug.bat
+Screenshots/
+Mods/
+Userdata/
 
 allegro.log
-abortscreen.bmp
-
+AbortScreen.bmp
+AbortLog.txt
 MemCleanupInfo.txt
 LogPublish.txt
 LogLoading.txt
@@ -65,4 +68,3 @@ LogLoadingWarning.txt
 LogConsole.txt
 Console.dump.log
 Console.input.log
-Base.rte/LoadoutsP1.ini
