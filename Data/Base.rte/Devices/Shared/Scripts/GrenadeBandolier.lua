@@ -2,8 +2,8 @@ function Create(self)
 	self.grenadeName = self:StringValueExists("GrenadeName") and self:GetStringValue("GrenadeName") or "Frag Grenade";
 	self.grenadeTech = self:StringValueExists("GrenadeTech") and self:GetStringValue("GrenadeTech") or "Base.rte";
 
-	self.isThrownDevice = self:NumberValueExists("IsThrownDevice");
-	local appropriateGrenadeCreateFunction = self.isThrownDevice and CreateThrownDevice or CreateTDExplosive;
+	self.grenadeIsThrownDevice = self:NumberValueExists("GrenadeIsThrownDevice");
+	local appropriateGrenadeCreateFunction = self.grenadeIsThrownDevice and CreateThrownDevice or CreateTDExplosive;
 	self.grenadeObject = appropriateGrenadeCreateFunction(self.grenadeName, self.grenadeTech);
 
 	self.bandolierKey =  self.grenadeTech .. "/" .. self.PresetName;
@@ -31,7 +31,7 @@ function OnAttach(self, newParent)
 
 		attachable:SetStringValue("GrenadeName", self.grenadeName);
 		attachable:SetStringValue("GrenadeTech", self.grenadeTech);
-		if self.isThrownDevice then
+		if self.grenadeIsThrownDevice then
 			attachable:SetNumberValue("GrenadeIsThrownDevice", 1);
 		end
 		attachable:SetNumberValue("GrenadeMass", self.grenadeMass);
