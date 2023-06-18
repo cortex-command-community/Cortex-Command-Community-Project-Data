@@ -2174,7 +2174,7 @@ function HumanBehaviors.GetProjectileData(Owner)
 		PrjDat.vel = 100;
 		PrjDat.rng = math.huge;
 		PrjDat.pen = math.huge;
-		PrjData.blast = 0;
+		PrjDat.blast = 0;
 	else
 		-- find muzzle velocity
 		PrjDat.vel = Weapon:GetAIFireVel();
