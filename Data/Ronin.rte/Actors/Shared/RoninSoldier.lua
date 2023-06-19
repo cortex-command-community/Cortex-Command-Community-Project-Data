@@ -26,7 +26,13 @@ function Create(self)
 				local firearms = {unit["Primary"], unit["Secondary"], unit["Tertiary"]};
 				for class = 1, #firearms do
 					if firearms[class] then
-						local firearm = CreateHDFirearm(firearms[class][math.random(#firearms[class])], self.ModuleName);
+						local firearmToCreate = firearms[class][math.random(#firearms[class])];
+						local firearm;
+						if firearmToCreate == "Riot Shield" then
+							firearm = CreateHeldDevice(firearmToCreate, self.ModuleName);
+						else
+							firearm = CreateHDFirearm(firearmToCreate, self.ModuleName);
+						end
 						firearm:SetGoldValue(firearm:GetGoldValue(0, 1, 1) * 0.6);
 						self:AddInventoryItem(firearm);
 					end
