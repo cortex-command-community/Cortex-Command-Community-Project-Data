@@ -1071,7 +1071,7 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 
 	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true, false, nil);
 	if not waypointData.previousNode then
-		self:removeActorFromAutomoverTable(actor);
+		self:setActorMovementModeToLeaveAutomovers(actorData);
 		return;
 	end
 	local targetPosition = waypointData.movableObjectTarget ~= nil and waypointData.movableObjectTarget.Pos or waypointData.sceneTargets[1];
@@ -1321,9 +1321,10 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 			local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
 			if distanceFromActorToFirstExitPathPosition:MagnitudeIsLessThan(20) then
 				table.remove(waypointData.exitPath, 1);
-				local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
+				if #waypointData.exitPath > 0 then
+					local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
+				end
 			end
-			PrimitiveMan:DrawCircleFillPrimitive(0, waypointData.exitPath[1], 10, 7)
 			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToFirstExitPathPosition, 0);
 			
 			local endNodeData = teamNodeTable[waypointData.endNode];
