@@ -1312,7 +1312,7 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 				waypointData.exitPath[#waypointData.exitPath + 1] = waypointData.targetPosition;
 			else
 				SceneMan.Scene:CalculatePath(actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team);
-				for scenePathEntryPosition in SceneMan.Scene.ScenePath do
+				for scenePathEntryPosition in SceneMan.Scene:GetScenePath() do
 					waypointData.exitPath[#waypointData.exitPath + 1] = scenePathEntryPosition;
 				end
 			end
