@@ -321,8 +321,12 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 		Owner:ClearMovePath();
 		Owner:AddAISceneWaypoint(Vector(Owner.Pos.X, 0));
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		-- face the direction of the first waypoint
 		for WptPos in Owner.MovePath do
@@ -529,12 +533,14 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
-		Owner:AddAISceneWaypoint(Free);
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+		Owner:AddAISceneWaypoint(Free);	
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
 		for WptPos in Owner.MovePath do
@@ -554,11 +560,13 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
 		Owner:AddAISceneWaypoint(Free);
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
 		for WptPos in Owner.MovePath do
@@ -844,6 +852,12 @@ function HumanBehaviors.BrainSearch(AI, Owner, Abort)
 					Owner:AddAISceneWaypoint(Act.Pos);
 					Owner:UpdateMovePath();
 
+					-- wait until movepath is updated
+					while Owner.IsWaitingOnNewMovePath do
+						local _ai, _ownr, _abrt = coroutine.yield();
+						if _abrt then return true end
+					end
+
 					local OldWpt, deltaY;
 					local index = 0;
 					local height = 0;
@@ -1034,6 +1048,13 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			end
 
 			Owner:UpdateMovePath();
+
+			-- wait until movepath is updated
+			while Owner.IsWaitingOnNewMovePath do
+				local _ai, _ownr, _abrt = coroutine.yield();
+				if _abrt then return true end
+			end
+
 			AI:CreateGoToBehavior(Owner);
 		end
 	end
@@ -1152,6 +1173,13 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 			end
 
 			Owner:UpdateMovePath();
+
+			-- wait until movepath is updated
+			while Owner.IsWaitingOnNewMovePath do
+				local _ai, _ownr, _abrt = coroutine.yield();
+				if _abrt then return true end
+			end
+
 			AI:CreateGoToBehavior(Owner);
 		end
 	end
@@ -1910,6 +1938,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 			else
 				Owner:UpdateMovePath();
+
+				-- wait until movepath is updated
+				while Owner.IsWaitingOnNewMovePath do
+					local _ai, _ownr, _abrt = coroutine.yield();
+					if _abrt then return true end
+				end
 
 				-- have we arrived?
 				if not Owner.MOMoveTarget then
