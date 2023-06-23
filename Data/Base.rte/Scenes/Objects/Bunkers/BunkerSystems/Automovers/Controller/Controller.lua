@@ -672,7 +672,16 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 				end
 				if nodeSatisfiesConditions and checkForShortestPathfinderPath and self.allowExpensiveFindClosestNode then
 					nodeSatisfiesConditions = false;
-					local lengthOfScenePathToNode = SceneMan.Scene:CalculatePath(positionToFindClosestNodeFor, node.Pos, false, GetPathFindingDefaultDigStrength(), pathfinderTeam);
+					local lengthOfScenePathToNode = SceneMan.Scene:CalculatePathAsync(
+						function(pathRequest)
+							-- pathRequest.Path, list of Vector
+							-- pathRequest.Status, int, SOLVED			== 0,
+							--							NO_SOLUTION		== 1,
+							--							START_END_SAME	== 2
+							-- pathRequest.TotalCost, float, total cost of path
+						end,
+						positionToFindClosestNodeFor, node.Pos, false, GetPathFindingDefaultDigStrength(), pathfinderTeam
+					);
 					if lengthOfScenePathToClosestNode == nil or lengthOfScenePathToNode < lengthOfScenePathToClosestNode then
 						nodeSatisfiesConditions = true;
 						lengthOfScenePathToClosestNode = lengthOfScenePathToNode;
@@ -1311,7 +1320,16 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 			if distanceFromActorToTargetPosition:MagnitudeIsLessThan(20) or not SceneMan:CastStrengthRay(actor.Pos, distanceFromActorToTargetPosition, 5, Vector(), 4, rte.grassID, true) then
 				waypointData.exitPath[#waypointData.exitPath + 1] = waypointData.targetPosition;
 			else
-				SceneMan.Scene:CalculatePath(actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team);
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						-- pathRequest.Path, list of Vector
+						-- pathRequest.Status, int, SOLVED			== 0,
+						--							NO_SOLUTION		== 1,
+						--							START_END_SAME	== 2
+						-- pathRequest.TotalCost, float, total cost of path
+					end,
+					actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team
+				);
 				for scenePathEntryPosition in SceneMan.Scene:GetScenePath() do
 					waypointData.exitPath[#waypointData.exitPath + 1] = scenePathEntryPosition;
 				end
