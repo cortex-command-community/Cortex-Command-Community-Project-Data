@@ -1963,7 +1963,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 
-				-- no waypoint list, create one in several small steps to reduce lag
+				-- no waypoint list, create one
 				local PathDump = {};
 				if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 					Owner:DrawWaypoints(false);
@@ -1977,17 +1977,11 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					Owner:ClearMovePath();
 					Owner:AddToMovePathEnd(Owner.MOMoveTarget.Pos);
 				else
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
-
 					-- copy the MovePath to a temporary table so we can yield safely while working on the path
 					for WptPos in Owner.MovePath do
 						table.insert(PathDump, WptPos);
 					end
 				end
-
-				local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-				if _abrt then return true end
 
 				-- copy useful waypoints to a temporary path
 				local TmpWpts = {};
@@ -2007,8 +2001,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 
 					LastPos = WptPos;
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
 				end
 
 				-- No path
@@ -2042,9 +2034,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 							end
 
-							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-							if _abrt then return true end
-
 							table.sort(GapList, function(A, B) return A.score > B.score end); -- sort largest first
 
 							for _, LZ in pairs(GapList) do
@@ -2066,9 +2055,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										break;
 									end
 								end
-
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
 							end
 						end
 					end

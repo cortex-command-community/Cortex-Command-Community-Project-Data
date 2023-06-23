@@ -376,7 +376,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 			end
-		else	-- no waypoint list, create one in several small steps to reduce lag
+		else	-- no waypoint list, create one
 			local TmpList = {};
 			table.insert(TmpList, {Pos=Owner.Pos});
 
@@ -408,9 +408,6 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 					break;
 				end
 			end
-
-			local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-			if _abrt then return true end
 
 			WptList = TmpList;
 
