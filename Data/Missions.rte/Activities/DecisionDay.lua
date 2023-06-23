@@ -1611,6 +1611,8 @@ function DecisionDay:UpdateAIDecisions()
 					bunkerRegionData.aiRegionDefenseTimer:Reset();
 				end
 			elseif bunkerRegionData.ownerTeam == self.humanTeam then
+				bunkerRegionData.aiRegionDefenseTimer:Reset();
+				
 				humanOwnedBunkerRegions[#humanOwnedBunkerRegions + 1] = bunkerRegionData;
 				if bunkerRegionData.aiRecaptureWeight > 0 and (bunkerRegionForAIToRecapture == nil or bunkerRegionData.aiRecaptureWeight > bunkerRegionForAIToRecapture.aiRecaptureWeight) and bunkerRegionData.aiRegionAttackTimer:IsPastSimTimeLimit() then
 					bunkerRegionForAIToRecapture = bunkerRegionData;
