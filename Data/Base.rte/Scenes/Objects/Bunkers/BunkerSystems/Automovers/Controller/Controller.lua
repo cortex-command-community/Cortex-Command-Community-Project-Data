@@ -153,6 +153,8 @@ function Create(self)
 	self.actorMovementUpdateTimer = Timer(15);
 
 	self.heldInputTimer = Timer(50);
+	
+	self.allowExpensiveFindClosestNode = SceneMan.SceneWidth * SceneMan.SceneHeight < 10000000;
 
 	self.leaveAutomoverNetworkPieSlice = CreatePieSlice("Leave Automover Network", "Base.rte");
 	self.chooseTeleporterPieSlice = CreatePieSlice("Choose Teleporter", "Base.rte");
@@ -185,7 +187,7 @@ function Update(self)
 			if self.actorMovementUpdateTimer:IsPastSimTimeLimit() then
 				for actorUniqueID, actorData in pairs(self.affectedActors) do
 					local actor = actorData.actor;
-					if not MovableMan:IsActor(actor) or not self.combinedAutomoverArea:IsInside(actor.Pos) then
+					if not MovableMan:ValidMO(actor) or not self.combinedAutomoverArea:IsInside(actor.Pos) then
 						self:removeActorFromAutomoverTable(actor, actorUniqueID);
 					else
 						if actor:NumberValueExists("Automover_LeaveAutomoverNetwork") then
@@ -585,7 +587,7 @@ automoverUtilityFunctions.addAllPaths = function(self)
 			end
 		end
 
-		while type(next(tentativeNodes)) ~= "nil" do
+		while next(tentativeNodes) ~= nil do
 			local closestNode;
 			local distanceToClosestNode;
 			for tentativeNode, tentativeNodeData in pairs(tentativeNodes) do
@@ -668,7 +670,7 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 						end
 					end
 				end
-				if nodeSatisfiesConditions and checkForShortestPathfinderPath then
+				if nodeSatisfiesConditions and checkForShortestPathfinderPath and self.allowExpensiveFindClosestNode then
 					nodeSatisfiesConditions = false;
 					local lengthOfScenePathToNode = SceneMan.Scene:CalculatePath(positionToFindClosestNodeFor, node.Pos, false, GetPathFindingDefaultDigStrength(), pathfinderTeam);
 					if lengthOfScenePathToClosestNode == nil or lengthOfScenePathToNode < lengthOfScenePathToClosestNode then
@@ -801,7 +803,6 @@ automoverVisualEffectsFunctions.drawVisualEffects = function(self)
 	end
 end
 
-
 automoverActorFunctions.checkForNewActors = function(self)
 	for box in self.combinedAutomoverArea.Boxes do
 		for movableObject in MovableMan:GetMOsInBox(box, -1, true) do
@@ -841,7 +842,7 @@ automoverActorFunctions.removeActorFromAutomoverTable = function(self, actor, op
 		optionalActorUniqueID = actor.UniqueID;
 	end
 
-	if MovableMan:IsActor(actor) then
+	if MovableMan:ValidMO(actor) then
 		actor.PieMenu:RemovePieSlicesByPresetName(self.leaveAutomoverNetworkPieSlice.PresetName);
 		actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
 
@@ -1070,7 +1071,7 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 
 	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true, false, nil);
 	if not waypointData.previousNode then
-		self:removeActorFromAutomoverTable(actor);
+		self:setActorMovementModeToLeaveAutomovers(actorData);
 		return;
 	end
 	local targetPosition = waypointData.movableObjectTarget ~= nil and waypointData.movableObjectTarget.Pos or waypointData.sceneTargets[1];
@@ -1080,7 +1081,7 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 	waypointData.actorReachedTargetInsideAutomoverArea = false;
 	waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea = false;
 	waypointData.teleporterVisualsTimer = Timer(1000);
-	waypointData.delayTimer = Timer(50);
+	waypointData.delayTimer = Timer(30);
 
 	waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, waypointData.targetIsInsideAutomoverArea, true, actor.Team);
 	if not waypointData.endNode then
@@ -1304,30 +1305,37 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 			end
 		end
 	else
-		if teamNodeTable[waypointData.endNode].zoneBox:IsWithinBox(actor.Pos) then
-			waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea = true;
-		end
-		if waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea and waypointData.delayTimer:IsPastSimTimeLimit() then
-			local scenePathSize = SceneMan.Scene:CalculatePath(actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team);
-			local secondScenePathEntryPosition;
-			local scenePathEntryIndex = 0;
-			for scenePathEntryPosition in SceneMan.Scene.ScenePath do
-				if scenePathEntryIndex == 2 then
-					secondScenePathEntryPosition = scenePathEntryPosition;
-					break;
-				end
-				scenePathEntryIndex = scenePathEntryIndex + 1;
-			end
-			if secondScenePathEntryPosition ~= nil then
-				local distanceFromActorToSecondScenePathEntryPosition = SceneMan:ShortestDistance(secondScenePathEntryPosition, actor.Pos, self.checkWrapping);
-				actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToSecondScenePathEntryPosition, 0);
-				
-				local endNodeData = teamNodeTable[waypointData.endNode];
-				if not endNodeData.zoneBox:IsWithinBox(secondScenePathEntryPosition) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(secondScenePathEntryPosition)) then
-					actor.Vel = actor.Vel + (distanceFromActorToSecondScenePathEntryPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10);
+		if teamNodeTable[waypointData.endNode].zoneBox:IsWithinBox(actor.Pos) and waypointData.exitPath == nil then
+			waypointData.exitPath = {};
+			local distanceFromActorToTargetPosition = SceneMan:ShortestDistance(waypointData.targetPosition, actor.Pos, self.checkWrapping);
+			if distanceFromActorToTargetPosition:MagnitudeIsLessThan(20) or not SceneMan:CastStrengthRay(actor.Pos, distanceFromActorToTargetPosition, 5, Vector(), 4, rte.grassID, true) then
+				waypointData.exitPath[#waypointData.exitPath + 1] = waypointData.targetPosition;
+			else
+				SceneMan.Scene:CalculatePath(actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team);
+				for scenePathEntryPosition in SceneMan.Scene.ScenePath do
+					waypointData.exitPath[#waypointData.exitPath + 1] = scenePathEntryPosition;
 				end
 			end
+			waypointData.delayTimer:Reset();
+		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 and waypointData.delayTimer:IsPastSimTimeLimit() then
+			local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
+			if distanceFromActorToFirstExitPathPosition:MagnitudeIsLessThan(20) then
+				table.remove(waypointData.exitPath, 1);
+				if #waypointData.exitPath > 0 then
+					local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
+				end
+			end
+			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToFirstExitPathPosition, 0);
 			
+			local endNodeData = teamNodeTable[waypointData.endNode];
+			if not endNodeData.zoneBox:IsWithinBox(waypointData.exitPath[1]) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(waypointData.exitPath[1])) then
+				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10;
+				if math.abs(velocityToAddToActor.X) < 1 and velocityToAddToActor.Y < 0 and SceneMan.GlobalAcc.Y > 0 then
+					velocityToAddToActor.Y = velocityToAddToActor.Y * 2;
+				end
+				actor.Vel = actor.Vel + velocityToAddToActor;
+				
+			end
 			waypointData.delayTimer:Reset();
 		end
 	end

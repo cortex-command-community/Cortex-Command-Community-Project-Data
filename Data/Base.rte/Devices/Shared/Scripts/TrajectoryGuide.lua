@@ -34,7 +34,7 @@ end
 
 function Update(self)
 	local actor = self:GetRootParent();
-	if MovableMan:IsActor(actor) and ToActor(actor):IsPlayerControlled() and not self:IsReloading() then
+	if IsActor(actor) and MovableMan:ValidMO(actor) and ToActor(actor):IsPlayerControlled() and not self:IsReloading() then
 		local actor = ToActor(actor);
 		local controller = actor:GetController();
 		if not self.isThrownDevice and (self:DoneReloading() or self.FiredFrame) and self.Magazine and self.Magazine.RoundCount ~= 0 then
@@ -58,7 +58,7 @@ function Update(self)
 					--The following offset is as found in the source code (TODO: utilize EndThrowOffset properly instead)
 					guideParPos = actor.Pos + actor.Vel * rte.PxTravelledPerFrame + Vector((actor.FGArm.ParentOffset.X + actor.FGArm.MaxLength) * actor.FlipFactor, actor.FGArm.ParentOffset.Y - actor.FGArm.MaxLength * 0.5):RadRotate(actor:GetAimAngle(false) * actor.FlipFactor);
 					guideParVel = Vector(minVel + (maxVel - minVel) * throwProgress, 0):RadRotate(actor:GetAimAngle(true));
-				else
+				elseif not self.isThrownDevice then
 					guideParPos = self.MuzzlePos;
 					guideParVel = Vector(self.projectileVel, 0):RadRotate(actor:GetAimAngle(true));
 				end
