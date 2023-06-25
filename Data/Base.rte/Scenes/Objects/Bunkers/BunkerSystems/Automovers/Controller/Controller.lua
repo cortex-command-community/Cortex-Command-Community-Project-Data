@@ -672,7 +672,8 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 				end
 				if nodeSatisfiesConditions and checkForShortestPathfinderPath and self.allowExpensiveFindClosestNode then
 					nodeSatisfiesConditions = false;
-					local lengthOfScenePathToNode = SceneMan.Scene:CalculatePathAsync(
+					-- no return value
+					SceneMan.Scene:CalculatePathAsync(
 						function(pathRequest)
 							-- pathRequest.Path, list of Vector
 							-- pathRequest.Status, int, SOLVED			== 0,
@@ -682,6 +683,7 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 						end,
 						positionToFindClosestNodeFor, node.Pos, false, GetPathFindingDefaultDigStrength(), pathfinderTeam
 					);
+					local lengthOfScenePathToNode = 0;
 					if lengthOfScenePathToClosestNode == nil or lengthOfScenePathToNode < lengthOfScenePathToClosestNode then
 						nodeSatisfiesConditions = true;
 						lengthOfScenePathToClosestNode = lengthOfScenePathToNode;
@@ -1320,6 +1322,7 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 			if distanceFromActorToTargetPosition:MagnitudeIsLessThan(20) or not SceneMan:CastStrengthRay(actor.Pos, distanceFromActorToTargetPosition, 5, Vector(), 4, rte.grassID, true) then
 				waypointData.exitPath[#waypointData.exitPath + 1] = waypointData.targetPosition;
 			else
+				-- no return value
 				SceneMan.Scene:CalculatePathAsync(
 					function(pathRequest)
 						-- pathRequest.Path, list of Vector
