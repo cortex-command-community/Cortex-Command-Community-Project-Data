@@ -1071,7 +1071,7 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 
 	waypointData.previousNode = self:findClosestNode(actor.Pos, nil, true, true, false, nil);
 	if not waypointData.previousNode then
-		self:removeActorFromAutomoverTable(actor);
+		self:setActorMovementModeToLeaveAutomovers(actorData);
 		return;
 	end
 	local targetPosition = waypointData.movableObjectTarget ~= nil and waypointData.movableObjectTarget.Pos or waypointData.sceneTargets[1];
@@ -1081,7 +1081,7 @@ automoverActorFunctions.setupActorWaypointData = function(self, actorData)
 	waypointData.actorReachedTargetInsideAutomoverArea = false;
 	waypointData.actorReachedEndNodeForTargetOutsideAutomoverArea = false;
 	waypointData.teleporterVisualsTimer = Timer(1000);
-	waypointData.delayTimer = Timer(50);
+	waypointData.delayTimer = Timer(30);
 
 	waypointData.endNode = self:findClosestNode(waypointData.targetPosition, waypointData.previousNode, false, waypointData.targetIsInsideAutomoverArea, true, actor.Team);
 	if not waypointData.endNode then
@@ -1317,18 +1317,24 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 				end
 			end
 			waypointData.delayTimer:Reset();
-		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 then
+		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 and waypointData.delayTimer:IsPastSimTimeLimit() then
 			local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
 			if distanceFromActorToFirstExitPathPosition:MagnitudeIsLessThan(20) then
 				table.remove(waypointData.exitPath, 1);
-				local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
+				if #waypointData.exitPath > 0 then
+					local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
+				end
 			end
-			PrimitiveMan:DrawCircleFillPrimitive(0, waypointData.exitPath[1], 10, 7)
 			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToFirstExitPathPosition, 0);
 			
 			local endNodeData = teamNodeTable[waypointData.endNode];
 			if not endNodeData.zoneBox:IsWithinBox(waypointData.exitPath[1]) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(waypointData.exitPath[1])) then
-				actor.Vel = actor.Vel + (distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10);
+				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10;
+				if math.abs(velocityToAddToActor.X) < 1 and velocityToAddToActor.Y < 0 and SceneMan.GlobalAcc.Y > 0 then
+					velocityToAddToActor.Y = velocityToAddToActor.Y * 2;
+				end
+				actor.Vel = actor.Vel + velocityToAddToActor;
+				
 			end
 			waypointData.delayTimer:Reset();
 		end
