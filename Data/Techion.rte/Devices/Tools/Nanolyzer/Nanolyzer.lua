@@ -6,7 +6,7 @@ function Create(self)
 	self.range = 30;
 
 	--The arc radius of the tool's beam
-	self.beamRadius = math.pi * 0.2;
+	self.beamRadius = math.rad(self.ParticleSpreadRange) + 0.1;
 
 	--The radial resolution of the beam
 	self.resolution = 0.05;
@@ -15,51 +15,27 @@ function Create(self)
 	self.deconstructChance = 0.1;
 
 	--The base damage output when used on MOs
-	self.damageOutput = 25;
+	self.damageOutput = 10;
 
 	--How many pixels to skip when detecting MOs, for optimization reasons
 	self.skipPixels = 1;
 
+	--Terrain remover particle
+	self.remover = CreateMOSRotating("Techion.rte/Pixel Remover");
+	
 	--Sounds
 	self.dissipateSound = CreateSoundContainer("Dissipate Sound", "Techion.rte");
 	self.disintegrationSound = CreateSoundContainer("Disintegration Sound", "Techion.rte");
 end
 
 function OnFire(self)
+	self.MuzzleOffset = Vector(5, (self.MuzzleOffset.Y + 1) % 3 - 1);
+	
 	local aimAngle = self.HFlipped and self.RotAngle + math.pi or self.RotAngle;
-
 	local aimVec = Vector(self.range, 0):RadRotate(aimAngle);
-	local aimUp = Vector(aimVec.X, aimVec.Y):RadRotate(math.pi * 0.5):Normalize();
-	local hitPos = Vector();
-
-	--Cast rays in front of the gun
-	for i = -self.beamRadius * 0.5, self.beamRadius * 0.5, self.resolution do
-		if math.random() < self.deconstructChance then
-			if SceneMan:CastStrengthRay(self.MuzzlePos, Vector(aimVec.X, aimVec.Y):RadRotate(i), 1, hitPos, 0, 166, true) then
-				local remover = CreateMOSRotating("Techion.rte/Pixel Remover");
-				remover.Pos = hitPos;
-				MovableMan:AddParticle(remover);
-				remover:EraseFromTerrain();
-
-				local piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(1, self.gooCount));
-				piece.Pos = hitPos;
-				MovableMan:AddParticle(piece);
-				piece.ToSettle = true;
-
-				local glow = CreateMOPixel("Techion.rte/Pixel Creation Glow");
-				glow.Pos = hitPos;
-				MovableMan:AddParticle(glow);
-
-				if self.dissipateSound:IsBeingPlayed() then
-					self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
-					self.dissipateSound:Play(hitPos);
-				end
-			end
-		end
-	end
 
 	--Find MOs to disintegrate
-	local moCheck = SceneMan:CastMORay(self.MuzzlePos, aimVec * 0.5, self.RootID, self.Team, rte.airID, true, 2);
+	local moCheck = SceneMan:CastMORay(self.MuzzlePos, aimVec * RangeRand(0.5, 1.0), self.RootID, self.Team, rte.airID, true, 2);
 	if moCheck ~= rte.NoMOID then
 
 		local initMO = MovableMan:GetMOFromID(moCheck);
@@ -69,37 +45,52 @@ function OnFire(self)
 			local dustTarget;
 
 			if targetMO then
-				local resistance = math.sqrt(targetMO.Radius + math.abs(targetMO.Mass) + targetMO.Material.StructuralIntegrity + 1);
+				local resistance = math.sqrt(targetMO.Diameter + math.abs(targetMO.Mass) + targetMO.Material.StructuralIntegrity + 1);
+				local gooCount = 0;
 				if IsActor(targetMO) then
 					local actor = ToActor(targetMO);
 					local damage = self.damageOutput/resistance;
-					if math.random() < damage then	--Turns into chance under 1 because Health is an integer in .lua
-						if actor.Status > Actor.UNSTABLE then
-							dustTarget = actor;
+					if actor.Status > Actor.UNSTABLE then
+						if IsADoor(actor) then
+							dustTarget = ToADoor(actor).Door;
+							ToADoor(actor):RemoveAttachable(ToADoor(actor).Door, true, false);
 						else
-							actor.Health = actor.Health - damage;
-							local healthRatio = actor.Health/actor.MaxHealth;
-							if math.random() > healthRatio then
-								actor:FlashWhite(20/(1 + healthRatio));
-								local dots = math.sqrt(actor.Diameter)/(1 + healthRatio);
-								for i = 1, dots do
-									local piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(self.gooCount));
-									piece.Pos = actor.Pos;
-									piece.Vel = actor.Vel * 0.5 + Vector(dots, 0):RadRotate(6.28 * math.random()) + Vector(0, -1);
-									piece.Lifetime = math.random(300, 900);
-									piece.GlobalAccScalar = RangeRand(0.2, 0.4);
-									piece.AirResistance = RangeRand(0.1, 0.2);
-									MovableMan:AddParticle(piece);
-								end
-								if self.dissipateSound:IsBeingPlayed() then
-									self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
-									self.dissipateSound:Play(actor.Pos);
-								end
-							end
+							dustTarget = actor;
+						end
+					else
+						actor.Health = actor.Health - damage;
+						local healthRatio = actor.Health/actor.MaxHealth;
+						if math.random() > healthRatio then
+							actor:FlashWhite(20/(1 + healthRatio));
+							gooCount = math.sqrt(actor.Diameter)/(1 + healthRatio);
 						end
 					end
-				elseif math.random(self.damageOutput) > resistance then
-					dustTarget = ToMOSRotating(targetMO);
+				elseif IsMOSRotating(targetMO) then
+					targetMO = ToMOSRotating(targetMO);
+					local wound = CreateAEmitter("Dent Metal No Spark", "Base.rte");
+					wound.InheritedRotAngleOffset = RangeRand(-math.pi, math.pi);
+					targetMO:AddWound(wound, Vector(targetMO:GetSpriteWidth() * RangeRand(-0.3, 0.3), targetMO:GetSpriteHeight() * RangeRand(-0.3, 0.3)), false);
+					
+					local woundRatio = 1 - targetMO.WoundCount/(targetMO.GibWoundLimit > 0 and targetMO.GibWoundLimit or targetMO.Radius);
+					gooCount = math.sqrt(targetMO.Diameter)/(1 + woundRatio);
+					if woundRatio <= 0 then
+						dustTarget = ToMOSRotating(targetMO);
+					end
+				end
+				if gooCount > 0 then
+					if self.dissipateSound:IsBeingPlayed() then
+						self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
+						self.dissipateSound:Play(targetMO.Pos);
+					end
+					for i = 1, gooCount do
+						local piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(self.gooCount));
+						piece.Pos = targetMO.Pos;
+						piece.Vel = targetMO.Vel * 0.5 + Vector(gooCount, 0):RadRotate(6.28 * math.random()) + Vector(0, -1);
+						piece.Lifetime = math.random(300, 900);
+						piece.GlobalAccScalar = RangeRand(0.2, 0.4);
+						piece.AirResistance = RangeRand(0.1, 0.2);
+						MovableMan:AddParticle(piece);
+					end
 				end
 			end
 			if dustTarget then
@@ -155,6 +146,31 @@ function OnFire(self)
 				end
 				self.disintegrationSound:Play(dustTarget.Pos);
 				dustTarget.ToDelete = true;
+			end
+		end
+	else
+		--Find terrain to disintegrate
+		for i = -self.beamRadius * 0.5, self.beamRadius * 0.5, self.resolution do
+			if math.random() < self.deconstructChance then
+				local hitPos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+				if SceneMan:CastStrengthRay(self.MuzzlePos, Vector(aimVec.X, aimVec.Y):RadRotate(i), 1, hitPos, 0, 166, true) then
+					self.remover.Pos = hitPos;
+					self.remover:EraseFromTerrain();
+
+					local piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(1, self.gooCount));
+					piece.Pos = hitPos;
+					MovableMan:AddParticle(piece);
+					piece.ToSettle = true;
+
+					local glow = CreateMOPixel("Techion.rte/Pixel Creation Glow");
+					glow.Pos = hitPos;
+					MovableMan:AddParticle(glow);
+
+					if self.dissipateSound:IsBeingPlayed() then
+						self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
+						self.dissipateSound:Play(hitPos);
+					end
+				end
 			end
 		end
 	end
