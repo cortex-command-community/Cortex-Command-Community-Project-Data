@@ -1,7 +1,5 @@
 SecretCodeEntry = {};
---TODO obfuscate the secret codes
-SecretCodeEntry.codes = {
-};
+dofile("Base.rte/Scripts/Shared/Secret Code Entry/SecretCodes.pem")
 SecretCodeEntry.allowedControlStates = { Controller.PRESS_PRIMARY, Controller.PRESS_SECONDARY, Controller.PRESS_RIGHT, Controller.PRESS_LEFT, Controller.PRESS_UP, Controller.PRESS_DOWN };
 SecretCodeEntry.defaultFirstEntrySoundContainer = CreateSoundContainer("Funds Changed", "Base.rte");
 SecretCodeEntry.defaultFirstEntrySoundContainer.Volume = 4;
@@ -29,12 +27,14 @@ function SecretCodeEntry.Setup(callbackFunction, callbackSelfObject, codeSequenc
 		return;
 	end
 	
+	local sequenceLength = 0;
 	if type(codeSequenceOrCodeType) == "number" then
-		if codeSequenceOrCodeType < 1 or codeSequenceOrCodeType > #SecretCodeEntry.codes then
-			print("Secret Code Entry Error: Code type must be between 1 and " .. tostring(#SecretCodeEntry.codes));
+		local numberOfCodes = SecretCodeEntry.GetNumberOfCodes();
+		if codeSequenceOrCodeType < 1 or codeSequenceOrCodeType > numberOfCodes then
+			print("Secret Code Entry Error: Code type must be between 1 and " .. tostring(numberOfCodes));
 			return;
 		end
-		codeSequenceOrCodeType = SecretCodeEntry.codes[codeSequenceOrCodeType];
+		sequenceLength = SecretCodeEntry.GetCodeSequenceLength(codeSequenceOrCodeType);
 	elseif type(codeSequenceOrCodeType) == "table" then
 		for _, codeSequenceControlState in pairs(codeSequenceOrCodeType) do
 			local isAllowedControlState = false;
@@ -47,27 +47,31 @@ function SecretCodeEntry.Setup(callbackFunction, callbackSelfObject, codeSequenc
 			
 			if not isAllowedControlState then
 				print("Secret Code Entry Error: Only the following Controller control states are supported: " .. table.concat(SecretCodeEntry.allowedControlStates, ", "));
+				return;
 			end
+			
+			sequenceLength = #codeSequenceOrCodeType;
 		end
 	end
 	
-	local secretCodeEntryDataTable = {}
-	secretCodeEntryDataTable.callbackFunction = callbackFunction;
-	secretCodeEntryDataTable.callbackSelfObject = callbackSelfObject;
-	secretCodeEntryDataTable.codeSequence = codeSequenceOrCodeType;
-	secretCodeEntryDataTable.firstEntrySoundContainer = firstEntrySoundContainer or SecretCodeEntry.defaultFirstEntrySoundContainer;
-	secretCodeEntryDataTable.correctEntrySoundContainer = correctEntrySoundContainer or SecretCodeEntry.defaultCorrectEntrySoundContainer;
-	secretCodeEntryDataTable.incorrectEntrySoundContainer = incorrectEntrySoundContainer or SecretCodeEntry.defaultIncorrectEntrySoundContainer;
-	secretCodeEntryDataTable.codeCompletionSoundContainer = codeCompletionSoundContainer or SecretCodeEntry.defaultCodeCompletionSoundContainer;
+	local secretCodeEntryData = {}
+	secretCodeEntryData.callbackFunction = callbackFunction;
+	secretCodeEntryData.callbackSelfObject = callbackSelfObject;
+	secretCodeEntryData.codeSequenceOrCodeType = codeSequenceOrCodeType;
+	secretCodeEntryData.sequenceLength = sequenceLength;
+	secretCodeEntryData.firstEntrySoundContainer = firstEntrySoundContainer or SecretCodeEntry.defaultFirstEntrySoundContainer;
+	secretCodeEntryData.correctEntrySoundContainer = correctEntrySoundContainer or SecretCodeEntry.defaultCorrectEntrySoundContainer;
+	secretCodeEntryData.incorrectEntrySoundContainer = incorrectEntrySoundContainer or SecretCodeEntry.defaultIncorrectEntrySoundContainer;
+	secretCodeEntryData.codeCompletionSoundContainer = codeCompletionSoundContainer or SecretCodeEntry.defaultCodeCompletionSoundContainer;
 	
-	secretCodeEntryDataTable.inputs = {};
+	secretCodeEntryData.inputs = {};
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if activity:PlayerActive(player) and activity:PlayerHuman(player) then
-			secretCodeEntryDataTable.inputs[player] = { controller = ActivityMan:GetActivity():GetPlayerController(player), currentStep = 0 };
+			secretCodeEntryData.inputs[player] = { controller = ActivityMan:GetActivity():GetPlayerController(player), currentStep = 0 };
 		end
 	end
 	
-	SecretCodeEntry.data[#SecretCodeEntry.data + 1] = secretCodeEntryDataTable;
+	SecretCodeEntry.data[#SecretCodeEntry.data + 1] = secretCodeEntryData;
 	
 	return #SecretCodeEntry.data;
 end
@@ -87,7 +91,12 @@ function SecretCodeEntry.Update(secretCodeEntryDataIndex)
 	
 	if UInputMan:AnyPress() then
 		for player, inputData in pairs(secretCodeEntryData.inputs) do
-			local expectedNextControlState = secretCodeEntryData.codeSequence[inputData.currentStep + 1];
+			local expectedNextControlState;
+			if type(secretCodeEntryData.codeSequenceOrCodeType) == "number" then
+				expectedNextControlState = SecretCodeEntry.GetExpectedNextControlState(secretCodeEntryData.codeSequenceOrCodeType, inputData.currentStep);
+			else
+				expectedNextControlState = secretCodeEntryData.codeSequence[inputData.currentStep + 1];
+			end
 			
 			local correctInputPressed = inputData.controller:IsState(expectedNextControlState);
 			local incorrectInputPressed = false;
@@ -105,14 +114,14 @@ function SecretCodeEntry.Update(secretCodeEntryDataIndex)
 				soundToPlay = secretCodeEntryData.incorrectEntrySoundContainer;
 				inputData.currentStep = 0;
 			elseif correctInputPressed then
-				soundToPlay = inputData.currentStep == 0 and secretCodeEntryData.firstEntrySoundContainer or (inputData.currentStep + 1 == #secretCodeEntryData.codeSequence and secretCodeEntryData.codeCompletionSoundContainer or secretCodeEntryData.correctEntrySoundContainer);
+				soundToPlay = inputData.currentStep == 0 and secretCodeEntryData.firstEntrySoundContainer or (inputData.currentStep + 1 == secretCodeEntryData.sequenceLength and secretCodeEntryData.codeCompletionSoundContainer or secretCodeEntryData.correctEntrySoundContainer);
 				inputData.currentStep = inputData.currentStep + 1;
 			end
 			if soundToPlay then
 				soundToPlay:Play(CameraMan:GetScrollTarget(inputData.controller.Player), inputData.controller.Player);
 			end
 			
-			if inputData.currentStep == #secretCodeEntryData.codeSequence then
+			if inputData.currentStep == secretCodeEntryData.sequenceLength then
 				secretCodeEntryData.inputs[player] = nil;
 				playersWhoCompletedCode[#playersWhoCompletedCode + 1] = player;
 			end
