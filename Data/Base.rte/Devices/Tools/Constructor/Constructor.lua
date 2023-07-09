@@ -47,32 +47,9 @@ function ConstructorSnapPos(checkPos, blockSize)
 end
 
 function ConstructorTerrainRay(start, trace, skip)
-	local length = trace.Magnitude;
-	local angle = trace.AbsRadAngle;
-
-	local density = math.ceil(length/skip);
-
-	local roughLandPos = start + Vector(length, 0):RadRotate(angle);
-	for i = 0, density do
-		local invector = start + Vector(skip * i, 0):RadRotate(angle);
-		local checkPos = ConstructorWrapPos(invector);
-		if SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
-			roughLandPos = checkPos;
-			break;
-		end
-	end
-
-	local checkRoughLandPos = roughLandPos + Vector(skip * -1, 0):RadRotate(angle);
-	for i = 0, skip do
-		local invector = checkRoughLandPos + Vector(i, 0):RadRotate(angle);
-		local checkPos = ConstructorWrapPos(invector);
-		roughLandPos = checkPos;
-		if SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
-			break;
-		end
-	end
-
-	return roughLandPos;
+	local hitPos = start + trace;
+	SceneMan:CastStrengthRay(start, trace, 0, hitPos, skip, rte.airID, SceneMan.SceneWrapsX);	
+	return hitPos;
 end
 
 function Create(self)
@@ -322,7 +299,7 @@ function Update(self)
 						for i = 1, particleCount do
 							local spray = CreateMOPixel("Particle Concrete " .. math.random(4), "Base.rte");
 							spray.Pos = self.MuzzlePos;
-							spray.Vel = self.Vel + Vector(math.random(11, 13), 0):RadRotate(angle + RangeRand(-0.5, 0.5) * self.spreadRange);
+							spray.Vel = self.Vel + Vector(RangeRand(11, 13), 0):RadRotate(angle + RangeRand(-0.5, 0.5) * self.spreadRange);
 							spray.Team = self.Team;
 							spray.IgnoresTeamHits = true;
 							MovableMan:AddParticle(spray);
@@ -333,53 +310,60 @@ function Update(self)
 					end
 				else
 					for i = 1, self.RoundsFired do
-
-						local digPos = ConstructorTerrainRay(self.MuzzlePos, Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange), 1);
+						local trace = Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange);
+						local digPos = ConstructorTerrainRay(self.MuzzlePos, trace, 0);
 
 						if SceneMan:GetTerrMatter(digPos.X, digPos.Y) ~= rte.airID then
 
-							local digWeight = 0;
-							local found = false;
+							local digWeightTotal = 0;
+							local totalVel = Vector();
+							local found = 0;
 
 							for x = 1, 3 do
 								for y = 1, 3 do
 									local checkPos = ConstructorWrapPos(Vector(digPos.X - 2 + x, digPos.Y - 2 + y));
 									local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
-									if terrCheck ~= rte.airID then
-										if terrCheck == rte.goldID then
-											self.clearer.Pos = Vector(checkPos.X, checkPos.Y);
-											self.clearer:EraseFromTerrain();
-											local collectFX = CreateMOPixel("Particle Constructor Gather Material Gold");
-											collectFX.Pos = Vector(checkPos.X, checkPos.Y);
-											collectFX.Sharpness = self.ID;
-											collectFX.Vel.Y = -RangeRand(2, 3);
-											MovableMan:AddParticle(collectFX);
-										else
-											local material = SceneMan:GetMaterialFromID(terrCheck);
-											if material.StructuralIntegrity > 0 and material.StructuralIntegrity <= self.digStrength then
-												if math.random() > material.StructuralIntegrity/(self.digStrength * 1.1) then
-													self.clearer.Pos = Vector(checkPos.X, checkPos.Y);
-													self.clearer:EraseFromTerrain();
-													digWeight = digWeight + math.sqrt(material.StructuralIntegrity/self.digStrength);
-												end
-												found = true;
+									local material = SceneMan:GetMaterialFromID(terrCheck);
+									if material.StructuralIntegrity <= self.digStrength and material.StructuralIntegrity <= self.digStrength * RangeRand(0.5, 1.05) then
+										local px = SceneMan:DislodgePixel(checkPos.X, checkPos.Y);
+										if px then
+											local digWeight = math.sqrt(material.StructuralIntegrity/self.digStrength);
+											local speed = 3;
+											if terrCheck == rte.goldID then
+												--Spawn a glowy gold pixel and delete the original
+												px.ToDelete = true;
+												px = CreateMOPixel("Gold Particle", "Base.rte");
+												px.Pos = checkPos;
+												--Sharpness temporarily stores the ID of the target
+												px.Sharpness = actor.ID;
+												MovableMan:AddParticle(px);
+											else
+												px.Sharpness = self.ID;
+												px.Lifetime = 1000;
+												speed = speed + (1 - digWeight) * 5;
+												digWeightTotal = digWeightTotal + digWeight;
 											end
+											px.IgnoreTerrain = true;
+											px.Vel = Vector(trace.X, trace.Y):SetMagnitude(-speed):RadRotate(RangeRand(-0.5, 0.5));
+											totalVel = totalVel + px.Vel;
+											px:AddScript("Base.rte/Devices/Tools/Constructor/ConstructorCollect.lua");
+											
+											found = found + 1;
 										end
 									end
 								end
 							end
-							if digWeight > 0 then
-								digWeight = digWeight/9;
-								self.resource = math.min(self.resource + digWeight * self.buildCost, self.maxResource);
-
-								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeight > 0.5 and " Big" or ""));
-								collectFX.Pos = Vector(digPos.X, digPos.Y);
-								collectFX.Sharpness = self.ID;
-								collectFX.Vel.Y = 10/(collectFX.Mass + digWeight);
-								collectFX.Lifetime = SceneMan:ShortestDistance(digPos, self.Pos, SceneMan.SceneWrapsX).Magnitude/(collectFX.Vel.Magnitude * rte.PxTravelledPerFrame) * TimerMan.DeltaTimeMS;
+							if found > 0 then
+								if digWeightTotal > 0 then
+									digWeightTotal = digWeightTotal/9;
+									self.resource = math.min(self.resource + digWeightTotal * self.buildCost, self.maxResource);
+								end
+								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeightTotal > 0.5 and " Big" or ""));
+								collectFX.Vel = totalVel/found;
+								collectFX.Pos = Vector(digPos.X, digPos.Y) + collectFX.Vel * rte.PxTravelledPerFrame;
 
 								MovableMan:AddParticle(collectFX);
-							elseif not found then
+							else
 								self:Deactivate();
 							end
 						else	-- deactivate if digging air
@@ -531,11 +515,12 @@ function Update(self)
 					self.buildList[1][3] = self.buildList[1][3] + 1;
 					local totalCost = 0;
 					local startPos = ConstructorWrapPos(Vector(bx + self.buildList[1][1], by + self.buildList[1][2]));
+					local didBuild = false;
 					for x = 1, cellSize do
 						for y = 1, cellSize do
 							local pos = Vector(startPos.X + x, startPos.Y + y);
 							local strengthRatio = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(pos.X, pos.Y)).StructuralIntegrity/self.digStrength;
-							if strengthRatio < 1 then
+							if strengthRatio < 1 and SceneMan:GetMOIDPixel(pos.X, pos.Y) == rte.NoMOID then
 								local name = "";
 								if bx + x == 0 or bx + x == self.buildList[1][4] - 1 or by + y == 0 or by + y == self.buildList[1][4] - 1 then
 									name = "Base.rte/Constructor Border Tile " .. math.random(4);
