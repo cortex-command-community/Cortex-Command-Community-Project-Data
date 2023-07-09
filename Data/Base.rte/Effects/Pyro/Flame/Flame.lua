@@ -1,15 +1,17 @@
 function Create(self)
-	if self.PresetName:find("Short") then
-		self.isShort = true;
-	end
+	self.ageRatio = 1;
+	--A separate delay for lifetime control is used to preserve animation speed
+	self.deleteDelay = self.PresetName:find("Short") and self.Lifetime * RangeRand(0.1, 0.2) or self.Lifetime;
+	--Define Throttle for non-emitter particles
 	if self.Throttle == nil then
 		self.Throttle = 0;
 	end
 end
 
 function Update(self)
-	local ageRatio = self.Age/self.Lifetime;
-	self.ToSettle = false;
+	self.ageRatio = 1 - self.Age/self.Lifetime;
+	self:NotResting();
+	--TODO: Use Throttle to combine multiple flames into one
 	self.Throttle = self.Throttle - TimerMan.DeltaTimeMS/self.Lifetime;
 
 	if self.target and MovableMan:ValidMO(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete then
@@ -20,42 +22,43 @@ function Update(self)
 			actor = ToActor(actor);
 			actor.Health = actor.Health - math.max(self.target.DamageMultiplier * (self.Throttle + 1), 0.1)/(actor.Mass * 0.7 + self.target.Material.StructuralIntegrity);
 			--Stop, drop and roll!
-			self.Lifetime = self.Lifetime - math.abs(actor.AngularVel);
+			self.deleteDelay = self.deleteDelay - math.abs(actor.AngularVel);
 		end
 	else
 		self.target = nil;
-		if math.random() > ageRatio then
-			if self.Vel:MagnitudeIsGreaterThan(1) then
-				local checkPos = Vector(self.Pos.X, self.Pos.Y - 1) + self.Vel * rte.PxTravelledPerFrame * math.random();
-				local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y, self.Team);
-				if moCheck ~= rte.NoMOID then
-					local mo = MovableMan:GetMOFromID(moCheck);
-					self.target = ToMOSRotating(mo);
+	end
+	if self.Age > self.deleteDelay then
+		self.ToDelete = true;
+	end
+end
 
-					self.isShort = true;
-					self.deleteDelay = math.random(self.Lifetime);
-
-					self.targetStickAngle = mo.RotAngle;
-					self.stickOffset = SceneMan:ShortestDistance(mo.Pos, self.Pos, SceneMan.SceneWrapsX) * 0.8;
-
-					self.GlobalAccScalar = 0.9;
-				elseif self.GlobalAccScalar < 0.5 and self.isShort and math.random() < 0.2 and SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
-					self.deleteDelay = math.random(self.Lifetime);
-					self.GlobalAccScalar = 0.9;
-				end
-			end
+function OnCollideWithMO(self, mo, rootMO)
+	if self.target == nil then
+		--Stick to objects on collision
+		if not mo.ToDelete and IsMOSRotating(mo) and math.random() < self.ageRatio - 0.5 then
+			self.target = ToMOSRotating(mo);
+			self.targetStickAngle = mo.RotAngle;
+			local velOffset = self.PrevVel * rte.PxTravelledPerFrame * 0.5;
+			local dist = SceneMan:ShortestDistance(mo.Pos, self.Pos + velOffset, SceneMan.SceneWrapsX);
+			dist:SetMagnitude(math.max(dist.Magnitude - velOffset.Magnitude, 0));
+			self.stickOffset = Vector(dist.X, dist.Y);
 			
-			--Spawn another, shorter self particle occasionally
-			if not self.isShort and math.random() < self.Throttle * 0.1 then
-				local particle = CreatePEmitter("Flame Hurt Short Float", "Base.rte");
-				particle.Lifetime = self.Lifetime * RangeRand(0.6, 0.9);
-				particle.Vel = self.Vel + Vector(0, -3) + Vector(math.random(), 0):RadRotate(math.random() * math.pi * 2);
-				particle.Pos = Vector(self.Pos.X, self.Pos.Y - 1);
-				MovableMan:AddParticle(particle);
-			end
+			self.deleteDelay = self.Lifetime;
+		else
+			self.deleteDelay = math.random(self.Age, self.Lifetime);
 		end
-		if self.deleteDelay and self.Age > self.deleteDelay then
-			self.ToDelete = true;
+		self.GlobalAccScalar = 0.9;
+		self.HitsMOs = false;
+	end
+end
+
+function OnCollideWithTerrain(self, terrainID)
+	if self.HitsMOs then
+		--Let the flames linger occasionally
+		if math.random() < 0.5 then
+			self.GlobalAccScalar = 0.9;
+			self.deleteDelay = terrainID == rte.grassID and self.Lifetime or math.random(self.Age, self.Lifetime);
 		end
+		self.HitsMOs = false;
 	end
 end
