@@ -20,7 +20,7 @@ function Update(self)
 		local actor = self.target:GetRootParent();
 		if MovableMan:IsActor(actor) then
 			actor = ToActor(actor);
-			actor.Health = actor.Health - math.max(self.target.DamageMultiplier * (self.Throttle + 1), 0.1)/(actor.Mass * 0.7 + self.target.Material.StructuralIntegrity);
+			actor.Health = actor.Health - math.max(self.target.DamageMultiplier * (self.Throttle + 1), 0.1)/((actor.Mass - actor.InventoryMass) * 0.5 + self.target.Material.StructuralIntegrity);
 			--Stop, drop and roll!
 			self.deleteDelay = self.deleteDelay - math.abs(actor.AngularVel);
 		end
