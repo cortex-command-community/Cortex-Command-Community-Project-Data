@@ -966,55 +966,46 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
 	
 	if #devices > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield();
-		if _abrt then return true end
-
-		local maxWaypointDistance = 36;
+		local maxPathLength = 36; --TODO when this gets turned into a part of pathing calc, use it that way instead
 		if AI.isPlayerOwned then
-			maxWaypointDistance = 10;
+			maxPathLength = 10;
 		end
-
+		
+		local searchesRemaining = #devices;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = false;
-				if AI.useExpensiveToolAndWeaponSearch then
-					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
-				end
-				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
-				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
-				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
-					local score = distanceToTarget
-					if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-						score = distanceToTarget * 0.4; -- prioritize primary or heavy weapons
-					elseif device.ClassName == "TDExplosive" then
-						score = distanceToTarget * 1.4; -- avoid grenades if there are other weapons
-					elseif device:IsTool() then
-						if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-							score = distanceToTarget * 1.8; -- avoid diggers if there are other weapons
-						else
-							distanceToTarget = maxWaypointDistance;
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						local pathLength = pathRequest.PathLength;
+						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+							local score = pathLength;
+							if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
+								score = pathLength * 0.4; -- prioritize primary or heavy weapons
+							elseif device.ClassName == "TDExplosive" then
+								score = pathLength * 1.4; -- avoid grenades if there are other weapons
+							elseif device:IsTool() then
+								if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
+									score = pathLength * 1.8; -- avoid diggers if there are other weapons
+								else
+									pathLength = maxPathLength;
+								end
+							end
+							if pathLength < maxPathLength then
+								table.insert(devicesToPickUp, {device = device, score = score});
+							end
 						end
+						searchesRemaining = searchesRemaining - 1;
 					end
-
-					if distanceToTarget < maxWaypointDistance then
-						table.insert(devicesToPickUp, {device = device, score = score});
-						if not pathToItemIsObstructed or score < 1 then
-							local _ai, _ownr, _abrt = coroutine.yield();
-							if _abrt then return true end
-							break;
-						end
-					end
-					for i = 1, 2 do
-						local _ai, _ownr, _abrt = coroutine.yield();
-						if _abrt then return true end
-					end
-				end
+				, Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team);
 			end
 		end
-
+		
+		while searchesRemaining > 0 do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 		
 		AI.PickupHD = nil;
 		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
@@ -1103,40 +1094,33 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
 	
 	if #devices > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield();
-		if _abrt then return true end
-
-		local maxWaypointDistance = 16;
+		local maxPathLength = 16;
 		if Owner.AIMode == Actor.AIMODE_GOLDDIG then
-			maxWaypointDistance = 30;
+			maxPathLength = 30;
 		elseif AI.isPlayerOwned then
-			maxWaypointDistance = 5;
+			maxPathLength = 5;
 		end
-
+		
+		local searchesRemaining = #devices;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = false;
-				if AI.useExpensiveToolAndWeaponSearch then
-					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
-				end
-				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
-				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
-				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
-					table.insert(devicesToPickUp, {device = device, score = distanceToTarget});
-					
-					if not pathToItemIsObstructed or distanceToTarget < 1 then
-						break;
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						local pathLength = pathRequest.PathLength;
+						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+							table.insert(devicesToPickUp, {device = device, score = pathLength});
+						end
+						searchesRemaining = searchesRemaining - 1;
 					end
-					
-					for i = 1, 2 do
-						local _ai, _ownr, _abrt = coroutine.yield();
-						if _abrt then return true end
-					end
-				end
+				, Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team);
 			end
+		end
+		
+		while searchesRemaining > 0 do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
 		end
 
 		AI.PickupHD = nil;

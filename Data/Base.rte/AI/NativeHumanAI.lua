@@ -4,8 +4,6 @@ NativeHumanAI = {};
 
 function NativeHumanAI:Create(Owner)
 	local Members = {};
-	
-	Members.useExpensiveToolAndWeaponSearch = SceneMan.SceneWidth * SceneMan.SceneHeight < 10000000;
 
 	Members.lateralMoveState = Actor.LAT_STILL;
 	Members.proneState = AHuman.NOTPRONE;
