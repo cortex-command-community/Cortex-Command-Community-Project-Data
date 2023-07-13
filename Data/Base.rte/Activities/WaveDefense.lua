@@ -94,7 +94,6 @@ end
 
 function WaveDefense:StartNewGame()
 	self:SetTeamFunds(self:GetStartingGold(), self.playerTeam);
-	self:CheckBrains();
 
 	self.triggerWaveInit = true;
 	self.wave = 1;
@@ -105,8 +104,10 @@ function WaveDefense:StartNewGame()
 		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
 			actor.AIMode = Actor.AIMODE_SENTRY;
 		end
-		actor.Team = self.playerTeam;
+		MovableMan:ChangeActorTeam(actor, self.playerTeam);
 	end
+	
+	self:CheckBrains();
 end
 
 function WaveDefense:ResumeLoadedGame()
