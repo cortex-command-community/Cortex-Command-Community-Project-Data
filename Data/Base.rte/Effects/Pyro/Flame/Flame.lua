@@ -9,13 +9,13 @@ function Create(self)
 end
 
 function Update(self)
-	self.ageRatio = 1 - self.Age/self.Lifetime;
+	self.ageRatio = 1 - self.Age/self.deleteDelay;
 	self:NotResting();
 	--TODO: Use Throttle to combine multiple flames into one
 	self.Throttle = self.Throttle - TimerMan.DeltaTimeMS/self.Lifetime;
 
-	if self.target and MovableMan:ValidMO(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete then
-		self.Vel = self.target.Vel;
+	if self.target and IsMOSRotating(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete then
+		self.Vel = Vector();
 		self.Pos = self.target.Pos + Vector(self.stickOffset.X, self.stickOffset.Y):RadRotate(self.target.RotAngle - self.targetStickAngle);
 		local actor = self.target:GetRootParent();
 		if MovableMan:IsActor(actor) then
@@ -35,7 +35,7 @@ end
 function OnCollideWithMO(self, mo, rootMO)
 	if self.target == nil then
 		--Stick to objects on collision
-		if not mo.ToDelete and IsMOSRotating(mo) and math.random() < self.ageRatio - 0.5 then
+		if not mo.ToDelete and IsMOSRotating(mo) and math.random() < self.ageRatio then
 			self.target = ToMOSRotating(mo);
 			self.targetStickAngle = mo.RotAngle;
 			local velOffset = self.PrevVel * rte.PxTravelledPerFrame * 0.5;
@@ -53,11 +53,17 @@ function OnCollideWithMO(self, mo, rootMO)
 end
 
 function OnCollideWithTerrain(self, terrainID)
-	if self.HitsMOs then
+	if terrainID == rte.grassID then
+		local newFlame = CreatePEmitter("Ground Flame", "Base.rte");
+		newFlame.Pos = self.Pos;
+		newFlame.Vel = self.Vel;
+		MovableMan:AddParticle(newFlame);
+		self.ToDelete = true;
+	elseif self.HitsMOs then
 		--Let the flames linger occasionally
 		if math.random() < 0.5 then
 			self.GlobalAccScalar = 0.9;
-			self.deleteDelay = terrainID == rte.grassID and self.Lifetime or math.random(self.Age, self.Lifetime);
+			self.deleteDelay = math.random(self.Age, self.Lifetime);
 		end
 		self.HitsMOs = false;
 	end
