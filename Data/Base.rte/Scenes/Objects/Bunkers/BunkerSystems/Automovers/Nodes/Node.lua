@@ -1,3 +1,5 @@
+--[[FORCE_SINGLETHREADED]]--
+
 function Create(self)
 	self.checkNodesTimer = Timer();
 	self.checkNodesTimer:SetSimTimeLimitMS(500)
