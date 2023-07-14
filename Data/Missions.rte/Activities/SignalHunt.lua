@@ -24,7 +24,6 @@ function SignalHunt:StartActivity(isNewGame)
 	self.zombieTeam = Activity.NOTEAM;
 	self.humanTeam = Activity.TEAM_1;
 	self.ambusherTeam = Activity.TEAM_2;
-	self:ForceSetTeamAsActive(self.ambusherTeam); -- NOTE: This is necessary for the ambusher actors to work properly. WIthout it, their team is considered inactive, and their AI will be unable to shoot because of the game's spatial partitioning grid.
 	self:SetTeamAISkill(self.zombieTeam, self.Difficulty);
 	self:SetTeamAISkill(self.ambusherTeam, self.Difficulty);
 
