@@ -1,3 +1,5 @@
+--[[FORCE_SINGLETHREADED]]--
+
 function Create(self)
 	self.delayTimer = Timer();
 	self.actionPhase = 0;
