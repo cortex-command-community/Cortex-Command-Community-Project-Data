@@ -1,5 +1,3 @@
---[[FORCE_SINGLETHREADED]]--
-
 function Create(self)
 	self.blinkTimer = Timer();
 

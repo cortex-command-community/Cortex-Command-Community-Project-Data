@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 require("AI/NativeTurretAI"); --dofile("Base.rte/Actors/AI/NativeTurretAI.lua");
 
 function Create(self)

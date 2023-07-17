@@ -1,5 +1,3 @@
---[[FORCE_SINGLETHREADED]]--
-
 require("Scenes/Objects/Bunkers/BunkerSystems/Automovers/GlobalAutomoverFunctions");
 
 local automoverUtilityFunctions = {};
