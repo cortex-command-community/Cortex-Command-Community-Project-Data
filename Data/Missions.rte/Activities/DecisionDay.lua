@@ -132,8 +132,8 @@ function DecisionDay:StartActivity(isNewGame)
 
 	self.humanTeam = Activity.TEAM_1;
 	self.aiTeam = Activity.TEAM_2;
-	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
-	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
+	self.humanTeamTech = ModuleMan:GetModuleID(self:GetTeamTech(self.humanTeam));
+	self.aiTeamTech = ModuleMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 
 	local bunkerRegionNames = {
 		"Front Bunker Operations",
@@ -343,7 +343,7 @@ function DecisionDay:StartActivity(isNewGame)
 	end
 	for _, bunkerId in pairs(self.bunkerIds) do
 		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = "internalReinforcementsData." .. tostring(bunkerId) .. ".enabled";
-		
+
 		local popoutTurretDataPrefix = "popoutTurretsData." .. tostring(bunkerId) .. ".";
 		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = popoutTurretDataPrefix .. "enabled";
 		self.keysToSaveAndLoadValuesOf[#self.keysToSaveAndLoadValuesOf + 1] = popoutTurretDataPrefix .. "turretsActivated";
@@ -1612,7 +1612,7 @@ function DecisionDay:UpdateAIDecisions()
 				end
 			elseif bunkerRegionData.ownerTeam == self.humanTeam then
 				bunkerRegionData.aiRegionDefenseTimer:Reset();
-				
+
 				humanOwnedBunkerRegions[#humanOwnedBunkerRegions + 1] = bunkerRegionData;
 				if bunkerRegionData.aiRecaptureWeight > 0 and (bunkerRegionForAIToRecapture == nil or bunkerRegionData.aiRecaptureWeight > bunkerRegionForAIToRecapture.aiRecaptureWeight) and bunkerRegionData.aiRegionAttackTimer:IsPastSimTimeLimit() then
 					bunkerRegionForAIToRecapture = bunkerRegionData;

@@ -44,7 +44,7 @@ function BrainvsBrain:StartActivity(isNewGame)
 	self.TechName[Activity.TEAM_2] = self:GetTeamTech(Activity.TEAM_2);
 
 	if self.CPUTeam ~= Activity.NOTEAM then
-		self.CPUTechID = PresetMan:GetModuleID(self.TechName[self.CPUTeam]);
+		self.CPUTechID = ModuleMan:GetModuleID(self.TechName[self.CPUTeam]);
 	end
 
 	if isNewGame then
@@ -564,7 +564,7 @@ function BrainvsBrain:CreateHeavyDrop(xPosLZ)
 		Craft.Pos = Vector(xPosLZ, -30);	-- Set the spawn point of the craft
 
 		for i = 1, Craft.MaxPassengers do
-			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.TechName[self.CPUTeam])) then
+			if math.random() < self:GetCrabToHumanSpawnRatio(ModuleMan:GetModuleID(self.TechName[self.CPUTeam])) then
 				Passenger = self:CreateCrab(self.CPUTeam);
 			elseif RangeRand(0, 105) < self.Difficulty then
 				Passenger = self:CreateHeavyInfantry(self.CPUTeam);
@@ -849,7 +849,7 @@ end
 
 function BrainvsBrain:CreateLightInfantry(team, mode)
 	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
-	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+	if Passenger.ModuleID ~= ModuleMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
 
@@ -874,7 +874,7 @@ end
 
 function BrainvsBrain:CreateDefender(team)
 	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
-	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+	if Passenger.ModuleID ~= ModuleMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
 
@@ -894,7 +894,7 @@ end
 
 function BrainvsBrain:CreateHeavyInfantry(team, mode)
 	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team]);
-	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+	if Passenger.ModuleID ~= ModuleMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
 
@@ -926,7 +926,7 @@ end
 
 function BrainvsBrain:CreateMediumInfantry(team, mode)
 	local Passenger = RandomAHuman("Actors - Heavy", self.TechName[team]);
-	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+	if Passenger.ModuleID ~= ModuleMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
 
@@ -951,7 +951,7 @@ end
 
 function BrainvsBrain:CreateScoutInfantry(team, mode)
 	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
-	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+	if Passenger.ModuleID ~= ModuleMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
 
@@ -976,7 +976,7 @@ end
 
 function BrainvsBrain:CreateEngineer(team, mode)
 	local Passenger = RandomAHuman("Actors - Light", self.TechName[team]);
-	if Passenger.ModuleID ~= PresetMan:GetModuleID(self.TechName[team]) then
+	if Passenger.ModuleID ~= ModuleMan:GetModuleID(self.TechName[team]) then
 		Passenger = RandomAHuman("Actors", self.TechName[team]);
 	end
 

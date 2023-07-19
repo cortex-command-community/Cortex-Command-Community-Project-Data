@@ -171,7 +171,7 @@ function DummyAssault:UpdateActivity()
 
 			if MovableMan:GetTeamMOIDCount(Activity.TEAM_2) < rte.DefenderMOIDMax then
 				local actor;
-				if math.random() > self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.CPUTech)) then
+				if math.random() > self:GetCrabToHumanSpawnRatio(ModuleMan:GetModuleID(self.CPUTech)) then
 					actor = RandomAHuman("Actors - Light", self.CPUTech);
 					if math.random() > 0.5 then
 						actor.AIMode = Actor.AIMODE_BRAINHUNT;
