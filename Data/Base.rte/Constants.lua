@@ -14,5 +14,5 @@ rte.PxTravelledPerFrame = GetPPM() * TimerMan.DeltaTimeSecs;
 --Materials
 rte.airID = 0;
 rte.goldID = 2;
-rte.doorID = 4;	--Xenocronium
 rte.grassID = 128;
+rte.doorID = 181;
