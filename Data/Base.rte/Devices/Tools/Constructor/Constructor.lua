@@ -60,7 +60,9 @@ function Create(self)
 	self.buildCost = 10;	--How much resource is required per one build 3 x 3 px piece
 	self.sprayCost = self.buildCost * 0.5;
 
-	self.blockSize = 24;
+	self.buildSize = 24;
+	self.buildSizeMin = self.buildSize/4;
+	self.buildSizeMax = self.buildSize;
 	self.fullBlock = 64 * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
 	self.maxResource = 12 * self.fullBlock;
 	self.startResource = 3;
@@ -219,18 +221,18 @@ function Update(self)
 					local buildscheme = self.autoBuildList;
 					if actor:HasObjectInGroup("Brains") then
 						buildscheme = self.autoBuildListBrain;
-						self.blockSize = 12;
+						self.buildSize = 12;
 					else
-						self.blockSize = 24;
+						self.buildSize = 24;
 					end
-					local snappos = ConstructorSnapPos(actor.Pos, self.blockSize);
+					local snappos = ConstructorSnapPos(actor.Pos, self.buildSize);
 					for i = 1, #buildscheme do
-						local temppos = snappos + Vector(buildscheme[i].X * self.blockSize, buildscheme[i].Y * self.blockSize);
+						local temppos = snappos + Vector(buildscheme[i].X * self.buildSize, buildscheme[i].Y * self.buildSize);
 						local buildThis = {};
 						buildThis[1] = temppos.X;
 						buildThis[2] = temppos.Y;
 						buildThis[3] = 0;
-						buildThis[4] = self.blockSize;
+						buildThis[4] = self.buildSize;
 						self.buildList[#self.buildList + 1] = buildThis;
 					end
 				end
@@ -239,7 +241,7 @@ function Update(self)
 			-- constructor actions if it's AI controlled
 			if self.operatedByAI then
 				if self.tunnelFillTimer:IsPastSimMS(self.tunnelFillDelay * self.aiSkillRatio) and #self.buildList == 0 then
-					self.blockSize = 24;
+					self.buildSize = 24;
 					self.tunnelFillTimer:Reset();
 
 					-- create an empty 2D array, call cells having -1
@@ -255,14 +257,14 @@ function Update(self)
 					local center = math.ceil(((self.maxFillDistance * 2) + 1) * 0.5);
 
 					-- FLOOD FILL!
-					ConstructorFloodFill(center, center, 0, self.maxFillDistance, floodFillListX, ConstructorSnapPos(actor.Pos, self.blockSize), self.blockSize);
+					ConstructorFloodFill(center, center, 0, self.maxFillDistance, floodFillListX, ConstructorSnapPos(actor.Pos, self.buildSize), self.buildSize);
 
 					-- dump the correctly numbered cells into the build table
 					for x = 1, #floodFillListX do
 						for y = 1, #floodFillListX do
 							if floodFillListX[x][y] >= self.minFillDistance and floodFillListX[x][y] <= self.maxFillDistance then
-								local mapX = ConstructorSnapPos(actor.Pos, self.blockSize).X + ((center - x) * -self.blockSize);
-								local mapY = ConstructorSnapPos(actor.Pos, self.blockSize).Y + ((center - y) * -self.blockSize);
+								local mapX = ConstructorSnapPos(actor.Pos, self.buildSize).X + ((center - x) * -self.buildSize);
+								local mapY = ConstructorSnapPos(actor.Pos, self.buildSize).Y + ((center - y) * -self.buildSize);
 								local freeSlot = true;
 								for i = 1, #self.buildList do
 									if self.buildList[i] ~= nil and self.buildList[i][1] == mapX and self.buildList[i][2] == mapY then
@@ -275,7 +277,7 @@ function Update(self)
 									buildThis[1] = mapX;
 									buildThis[2] = mapY;
 									buildThis[3] = 0;
-									buildThis[4] = self.blockSize;
+									buildThis[4] = self.buildSize;
 									self.buildList[#self.buildList + 1] = buildThis;
 								end
 							end
@@ -425,10 +427,16 @@ function Update(self)
 				end
 			end
 			if ctrl:IsState(Controller.WEAPON_CHANGE_NEXT) then
-				self.blockSize = math.min(self.blockSize * 2, 48);
+				self.buildSize = self.buildSize * 2;
+				if self.buildSize > self.buildSizeMax then
+					self.buildSize = self.buildSizeMin;
+				end
 			end
 			if ctrl:IsState(Controller.WEAPON_CHANGE_PREV) then
-				self.blockSize = math.max(self.blockSize/2, 6);
+				self.buildSize = self.buildSize/2;
+				if self.buildSize < self.buildSizeMin then
+					self.buildSize = self.buildSizeMax;
+				end
 			end
 
 			if cursorMovement:MagnitudeIsGreaterThan(0) then
@@ -437,15 +445,15 @@ function Update(self)
 			local precise = not mouseControlled and aiming;
 			local map = Vector();
 			if precise then
-				map = Vector(math.floor(self.cursor.X - self.blockSize/2), math.floor(self.cursor.Y - self.blockSize/2));
+				map = Vector(math.floor(self.cursor.X - self.buildSize/2), math.floor(self.cursor.Y - self.buildSize/2));
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, 2), self.cursor + Vector(-3, -3), displayColorYellow);
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, -3), self.cursor + Vector(-3, 2), displayColorYellow);
 			else
-				map = ConstructorSnapPos(self.cursor, self.blockSize);
+				map = ConstructorSnapPos(self.cursor, self.buildSize);
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(0, 4), self.cursor + Vector(0, -4), displayColorYellow);
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), displayColorYellow);
 			end
-			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.blockSize - 1, self.blockSize - 1), displayColorYellow);
+			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.buildSize - 1, self.buildSize - 1), displayColorYellow);
 
 			local dist = SceneMan:ShortestDistance(actor.ViewPoint, self.cursor, SceneMan.SceneWrapsX);
 			if math.abs(dist.X) > self.maxCursorDist.X then
@@ -472,7 +480,7 @@ function Update(self)
 						buildThis[1] = map.X;
 						buildThis[2] = map.Y;
 						buildThis[3] = 0;
-						buildThis[4] = self.blockSize;
+						buildThis[4] = self.buildSize;
 						self.buildList[#self.buildList + 1] = buildThis;
 					end
 				end
