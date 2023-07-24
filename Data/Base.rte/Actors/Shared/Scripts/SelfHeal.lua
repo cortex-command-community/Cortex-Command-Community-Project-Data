@@ -11,7 +11,11 @@ function Update(self)
 		if self.healing.wound then
 			if self.healing.timer:IsPastSimMS(self.healing.delay) then
 				self.healing.timer:Reset();
-				self.Health = math.min(self.Health + self.healing.wound.BurstDamage * math.sqrt(self.healing.part.DamageMultiplier), self.MaxHealth);
+				if self.healing.part.DamageMultiplier > 1 then
+					self.Health = math.min(self.Health + self.healing.wound.BurstDamage * math.sqrt(self.healing.part.DamageMultiplier), self.MaxHealth);
+				else
+					self.Health = math.min(self.Health + self.healing.wound.BurstDamage * self.healing.part.DamageMultiplier, self.MaxHealth);
+				end
 				self.healing.wound.ToDelete = true;
 				self.healing.wound = nil;
 				for wound in self.healing.part.Wounds do
