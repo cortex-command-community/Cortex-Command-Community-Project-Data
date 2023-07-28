@@ -185,7 +185,7 @@ function Update(self)
 			if self.actorMovementUpdateTimer:IsPastSimTimeLimit() then
 				for actorUniqueID, actorData in pairs(self.affectedActors) do
 					local actor = actorData.actor;
-					if not MovableMan:ValidMO(actor) or not self.combinedAutomoverArea:IsInside(actor.Pos) then
+					if not MovableMan:ValidMO(actor) or actor.Health <= 0 or not self.combinedAutomoverArea:IsInside(actor.Pos) then
 						self:removeActorFromAutomoverTable(actor, actorUniqueID);
 					else
 						if actor:NumberValueExists("Automover_LeaveAutomoverNetwork") then
