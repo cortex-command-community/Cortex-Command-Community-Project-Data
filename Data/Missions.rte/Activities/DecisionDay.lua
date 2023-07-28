@@ -931,7 +931,7 @@ function DecisionDay:UpdateCamera()
 	for _, player in pairs(self.humanPlayers) do
 		local adjustedCameraMinimumX = self.cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
 		if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
+			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, 0);
 		end
 	end
 
@@ -1038,7 +1038,7 @@ function DecisionDay:UpdateCamera()
 
 	if scrollTargetAndSpeed then
 		for _, player in pairs(self.humanPlayers) do
-			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], false, player);
+			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
 		end
 	end
 	self.cameraIsPanning = scrollTargetAndSpeed ~= nil;
