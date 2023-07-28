@@ -1,4 +1,4 @@
---[[a
+--[[
 How To Use the Activity Speedrun Helper:
 1. In your Activity's Create function, call ActivitySpeedrunHelper.Setup. The first argument should be self, the second should be the function you want to run when then player enters speedrun mode (see the SignalHunt Activity for an example).
 	This will return speedrun data, which you should keep, since you'll need to use it elsewhere.
