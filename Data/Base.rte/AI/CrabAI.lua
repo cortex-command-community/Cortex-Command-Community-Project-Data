@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 require("AI/NativeCrabAI"); --dofile("Base.rte/Actors/AI/NativeCrabAI.lua")
 
 function Create(self)
