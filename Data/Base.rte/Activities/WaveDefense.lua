@@ -25,7 +25,7 @@ end
 
 function WaveDefense:StartActivity(isNewGame)
 	-- Get player team
-	self.playerTeam = Activity.TEAM_1;
+	self.playerTeam = Activity.TEAM_2;
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			self.playerTeam = self:GetTeamOfPlayer(player);
@@ -256,6 +256,14 @@ function WaveDefense:UpdateActivity()
 				for team = 0, Activity.MAXTEAMCOUNT - 1 do
 					if self:TeamActive(team) and self:TeamIsCPU(team) then
 						SceneMan:MakeAllUnseen(Vector(65, 65), team);
+					end
+				end
+
+				-- Reveal the main bunker area for the defender.
+				local mainBunkerArea = SceneMan.Scene:GetOptionalArea("Main Bunker");
+				if mainBunkerArea ~= nil then
+					for mainBunkerBox in mainBunkerArea.Boxes do
+						SceneMan:RevealUnseenBox(mainBunkerBox.Corner.X, mainBunkerBox.Corner.Y, mainBunkerBox.Width, mainBunkerBox.Height, self.playerTeam);
 					end
 				end
 
