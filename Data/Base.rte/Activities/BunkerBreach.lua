@@ -77,8 +77,9 @@ function BunkerBreach:SetupDefenderBrains()
 
 	-- Add defender brains, either using the Brain area or picking randomly from those created by deployments.
 	if SceneMan.Scene:HasArea("Brain") then
-		for actor in MovableMan.Actors do
-			if actor.Team == self.defenderTeam and actor:IsInGroup("Brains") then
+		for actor in MovableMan.AddedActors do
+			if actor:IsInGroup("Brains") then
+				print(actor)
 				actor.ToDelete = true;
 			end
 		end
@@ -141,8 +142,10 @@ function BunkerBreach:SetupDefenderActors()
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(self.defenderTeam));
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(techID);
 
+	local hasSpawnAreas = false;
 	for _, loadoutName in pairs({"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"}) do
 		if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
+			hasSpawnAreas = true;
 			local defenderArea = SceneMan.Scene:GetOptionalArea(loadoutName .. " Defenders");
 			if defenderArea ~= nil then
 				for defenderBox in defenderArea.Boxes do
@@ -167,7 +170,11 @@ function BunkerBreach:SetupDefenderActors()
 	end
 	for actor in MovableMan.AddedActors do
 		if actor.Team ~= self.defenderTeam and not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems - Automovers") then
-			MovableMan:ChangeActorTeam(actor, self.defenderTeam);
+			if hasSpawnAreas then
+				actor.ToDelete = true;
+			else
+				MovableMan:ChangeActorTeam(actor, self.defenderTeam);
+			end
 		end
 	end
 end
@@ -241,11 +248,11 @@ function BunkerBreach:StartActivity(isNewGame)
 
 		self:SetupAIVariables();
 
-		self:SetupHumanAttackerBrains();
-
 		self:SetupDefenderBrains();
 
 		self:SetupDefenderActors();
+
+		self:SetupHumanAttackerBrains();
 
 		self:SetupFogOfWar();
 	else
