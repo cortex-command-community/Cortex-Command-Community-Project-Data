@@ -79,7 +79,6 @@ function BunkerBreach:SetupDefenderBrains()
 	if SceneMan.Scene:HasArea("Brain") then
 		for actor in MovableMan.AddedActors do
 			if actor:IsInGroup("Brains") then
-				print(actor)
 				actor.ToDelete = true;
 			end
 		end
@@ -142,38 +141,49 @@ function BunkerBreach:SetupDefenderActors()
 	local techID = PresetMan:GetModuleID(self:GetTeamTech(self.defenderTeam));
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(techID);
 
+	local loadoutNames = {"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"};
+	
 	local hasSpawnAreas = false;
-	for _, loadoutName in pairs({"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"}) do
+	for _, loadoutName in pairs(loadoutNames) do
 		if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
 			hasSpawnAreas = true;
-			local defenderArea = SceneMan.Scene:GetOptionalArea(loadoutName .. " Defenders");
-			if defenderArea ~= nil then
-				for defenderBox in defenderArea.Boxes do
-					local guard;
-					if loadoutName == "Mecha" or loadoutName == "Turret" then
-						guard = crabToHumanSpawnRatio > 0 and self:CreateCrab(techID, loadoutName == "Turret") or self:CreateInfantry(techID, "Heavy");
-					else
-						guard = self:CreateInfantry(techID, loadoutName);
-					end
-					if guard then
-						guard.Pos = defenderBox.Center;
-						guard.Team = self.defenderTeam;
-						guard.AIMode = Actor.AIMODE_SENTRY;
-						if loadoutName == "Engineer" then
-							guard.AIMode = Actor.AIMODE_GOLDDIG;
-						end
-						MovableMan:AddActor(guard);
-					end
-				end
+		end
+	end
+	
+	for actor in MovableMan.AddedActors do
+		if not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems - Automovers") then
+			if hasSpawnAreas then
+				actor.ToDelete = true;
+			elseif actor.Team ~= self.defenderTeam then
+				MovableMan:ChangeActorTeam(actor, self.defenderTeam);
 			end
 		end
 	end
-	for actor in MovableMan.AddedActors do
-		if actor.Team ~= self.defenderTeam and not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems - Automovers") then
-			if hasSpawnAreas then
-				actor.ToDelete = true;
-			else
-				MovableMan:ChangeActorTeam(actor, self.defenderTeam);
+	
+	if hasSpawnAreas then
+		for _, loadoutName in pairs({"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"}) do
+			if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
+				hasSpawnAreas = true;
+				local defenderArea = SceneMan.Scene:GetOptionalArea(loadoutName .. " Defenders");
+				if defenderArea ~= nil then
+					for defenderBox in defenderArea.Boxes do
+						local guard;
+						if loadoutName == "Mecha" or loadoutName == "Turret" then
+							guard = crabToHumanSpawnRatio > 0 and self:CreateCrab(techID, loadoutName == "Turret") or self:CreateInfantry(techID, "Heavy");
+						else
+							guard = self:CreateInfantry(techID, loadoutName);
+						end
+						if guard then
+							guard.Pos = defenderBox.Center;
+							guard.Team = self.defenderTeam;
+							guard.AIMode = Actor.AIMODE_SENTRY;
+							if loadoutName == "Engineer" then
+								guard.AIMode = Actor.AIMODE_GOLDDIG;
+							end
+							MovableMan:AddActor(guard);
+						end
+					end
+				end
 			end
 		end
 	end
