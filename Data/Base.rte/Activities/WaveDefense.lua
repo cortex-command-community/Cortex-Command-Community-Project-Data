@@ -108,6 +108,14 @@ function WaveDefense:StartNewGame()
 	end
 	
 	self:CheckBrains();
+	
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			if self:GetPlayerBrain(player) then
+				self:SwitchToActor(self:GetPlayerBrain(player), player, self:GetTeamOfPlayer(player));
+			end
+		end
+	end
 end
 
 function WaveDefense:ResumeLoadedGame()
