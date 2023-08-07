@@ -1,5 +1,6 @@
 function Create(self)
 	self.effectRadius = 125;
+	self.materialThreshold = 25;
 	self.strength = self.PinStrength; --Affects the duration of the effect
 	self.flashScreen = false; --Do not turn on if you are prone to seizures
 
@@ -9,9 +10,9 @@ function Create(self)
 	for actor in MovableMan.Actors do
 		local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
 		if dist:MagnitudeIsLessThan(self.effectRadius) then
-			local skipPx = 1 + (dist.Magnitude * 0.01);
+			local skipPx = 1 + math.floor(math.sqrt(dist.Magnitude));
 			local strCheck = SceneMan:CastStrengthSumRay(self.Pos, self.Pos + dist, skipPx, rte.airID);
-			if strCheck < (100/skipPx) then
+			if strCheck < self.materialThreshold/skipPx then
 				--The effect is diminished by target actor mass, material strength and distance
 				local resistance = math.sqrt(math.abs(actor.Mass) + actor.Material.StructuralIntegrity + dist.Magnitude + 1) + actorCount;
 				actor:SetNumberValue("RoninScrambler", math.floor(actor:GetNumberValue("RoninScrambler") + self.strength/resistance));
@@ -53,6 +54,14 @@ function Update(self)
 				if numberValue > 0 then
 					actor.Status = Actor.UNSTABLE;
 					local ctrl = actor:GetController();
+					local dir = 0;
+					if ctrl:IsState(Controller.MOVE_LEFT) then
+						dir = dir - 1;
+					end
+					if ctrl:IsState(Controller.MOVE_RIGHT) then
+						dir = dir + 1;
+					end
+					actor.AngularVel = actor.AngularVel - dir/(1 + math.abs(actor.AngularVel));
 					if math.random(50) < numberValue then
 						for i = 0, 29 do --Go through and disable the gameplay-related controller states
 							ctrl:SetState(i, false);
