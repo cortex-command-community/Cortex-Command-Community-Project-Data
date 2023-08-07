@@ -1,5 +1,7 @@
 package.loaded.Constants = nil;
 require("Constants");
+require("Scripts/Shared/Activity_SpeedrunHelper")
+require("Scripts/Shared/SecretCodeEntry");
 
 function SignalHunt:StartActivity(isNewGame)
 	self.humanLZ = SceneMan.Scene:GetArea("LZ Team 1");
@@ -21,11 +23,15 @@ function SignalHunt:StartActivity(isNewGame)
 
 	self.fightStage = { beginFight = 0, inOuterCaveArea = 1, inInnerCaveArea = 2, inInnermostCaveArea = 3, ambushAndExtraction = 5 };
 
-	self.zombieTeam = Activity.NOTEAM;
 	self.humanTeam = Activity.TEAM_1;
+	
 	self.ambusherTeam = Activity.TEAM_2;
-	self:SetTeamAISkill(self.zombieTeam, self.Difficulty);
 	self:SetTeamAISkill(self.ambusherTeam, self.Difficulty);
+	
+	self.zombieTeam = Activity.TEAM_3;
+	self:ForceSetTeamAsActive(self.zombieTeam); -- NOTE: This is necessary for the ambusher actors to work properly. Without it, their team is considered inactive, and their AI will be unable to shoot because of the game's spatial partitioning grid.
+	self:SetTeamAISkill(self.zombieTeam, self.Difficulty);
+	
 
 	self:SetLZArea(self.humanTeam, self.humanLZ);
 
@@ -36,31 +42,9 @@ function SignalHunt:StartActivity(isNewGame)
 	self.humanTeamTechName = self:GetTeamTech(self.humanTeam);
 	self.ambusherTeamTechName = "Ronin.rte";
 
-	self.zombieSpawnDifficultyMultiplier = 1;
-	self.numberOfLooseBombsPerBombMaker = 1;
-	self.numberOfAmbushingCraft = 3;
-	if self.Difficulty <= Activity.CAKEDIFFICULTY then
-		self.zombieSpawnDifficultyMultiplier = 0.25;
-		self.numberOfAmbushingCraft = 0;
-	elseif self.Difficulty <= Activity.EASYDIFFICULTY then
-		self.zombieSpawnDifficultyMultiplier = 0.5;
-		self.numberOfAmbushingCraft = 1;
-	elseif self.Difficulty <= Activity.MEDIUMDIFFICULTY then
-		self.zombieSpawnDifficultyMultiplier = 1;
-		self.numberOfAmbushingCraft = 2;
-	elseif self.Difficulty <= Activity.HARDDIFFICULTY then
-		self.zombieSpawnDifficultyMultiplier = 2;
-		self.numberOfLooseBombsPerBombMaker = 2;
-		self.numberOfAmbushingCraft = 3;
-	elseif self.Difficulty <= Activity.NUTSDIFFICULTY then
-		self.zombieSpawnDifficultyMultiplier = 3;
-		self.numberOfLooseBombsPerBombMaker = 3;
-		self.numberOfAmbushingCraft = 4;
-	else
-		self.zombieSpawnDifficultyMultiplier = 4;
-		self.numberOfLooseBombsPerBombMaker = 5;
-		self.numberOfAmbushingCraft = 5;
-	end
+	self:SetupDifficultySettings();
+	
+	self.secretIndex = SecretCodeEntry.Setup(SignalHunt.DoSecret, self, 2);
 
 	self.brainDead = {};
 
@@ -76,6 +60,7 @@ function SignalHunt:OnSave()
 
 	self:SaveNumber("currentFightStage", self.currentFightStage);
 	self:SaveNumber("evacuationRocketSpawned", self.evacuationRocketSpawned and 1 or 0);
+	self:SaveNumber("secretActivated", self.secretIndex == nil and 1 or 0);
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -85,6 +70,8 @@ function SignalHunt:OnSave()
 end
 
 function SignalHunt:StartNewGame()
+	self.speedrunData = ActivitySpeedrunHelper.Setup(self, self.DoSpeedrunMode);
+
 	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
 	self.currentFightStage = self.fightStage.beginFight;
@@ -155,10 +142,39 @@ function SignalHunt:StartNewGame()
 	self:SetupHumanPlayerBrains();
 end
 
+function SignalHunt:SetupDifficultySettings()
+	self.zombieSpawnDifficultyMultiplier = 1;
+	self.numberOfLooseBombsPerBombMaker = 1;
+	self.numberOfAmbushingCraft = 3;
+	if self.Difficulty <= Activity.CAKEDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 0.25;
+		self.numberOfAmbushingCraft = 0;
+	elseif self.Difficulty <= Activity.EASYDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 0.5;
+		self.numberOfAmbushingCraft = 1;
+	elseif self.Difficulty <= Activity.MEDIUMDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 1;
+		self.numberOfAmbushingCraft = 2;
+	elseif self.Difficulty <= Activity.HARDDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 2;
+		self.numberOfLooseBombsPerBombMaker = 2;
+		self.numberOfAmbushingCraft = 3;
+	elseif self.Difficulty <= Activity.NUTSDIFFICULTY then
+		self.zombieSpawnDifficultyMultiplier = 3;
+		self.numberOfLooseBombsPerBombMaker = 3;
+		self.numberOfAmbushingCraft = 4;
+	else
+		self.zombieSpawnDifficultyMultiplier = 4;
+		self.numberOfLooseBombsPerBombMaker = 5;
+		self.numberOfAmbushingCraft = 5;
+	end
+end
+
 function SignalHunt:SetupHumanPlayerBrains()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			if not self:GetPlayerBrain(player) and self:GetTeamOfPlayer(player) ~= self.zombieTeam then
+			self:SetTeamOfPlayer(player, self.humanTeam);
+			if not self:GetPlayerBrain(player) then
 				self.brainDead[player] = false;
 
 				local humanTeamTechId = PresetMan:GetModuleID(self.humanTeamTechName);
@@ -185,9 +201,10 @@ function SignalHunt:SetupHumanPlayerBrains()
 
 				self:SetPlayerBrain(rocket, player);
 				self:SetViewState(Activity.ACTORSELECT, player);
-				self:SetActorSelectCursor(Vector(3024, 324), player);
-				self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
-				self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
+				self:SetActorSelectCursor(rocket.Pos, player);
+				self:SetLandingZone(rocket.Pos, player);
+				self:SetObservationTarget(rocket.Pos, player);
+				self:SetDeathViewTarget(rocket.Pos, player);
 			end
 		end
 	end
@@ -198,6 +215,9 @@ function SignalHunt:ResumeLoadedGame()
 
 	self.currentFightStage = self:LoadNumber("currentFightStage");
 	self.evacuationRocketSpawned = self:LoadNumber("evacuationRocketSpawned") ~= 0;
+	if self:LoadNumber("secretActivated") ~= 0 then
+		self.secretIndex = nil;
+	end
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -252,25 +272,26 @@ function SignalHunt:EndActivity()
 end
 
 function SignalHunt:DoGameOverCheck()
-	if self.WinnerTeam ~= self.humanTeam then
+	if self.WinnerTeam == Activity.NOTEAM then
+		local anyHumanHasBrain = false;
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				local team = self:GetTeamOfPlayer(player);
 				local brain = self:GetPlayerBrain(player);
-				if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
+				if brain ~= nil then
+					anyHumanHasBrain = true;
+				end
+				if not brain or not MovableMan:ValidMO(brain) or not brain:HasObjectInGroup("Brains") then
 					self:SetPlayerBrain(nil, player);
 
 					local newBrain = MovableMan:GetUnassignedBrain(team);
-					if self.brainDead[player] == false and newBrain and MovableMan:IsActor(newBrain) then
+					if self.brainDead[player] == false and newBrain and MovableMan:ValidMO(newBrain) then
 						self:SetPlayerBrain(newBrain, player);
 						self:SwitchToActor(newBrain, player, team);
 						self:GetBanner(GUIBanner.RED, player):ClearText();
+						anyHumanHasBrain = true;
 					else
 						self.brainDead[player] = true;
-						if not MovableMan:GetFirstBrainActor(team) then
-							self.WinnerTeam = self:OtherTeam(team);
-							ActivityMan:EndActivity();
-						end
 						self:ResetMessageTimer(player);
 					end
 				else
@@ -278,6 +299,15 @@ function SignalHunt:DoGameOverCheck()
 					self:SetObservationTarget(brain.Pos, player);
 				end
 			end
+		end
+		if not anyHumanHasBrain then
+			self.WinnerTeam = self.ambusherTeam;
+			ActivityMan:EndActivity();
+			self.screenTextTimer:Reset();
+		end
+		if not self.secretIndex and MovableMan:GetTeamMOIDCount(self.humanTeam) == 0 and MovableMan:GetTeamMOIDCount(self.ambusherTeam) == 0 then
+			self.WinnerTeam = self.zombieTeam;
+			self.screenTextTimer:Reset();
 		end
 	elseif self.WinnerTeam == self.humanTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -288,6 +318,52 @@ function SignalHunt:DoGameOverCheck()
 		if self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
 			ActivityMan:EndActivity();
 		end
+	elseif self.WinnerTeam == self.zombieTeam then
+		if self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+			ActivityMan:EndActivity();
+		end
+	end
+end
+	
+function SignalHunt:DoSpeedrunMode()
+	self.Difficulty = Activity.MAXDIFFICULTY;
+	self:SetTeamFunds(0, self.humanTeam);
+	
+	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+	
+	local rocket = self:GetPlayerBrain(0);
+	rocket.PlayerControllable = true;
+	rocket.HUDVisible = true;
+	for item in rocket.Inventory do
+		rocket:RemoveInventoryItem(item.ModuleName, item.PresetName);
+	end
+	local brain = CreateAHuman("Brain Robot", "Base.rte");
+	brain:AddInventoryItem(CreateHDFirearm("Old Stock Pistol", "Base.rte"));
+	brain.Team = self.humanTeam;
+	rocket:AddInventoryItem(brain);
+	self:SwitchToActor(rocket, 0, self.humanTeam);
+	
+	local currentZombieSpawnDifficultyMultiplier = self.zombieSpawnDifficultyMultiplier;
+	self:SetupDifficultySettings();
+	self:SetTeamAISkill(self.humanTeam, Activity.UNFAIRSKILL);
+	self:SetTeamAISkill(self.zombieTeam, Activity.UNFAIRSKILL);
+	self:SetTeamAISkill(self.ambusherTeam, Activity.UNFAIRSKILL);
+	for emission in self.outerZombieGenerator.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute / currentZombieSpawnDifficultyMultiplier * self.zombieSpawnDifficultyMultiplier;
+	end
+	self.outerZombieGenerator.SpriteAnimDuration = self.outerZombieGenerator.SpriteAnimDuration * currentZombieSpawnDifficultyMultiplier / self.zombieSpawnDifficultyMultiplier;
+	
+	for emission in self.outerBombMaker.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute / currentZombieSpawnDifficultyMultiplier * self.zombieSpawnDifficultyMultiplier;
+	end
+	
+	for emission in self.innerZombieGenerator.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute / currentZombieSpawnDifficultyMultiplier * self.zombieSpawnDifficultyMultiplier;
+	end
+	self.innerZombieGenerator.SpriteAnimDuration = self.innerZombieGenerator.SpriteAnimDuration * currentZombieSpawnDifficultyMultiplier / self.zombieSpawnDifficultyMultiplier;
+	
+	for emission in self.innerBombMaker.Emissions do
+		emission.ParticlesPerMinute = emission.ParticlesPerMinute / currentZombieSpawnDifficultyMultiplier * self.zombieSpawnDifficultyMultiplier;
 	end
 end
 
@@ -329,6 +405,37 @@ function SignalHunt:DoAmbush()
 	end
 end
 
+function SignalHunt:DoSecret(playersWhoCompletedCode)
+	self:ForceSetTeamAsActive(self.zombieTeam);
+	
+	for _, player in pairs(playersWhoCompletedCode) do	
+		local playerBrain = self:GetPlayerBrain(player)
+		MovableMan:ChangeActorTeam(playerBrain, self.zombieTeam);
+		self:SetTeamOfPlayer(player, self.zombieTeam);
+		self:SetPlayerBrain(playerBrain, player);
+	end
+	
+	local otherHumanPlayersExist = self.HumanCount > #playersWhoCompletedCode;
+	if otherHumanPlayersExist then
+		self:SpawnEvacuationRocket();
+	end
+	
+	local zombieWaypoint = SceneMan:MovePointToGround(self.humanLZ:GetCenterPoint(), 10, 10);
+	for actor in MovableMan.Actors do
+		if actor.Team == self.zombieTeam then
+			actor:ClearAIWaypoints();
+			if otherHumanPlayersExist then
+				actor.AIMode = Actor.AIMODE_BRAINHUNT;
+			else
+				actor.AIMode = Actor.AIMODE_GOTO;
+				actor:AddAISceneWaypoint(zombieWaypoint);
+			end
+		end
+	end
+	self.secretIndex = nil;
+	self.screenTextTimer:Reset();
+end
+
 function SignalHunt:DoZombieAndBombSpawns(zombieActorCount)
 	for i = 1, 2 do
 		local generatorToUse = i == 1 and self.outerZombieGenerator or self.innerZombieGenerator;
@@ -336,14 +443,14 @@ function SignalHunt:DoZombieAndBombSpawns(zombieActorCount)
 		local bombMakerToUse = i == 1 and self.outerBombMaker or self.innerBombMaker;
 		local bombPickupAreaToUse = i == 1 and self.outerBombPickupArea or self.innerBombPickupArea;
 
-		if generatorToUse and MovableMan:IsParticle(generatorToUse) then
+		if generatorToUse and MovableMan:ValidMO(generatorToUse) then
 			local bombCount = 0;
 			for item in MovableMan.Items do
 				if bombPickupAreaToUse:IsInside(item.Pos) and item.PresetName == "Blue Bomb" then
 					bombCount = bombCount + 1;
 				end
 			end
-			if bombMakerToUse and MovableMan:IsParticle(bombMakerToUse) then
+			if bombMakerToUse and MovableMan:ValidMO(bombMakerToUse) then
 				bombMakerToUse:EnableEmission(generatorEnabled and bombCount < self.numberOfLooseBombsPerBombMaker);
 			end
 			generatorToUse:EnableEmission(generatorEnabled);
@@ -354,7 +461,12 @@ function SignalHunt:DoZombieAndBombSpawns(zombieActorCount)
 end
 
 function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
-	if self.WinnerTeam ~= self.humanTeam then
+	if self.speedrunData and ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		FrameMan:ClearScreenText(Activity.PLAYER_1);
+		FrameMan:SetScreenText(ActivitySpeedrunHelper.GetSpeedrunDuration(self.speedrunData), Activity.PLAYER_1, 0, 1, ActivitySpeedrunHelper.SpeedrunCompleted(self.speedrunData));
+		return;
+	end
+	if self.WinnerTeam == -1 then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				local brain = self:GetPlayerBrain(player);
@@ -405,19 +517,21 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 			end
 			self:AddObjectivePoint("Destroy the case and retrieve the control chip inside!", self.controlCase.Pos, self.humanTeam, GameActivity.ARROWDOWN);
 		elseif self.currentFightStage == self.fightStage.ambushAndExtraction then
-			if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
-				if not self.evacuationRocketSpawned and self.numberOfAmbushingCraft > 0 then
-					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-						if self:PlayerActive(player) and self:PlayerHuman(player) then
-							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("ALERT: Contractor, unknown hostiles are entering the area. They must not retrieve the Cloning Control Chip!", player, 500, 8000, true);
-						end
+			if self.secretIndex == nil and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					if self:PlayerActive(player) and self:PlayerHuman(player) then
+						FrameMan:ClearScreenText(player);
+						FrameMan:SetScreenText(self:GetTeamOfPlayer(player) == self.humanTeam and "Get To The Rocket!!!" or "Y O U R   W I S H   I S   O U R   C O M M A N D,   O   D R E A D   L O R D\nW E   S H A L L   S L A U G H T E R   E V E R Y O N E", player, 0, 1, true);
 					end
-				elseif self.evacuationRocketSpawned then
-					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-						if self:PlayerActive(player) and self:PlayerHuman(player) then
-							FrameMan:ClearScreenText(player);
-							FrameMan:SetScreenText("Contractor, we have sent a rocket to extract the Cloning Control Chip.", player, 500, 8000, true);
+				end
+			else
+				if not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+					if not self.evacuationRocketSpawned and self.numberOfAmbushingCraft > 0 then
+						for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+							if self:PlayerActive(player) and self:PlayerHuman(player) then
+								FrameMan:ClearScreenText(player);
+								FrameMan:SetScreenText("ALERT: Contractor, unknown hostiles are entering the area. They must not retrieve the Cloning Control Chip!", player, 500, 1, true);
+							end
 						end
 					end
 				end
@@ -439,7 +553,18 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
 				FrameMan:ClearScreenText(player);
-				FrameMan:SetScreenText("Contractor, thank you for your efficient work. Your agreed-upon fee has been deposited to your account.\nWe at Alchiral are pleased with your performance, and look forward to a productive relationship with you in future.", player, 0, 1, true);
+				local endText = "Contractor, thank you for your efficient work. Your agreed-upon fee has been deposited to your account.\nWe at Alchiral are pleased with your performance, and look forward to a productive relationship with you in future.";
+				if self.secretIndex == nil then
+					endText = self:GetTeamOfPlayer(player) == self.humanTeam and "You may not have the chip, but at least you made it out after that betrayal!" or "D R E A D   L O R D,   T H E Y   H A V E   E S C A P E D   A N D   W I L L\nB R I N G   R U I N   D O W N   U P O N   U S   B E F O R E   W E   A R E   P R E P A R E D";
+				end
+				FrameMan:SetScreenText(endText, player, 0, 1, true);
+			end
+		end
+	elseif self.WinnerTeam == self.zombieTeam and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.zombieTeam then
+				FrameMan:ClearScreenText(player);
+				FrameMan:SetScreenText("A    G R A N D    V I C T O R Y ,   Y O U R    H O R D E    S H A L L    G R O W    A N D    C O N Q U E R    T H I S    P L A N E T", player, 0, 1, true);
 			end
 		end
 	end
@@ -455,6 +580,14 @@ function SignalHunt:UpdateActivity()
 	end
 
 	self:DoGameOverCheck();
+	
+	if self.speedrunData and not ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		if IsAHuman(self:GetPlayerBrain(Activity.PLAYER_1)) then
+			self.speedrunData = nil;
+		else
+			ActivitySpeedrunHelper.CheckForSpeedrun(self.speedrunData);
+		end
+	end
 
 	if self.currentFightStage < self.fightStage.inOuterCaveArea then
 		for actor in MovableMan.Actors do
@@ -491,21 +624,17 @@ function SignalHunt:UpdateActivity()
 			end
 		end
 
-		if not self.evacuationRocketSpawned and self.actorHoldingControlChip and self.actorHoldingControlChip.Team == self.humanTeam and not self.caveArea:IsInside(self.actorHoldingControlChip.Pos) then
-			self.evacuationRocket = CreateACRocket("Rocket MK2", "Base.rte");
-			self.evacuationRocket.Pos = Vector(self.humanLZ:GetCenterPoint().X, -100);
-			self.evacuationRocket.Team = self.humanTeam;
-			self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
-			self.evacuationRocket.HUDVisible = false;
-			self.evacuationRocket.PlayerControllable = false;
-			self.evacuationRocket.AIMode = Actor.AIMODE_STAY;
-			self.evacuationRocket:SetGoldValue(0);
-			MovableMan:AddActor(self.evacuationRocket);
-			self.evacuationRocketSpawned = true;
+		if self.actorHoldingControlChip and self.actorHoldingControlChip.Team == self.humanTeam then
+			if not self.speedrunData and self.secretIndex and SecretCodeEntry.IsValid(self.secretIndex) then
+				SecretCodeEntry.Update(self.secretIndex);
+			end
+			if not self.evacuationRocketSpawned and not self.caveArea:IsInside(self.actorHoldingControlChip.Pos) then
+				self:SpawnEvacuationRocket();
+			end
 		end
 	end
 
-	if self.controlCase and not MovableMan:IsParticle(self.controlCase) then -- Note: ValidMO cannot be used here, because it currently doesn't work with AddedParticles, so this gets lost on save/load since it isn't refereshed.
+	if self.controlCase and not MovableMan:ValidMO(self.controlCase) then
 		self.controlCase = nil;
 		self.noControlChipTimer:Reset();
 	elseif not self.controlCase and not self.controlChip then
@@ -536,13 +665,14 @@ function SignalHunt:UpdateActivity()
 		self.actorHoldingControlChip = nil;
 	end
 
-	if self.evacuationRocket and not MovableMan:IsActor(self.evacuationRocket) then
+	if self.evacuationRocket and not MovableMan:ValidMO(self.evacuationRocket) then
 		self.evacuationRocket = nil;
 		self.evacuationRocketSpawned = false;
 	elseif self.evacuationRocket then
-		if not self.evacuationRocket:HasObject("Control Chip") and self.evacuationRocket.Vel:MagnitudeIsLessThan(1) then
+		local rocketShouldEvacuate = self.evacuationRocket:HasObject("Control Chip") or (self.secretIndex == nil and self.evacuationRocket:HasObjectInGroup("Brains"));
+		if not rocketShouldEvacuate and self.evacuationRocket.Vel:MagnitudeIsLessThan(1) then
 			self.evacuationRocket:OpenHatch();
-		elseif self.evacuationRocket:HasObject("Control Chip") then
+		elseif rocketShouldEvacuate then
 			self.evacuationRocket.AIMode = Actor.AIMODE_RETURN;
 		end
 	end
@@ -563,8 +693,27 @@ function SignalHunt:UpdateActivity()
 end
 
 function SignalHunt:CraftEnteredOrbit(orbitedCraft)
-	if orbitedCraft:HasObject("Control Chip") then
+	if orbitedCraft:HasObject("Control Chip") or (self.secretIndex == nil and orbitedCraft.Team == self.humanTeam and orbitedCraft:HasObjectInGroup("Brains")) then
 		self.WinnerTeam = self.humanTeam;
+		if self.speedrunData then
+			ActivitySpeedrunHelper.CompleteSpeedrun(self.speedrunData);
+		end
 		self.screenTextTimer:Reset();
 	end
+end
+
+function SignalHunt:SpawnEvacuationRocket()
+	self.evacuationRocket = CreateACRocket("Rocket MK2", "Base.rte");
+	self.evacuationRocket.Pos = Vector(self.humanLZ:GetCenterPoint().X, -100);
+	if self.speedrunData then
+		self.evacuationRocket.Pos.Y = 0; -- Start the rocket lower for speedruns, so it's more likely to be on the ground if the rush to it.
+	end
+	self.evacuationRocket.Team = self.humanTeam;
+	self.evacuationRocket:SetControllerMode(Controller.CIM_AI, -1);
+	self.evacuationRocket.HUDVisible = false;
+	self.evacuationRocket.PlayerControllable = false;
+	self.evacuationRocket.AIMode = Actor.AIMODE_STAY;
+	self.evacuationRocket:SetGoldValue(0);
+	MovableMan:AddActor(self.evacuationRocket);
+	self.evacuationRocketSpawned = true;
 end
