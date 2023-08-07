@@ -149,5 +149,6 @@ function OnCollideWithMO(self, mo, rootMO)
 			self.user = nil;
 		end
 		self.throwSpeed = 1;
+		self:SetWhichMOToNotHit(rootMO, -1);
 	end
 end

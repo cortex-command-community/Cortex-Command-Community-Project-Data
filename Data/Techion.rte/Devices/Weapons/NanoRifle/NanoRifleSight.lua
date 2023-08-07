@@ -8,7 +8,7 @@ function Create(self)
 end
 
 function Update(self)
-	if self.laserTimer:IsPastSimMS(self.laserCheckDelay) then
+	if not self:IsReloading() and self.laserTimer:IsPastSimMS(self.laserCheckDelay) then
 		self.laserTimer:Reset();
 		local actor = self:GetRootParent();
 		if IsActor(actor) and ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
