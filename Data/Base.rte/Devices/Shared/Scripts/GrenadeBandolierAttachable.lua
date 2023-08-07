@@ -22,7 +22,7 @@ local replenishGrenade = function(self, forceEquipGrenade)
 	if forceEquipGrenade or self.grenadeReplenishDelay < 100 then
 		self:modifyGrenadeCount(-1);
 		self.rootParent.UpperBodyState = AHuman.WEAPON_READY;
-		-- Only actually equip the grenade if the root parent was previously holding one, or we're forcing it to equip it. This avoids issues when, for example, removing a grenade from the root paren'ts inventory via Lua.
+		-- Only actually equip the grenade if the root parent was previously holding one, or we're forcing it to equip it. This avoids issues when, for example, removing a grenade from the root parent's inventory via Lua.
 		return (forceEquipGrenade or self.grenadePreviouslyHeldByRootParent) and self.rootParent:EquipNamedDevice(self.grenadeTech, self.grenadeName, true);
 	else
 		self.grenadeReplenishGUITimer:Reset();
@@ -91,7 +91,7 @@ function Create(self)
 end
 
 function Update(self)
-	if self.rootParent and self.rootParent.Health > 0 and MovableMan:IsActor(self.rootParent) then
+	if self.rootParent and self.rootParent.Health > 0 and MovableMan:ValidMO(self.rootParent) then
 		local rootParentEquippedItemModuleAndPresetName = self.rootParent.EquippedItem ~= nil and self.rootParent.EquippedItem:GetModuleAndPresetName() or nil;
 		local rootParentIsHoldingGrenade = rootParentEquippedItemModuleAndPresetName == self.grenadeObject:GetModuleAndPresetName();
 
@@ -154,16 +154,37 @@ function Update(self)
 end
 
 function Destroy(self)
-	if self.rootParent and MovableMan:IsActor(self.rootParent) then
+	if self.rootParent and MovableMan:ValidMO(self.rootParent) then
 		self.rootParent:RemoveNumberValue(self.bandolierKey);
 	end
 	if self.currentGrenadeCount > 0 then
+		local bandolierPosition = self.Pos;
+		local bandolierVel = self.Vel;
+		local bandolierRotAngle = self.RotAngle;
+		local bandolierAngularVel = self.AngularVel;
+		
 		if self.grenadePreviouslyHeldByRootParent then
-			self.grenadePreviouslyHeldByRootParent.ToDelete = true;
+			if MovableMan:ValidMO(self.grenadePreviouslyHeldByRootParent) and not self.grenadePreviouslyHeldByRootParent:IsActivated() then
+				self.grenadePreviouslyHeldByRootParent.ToDelete = true;
+				self:modifyGrenadeCount(1);
+				
+				bandolierPosition = self.grenadePreviouslyHeldByRootParent.Pos;
+				bandolierVel = self.grenadePreviouslyHeldByRootParent.Vel;
+				bandolierRotAngle = self.grenadePreviouslyHeldByRootParent.RotAngle;
+				bandolierAngularVel = self.grenadePreviouslyHeldByRootParent.AngularVel;
+			end
 		end
-		self.bandolierObjectForDropping:SetNumberValue("GrenadesRemainingInBandolier", self.currentGrenadeCount + 1);
-		self.bandolierObjectForDropping.Pos = self.Pos;
-		self.bandolierObjectForDropping.Mass = self.bandolierMass + (self.grenadeMass * self.currentGrenadeCount);
-		MovableMan:AddItem(self.bandolierObjectForDropping);
+		if self.currentGrenadeCount > 0 then
+			self.bandolierObjectForDropping:SetNumberValue("GrenadesRemainingInBandolier", self.currentGrenadeCount);
+			
+			self.bandolierObjectForDropping.Pos = bandolierPosition;
+			self.bandolierObjectForDropping.Vel = bandolierVel;
+			self.bandolierObjectForDropping.RotAngle = bandolierRotAngle;
+			self.bandolierObjectForDropping.AngularVel = bandolierAngularVel;
+			
+			self.bandolierObjectForDropping.Mass = self.bandolierMass + (self.grenadeMass * self.currentGrenadeCount);
+			
+			MovableMan:AddItem(self.bandolierObjectForDropping);
+		end
 	end
 end

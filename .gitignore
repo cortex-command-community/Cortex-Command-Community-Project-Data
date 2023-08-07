@@ -59,7 +59,7 @@ Mods/
 Userdata/
 
 allegro.log
-AbortScreen.bmp
+AbortScreen.*
 AbortLog.txt
 MemCleanupInfo.txt
 LogPublish.txt

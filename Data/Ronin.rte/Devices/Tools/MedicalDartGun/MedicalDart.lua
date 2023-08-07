@@ -1,5 +1,6 @@
 function Create(self)
-	self.multiplier = 0.8;
+	self.damageResistanceMultiplier = 1.5;
+	self.withdrawalIncrement = 0.1;
 	self.IgnoresTeamHits = false;
 	self.Team = Activity.NOTEAM;
 	self.width = 3;
@@ -26,6 +27,7 @@ function OnCollideWithMO(self, mo, rootMO)
 					local woundName = self.target:GetEntryWoundPresetName();
 					if woundName ~= "" then
 						local wound = CreateAEmitter(woundName);
+						wound.BurstDamage = wound.BurstDamage * self.WoundDamageMultiplier;
 						wound.EmitCountLimit = math.ceil(wound.EmitCountLimit * 0.5);
 						wound.Scale = wound.Scale * 0.5;
 						for em in wound.Emissions do
@@ -52,7 +54,7 @@ end
 
 function OnAttach(self, parent)
 	if string.find(parent.Material.PresetName, "Flesh") then
-		parent.DamageMultiplier = parent.DamageMultiplier * self.multiplier;
+		parent.DamageMultiplier = parent.DamageMultiplier/self.damageResistanceMultiplier;
 		self:EnableEmission(true);
 		parent = parent:GetRootParent();
 		if IsActor(parent) and MovableMan:IsActor(parent) then
@@ -66,10 +68,7 @@ end
 
 function OnDetach(self, parent)
 	if parent and string.find(parent.Material.PresetName, "Flesh") then
-		parent.DamageMultiplier = parent.DamageMultiplier/self.multiplier;
-		local wound = CreateAEmitter("Medical Dart Withdrawal", "Ronin.rte");
-		wound.Lifetime = self.Age;
-		parent:AddAttachable(wound, Vector());
+		parent.DamageMultiplier = parent.DamageMultiplier * self.damageResistanceMultiplier + self.withdrawalIncrement;
 		self:EnableEmission(false);
 	end
 end
