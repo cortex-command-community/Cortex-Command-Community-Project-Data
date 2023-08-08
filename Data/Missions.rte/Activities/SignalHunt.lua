@@ -29,9 +29,7 @@ function SignalHunt:StartActivity(isNewGame)
 	self:SetTeamAISkill(self.ambusherTeam, self.Difficulty);
 	
 	self.zombieTeam = Activity.TEAM_3;
-	self:ForceSetTeamAsActive(self.zombieTeam); -- NOTE: This is necessary for the ambusher actors to work properly. Without it, their team is considered inactive, and their AI will be unable to shoot because of the game's spatial partitioning grid.
 	self:SetTeamAISkill(self.zombieTeam, self.Difficulty);
-	
 
 	self:SetLZArea(self.humanTeam, self.humanLZ);
 
@@ -406,8 +404,6 @@ function SignalHunt:DoAmbush()
 end
 
 function SignalHunt:DoSecret(playersWhoCompletedCode)
-	self:ForceSetTeamAsActive(self.zombieTeam);
-	
 	for _, player in pairs(playersWhoCompletedCode) do	
 		local playerBrain = self:GetPlayerBrain(player)
 		MovableMan:ChangeActorTeam(playerBrain, self.zombieTeam);
@@ -546,7 +542,7 @@ function SignalHunt:UpdateScreenTextAndObjectiveArrows(humanActorCount)
 				end
 			end
 			if self.evacuationRocket and (not self.actorHoldingControlChip or self.actorHoldingControlChip.UniqueID ~= self.evacuationRocket.UniqueID) then
-				self:AddObjectivePoint("Get the Cloning Control Chip to the rocket!", self.evacuationRocket.AboveHUDPos, self.humanTeam, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint(self.secretIndex == nil and "Get To The Rocket!!!" or "Get the Cloning Control Chip to the rocket!", self.evacuationRocket.AboveHUDPos, self.humanTeam, GameActivity.ARROWDOWN);
 			end
 		end
 	elseif self.WinnerTeam == self.humanTeam and not self.screenTextTimer:IsPastSimMS(self.screenTextTimeLimit) then
