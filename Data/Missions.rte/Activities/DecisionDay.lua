@@ -528,24 +528,23 @@ function DecisionDay:SetupStorageCrateInventories()
 end
 
 function DecisionDay:DoInitialHumanSpawns()
-	local nextActorPos = Vector(self.initialHumanSpawnArea.FirstBox.Corner.X, self.initialHumanSpawnArea.Center.Y);
+	local firstActorPos = Vector(self.initialHumanSpawnArea.FirstBox.Corner.X, self.initialHumanSpawnArea.Center.Y);
 	local initialActorFunds = 1300 / self.difficultyRatio;
-	local spawnedActorNumber = 0;
+	local spawnedActors = {};
 	while initialActorFunds > 0 do
-		spawnedActorNumber = spawnedActorNumber + 1;
-		local actor = self:SpawnInfantry(self.humanTeam, spawnedActorNumber < 3 and "CQB" or "Heavy", nextActorPos, Actor.AIMODE_SENTRY, true);
-		actor.Pos = SceneMan:MovePointToGround(actor.Pos, actor.Radius, 5);
+		local actor = self:SpawnInfantry(self.humanTeam, #spawnedActors < 3 and "CQB" or "Heavy", firstActorPos, Actor.AIMODE_SENTRY, true);
+		spawnedActors[#spawnedActors + 1] = actor;
 		actor.PlayerControllable = true;
-		if spawnedActorNumber < 3 then
+		if #spawnedActors < 3 then
 			actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.humanTeamTech));
 		elseif math.random() < 0.65 then
 			actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.humanTeamTech));
 		end
 		initialActorFunds = initialActorFunds - actor:GetTotalValue(self.humanTeamTech, 1);
-		nextActorPos = nextActorPos + Vector(30, 0);
 	end
 	for _, player in pairs(self.humanPlayers) do
 		local brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
+		spawnedActors[#spawnedActors + 1] = brain;
 		if brain then
 			brain:RemoveInventoryItem("Constructor");
 		else
@@ -554,13 +553,19 @@ function DecisionDay:DoInitialHumanSpawns()
 			brain:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.humanTeamTech));
 			brain:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.humanTeamTech));
 		end
-		brain.Pos = nextActorPos;
+		brain.Pos = firstActorPos;
 		brain.Team = self.humanTeam;
-		nextActorPos = nextActorPos + Vector(30, 0);
 		brain.AIMode = Actor.AIMODE_SENTRY;
 		MovableMan:AddActor(brain);
 		self:SetPlayerBrain(brain, player);
 		self:SetObservationTarget(brain.Pos, player);
+	end
+	
+	local actorXOffset = math.min(30, 275 / #spawnedActors);
+	for index, actor in ipairs(spawnedActors) do
+		actor.Pos.X = actor.Pos.X + (actorXOffset * (index - 1));
+		actor.Pos.Y = 0;
+		actor.Pos = SceneMan:MovePointToGround(actor.Pos, actor.Radius, 5);
 	end
 end
 
