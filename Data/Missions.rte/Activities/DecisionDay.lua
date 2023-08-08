@@ -1303,7 +1303,7 @@ function DecisionDay:UpdateRegionCapturing()
 				local capturingTeam = bunkerRegionData.ownerTeam == self.aiTeam and self.humanTeam or self.aiTeam;
 				local capturingTeamActorInArea = false;
 				for movableObject in MovableMan:GetMOsInBox(captureBox, bunkerRegionData.ownerTeam, true) do
-					if IsAHuman(movableObject) or IsACrab(movableObject) then
+					if (IsAHuman(movableObject) or IsACrab(movableObject)) and ToActor(movableObject).Health > 0 then
 						capturingTeamActorInArea = true;
 						break;
 					end
@@ -1313,7 +1313,7 @@ function DecisionDay:UpdateRegionCapturing()
 				if capturingTeamActorInArea then
 					for captureBlockingBox in bunkerRegionData.totalArea.Boxes do
 						for movableObject in MovableMan:GetMOsInBox(captureBlockingBox, capturingTeam, true) do
-							if IsAHuman(movableObject) or IsACrab(movableObject) then
+							if (IsAHuman(movableObject) or IsACrab(movableObject)) and ToActor(movableObject).Health > 0 then
 								ownerTeamActorInTotalAreaBlockingCapture = true;
 								break;
 							end
