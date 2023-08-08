@@ -1409,57 +1409,56 @@ function DecisionDay:UpdateRegionScreens()
 		if bunkerRegionData.enabled then
 			local currentFauxdanDisplayFrameString;
 			local currentLoginScreenFrameString;
-			for _, player in pairs(self.humanPlayers) do
-				if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
-					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage == self.stages.attackBrain then
-						for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
-							local boxCenterPos = box.Center;
-							local fauxdanDisplayScreenKey = tostring(boxCenterPos.FlooredX) .. "," .. tostring(boxCenterPos.FlooredY);
+			
+			if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage <= self.stages.attackBrain then
+				for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
+					local boxCenterPos = box.Center;
+					local fauxdanDisplayScreenKey = tostring(boxCenterPos.FlooredX) .. "," .. tostring(boxCenterPos.FlooredY);
 
-							local boxBlockedByCaptureDisplay = false;
-							if bunkerRegionData.captureCount > 0 then
-								for captureDisplayBox in bunkerRegionData.captureDisplayArea.Boxes do
-									if captureDisplayBox.Center.Floored == boxCenterPos.Floored then
-										boxBlockedByCaptureDisplay = true;
-										break;
-									end
-								end
-							end
-
-							if not boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] == nil then
-								local fauxdanDisplayScreen = self.fauxdanDisplayScreenTemplate:Clone();
-								fauxdanDisplayScreen.Pos = boxCenterPos;
-								MovableMan:AddParticle(fauxdanDisplayScreen);
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = fauxdanDisplayScreen;
-							elseif boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] ~= nil then
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey].ToDelete = true;
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = nil;
+					local boxBlockedByCaptureDisplay = false;
+					if bunkerRegionData.captureCount > 0 then
+						for captureDisplayBox in bunkerRegionData.captureDisplayArea.Boxes do
+							if captureDisplayBox.Center.Floored == boxCenterPos.Floored then
+								boxBlockedByCaptureDisplay = true;
+								break;
 							end
 						end
-					else
-						for _, fauxdanDisplayScreen in pairs(bunkerRegionData.fauxdanDisplayScreens) do
-							fauxdanDisplayScreen.ToDelete = true;
-						end
-						bunkerRegionData.fauxdanDisplayScreens = {};
 					end
 
-					if bunkerRegionData.captureCount > 0 then
-						if #bunkerRegionData.captureDisplayScreens == 0 then
-							for box in bunkerRegionData.captureDisplayArea.Boxes do
-								local captureDisplayScreen = self.captureDisplayScreenTemplate:Clone();
-								captureDisplayScreen.Pos = box.Center;
-								MovableMan:AddParticle(captureDisplayScreen);
-								bunkerRegionData.captureDisplayScreens[#bunkerRegionData.captureDisplayScreens + 1] = captureDisplayScreen;
-							end
-						end
-						for _, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
-							captureDisplayScreen.Frame = math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * (captureDisplayScreen.FrameCount));
-							captureDisplayScreen.Age = 0;
-						end
-					else
-						bunkerRegionData.captureDisplayScreens = {};
+					if not boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] == nil then
+						local fauxdanDisplayScreen = self.fauxdanDisplayScreenTemplate:Clone();
+						fauxdanDisplayScreen.Pos = boxCenterPos;
+						MovableMan:AddParticle(fauxdanDisplayScreen);
+						bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = fauxdanDisplayScreen;
+					elseif boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] ~= nil then
+						bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey].ToDelete = true;
+						bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = nil;
 					end
 				end
+			elseif next(bunkerRegionData.fauxdanDisplayScreens) ~= nil then
+				for _, fauxdanDisplayScreen in pairs(bunkerRegionData.fauxdanDisplayScreens) do
+					fauxdanDisplayScreen.ToDelete = true;
+				end
+				bunkerRegionData.fauxdanDisplayScreens = {};
+			end
+
+			if bunkerRegionData.captureCount > 0 then
+				if #bunkerRegionData.captureDisplayScreens == 0 then
+					for box in bunkerRegionData.captureDisplayArea.Boxes do
+						local captureDisplayScreen = self.captureDisplayScreenTemplate:Clone();
+						captureDisplayScreen.Pos = box.Center;
+						MovableMan:AddParticle(captureDisplayScreen);
+						bunkerRegionData.captureDisplayScreens[#bunkerRegionData.captureDisplayScreens + 1] = captureDisplayScreen;
+					end
+				end
+				for index, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
+					if MovableMan:ValidMO(captureDisplayScreen) then
+						captureDisplayScreen.Frame = math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * (captureDisplayScreen.FrameCount));
+						captureDisplayScreen.Age = 0;
+					end
+				end
+			elseif #bunkerRegionData.captureDisplayScreens > 0 then
+				bunkerRegionData.captureDisplayScreens = {};
 			end
 		end
 	end
