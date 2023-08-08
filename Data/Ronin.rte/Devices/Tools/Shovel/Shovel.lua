@@ -41,7 +41,7 @@ function Update(self)
 			local fireVec = Vector(40 * self.FlipFactor, 0):RadRotate(aimAngle * self.FlipFactor + (0.3 - self.InheritedRotAngleOffset * 0.3) * self.FlipFactor);
 			--Digging particles
 			for i = 1, self.particleCount do
-				local part = CreateMOPixel("Particle Ronin Shovel". "Ronin.rte");
+				local part = CreateMOPixel("Particle Ronin Shovel", "Ronin.rte");
 				local goldenAngleSmallerPart = 2.39996;
 				part.Pos = self.MuzzlePos + Vector(math.sqrt(self.particleCount - i), 0):RadRotate(i * goldenAngleSmallerPart);
 				part.Vel = fireVec;
