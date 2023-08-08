@@ -1,5 +1,6 @@
 package.loaded.Constants = nil;
 require("Constants");
+require("Scripts/Shared/Activity_SpeedrunHelper")
 
 function DecisionDayDeployBrainPieSliceActivation(pieMenuOwner, pieMenu, pieSlice)
 	ActivityMan:GetActivity():SaveNumber("DeployBrain", pieMenuOwner:GetController().Player + 1);
@@ -398,6 +399,8 @@ function DecisionDay:OnSave()
 end
 
 function DecisionDay:StartNewGame()
+	self.speedrunData = ActivitySpeedrunHelper.Setup(self, self.DoSpeedrunMode);
+	
 	self:SetTeamFunds(0, self.humanTeam);
 	self.BuyMenuEnabled = false;
 
@@ -787,6 +790,11 @@ function DecisionDay:DoGameOverCheck()
 			self.messageTimer:Reset();
 		end
 	end
+	
+	if self.speedrunData and self.WinnerTeam == self.humanTeam then
+		self.messageTimer:SetSimTimeLimitMS(10000);
+		ActivitySpeedrunHelper.CompleteSpeedrun(self.speedrunData);
+	end
 
 	if self.WinnerTeam ~= Activity.NOTEAM and self.messageTimer:IsPastSimTimeLimit() then
 		if self.WinnerTeam == self.humanTeam then
@@ -798,6 +806,48 @@ function DecisionDay:DoGameOverCheck()
 		end
 		ActivityMan:EndActivity();
 	end
+end
+
+function DecisionDay:DoSpeedrunMode()
+	self.Difficulty = Activity.MAXDIFFICULTY;
+	self.difficultyRatio = 2;
+	for _, bunkerRegionData in pairs(self.bunkerRegions) do
+		bunkerRegionData.captureLimit = 600 * self.difficultyRatio;
+		bunkerRegionData.aiRegionDefenseTimer:SetSimTimeLimitMS(60000 / self.difficultyRatio);
+		bunkerRegionData.aiRegionDefenseTimer.ElapsedSimTimeMS = 60000 / self.difficultyRatio;
+		bunkerRegionData.aiRegionAttackTimer:SetSimTimeLimitMS(90000 / self.difficultyRatio);
+	end
+	
+	self.aiData.externalSpawnTimer:SetSimTimeLimitMS(120000 / self.difficultyRatio);
+	self.aiData.internalReinforcementsTimer:SetSimTimeLimitMS(100000 / self.difficultyRatio);
+	self.aiData.internalReinforcementLimit = 12 * self.difficultyRatio;
+	self.aiData.bunkerRegionDefenseRange = math.max(500, math.min(750 * self.difficultyRatio, 1000));
+	self.aiData.attackerLimit = 10 * self.difficultyRatio;
+	self.aiData.attackersPerSpawn = 4 * self.difficultyRatio;
+
+	self.aiData.brainDefenderSpawnTimer:SetSimTimeLimitMS(10000 / self.difficultyRatio);
+	self.aiData.brainDefenderReplenishTimer:SetSimTimeLimitMS(30000 / self.difficultyRatio);
+	self.aiData.brainDefendersTotal = 20 * self.difficultyRatio;
+	self.aiData.brainDefendersRemaining = self.aiData.brainDefendersTotal;
+	
+	self:SetTeamFunds(0, self.humanTeam);
+	
+	self:SetTeamTech(self.humanTeam, "-All-");
+	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
+	self:SetTeamTech(self.aiTeam, "-All-");
+	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
+	
+	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+	
+	self.messageTimer:SetSimTimeLimitMS(1);
+	
+	self.currentStage = self.stages.attackFrontBunker;
+
+	self.aiData.internalReinforcementsEnabled = true;
+	self.internalReinforcementsData[self.bunkerIds.frontBunker].enabled = true;
+
+	self.bunkerRegions["Front Bunker Operations"].enabled = true;
+	self.bunkerRegions["Front Bunker Small Vault"].enabled = true;
 end
 
 function DecisionDay:UpdateCurrentStage()
@@ -939,6 +989,10 @@ function DecisionDay:UpdateCamera()
 			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, false, 0);
 		end
 	end
+	
+	if self.speedrunData and ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		return;
+	end
 
 	local slowScroll = 0.0125;
 	local mediumScroll = 0.05;
@@ -1050,6 +1104,12 @@ function DecisionDay:UpdateCamera()
 end
 
 function DecisionDay:UpdateMessages()
+	if self.speedrunData and ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		FrameMan:ClearScreenText(Activity.PLAYER_1);
+		FrameMan:SetScreenText(ActivitySpeedrunHelper.GetSpeedrunDuration(self.speedrunData), Activity.PLAYER_1, 0, 1, ActivitySpeedrunHelper.SpeedrunCompleted(self.speedrunData));
+		return;
+	end
+
 	if self.messageTimer:IsPastSimTimeLimit() then
 		if self.currentMessageNumber < self.numberOfMessagesForStage then
 			self.currentMessageNumber = self.currentMessageNumber + 1;
@@ -2063,6 +2123,14 @@ function DecisionDay:UpdateActivity()
 
 	if self.WinnerTeam ~= Activity.NOTEAM then
 		return;
+	end
+	
+	if self.speedrunData and not ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		if self.currentStage == self.stages.followInitialDropShip then
+			ActivitySpeedrunHelper.CheckForSpeedrun(self.speedrunData);
+		else
+			self.speedrunData = nil;
+		end
 	end
 
 	if self.currentStage < self.stages.frontBunkerCaptured then

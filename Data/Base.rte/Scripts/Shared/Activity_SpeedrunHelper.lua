@@ -53,7 +53,9 @@ function ActivitySpeedrunHelper:InitializeSpeedrun()
 end
 
 function ActivitySpeedrunHelper:CompleteSpeedrun()
-	self.speedrunCompletionTime = self.speedrunTimer.ElapsedRealTimeMS;
+	if self.speedrunCompletionTime == -1 then
+		self.speedrunCompletionTime = self.speedrunTimer.ElapsedRealTimeMS;
+	end
 end
 
 function ActivitySpeedrunHelper:SpeedrunActive()
