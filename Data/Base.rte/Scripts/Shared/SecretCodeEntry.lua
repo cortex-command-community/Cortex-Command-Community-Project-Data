@@ -1,5 +1,5 @@
 SecretCodeEntry = {};
-dofile("Base.rte/Scripts/Shared/Secret Code Entry/SecretCodes.pem")
+dofile("Base.rte/Scripts/Shared/SecretCodeEntry/SecretCodes.pem")
 SecretCodeEntry.allowedControlStates = { Controller.PRESS_PRIMARY, Controller.PRESS_SECONDARY, Controller.PRESS_RIGHT, Controller.PRESS_LEFT, Controller.PRESS_UP, Controller.PRESS_DOWN };
 SecretCodeEntry.defaultFirstEntrySoundContainer = CreateSoundContainer("Funds Changed", "Base.rte");
 SecretCodeEntry.defaultFirstEntrySoundContainer.Volume = 4;
