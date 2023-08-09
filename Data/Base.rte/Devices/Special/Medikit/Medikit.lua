@@ -39,6 +39,16 @@ function OnFire(self)
 			local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
 			cross.Pos = target.AboveHUDPos + Vector(0, 5);
 			MovableMan:AddParticle(cross);
+			
+			if target.Status == Actor.DEAD and target.Health == target.MaxHealth and target.WoundCount == 0 then
+				local newActor = target:Clone();
+				target.ToDelete = true;
+				newActor:SetControllerMode(Controller.CIM_AI, -1);
+				newActor.Status = Actor.STABLE;
+				MovableMan:AddActor(newActor);
+				newActor:FlashWhite(50);
+				ActivityMan:GetActivity():ReportDeath(target.Team, -1);
+			end
 		else
 			self.errorSound:Play(self.Pos);
 			if self.Magazine then
