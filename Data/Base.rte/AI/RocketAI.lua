@@ -140,11 +140,8 @@ function UpdateAI(self)
 				self.LZpos = SceneMan:MovePointToGround(self.Pos, self.groundDist, 6);
 			end
 
-			if self.AIMode ~= Actor.AIMODE_STAY then
-				local dist = SceneMan:ShortestDistance(self.Pos, self.LZpos, false).Magnitude;
-				if dist < 25 then	-- If we passed the check, start unloading
-					self.DeliveryState = ACraft.UNLOAD;
-				end
+			if self.AIMode ~= Actor.AIMODE_STAY and SceneMan:ShortestDistance(self.Pos, self.LZpos, false):MagnitudeIsLessThan(25) then
+				self.DeliveryState = ACraft.UNLOAD;
 			end
 		end
 	elseif self.DeliveryState == ACraft.UNLOAD then

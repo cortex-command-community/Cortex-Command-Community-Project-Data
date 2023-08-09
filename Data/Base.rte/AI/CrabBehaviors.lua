@@ -609,8 +609,8 @@ function CrabBehaviors.ShootArea(AI, Owner, Abort)
 
 		-- check if we can fire at the AimPoint
 		local Trace = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false);
-		local rayLenght = SceneMan:CastObstacleRay(Owner.EyePos, Trace, Vector(), Vector(), rte.NoMOID, Owner.IgnoresWhichTeam, rte.grassID, 11);
-		if Trace.Magnitude * 0.67 < rayLenght then
+		local rayLength = SceneMan:CastObstacleRay(Owner.EyePos, Trace, Vector(), Vector(), rte.NoMOID, Owner.IgnoresWhichTeam, rte.grassID, 11);
+		if Trace:MagnitudeIsLessThan(rayLength * 1.5)  then
 			break; -- the AimPoint is close enough to the target, start shooting
 		end
 
