@@ -1,6 +1,7 @@
 --Self-healing script complete with animations, for AHuman use only
 function Create(self)
 	self.baseHealDelay = 500;
+	self.woundDamageReturnRate = 0.5;
 	self.PieMenu:AddPieSlice(CreatePieSlice("Self Heal"), self);
 	self.healCrossParticle = CreateMOSParticle("Particle Heal Effect", "Base.rte");
 end
@@ -11,11 +12,7 @@ function Update(self)
 		if self.healing.wound then
 			if self.healing.timer:IsPastSimMS(self.healing.delay) then
 				self.healing.timer:Reset();
-				if self.healing.part.DamageMultiplier > 1 then
-					self.Health = math.min(self.Health + self.healing.wound.BurstDamage * math.sqrt(self.healing.part.DamageMultiplier), self.MaxHealth);
-				else
-					self.Health = math.min(self.Health + self.healing.wound.BurstDamage * self.healing.part.DamageMultiplier, self.MaxHealth);
-				end
+				self.Health = math.min(self.Health + self.healing.wound.BurstDamage * self.healing.part.DamageMultiplier * self.woundDamageReturnRate, self.MaxHealth);
 				self.healing.wound.ToDelete = true;
 				self.healing.wound = nil;
 				for wound in self.healing.part.Wounds do
