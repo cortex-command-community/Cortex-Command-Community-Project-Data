@@ -1,11 +1,15 @@
 function Create(self)
+	self.disarmTicks = 3;
+	self.disarmRange = GetPPM() * 4;
+	
 	self.delayTimer = Timer();
 	self.overallTimer = Timer();
 	self.scanTimer = Timer();
+	
+	self.tickDuration = 1000;
+	self.disarmTime = self.disarmTicks * self.tickDuration;
 	self.actionPhase = 0;
 	self.blink = false;
-
-	self.disarmRange = GetPPM() * 4;
 	self.MuzzleOffset = Vector(self.disarmRange * 0.5, 0);
 	self.targetTable = {};
 
@@ -17,8 +21,8 @@ end
 function Update(self)
 	if self.Magazine then
 		if self:IsActivated() then
-			self.Magazine.RoundCount = math.ceil(4000 - self.overallTimer.ElapsedSimTimeMS);
-			if self.delayTimer:IsPastSimMS(1000) then
+			self.Magazine.RoundCount = math.ceil(self.disarmTime - self.overallTimer.ElapsedSimTimeMS);
+			if self.delayTimer:IsPastSimMS(self.tickDuration) then
 				self.delayTimer:Reset();
 				self.blink = false;
 				local targetCount = 0;
@@ -26,11 +30,11 @@ function Update(self)
 				for i = 1, #self.targetTable do
 					if self.targetTable[i] and IsMOSRotating(self.targetTable[i]) and SceneMan:ShortestDistance(self.MuzzlePos, self.targetTable[i].Pos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.disarmRange + 5) then
 						targetCount = targetCount + 1;
-						local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (self.actionPhase == 4 and "Safe" or "Neutral"));
+						local detectPar = CreateMOPixel("Disarmer Detection Particle ".. (self.actionPhase == self.disarmTicks and "Safe" or "Neutral"));
 						detectPar.Pos = self.targetTable[i].Pos;
 						MovableMan:AddParticle(detectPar);
 
-						if self.actionPhase == 4 then
+						if self.actionPhase == self.disarmTicks then
 							local itemName = string.gsub(self.targetTable[i]:GetModuleAndPresetName(), " Active", "");
 							local disarmedItem = CreateTDExplosive(itemName);
 							disarmedItem.Pos = self.targetTable[i].Pos;
@@ -46,19 +50,19 @@ function Update(self)
 					self.actionPhase = 0;
 					self.overallTimer:Reset();
 					self.errorSound:Play(self.Pos);
-				elseif self.actionPhase == 4 then
-					self.ReloadTime = 1000 + (1000 * targetCount);
+				elseif self.actionPhase == self.disarmTicks then
+					self.BaseReloadTime = 1000 + (500 * targetCount);
 					self:Reload();
 				end
 			end
-			if self.actionPhase > 0 and self.actionPhase < 4 then
+			if self.actionPhase > 0 and self.actionPhase < self.disarmTicks then
 				if self.blink == false then
 					self.blink = true;
 					local soundfx = CreateAEmitter("Disarmer Sound Blip");
 					soundfx.Pos = self.Pos;
 					MovableMan:AddParticle(soundfx);
 				end
-			elseif self.actionPhase == 4 then
+			elseif self.actionPhase == self.disarmTicks then
 				local soundfx = CreateAEmitter("Disarmer Sound Disarm");
 				soundfx.Pos = self.Pos;
 				MovableMan:AddParticle(soundfx);
@@ -66,10 +70,10 @@ function Update(self)
 		else
 			self.delayTimer:Reset();
 			self.overallTimer:Reset();
-			self.Magazine.RoundCount = 4000;
+			self.Magazine.RoundCount = self.disarmTime;
 			self.actionPhase = 0;
 
-			if self:GetParent() and self.scanTimer:IsPastSimMS(500) then
+			if self:GetParent() and self.scanTimer:IsPastSimMS(self.tickDuration * 0.5) then
 				self.targetTable = {};
 				self.scanTimer:Reset();
 				local alarm = false;

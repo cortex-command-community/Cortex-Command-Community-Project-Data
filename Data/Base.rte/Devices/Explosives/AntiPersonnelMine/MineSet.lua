@@ -99,27 +99,26 @@ function Update(self)
 			self.delayTimer:Reset();
 
 			local rayHitPos = Vector();
-			local startPos = self.Pos + Vector(self.Radius, 0):RadRotate(detectionAngle);
-			local terrainRaycast = SceneMan:CastStrengthRay(startPos, Vector(self.laserLength, 0):RadRotate(detectionAngle), 10, rayHitPos, 1, rte.airID, SceneMan.SceneWrapsX);
+			local startPos = self.Pos + Vector(1, 0):RadRotate(detectionAngle);
+			local hitTerrain = SceneMan:CastStrengthRay(startPos, Vector(self.laserLength, 0):RadRotate(detectionAngle), 10, rayHitPos, 1, rte.airID, SceneMan.SceneWrapsX);
 
-			if terrainRaycast == true then
-				self.tempLaserLength = SceneMan:ShortestDistance(startPos, rayHitPos, SceneMan.SceneWrapsX).Magnitude;
-			else
-				self.tempLaserLength = self.laserLength;
-			end
-			local raycast = SceneMan:CastMORay(startPos, Vector(self.tempLaserLength, 0):RadRotate(detectionAngle), self.ID, self.alliedTeam, rte.airID, true, 4);
-			if raycast ~= rte.NoMOID then
-				local target = ToMOSRotating(MovableMan:GetMOFromID(raycast)):GetRootParent();
-				if not (target.Team == self.alliedTeam and IsActor(target)) and (target.Vel.Magnitude * (1 + math.abs(target.AngularVel) + math.sqrt(target.Radius))) > self.detonateThreshold then
-					self.actionPhase = 2;
-					self.blink = false;
-					self.faceDirection = detectionAngle;
+			self.tempLaserLength = hitTerrain and SceneMan:ShortestDistance(startPos, rayHitPos, SceneMan.SceneWrapsX).Magnitude or self.laserLength;
+
+			if self.tempLaserLength > 3 then
+				local raycast = SceneMan:CastMORay(startPos, Vector(self.tempLaserLength, 0):RadRotate(detectionAngle), self.ID, self.alliedTeam, rte.airID, true, 4);
+				if raycast ~= rte.NoMOID then
+					local target = ToMOSRotating(MovableMan:GetMOFromID(raycast)):GetRootParent();
+					if not (target.Team == self.alliedTeam and IsActor(target)) and (target.Vel.Magnitude * (1 + math.abs(target.AngularVel) + math.sqrt(target.Radius))) > self.detonateThreshold then
+						self.actionPhase = 2;
+						self.blink = false;
+						self.faceDirection = detectionAngle;
+					end
 				end
+				local effectpar = CreateMOPixel("Mine Laser Beam ".. math.random(3), "Base.rte");
+				effectpar.Pos = startPos + Vector(math.random() * self.tempLaserLength, 0):RadRotate(detectionAngle);
+				effectpar.EffectRotAngle = detectionAngle;
+				MovableMan:AddParticle(effectpar);
 			end
-			local effectpar = CreateMOPixel("Mine Laser Beam ".. math.random(3), "Base.rte");
-			effectpar.Pos = startPos + Vector(math.random() * self.tempLaserLength, 0):RadRotate(detectionAngle);
-			effectpar.EffectRotAngle = detectionAngle;
-			MovableMan:AddParticle(effectpar);
 		end
 
 	elseif self.actionPhase == 2 then
