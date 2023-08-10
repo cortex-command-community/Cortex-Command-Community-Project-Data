@@ -1,6 +1,6 @@
 function Create(self)
-	self.baseStrength = 8;
-	self.maxStrength = self.baseStrength * 5;
+	self.baseStrength = 40;
+	self.maxStrength = self.baseStrength * 2;
 
 	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
 	self.confirmSound.Immobile = false;
@@ -21,12 +21,8 @@ function OnFire(self)
 			target = ToActor(ToMOSRotating(mo):GetRootParent());
 		end
 		if target and (target.Health < target.MaxHealth or target.WoundCount > 0) then
-			local targetToughnessCoefficient = 1/(math.sqrt(math.abs(target.Mass - target.InventoryMass)) * 0.1 + target.Material.StructuralIntegrity * 0.01);
-			local strength = self.baseStrength + (self.maxStrength - self.baseStrength) * targetToughnessCoefficient;
-			local wounds = {};
-			if target.WoundCount > 0 then
-				strength = math.max(strength - target:RemoveWounds(math.ceil(strength), true, false, false), self.baseStrength);
-			end
+			local targetToughnessCoefficient = 1/(math.sqrt(math.abs(target.Mass - target.InventoryMass) * 0.01) + math.sqrt(target.Material.StructuralIntegrity * 0.01));
+			local strength = math.max(self.maxStrength - target:RemoveWounds(math.ceil(self.maxStrength * targetToughnessCoefficient), true, false, false), self.baseStrength) * targetToughnessCoefficient;
 			target.Health = math.min(target.Health + strength, target.MaxHealth);
 			
 			target:FlashWhite(50);
@@ -43,6 +39,16 @@ function OnFire(self)
 			local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
 			cross.Pos = target.AboveHUDPos + Vector(0, 5);
 			MovableMan:AddParticle(cross);
+			
+			if target.Status == Actor.DEAD and target.Health == target.MaxHealth and target.WoundCount == 0 then
+				local newActor = target:Clone();
+				target.ToDelete = true;
+				newActor:SetControllerMode(Controller.CIM_AI, -1);
+				newActor.Status = Actor.STABLE;
+				MovableMan:AddActor(newActor);
+				newActor:FlashWhite(50);
+				ActivityMan:GetActivity():ReportDeath(target.Team, -1);
+			end
 		else
 			self.errorSound:Play(self.Pos);
 			if self.Magazine then

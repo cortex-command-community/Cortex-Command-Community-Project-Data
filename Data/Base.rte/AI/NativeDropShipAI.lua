@@ -165,15 +165,15 @@ function NativeDropShipAI:Update(Owner)
 				self.Waypoint.Y = -500; -- Go to orbit
 			end
 		else
-			local dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false).Magnitude;
-			if dist < Owner.Radius and math.abs(change) < 3 and math.abs(Owner.Vel.X) < 4 then	-- If we passed the hover check, check if we can start unloading
+			local dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
+			if dist:MagnitudeIsLessThan(Owner.Radius) and math.abs(change) < 3 and math.abs(Owner.Vel.X) < 4 then	-- If we passed the hover check, check if we can start unloading
 				local WptL = SceneMan:MovePointToGround(Owner.Pos+Vector(-Owner.Radius, -Owner.Radius), self.hoverAlt, 12);
 				local WptC = SceneMan:MovePointToGround(Owner.Pos+Vector(0, -Owner.Radius), self.hoverAlt, 12);
 				local WptR = SceneMan:MovePointToGround(Owner.Pos+Vector(Owner.Radius, -Owner.Radius), self.hoverAlt, 12);
 				self.Waypoint = Vector(Owner.Pos.X, math.min(WptL.Y, WptC.Y, WptR.Y));
 
-				dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false).Magnitude;
-				if dist < Owner.Diameter then
+				dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);
+				if dist:MagnitudeIsLessThan(Owner.Diameter) then
 					-- We are close enough to our waypoint
 					if Owner.AIMode == Actor.AIMODE_STAY then
 						self.DeliveryState = ACraft.STANDBY;
