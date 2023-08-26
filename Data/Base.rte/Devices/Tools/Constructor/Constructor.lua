@@ -47,32 +47,9 @@ function ConstructorSnapPos(checkPos, blockSize)
 end
 
 function ConstructorTerrainRay(start, trace, skip)
-	local length = trace.Magnitude;
-	local angle = trace.AbsRadAngle;
-
-	local density = math.ceil(length/skip);
-
-	local roughLandPos = start + Vector(length, 0):RadRotate(angle);
-	for i = 0, density do
-		local invector = start + Vector(skip * i, 0):RadRotate(angle);
-		local checkPos = ConstructorWrapPos(invector);
-		if SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
-			roughLandPos = checkPos;
-			break;
-		end
-	end
-
-	local checkRoughLandPos = roughLandPos + Vector(skip * -1, 0):RadRotate(angle);
-	for i = 0, skip do
-		local invector = checkRoughLandPos + Vector(i, 0):RadRotate(angle);
-		local checkPos = ConstructorWrapPos(invector);
-		roughLandPos = checkPos;
-		if SceneMan:GetTerrMatter(checkPos.X, checkPos.Y) ~= rte.airID then
-			break;
-		end
-	end
-
-	return roughLandPos;
+	local hitPos = start + trace;
+	SceneMan:CastStrengthRay(start, trace, 0, hitPos, skip, rte.airID, SceneMan.SceneWrapsX);	
+	return hitPos;
 end
 
 function Create(self)
@@ -83,7 +60,9 @@ function Create(self)
 	self.buildCost = 10;	--How much resource is required per one build 3 x 3 px piece
 	self.sprayCost = self.buildCost * 0.5;
 
-	self.blockSize = 24;
+	self.buildSize = 24;
+	self.buildSizeMin = self.buildSize/4;
+	self.buildSizeMax = self.buildSize;
 	self.fullBlock = 64 * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
 	self.maxResource = 12 * self.fullBlock;
 	self.startResource = 3;
@@ -242,18 +221,18 @@ function Update(self)
 					local buildscheme = self.autoBuildList;
 					if actor:HasObjectInGroup("Brains") then
 						buildscheme = self.autoBuildListBrain;
-						self.blockSize = 12;
+						self.buildSize = 12;
 					else
-						self.blockSize = 24;
+						self.buildSize = 24;
 					end
-					local snappos = ConstructorSnapPos(actor.Pos, self.blockSize);
+					local snappos = ConstructorSnapPos(actor.Pos, self.buildSize);
 					for i = 1, #buildscheme do
-						local temppos = snappos + Vector(buildscheme[i].X * self.blockSize, buildscheme[i].Y * self.blockSize);
+						local temppos = snappos + Vector(buildscheme[i].X * self.buildSize, buildscheme[i].Y * self.buildSize);
 						local buildThis = {};
 						buildThis[1] = temppos.X;
 						buildThis[2] = temppos.Y;
 						buildThis[3] = 0;
-						buildThis[4] = self.blockSize;
+						buildThis[4] = self.buildSize;
 						self.buildList[#self.buildList + 1] = buildThis;
 					end
 				end
@@ -262,7 +241,7 @@ function Update(self)
 			-- constructor actions if it's AI controlled
 			if self.operatedByAI then
 				if self.tunnelFillTimer:IsPastSimMS(self.tunnelFillDelay * self.aiSkillRatio) and #self.buildList == 0 then
-					self.blockSize = 24;
+					self.buildSize = 24;
 					self.tunnelFillTimer:Reset();
 
 					-- create an empty 2D array, call cells having -1
@@ -278,14 +257,14 @@ function Update(self)
 					local center = math.ceil(((self.maxFillDistance * 2) + 1) * 0.5);
 
 					-- FLOOD FILL!
-					ConstructorFloodFill(center, center, 0, self.maxFillDistance, floodFillListX, ConstructorSnapPos(actor.Pos, self.blockSize), self.blockSize);
+					ConstructorFloodFill(center, center, 0, self.maxFillDistance, floodFillListX, ConstructorSnapPos(actor.Pos, self.buildSize), self.buildSize);
 
 					-- dump the correctly numbered cells into the build table
 					for x = 1, #floodFillListX do
 						for y = 1, #floodFillListX do
 							if floodFillListX[x][y] >= self.minFillDistance and floodFillListX[x][y] <= self.maxFillDistance then
-								local mapX = ConstructorSnapPos(actor.Pos, self.blockSize).X + ((center - x) * -self.blockSize);
-								local mapY = ConstructorSnapPos(actor.Pos, self.blockSize).Y + ((center - y) * -self.blockSize);
+								local mapX = ConstructorSnapPos(actor.Pos, self.buildSize).X + ((center - x) * -self.buildSize);
+								local mapY = ConstructorSnapPos(actor.Pos, self.buildSize).Y + ((center - y) * -self.buildSize);
 								local freeSlot = true;
 								for i = 1, #self.buildList do
 									if self.buildList[i] ~= nil and self.buildList[i][1] == mapX and self.buildList[i][2] == mapY then
@@ -298,7 +277,7 @@ function Update(self)
 									buildThis[1] = mapX;
 									buildThis[2] = mapY;
 									buildThis[3] = 0;
-									buildThis[4] = self.blockSize;
+									buildThis[4] = self.buildSize;
 									self.buildList[#self.buildList + 1] = buildThis;
 								end
 							end
@@ -322,7 +301,7 @@ function Update(self)
 						for i = 1, particleCount do
 							local spray = CreateMOPixel("Particle Concrete " .. math.random(4), "Base.rte");
 							spray.Pos = self.MuzzlePos;
-							spray.Vel = self.Vel + Vector(math.random(11, 13), 0):RadRotate(angle + RangeRand(-0.5, 0.5) * self.spreadRange);
+							spray.Vel = self.Vel + Vector(RangeRand(11, 13), 0):RadRotate(angle + RangeRand(-0.5, 0.5) * self.spreadRange);
 							spray.Team = self.Team;
 							spray.IgnoresTeamHits = true;
 							MovableMan:AddParticle(spray);
@@ -333,53 +312,60 @@ function Update(self)
 					end
 				else
 					for i = 1, self.RoundsFired do
-
-						local digPos = ConstructorTerrainRay(self.MuzzlePos, Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange), 1);
+						local trace = Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange);
+						local digPos = ConstructorTerrainRay(self.MuzzlePos, trace, 0);
 
 						if SceneMan:GetTerrMatter(digPos.X, digPos.Y) ~= rte.airID then
 
-							local digWeight = 0;
-							local found = false;
+							local digWeightTotal = 0;
+							local totalVel = Vector();
+							local found = 0;
 
 							for x = 1, 3 do
 								for y = 1, 3 do
 									local checkPos = ConstructorWrapPos(Vector(digPos.X - 2 + x, digPos.Y - 2 + y));
 									local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
-									if terrCheck ~= rte.airID then
-										if terrCheck == rte.goldID then
-											self.clearer.Pos = Vector(checkPos.X, checkPos.Y);
-											self.clearer:EraseFromTerrain();
-											local collectFX = CreateMOPixel("Particle Constructor Gather Material Gold");
-											collectFX.Pos = Vector(checkPos.X, checkPos.Y);
-											collectFX.Sharpness = self.ID;
-											collectFX.Vel.Y = -RangeRand(2, 3);
-											MovableMan:AddParticle(collectFX);
-										else
-											local material = SceneMan:GetMaterialFromID(terrCheck);
-											if material.StructuralIntegrity > 0 and material.StructuralIntegrity <= self.digStrength then
-												if math.random() > material.StructuralIntegrity/(self.digStrength * 1.1) then
-													self.clearer.Pos = Vector(checkPos.X, checkPos.Y);
-													self.clearer:EraseFromTerrain();
-													digWeight = digWeight + math.sqrt(material.StructuralIntegrity/self.digStrength);
-												end
-												found = true;
+									local material = SceneMan:GetMaterialFromID(terrCheck);
+									if material.StructuralIntegrity <= self.digStrength and material.StructuralIntegrity <= self.digStrength * RangeRand(0.5, 1.05) then
+										local px = SceneMan:DislodgePixel(checkPos.X, checkPos.Y);
+										if px then
+											local digWeight = math.sqrt(material.StructuralIntegrity/self.digStrength);
+											local speed = 3;
+											if terrCheck == rte.goldID then
+												--Spawn a glowy gold pixel and delete the original
+												px.ToDelete = true;
+												px = CreateMOPixel("Gold Particle", "Base.rte");
+												px.Pos = checkPos;
+												--Sharpness temporarily stores the ID of the target
+												px.Sharpness = actor.ID;
+												MovableMan:AddParticle(px);
+											else
+												px.Sharpness = self.ID;
+												px.Lifetime = 1000;
+												speed = speed + (1 - digWeight) * 5;
+												digWeightTotal = digWeightTotal + digWeight;
 											end
+											px.IgnoreTerrain = true;
+											px.Vel = Vector(trace.X, trace.Y):SetMagnitude(-speed):RadRotate(RangeRand(-0.5, 0.5));
+											totalVel = totalVel + px.Vel;
+											px:AddScript("Base.rte/Devices/Tools/Constructor/ConstructorCollect.lua");
+											
+											found = found + 1;
 										end
 									end
 								end
 							end
-							if digWeight > 0 then
-								digWeight = digWeight/9;
-								self.resource = math.min(self.resource + digWeight * self.buildCost, self.maxResource);
-
-								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeight > 0.5 and " Big" or ""));
-								collectFX.Pos = Vector(digPos.X, digPos.Y);
-								collectFX.Sharpness = self.ID;
-								collectFX.Vel.Y = 10/(collectFX.Mass + digWeight);
-								collectFX.Lifetime = SceneMan:ShortestDistance(digPos, self.Pos, SceneMan.SceneWrapsX).Magnitude/(collectFX.Vel.Magnitude * rte.PxTravelledPerFrame) * TimerMan.DeltaTimeMS;
+							if found > 0 then
+								if digWeightTotal > 0 then
+									digWeightTotal = digWeightTotal/9;
+									self.resource = math.min(self.resource + digWeightTotal * self.buildCost, self.maxResource);
+								end
+								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeightTotal > 0.5 and " Big" or ""));
+								collectFX.Vel = totalVel/found;
+								collectFX.Pos = Vector(digPos.X, digPos.Y) + collectFX.Vel * rte.PxTravelledPerFrame;
 
 								MovableMan:AddParticle(collectFX);
-							elseif not found then
+							else
 								self:Deactivate();
 							end
 						else	-- deactivate if digging air
@@ -441,10 +427,16 @@ function Update(self)
 				end
 			end
 			if ctrl:IsState(Controller.WEAPON_CHANGE_NEXT) then
-				self.blockSize = math.min(self.blockSize * 2, 48);
+				self.buildSize = self.buildSize * 2;
+				if self.buildSize > self.buildSizeMax then
+					self.buildSize = self.buildSizeMin;
+				end
 			end
 			if ctrl:IsState(Controller.WEAPON_CHANGE_PREV) then
-				self.blockSize = math.max(self.blockSize/2, 6);
+				self.buildSize = self.buildSize/2;
+				if self.buildSize < self.buildSizeMin then
+					self.buildSize = self.buildSizeMax;
+				end
 			end
 
 			if cursorMovement:MagnitudeIsGreaterThan(0) then
@@ -453,15 +445,15 @@ function Update(self)
 			local precise = not mouseControlled and aiming;
 			local map = Vector();
 			if precise then
-				map = Vector(math.floor(self.cursor.X - self.blockSize/2), math.floor(self.cursor.Y - self.blockSize/2));
+				map = Vector(math.floor(self.cursor.X - self.buildSize/2), math.floor(self.cursor.Y - self.buildSize/2));
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, 2), self.cursor + Vector(-3, -3), displayColorYellow);
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, -3), self.cursor + Vector(-3, 2), displayColorYellow);
 			else
-				map = ConstructorSnapPos(self.cursor, self.blockSize);
+				map = ConstructorSnapPos(self.cursor, self.buildSize);
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(0, 4), self.cursor + Vector(0, -4), displayColorYellow);
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), displayColorYellow);
 			end
-			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.blockSize - 1, self.blockSize - 1), displayColorYellow);
+			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.buildSize - 1, self.buildSize - 1), displayColorYellow);
 
 			local dist = SceneMan:ShortestDistance(actor.ViewPoint, self.cursor, SceneMan.SceneWrapsX);
 			if math.abs(dist.X) > self.maxCursorDist.X then
@@ -488,7 +480,7 @@ function Update(self)
 						buildThis[1] = map.X;
 						buildThis[2] = map.Y;
 						buildThis[3] = 0;
-						buildThis[4] = self.blockSize;
+						buildThis[4] = self.buildSize;
 						self.buildList[#self.buildList + 1] = buildThis;
 					end
 				end
@@ -531,11 +523,12 @@ function Update(self)
 					self.buildList[1][3] = self.buildList[1][3] + 1;
 					local totalCost = 0;
 					local startPos = ConstructorWrapPos(Vector(bx + self.buildList[1][1], by + self.buildList[1][2]));
+					local didBuild = false;
 					for x = 1, cellSize do
 						for y = 1, cellSize do
 							local pos = Vector(startPos.X + x, startPos.Y + y);
 							local strengthRatio = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(pos.X, pos.Y)).StructuralIntegrity/self.digStrength;
-							if strengthRatio < 1 then
+							if strengthRatio < 1 and SceneMan:GetMOIDPixel(pos.X, pos.Y) == rte.NoMOID then
 								local name = "";
 								if bx + x == 0 or bx + x == self.buildList[1][4] - 1 or by + y == 0 or by + y == self.buildList[1][4] - 1 then
 									name = "Base.rte/Constructor Border Tile " .. math.random(4);

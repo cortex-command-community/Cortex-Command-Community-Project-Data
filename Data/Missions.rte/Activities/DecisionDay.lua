@@ -1,5 +1,6 @@
 package.loaded.Constants = nil;
 require("Constants");
+require("Scripts/Shared/Activity_SpeedrunHelper")
 
 function DecisionDayDeployBrainPieSliceActivation(pieMenuOwner, pieMenu, pieSlice)
 	ActivityMan:GetActivity():SaveNumber("DeployBrain", pieMenuOwner:GetController().Player + 1);
@@ -398,6 +399,8 @@ function DecisionDay:OnSave()
 end
 
 function DecisionDay:StartNewGame()
+	self.speedrunData = ActivitySpeedrunHelper.Setup(self, self.DoSpeedrunMode);
+	
 	self:SetTeamFunds(0, self.humanTeam);
 	self.BuyMenuEnabled = false;
 
@@ -528,24 +531,23 @@ function DecisionDay:SetupStorageCrateInventories()
 end
 
 function DecisionDay:DoInitialHumanSpawns()
-	local nextActorPos = Vector(self.initialHumanSpawnArea.FirstBox.Corner.X, self.initialHumanSpawnArea.Center.Y);
+	local firstActorPos = Vector(self.initialHumanSpawnArea.FirstBox.Corner.X, self.initialHumanSpawnArea.Center.Y);
 	local initialActorFunds = 1300 / self.difficultyRatio;
-	local spawnedActorNumber = 0;
+	local spawnedActors = {};
 	while initialActorFunds > 0 do
-		spawnedActorNumber = spawnedActorNumber + 1;
-		local actor = self:SpawnInfantry(self.humanTeam, spawnedActorNumber < 3 and "CQB" or "Heavy", nextActorPos, Actor.AIMODE_SENTRY, true);
-		actor.Pos = SceneMan:MovePointToGround(actor.Pos, actor.Radius, 5);
+		local actor = self:SpawnInfantry(self.humanTeam, #spawnedActors < 3 and "CQB" or "Heavy", firstActorPos, Actor.AIMODE_SENTRY, true);
+		spawnedActors[#spawnedActors + 1] = actor;
 		actor.PlayerControllable = true;
-		if spawnedActorNumber < 3 then
+		if #spawnedActors < 3 then
 			actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.humanTeamTech));
 		elseif math.random() < 0.65 then
 			actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.humanTeamTech));
 		end
 		initialActorFunds = initialActorFunds - actor:GetTotalValue(self.humanTeamTech, 1);
-		nextActorPos = nextActorPos + Vector(30, 0);
 	end
 	for _, player in pairs(self.humanPlayers) do
 		local brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
+		spawnedActors[#spawnedActors + 1] = brain;
 		if brain then
 			brain:RemoveInventoryItem("Constructor");
 		else
@@ -554,13 +556,19 @@ function DecisionDay:DoInitialHumanSpawns()
 			brain:AddInventoryItem(RandomHDFirearm("Weapons - Light", self.humanTeamTech));
 			brain:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.humanTeamTech));
 		end
-		brain.Pos = nextActorPos;
+		brain.Pos = firstActorPos;
 		brain.Team = self.humanTeam;
-		nextActorPos = nextActorPos + Vector(30, 0);
 		brain.AIMode = Actor.AIMODE_SENTRY;
 		MovableMan:AddActor(brain);
 		self:SetPlayerBrain(brain, player);
 		self:SetObservationTarget(brain.Pos, player);
+	end
+	
+	local actorXOffset = math.min(30, 275 / #spawnedActors);
+	for index, actor in ipairs(spawnedActors) do
+		actor.Pos.X = actor.Pos.X + (actorXOffset * (index - 1));
+		actor.Pos.Y = 0;
+		actor.Pos = SceneMan:MovePointToGround(actor.Pos, actor.Radius, 5);
 	end
 end
 
@@ -782,6 +790,11 @@ function DecisionDay:DoGameOverCheck()
 			self.messageTimer:Reset();
 		end
 	end
+	
+	if self.speedrunData and self.WinnerTeam == self.humanTeam then
+		self.messageTimer:SetSimTimeLimitMS(10000);
+		ActivitySpeedrunHelper.CompleteSpeedrun(self.speedrunData);
+	end
 
 	if self.WinnerTeam ~= Activity.NOTEAM and self.messageTimer:IsPastSimTimeLimit() then
 		if self.WinnerTeam == self.humanTeam then
@@ -793,6 +806,48 @@ function DecisionDay:DoGameOverCheck()
 		end
 		ActivityMan:EndActivity();
 	end
+end
+
+function DecisionDay:DoSpeedrunMode()
+	self.Difficulty = Activity.MAXDIFFICULTY;
+	self.difficultyRatio = 2;
+	for _, bunkerRegionData in pairs(self.bunkerRegions) do
+		bunkerRegionData.captureLimit = 600 * self.difficultyRatio;
+		bunkerRegionData.aiRegionDefenseTimer:SetSimTimeLimitMS(60000 / self.difficultyRatio);
+		bunkerRegionData.aiRegionDefenseTimer.ElapsedSimTimeMS = 60000 / self.difficultyRatio;
+		bunkerRegionData.aiRegionAttackTimer:SetSimTimeLimitMS(90000 / self.difficultyRatio);
+	end
+	
+	self.aiData.externalSpawnTimer:SetSimTimeLimitMS(120000 / self.difficultyRatio);
+	self.aiData.internalReinforcementsTimer:SetSimTimeLimitMS(100000 / self.difficultyRatio);
+	self.aiData.internalReinforcementLimit = 12 * self.difficultyRatio;
+	self.aiData.bunkerRegionDefenseRange = math.max(500, math.min(750 * self.difficultyRatio, 1000));
+	self.aiData.attackerLimit = 10 * self.difficultyRatio;
+	self.aiData.attackersPerSpawn = 4 * self.difficultyRatio;
+
+	self.aiData.brainDefenderSpawnTimer:SetSimTimeLimitMS(10000 / self.difficultyRatio);
+	self.aiData.brainDefenderReplenishTimer:SetSimTimeLimitMS(30000 / self.difficultyRatio);
+	self.aiData.brainDefendersTotal = 20 * self.difficultyRatio;
+	self.aiData.brainDefendersRemaining = self.aiData.brainDefendersTotal;
+	
+	self:SetTeamFunds(0, self.humanTeam);
+	
+	self:SetTeamTech(self.humanTeam, "-All-");
+	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
+	self:SetTeamTech(self.aiTeam, "-All-");
+	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
+	
+	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+	
+	self.messageTimer:SetSimTimeLimitMS(1);
+	
+	self.currentStage = self.stages.attackFrontBunker;
+
+	self.aiData.internalReinforcementsEnabled = true;
+	self.internalReinforcementsData[self.bunkerIds.frontBunker].enabled = true;
+
+	self.bunkerRegions["Front Bunker Operations"].enabled = true;
+	self.bunkerRegions["Front Bunker Small Vault"].enabled = true;
 end
 
 function DecisionDay:UpdateCurrentStage()
@@ -934,6 +989,10 @@ function DecisionDay:UpdateCamera()
 			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, 0);
 		end
 	end
+	
+	if self.speedrunData and ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		return;
+	end
 
 	local slowScroll = 0.0125;
 	local mediumScroll = 0.05;
@@ -1045,6 +1104,12 @@ function DecisionDay:UpdateCamera()
 end
 
 function DecisionDay:UpdateMessages()
+	if self.speedrunData and ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		FrameMan:ClearScreenText(Activity.PLAYER_1);
+		FrameMan:SetScreenText(ActivitySpeedrunHelper.GetSpeedrunDuration(self.speedrunData), Activity.PLAYER_1, 0, 1, ActivitySpeedrunHelper.SpeedrunCompleted(self.speedrunData));
+		return;
+	end
+
 	if self.messageTimer:IsPastSimTimeLimit() then
 		if self.currentMessageNumber < self.numberOfMessagesForStage then
 			self.currentMessageNumber = self.currentMessageNumber + 1;
@@ -1298,7 +1363,7 @@ function DecisionDay:UpdateRegionCapturing()
 				local capturingTeam = bunkerRegionData.ownerTeam == self.aiTeam and self.humanTeam or self.aiTeam;
 				local capturingTeamActorInArea = false;
 				for movableObject in MovableMan:GetMOsInBox(captureBox, bunkerRegionData.ownerTeam, true) do
-					if IsAHuman(movableObject) or IsACrab(movableObject) then
+					if (IsAHuman(movableObject) or IsACrab(movableObject)) and ToActor(movableObject).Health > 0 then
 						capturingTeamActorInArea = true;
 						break;
 					end
@@ -1308,7 +1373,7 @@ function DecisionDay:UpdateRegionCapturing()
 				if capturingTeamActorInArea then
 					for captureBlockingBox in bunkerRegionData.totalArea.Boxes do
 						for movableObject in MovableMan:GetMOsInBox(captureBlockingBox, capturingTeam, true) do
-							if IsAHuman(movableObject) or IsACrab(movableObject) then
+							if (IsAHuman(movableObject) or IsACrab(movableObject)) and ToActor(movableObject).Health > 0 then
 								ownerTeamActorInTotalAreaBlockingCapture = true;
 								break;
 							end
@@ -1404,57 +1469,56 @@ function DecisionDay:UpdateRegionScreens()
 		if bunkerRegionData.enabled then
 			local currentFauxdanDisplayFrameString;
 			local currentLoginScreenFrameString;
-			for _, player in pairs(self.humanPlayers) do
-				if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
-					if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage == self.stages.attackBrain then
-						for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
-							local boxCenterPos = box.Center;
-							local fauxdanDisplayScreenKey = tostring(boxCenterPos.FlooredX) .. "," .. tostring(boxCenterPos.FlooredY);
+			
+			if bunkerRegionData.fauxdanDisplayArea ~= nil and bunkerRegionData.ownerTeam == self.aiTeam and self.currentStage <= self.stages.attackBrain then
+				for box in bunkerRegionData.fauxdanDisplayArea.Boxes do
+					local boxCenterPos = box.Center;
+					local fauxdanDisplayScreenKey = tostring(boxCenterPos.FlooredX) .. "," .. tostring(boxCenterPos.FlooredY);
 
-							local boxBlockedByCaptureDisplay = false;
-							if bunkerRegionData.captureCount > 0 then
-								for captureDisplayBox in bunkerRegionData.captureDisplayArea.Boxes do
-									if captureDisplayBox.Center.Floored == boxCenterPos.Floored then
-										boxBlockedByCaptureDisplay = true;
-										break;
-									end
-								end
-							end
-
-							if not boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] == nil then
-								local fauxdanDisplayScreen = self.fauxdanDisplayScreenTemplate:Clone();
-								fauxdanDisplayScreen.Pos = boxCenterPos;
-								MovableMan:AddParticle(fauxdanDisplayScreen);
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = fauxdanDisplayScreen;
-							elseif boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] ~= nil then
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey].ToDelete = true;
-								bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = nil;
+					local boxBlockedByCaptureDisplay = false;
+					if bunkerRegionData.captureCount > 0 then
+						for captureDisplayBox in bunkerRegionData.captureDisplayArea.Boxes do
+							if captureDisplayBox.Center.Floored == boxCenterPos.Floored then
+								boxBlockedByCaptureDisplay = true;
+								break;
 							end
 						end
-					else
-						for _, fauxdanDisplayScreen in pairs(bunkerRegionData.fauxdanDisplayScreens) do
-							fauxdanDisplayScreen.ToDelete = true;
-						end
-						bunkerRegionData.fauxdanDisplayScreens = {};
 					end
 
-					if bunkerRegionData.captureCount > 0 then
-						if #bunkerRegionData.captureDisplayScreens == 0 then
-							for box in bunkerRegionData.captureDisplayArea.Boxes do
-								local captureDisplayScreen = self.captureDisplayScreenTemplate:Clone();
-								captureDisplayScreen.Pos = box.Center;
-								MovableMan:AddParticle(captureDisplayScreen);
-								bunkerRegionData.captureDisplayScreens[#bunkerRegionData.captureDisplayScreens + 1] = captureDisplayScreen;
-							end
-						end
-						for _, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
-							captureDisplayScreen.Frame = math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * (captureDisplayScreen.FrameCount));
-							captureDisplayScreen.Age = 0;
-						end
-					else
-						bunkerRegionData.captureDisplayScreens = {};
+					if not boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] == nil then
+						local fauxdanDisplayScreen = self.fauxdanDisplayScreenTemplate:Clone();
+						fauxdanDisplayScreen.Pos = boxCenterPos;
+						MovableMan:AddParticle(fauxdanDisplayScreen);
+						bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = fauxdanDisplayScreen;
+					elseif boxBlockedByCaptureDisplay and bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] ~= nil then
+						bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey].ToDelete = true;
+						bunkerRegionData.fauxdanDisplayScreens[fauxdanDisplayScreenKey] = nil;
 					end
 				end
+			elseif next(bunkerRegionData.fauxdanDisplayScreens) ~= nil then
+				for _, fauxdanDisplayScreen in pairs(bunkerRegionData.fauxdanDisplayScreens) do
+					fauxdanDisplayScreen.ToDelete = true;
+				end
+				bunkerRegionData.fauxdanDisplayScreens = {};
+			end
+
+			if bunkerRegionData.captureCount > 0 then
+				if #bunkerRegionData.captureDisplayScreens == 0 then
+					for box in bunkerRegionData.captureDisplayArea.Boxes do
+						local captureDisplayScreen = self.captureDisplayScreenTemplate:Clone();
+						captureDisplayScreen.Pos = box.Center;
+						MovableMan:AddParticle(captureDisplayScreen);
+						bunkerRegionData.captureDisplayScreens[#bunkerRegionData.captureDisplayScreens + 1] = captureDisplayScreen;
+					end
+				end
+				for index, captureDisplayScreen in ipairs(bunkerRegionData.captureDisplayScreens) do
+					if MovableMan:ValidMO(captureDisplayScreen) then
+						captureDisplayScreen.Frame = math.floor((bunkerRegionData.captureCount / bunkerRegionData.captureLimit) * (captureDisplayScreen.FrameCount));
+						captureDisplayScreen.Age = 0;
+					end
+				end
+			elseif #bunkerRegionData.captureDisplayScreens > 0 then
+				bunkerRegionData.captureDisplayScreens = {};
 			end
 		end
 	end
@@ -2059,6 +2123,14 @@ function DecisionDay:UpdateActivity()
 
 	if self.WinnerTeam ~= Activity.NOTEAM then
 		return;
+	end
+	
+	if self.speedrunData and not ActivitySpeedrunHelper.SpeedrunActive(self.speedrunData) then
+		if self.currentStage == self.stages.followInitialDropShip then
+			ActivitySpeedrunHelper.CheckForSpeedrun(self.speedrunData);
+		else
+			self.speedrunData = nil;
+		end
 	end
 
 	if self.currentStage < self.stages.frontBunkerCaptured then

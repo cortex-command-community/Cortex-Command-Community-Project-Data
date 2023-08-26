@@ -1,9 +1,9 @@
 function Update(self)
 	if self.Foot then
-		local footNameSuffix = "B";
+		local footNameSuffix = "A";
 		for attachable in self.Attachables do
 			if attachable.PresetName:find("Leg Armour") then
-				footNameSuffix = "A";
+				footNameSuffix = "B";
 				break;
 			end
 		end

@@ -1,8 +1,8 @@
 function Create(self)
-	self.origStanceOffset = Vector(0, 8);
+	self.origStanceOffset = Vector(1, 7);
 	self.origSharpStanceOffset = Vector(4, 6);
 	self.minimumRoF = self.RateOfFire * 0.5;
-	self.angleOffset = 0;
+	self.particleCount = 200;
 
 	self.suitableMaterials = {"Sand", "Topsoil", "Earth", "Dense Earth", "Dense Red Earth", "Red Earth", "Lunar Earth", "Dense Lunar Earth", "Earth Rubble", "Sandbag", "Scrap Metal", "Flesh Scraps"};
 	self.collectSound = CreateSoundContainer("Device Switch", "Base.rte");
@@ -11,7 +11,7 @@ function Create(self)
 	self.angleSize = 1.0;
 
 	self.lastVel = Vector(50 * self.FlipFactor, 0):RadRotate(self.RotAngle);
-	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+	self.lastPos = Vector(self.Pos.X, self.Pos.Y);
 end
 
 function OnAttach(self, newParent)
@@ -23,12 +23,11 @@ function OnAttach(self, newParent)
 end
 
 function Update(self)
-	self.StanceOffset = Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
-	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
-
+	local aimAngle = 0;
 	local parent = self:GetRootParent();
 	if parent and IsActor(parent) then
 		parent = ToActor(parent);
+		aimAngle = parent:GetAimAngle(false);
 		local controller = parent:GetController();
 		local resource = parent:GetNumberValue("RoninShovelResource");
 		if parent:IsPlayerControlled() and controller:IsState(Controller.AIM_SHARP) and (not controller:IsMouseControlled() or controller.AnalogAim:MagnitudeIsGreaterThan(0.9)) then
@@ -39,35 +38,36 @@ function Update(self)
 		self.SupportOffset = Vector(-self.InheritedRotAngleOffset * 5, 2);
 		if self.FiredFrame then
 			local offsetMultiplier = math.max(self.InheritedRotAngleOffset, 1);
-			local particleCount = 5/offsetMultiplier;
-			local overhead = self.InheritedRotAngleOffset > self.angleSize * 0.5;
-			local fireVec = Vector((50 + 10 * offsetMultiplier) * self.FlipFactor, 0):RadRotate(self.RotAngle + 0.2 * self.FlipFactor);
-			for i = 1, particleCount do
-				--Lua-generated particles that can chip stone
-				local dig = CreateMOPixel("Particle Ronin Shovel 2", "Ronin.rte");
-				dig.Pos = self.Pos;
-				dig.Vel = Vector(math.random(50, 60) * self.FlipFactor, 0):RadRotate(self.RotAngle + (-0.4 + i * 0.2) * self.FlipFactor);
-				MovableMan:AddParticle(dig);
+			local fireVec = Vector(40 * self.FlipFactor, 0):RadRotate(aimAngle * self.FlipFactor + (0.3 - self.InheritedRotAngleOffset * 0.3) * self.FlipFactor);
+			--Digging particles
+			for i = 1, self.particleCount do
+				local part = CreateMOPixel("Particle Ronin Shovel", "Ronin.rte");
+				local goldenAngleSmallerPart = 2.39996;
+				part.Pos = self.MuzzlePos + Vector(math.sqrt(self.particleCount - i), 0):RadRotate(i * goldenAngleSmallerPart);
+				part.Vel = fireVec;
+				part.Sharpness = part.Sharpness * (0.5 + (i/self.particleCount) * 0.5);
+				MovableMan:AddParticle(part);
 			end
-			local trace = (fireVec * rte.PxTravelledPerFrame):RadRotate(-self.InheritedRotAngleOffset * 1.4 * self.FlipFactor);
+			--Damage particles
+			fireVec = fireVec * offsetMultiplier;
+			local spread = 0.3;
+			local particleCount = 3 * offsetMultiplier;
+			for i = 1, particleCount do
+				local damagePar = CreateMOPixel("Smack Particle Light", "Base.rte");
+				damagePar.Pos = self.MuzzlePos;
+				damagePar.Vel = Vector(fireVec.X, fireVec.Y):RadRotate(spread - (spread * 2) * i/particleCount);
+				damagePar.Team = self.Team;
+				damagePar.IgnoresTeamHits = true;
+
+				damagePar.Mass = math.sqrt(self:GetParent().Mass + self.Mass);
+				damagePar.Sharpness = self.Sharpness * (i/particleCount);
+				MovableMan:AddParticle(damagePar);
+			end
+			local overhead = self.InheritedRotAngleOffset > self.angleSize * 0.5;
+			local trace = fireVec * rte.PxTravelledPerFrame;
 			--Play a radical sound if a MO is met
-			local moCheck = SceneMan:CastMORay(self.Pos, trace, self.ID, self.Team, 0, false, 1);
-			if moCheck ~= rte.NoMOID then
+			if SceneMan:CastMORay(self.MuzzlePos, trace, self.ID, self.Team, 0, false, 1) ~= rte.NoMOID then
 				self.hitSound:Play(self.MuzzlePos);
-				local spread = 0.4/offsetMultiplier;
-				particleCount = 3 * offsetMultiplier;
-				for i = 1, particleCount do
-					local damagePar = CreateMOPixel("Smack Particle Light", "Base.rte");
-					damagePar.Pos = self.Pos;
-					damagePar.Vel = Vector(fireVec.X, fireVec.Y):RadRotate((-spread * 2 + i * spread - self.InheritedRotAngleOffset * 1.4) * self.FlipFactor);
-					damagePar.Team = self.Team;
-					damagePar.IgnoresTeamHits = true;
-
-					damagePar.Mass = math.sqrt(self:GetParent().Mass + self.Mass);
-					damagePar.Sharpness = self.Sharpness * RangeRand(0.5, 1.0);
-
-					MovableMan:AddParticle(damagePar);
-				end
 			elseif not overhead and resource < 10 then
 				--Gather materials and turn them into sandbags
 				local rayCount = 3;
@@ -118,7 +118,7 @@ function Update(self)
 					damagePar.Mass = self.Mass--/particleCount;
 					damagePar.Sharpness = self.Sharpness-- * particleCount;
 
-					damagePar.Pos = self.lastMuzzlePos;
+					damagePar.Pos = self.lastPos;
 					damagePar.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * 0.5 - spread * i/(particleCount - 1)) * 1.5;
 
 					damagePar:SetWhichMOToNotHit(self, -1);
@@ -127,13 +127,16 @@ function Update(self)
 				self.hitSound:Play(self.MuzzlePos);
 			end
 			for i = 1, self.lastVel.Magnitude * 0.5 do
-				local dig = CreateMOPixel("Particle Ronin Shovel 2", "Ronin.rte");
+				local dig = CreateMOPixel("Particle Ronin Shovel", "Ronin.rte");
 				dig.Pos = self.Pos;
 				dig.Vel = Vector(self.lastVel.X, self.lastVel.Y):RadRotate(spread * RangeRand(-1, 1)) * RangeRand(0.5, 1.0);
 				MovableMan:AddParticle(dig);
 			end
 		end
 	end
+	self.StanceOffset = Vector(self.InheritedRotAngleOffset * 5, 0) + Vector(self.origStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
+	self.SharpStanceOffset = Vector(self.origSharpStanceOffset.X + self.InheritedRotAngleOffset * 5, self.origSharpStanceOffset.Y):RadRotate(self.angleSize * 0.5 * self.InheritedRotAngleOffset * 0.8);
+
 	self.lastVel = Vector(self.Vel.X, self.Vel.Y);
-	self.lastMuzzlePos = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+	self.lastPos = Vector(self.Pos.X, self.Pos.Y);
 end
