@@ -320,8 +320,12 @@ function HumanBehaviors.Sentry(AI, Owner, Abort)
 		Owner:ClearMovePath();
 		Owner:AddAISceneWaypoint(Vector(Owner.Pos.X, 0));
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		-- face the direction of the first waypoint
 		for WptPos in Owner.MovePath do
@@ -528,12 +532,14 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
-		Owner:AddAISceneWaypoint(Free);
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+		Owner:AddAISceneWaypoint(Free);	
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
 		for WptPos in Owner.MovePath do
@@ -553,11 +559,13 @@ function HumanBehaviors.Patrol(AI, Owner, Abort)
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
 		Owner:AddAISceneWaypoint(Free);
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
 		Owner:UpdateMovePath();
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
+
+		-- wait until movepath is updated
+		while Owner.IsWaitingOnNewMovePath do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 
 		local PrevPos = Vector(Owner.Pos.X, Owner.Pos.Y);
 		for WptPos in Owner.MovePath do
@@ -843,6 +851,12 @@ function HumanBehaviors.BrainSearch(AI, Owner, Abort)
 					Owner:AddAISceneWaypoint(Act.Pos);
 					Owner:UpdateMovePath();
 
+					-- wait until movepath is updated
+					while Owner.IsWaitingOnNewMovePath do
+						local _ai, _ownr, _abrt = coroutine.yield();
+						if _abrt then return true end
+					end
+
 					local OldWpt, deltaY;
 					local index = 0;
 					local height = 0;
@@ -951,55 +965,46 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
 	
 	if #devices > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield();
-		if _abrt then return true end
-
-		local maxWaypointDistance = 36;
+		local maxPathLength = 36; --TODO when this gets turned into a part of pathing calc, use it that way instead
 		if AI.isPlayerOwned then
-			maxWaypointDistance = 10;
+			maxPathLength = 10;
 		end
-
+		
+		local searchesRemaining = #devices;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = false;
-				if AI.useExpensiveToolAndWeaponSearch then
-					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
-				end
-				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
-				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
-				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
-					local score = distanceToTarget
-					if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-						score = distanceToTarget * 0.4; -- prioritize primary or heavy weapons
-					elseif device.ClassName == "TDExplosive" then
-						score = distanceToTarget * 1.4; -- avoid grenades if there are other weapons
-					elseif device:IsTool() then
-						if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-							score = distanceToTarget * 1.8; -- avoid diggers if there are other weapons
-						else
-							distanceToTarget = maxWaypointDistance;
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						local pathLength = pathRequest.PathLength;
+						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+							local score = pathLength;
+							if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
+								score = pathLength * 0.4; -- prioritize primary or heavy weapons
+							elseif device.ClassName == "TDExplosive" then
+								score = pathLength * 1.4; -- avoid grenades if there are other weapons
+							elseif device:IsTool() then
+								if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
+									score = pathLength * 1.8; -- avoid diggers if there are other weapons
+								else
+									pathLength = maxPathLength;
+								end
+							end
+							if pathLength < maxPathLength then
+								table.insert(devicesToPickUp, {device = device, score = score});
+							end
 						end
+						searchesRemaining = searchesRemaining - 1;
 					end
-
-					if distanceToTarget < maxWaypointDistance then
-						table.insert(devicesToPickUp, {device = device, score = score});
-						if not pathToItemIsObstructed or score < 1 then
-							local _ai, _ownr, _abrt = coroutine.yield();
-							if _abrt then return true end
-							break;
-						end
-					end
-					for i = 1, 2 do
-						local _ai, _ownr, _abrt = coroutine.yield();
-						if _abrt then return true end
-					end
-				end
+				, Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team);
 			end
 		end
-
+		
+		while searchesRemaining > 0 do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
+		end
 		
 		AI.PickupHD = nil;
 		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
@@ -1033,6 +1038,13 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			end
 
 			Owner:UpdateMovePath();
+
+			-- wait until movepath is updated
+			while Owner.IsWaitingOnNewMovePath do
+				local _ai, _ownr, _abrt = coroutine.yield();
+				if _abrt then return true end
+			end
+
 			AI:CreateGoToBehavior(Owner);
 		end
 	end
@@ -1081,40 +1093,33 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	table.sort(devices, function(device, otherDevice) return device.distance.SqrMagnitude < otherDevice.distance.SqrMagnitude end);
 	
 	if #devices > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield();
-		if _abrt then return true end
-
-		local maxWaypointDistance = 16;
+		local maxPathLength = 16;
 		if Owner.AIMode == Actor.AIMODE_GOLDDIG then
-			maxWaypointDistance = 30;
+			maxPathLength = 30;
 		elseif AI.isPlayerOwned then
-			maxWaypointDistance = 5;
+			maxPathLength = 5;
 		end
-
+		
+		local searchesRemaining = #devices;
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathToItemIsObstructed = false;
-				if AI.useExpensiveToolAndWeaponSearch then
-					pathToItemIsObstructed = SceneMan:CastStrengthRay(Owner.Pos, deviceEntry.distance, 5, Vector(), 4, rte.grassID, true);
-				end
-				local pathfinderNodeSize = 20; -- TODO this should be read from cpp
-				
-				local distanceToTarget = pathToItemIsObstructed and SceneMan.Scene:CalculatePath(Owner.Pos, device.Pos, false, 1, Owner.Team) or (deviceEntry.distance.Magnitude / pathfinderNodeSize);
-				if distanceToTarget < maxWaypointDistance and distanceToTarget > -1 then
-					table.insert(devicesToPickUp, {device = device, score = distanceToTarget});
-					
-					if not pathToItemIsObstructed or distanceToTarget < 1 then
-						break;
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						local pathLength = pathRequest.PathLength;
+						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+							table.insert(devicesToPickUp, {device = device, score = pathLength});
+						end
+						searchesRemaining = searchesRemaining - 1;
 					end
-					
-					for i = 1, 2 do
-						local _ai, _ownr, _abrt = coroutine.yield();
-						if _abrt then return true end
-					end
-				end
+				, Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team);
 			end
+		end
+		
+		while searchesRemaining > 0 do
+			local _ai, _ownr, _abrt = coroutine.yield();
+			if _abrt then return true end
 		end
 
 		AI.PickupHD = nil;
@@ -1151,6 +1156,13 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 			end
 
 			Owner:UpdateMovePath();
+
+			-- wait until movepath is updated
+			while Owner.IsWaitingOnNewMovePath do
+				local _ai, _ownr, _abrt = coroutine.yield();
+				if _abrt then return true end
+			end
+
 			AI:CreateGoToBehavior(Owner);
 		end
 	end
@@ -1909,6 +1921,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			else
 				Owner:UpdateMovePath();
 
+				-- wait until movepath is updated
+				while Owner.IsWaitingOnNewMovePath do
+					local _ai, _ownr, _abrt = coroutine.yield();
+					if _abrt then return true end
+				end
+
 				-- have we arrived?
 				if not Owner.MOMoveTarget then
 					local ProxyWpt = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height*0.2, 5);
@@ -1927,7 +1945,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 				end
 
-				-- no waypoint list, create one in several small steps to reduce lag
+				-- no waypoint list, create one
 				local PathDump = {};
 				if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 					Owner:DrawWaypoints(false);
@@ -1941,17 +1959,11 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					Owner:ClearMovePath();
 					Owner:AddToMovePathEnd(Owner.MOMoveTarget.Pos);
 				else
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
-
 					-- copy the MovePath to a temporary table so we can yield safely while working on the path
 					for WptPos in Owner.MovePath do
 						table.insert(PathDump, WptPos);
 					end
 				end
-
-				local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-				if _abrt then return true end
 
 				-- copy useful waypoints to a temporary path
 				local TmpWpts = {};
@@ -1971,8 +1983,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					end
 
 					LastPos = WptPos;
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
 				end
 
 				-- No path
@@ -2006,9 +2016,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 							end
 
-							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-							if _abrt then return true end
-
 							table.sort(GapList, function(A, B) return A.score > B.score end); -- sort largest first
 
 							for _, LZ in pairs(GapList) do
@@ -2030,9 +2037,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										break;
 									end
 								end
-
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
 							end
 						end
 					end
