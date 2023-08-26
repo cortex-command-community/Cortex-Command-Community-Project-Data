@@ -235,11 +235,10 @@ end
 
 function HumanBehaviors.GetGrenadeAngle(AimPoint, TargetVel, StartPos, muzVel)
 	local Dist = SceneMan:ShortestDistance(StartPos, AimPoint, false);
-	local range = Dist.Magnitude;
 
 	-- compensate for gravity if the point we are trying to hit is more than 2m away
-	if range > 40 then
-		local timeToTarget = range / muzVel;
+	if Dist:MagnitudeIsGreaterThan(40) then
+		local timeToTarget = Dist.Magnitude / muzVel;
 
 		-- lead the target if target speed and projectile TTT is above the threshold
 		if (timeToTarget * TargetVel.Magnitude) > 0.5 then
@@ -1464,8 +1463,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 					local RandomWpt = WptList[test];
 					if RandomWpt then
 						Dist = SceneMan:ShortestDistance(Owner.Pos, RandomWpt.Pos, false);
-						local mag = Dist.Magnitude;
-						if mag < 50 and mag < SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Magnitude/3 then
+						if Dist:MagnitudeIsLessThan(50) and Dist:MagnitudeIsLessThan(SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Magnitude * 0.33) then
 							-- this waypoint is closer, check LOS
 							if -1 == SceneMan:CastObstacleRay(Owner.Pos, Dist, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 4) then
 								Waypoint = RandomWpt; -- go here instead
@@ -2997,8 +2995,8 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 
 		-- check if we can fire at the AimPoint
 		local Trace = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false);
-		local rayLenght = SceneMan:CastObstacleRay(Owner.EyePos, Trace, Vector(), Vector(), rte.NoMOID, Owner.IgnoresWhichTeam, rte.grassID, 11);
-		if Trace.Magnitude * 0.67 < rayLenght then
+		local rayLength = SceneMan:CastObstacleRay(Owner.EyePos, Trace, Vector(), Vector(), rte.NoMOID, Owner.IgnoresWhichTeam, rte.grassID, 11);
+		if Trace:MagnitudeIsLessThan(rayLength * 1.5) then
 			break; -- the AimPoint is close enough to the target, start shooting
 		end
 

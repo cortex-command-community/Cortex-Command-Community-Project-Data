@@ -45,7 +45,7 @@ function Update(self)
 			for _, healTarget in pairs(self.healTargets) do
 				if healTarget and IsActor(healTarget) and (healTarget.Health < healTarget.MaxHealth or healTarget.WoundCount > 0) and healTarget.Vel.Largest < 10 then
 					local trace = SceneMan:ShortestDistance(self.Pos, healTarget.Pos, false);
-					if (trace.Magnitude - healTarget.Radius) < healRange and SceneMan:CastObstacleRay(self.Pos, trace, Vector(), Vector(), parent.ID, parent.IgnoresWhichTeam, rte.grassID, 5) < 0 then
+					if trace:MagnitudeIsLessThan(healRange + healTarget.Radius) and SceneMan:CastObstacleRay(self.Pos, trace, Vector(), Vector(), parent.ID, parent.IgnoresWhichTeam, rte.grassID, 5) < 0 then
 						healTarget.Health = math.min(healTarget.Health + self.healStrength, healTarget.MaxHealth);
 						if self.crossTimer:IsPastSimTimeLimit() then
 							local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
@@ -65,7 +65,7 @@ function Update(self)
 			for actor in MovableMan.Actors do
 				if actor.Team == parent.Team and actor.ID ~= parent.ID and (actor.Health < actor.MaxHealth or actor.WoundCount > 0) and actor.Vel.Largest < 5 then
 					local trace = SceneMan:ShortestDistance(self.Pos, actor.Pos, false);
-					if (trace.Magnitude - actor.Radius) < (healRange * 0.9) then
+					if trace:MagnitudeIsLessThan(healRange * 0.9 + actor.Radius) then
 						if SceneMan:CastObstacleRay(self.Pos, trace, Vector(), Vector(), parent.ID, parent.IgnoresWhichTeam, rte.airID, 3) < 0 then
 							table.insert(self.healTargets, actor);
 						end

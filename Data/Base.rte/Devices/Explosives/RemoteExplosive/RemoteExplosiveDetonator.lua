@@ -18,27 +18,24 @@ function Update(self)
 	end
 	if self.Magazine then
 		if self:IsActivated() then
-			if self.fireOn == false then
-				if self.delayTimer:IsPastSimMS(self.detonateDelay) then
-					self.delayTimer:Reset();
-					self.actionPhase = self.actionPhase + 1;
-					self.blink = false;
-				else
-					self.Magazine.RoundCount = math.ceil(100 * (1 - 1 * self.delayTimer.ElapsedSimTimeMS/self.detonateDelay));
-				end
-				if self.actionPhase >= 1 then
+			if self.delayTimer:IsPastSimMS(self.detonateDelay) then
+				self.delayTimer:Reset();
+				self.actionPhase = self.actionPhase + 1;
+				self.blink = false;
+			else
+				self.Magazine.RoundCount = math.ceil(100 * (1 - 1 * self.delayTimer.ElapsedSimTimeMS/self.detonateDelay));
+			end
+			if self.actionPhase >= 1 then
 
-					if RemoteExplosiveTableA and RemoteExplosiveTableB then
-						for i = 1, #RemoteExplosiveTableA do
-							if MovableMan:IsParticle(RemoteExplosiveTableA[i]) and RemoteExplosiveTableB[i] == self.alliedTeam then
-								RemoteExplosiveTableA[i].Sharpness = 2;
-							end
+				if RemoteExplosiveTableA and RemoteExplosiveTableB then
+					for i = 1, #RemoteExplosiveTableA do
+						if MovableMan:IsParticle(RemoteExplosiveTableA[i]) and RemoteExplosiveTableB[i] == self.alliedTeam then
+							RemoteExplosiveTableA[i].Sharpness = 2;
 						end
 					end
-					self.detonateSound:Play(self.Pos);
-					self.fireOn = true;
-					self:Reload();
 				end
+				self.detonateSound:Play(self.Pos);
+				self:Reload();
 			end
 		else
 			self.delayTimer:Reset();

@@ -1013,7 +1013,7 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 		end
 
 		local player = actorController.Player;
-		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, false, player);
+		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, player);
 		FrameMan:ClearScreenText(player);
 		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", player, 0, 100, false);
 	else
@@ -1385,8 +1385,8 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 			actorData.direction = getDirectionForDistanceLargerAxis(distanceFromActorToFirstExitPathPosition, 0);
 
 			local endNodeData = teamNodeTable[waypointData.endNode];
-			if not endNodeData.zoneBox:IsWithinBox(waypointData.exitPath[1]) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(waypointData.exitPath[1])) then
-				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 5;
+			if #waypointData.exitPath > 0 and not endNodeData.zoneBox:IsWithinBox(waypointData.exitPath[1]) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(waypointData.exitPath[1])) then
+				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10;
 				if math.abs(velocityToAddToActor.X) < 1 and velocityToAddToActor.Y < 0 and SceneMan.GlobalAcc.Y > 0 then
 					velocityToAddToActor.Y = velocityToAddToActor.Y * 2;
 				end
