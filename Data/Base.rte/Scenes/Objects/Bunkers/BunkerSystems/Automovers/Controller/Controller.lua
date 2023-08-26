@@ -1080,6 +1080,7 @@ automoverActorFunctions.updateDirectionsFromWaypoints = function(self, actorData
 		elseif waypointData.setupActorWaypointDataCoroutine ~= nil and coroutine.status(waypointData.setupActorWaypointDataCoroutine) ~= "dead" then
 			coroutine.resume(waypointData.setupActorWaypointDataCoroutine, self, actorData);
 		else
+			waypointData.setupActorWaypointDataCoroutine = nil;
 			if actorData.movementMode == self.movementModes.freeze then
 				actorData.movementMode = self.movementModes.move;
 			end
