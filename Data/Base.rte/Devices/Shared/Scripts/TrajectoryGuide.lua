@@ -116,7 +116,7 @@ function Update(self)
 			if self.viewCorrection > 0 then
 				--This part will offset the actor's view to point closer to the guide end position.
 				local viewPoint = actor.ViewPoint + SceneMan:ShortestDistance(actor.ViewPoint, self.guideTable[#self.guideTable], SceneMan.SceneWrapsX):CapMagnitude(self.SharpLength) * self.viewCorrection * actor.SharpAimProgress;
-				CameraMan:SetScrollTarget(viewPoint, 0.1, false, screen);
+				CameraMan:SetScrollTarget(viewPoint, 0.1, screen);
 			end
 		end
 	end
