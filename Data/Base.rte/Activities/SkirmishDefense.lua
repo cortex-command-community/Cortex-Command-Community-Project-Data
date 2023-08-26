@@ -110,10 +110,10 @@ function SkirmishDefense:StartNewGame(aiTeams)
 			soleHumanTeam = soleHumanTeam == -1 and team or false;
 		end
 	end
-	-- If there's only one Human team, set all existing doors to that team
+	-- If there's only one Human team, set all existing doors and actors to that team
 	if soleHumanTeam ~= false and soleHumanTeam >= 0 then
 		for actor in MovableMan.AddedActors do
-			if actor.Team ~= soleHumanTeam and actor.ClassName == "ADoor" then
+			if actor.Team ~= soleHumanTeam then
 				MovableMan:ChangeActorTeam(actor, soleHumanTeam);
 			end
 		end
