@@ -989,20 +989,17 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			end
 
 			if MovableMan:ValidMO(device) and pathMultipler ~= -1 then
-				local simpleDistance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, false) * pathMultipler;
-				if simpleDistance < maxPathLength then	
-					local deviceID = device.UniqueID;
-					SceneMan.Scene:CalculatePathAsync(
-						function(pathRequest)
-							local pathLength = pathRequest.PathLength * pathMultipler;
-							if pathLength < maxPathLength then
-								table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
-							end
-							searchesRemaining = searchesRemaining - 1;
-						end, 
-						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
-					);
-				end
+				local deviceID = device.UniqueID;
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						local pathLength = pathRequest.PathLength * pathMultipler;
+						if pathLength < maxPathLength then
+							table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
+						end
+						searchesRemaining = searchesRemaining - 1;
+					end, 
+					Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+				);
 			end
 		end
 		
@@ -1107,20 +1104,17 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local simpleDistance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, false);
-				if simpleDistance < maxPathLength then
-					local deviceId = device.UniqueID;
-					SceneMan.Scene:CalculatePathAsync(
-						function(pathRequest)
-							local pathLength = pathRequest.PathLength;
-							if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
-								table.insert(devicesToPickUp, {deviceId = deviceId, score = pathLength});
-							end
-							searchesRemaining = searchesRemaining - 1;
-						end, 
-						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
-					);
-				end
+				local deviceId = device.UniqueID;
+				SceneMan.Scene:CalculatePathAsync(
+					function(pathRequest)
+						local pathLength = pathRequest.PathLength;
+						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+							table.insert(devicesToPickUp, {deviceId = deviceId, score = pathLength});
+						end
+						searchesRemaining = searchesRemaining - 1;
+					end, 
+					Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+				);
 			end
 		end
 		
