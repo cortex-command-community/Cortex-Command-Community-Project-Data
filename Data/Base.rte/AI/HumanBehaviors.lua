@@ -992,8 +992,9 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 				local deviceID = device.UniqueID;
 				SceneMan.Scene:CalculatePathAsync(
 					function(pathRequest)
-						local pathLength = pathRequest.PathLength * pathMultipler;
-						if pathLength < maxPathLength then
+						local pathLength = pathRequest.PathLength;
+						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+							local score = pathLength * pathMultipler;
 							table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
 						end
 						searchesRemaining = searchesRemaining - 1;
