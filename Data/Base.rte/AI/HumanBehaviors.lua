@@ -974,30 +974,35 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
-			if MovableMan:ValidMO(device) then
-				SceneMan.Scene:CalculatePathAsync(
-					function(pathRequest)
-						local pathLength = pathRequest.PathLength;
-						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
-							local score = pathLength;
-							if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-								score = pathLength * 0.4; -- prioritize primary or heavy weapons
-							elseif device.ClassName == "TDExplosive" then
-								score = pathLength * 1.4; -- avoid grenades if there are other weapons
-							elseif device:IsTool() then
-								if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-									score = pathLength * 1.8; -- avoid diggers if there are other weapons
-								else
-									pathLength = maxPathLength;
-								end
-							end
+			
+			local pathMultipler = 1;
+			if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
+				pathMultipler = 0.4; -- prioritize primary or heavy weapons
+			elseif device.ClassName == "TDExplosive" then
+				pathMultipler = 1.4; -- avoid grenades if there are other weapons
+			elseif device:IsTool() then
+				if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
+					pathMultipler = 1.8; -- avoid diggers if there are other weapons
+				else
+					pathMultipler = -1; -- disregard non-digger tools
+				end
+			end
+
+			if MovableMan:ValidMO(device) and pathMultipler ~= -1 then
+				local simpleDistance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, false) * pathMultipler;
+				if simpleDistance < maxPathLength then	
+					local deviceID = device.UniqueID;
+					SceneMan.Scene:CalculatePathAsync(
+						function(pathRequest)
+							local pathLength = pathRequest.PathLength * pathMultipler;
 							if pathLength < maxPathLength then
-								table.insert(devicesToPickUp, {device = device, score = score});
+								table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
 							end
-						end
-						searchesRemaining = searchesRemaining - 1;
-					end
-				, Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team);
+							searchesRemaining = searchesRemaining - 1;
+						end, 
+						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+					);
+				end
 			end
 		end
 		
@@ -1009,8 +1014,9 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		AI.PickupHD = nil;
 		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
-			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
-				AI.PickupHD = deviceToPickupEntry.device;
+			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
+			if MovableMan:ValidMO(device) and device:IsDevice() then
+				AI.PickupHD = device;
 				break;
 			end
 		end
@@ -1072,10 +1078,6 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	local mosSearched = 0;
 	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, maxSearchDistance, -1, true) do
 		mosSearched = mosSearched + 1;
-		if mosSearched % 30 == 0 then
-			local _ai, _ownr, _abrt = coroutine.yield();
-			if _abrt then return true end
-		end
 		
 		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
 			local device = ToHeldDevice(movableObject);
@@ -1105,15 +1107,20 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				SceneMan.Scene:CalculatePathAsync(
-					function(pathRequest)
-						local pathLength = pathRequest.PathLength;
-						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
-							table.insert(devicesToPickUp, {device = device, score = pathLength});
-						end
-						searchesRemaining = searchesRemaining - 1;
-					end
-				, Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team);
+				local simpleDistance = SceneMan:ShortestDistance(Owner.Pos, device.Pos, false);
+				if simpleDistance < maxPathLength then
+					local deviceId = device.UniqueID;
+					SceneMan.Scene:CalculatePathAsync(
+						function(pathRequest)
+							local pathLength = pathRequest.PathLength;
+							if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+								table.insert(devicesToPickUp, {deviceId = deviceId, score = pathLength});
+							end
+							searchesRemaining = searchesRemaining - 1;
+						end, 
+						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+					);
+				end
 			end
 		end
 		
@@ -1125,8 +1132,9 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		AI.PickupHD = nil;
 		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
-			if MovableMan:ValidMO(deviceToPickupEntry.device) and deviceToPickupEntry.device:IsDevice() then
-				AI.PickupHD = deviceToPickupEntry.device;
+			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
+			if MovableMan:ValidMO(device) and device:IsDevice() then
+				AI.PickupHD = device;
 				break;
 			end
 		end
