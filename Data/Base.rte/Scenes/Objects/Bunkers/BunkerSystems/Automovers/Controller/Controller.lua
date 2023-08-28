@@ -1042,17 +1042,28 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 
 	actorData.direction = Directions.None;
 
-	if not actorController:IsState(Controller.PIE_MENU_ACTIVE) then
-		if actorController:IsState(Controller.PRESS_UP) or actorController:IsState(Controller.HOLD_UP) then
-			actorData.direction = Directions.Up;
-		elseif actorController:IsState(Controller.PRESS_DOWN) or actorController:IsState(Controller.HOLD_DOWN) then
-			actorData.direction = Directions.Down;
-		elseif actorController:IsState(Controller.PRESS_LEFT) or actorController:IsState(Controller.HOLD_LEFT) then
-			actorData.direction = Directions.Left;
-		elseif actorController:IsState(Controller.PRESS_RIGHT) or actorController:IsState(Controller.HOLD_RIGHT) then
-			actorData.direction = Directions.Right;
+	local deadZone = 0.1;
+	local analogMove = actorController.AnalogMove;
+	if analogMove:MagnitudeIsGreaterThan(deadZone) then
+		if math.abs(analogMove.X) < math.abs(analogMove.Y) then
+			actorData.direction = analogMove.Y > 0 and Directions.Down or Directions.Up;
+		else
+			actorData.direction = analogMove.X > 0 and Directions.Right or Directions.Left;
+		end
+	else
+		if not actorController:IsState(Controller.PIE_MENU_ACTIVE) then
+			if actorController:IsState(Controller.PRESS_UP) or actorController:IsState(Controller.HOLD_UP) then
+				actorData.direction = Directions.Up;
+			elseif actorController:IsState(Controller.PRESS_DOWN) or actorController:IsState(Controller.HOLD_DOWN) then
+				actorData.direction = Directions.Down;
+			elseif actorController:IsState(Controller.PRESS_LEFT) or actorController:IsState(Controller.HOLD_LEFT) then
+				actorData.direction = Directions.Left;
+			elseif actorController:IsState(Controller.PRESS_RIGHT) or actorController:IsState(Controller.HOLD_RIGHT) then
+				actorData.direction = Directions.Right;
+			end
 		end
 	end
+
 	if actorData.movementMode ~= self.movementModes.unstickActor then
 		if actorData.direction == Directions.None and actorData.movementMode ~= self.movementModes.leaveAutomovers then
 			actorData.movementMode = self.movementModes.freeze;
