@@ -1,13 +1,12 @@
 function Create(self)
 
-	if self:NumberValueExists("KeepUnflipped") then
+	if self:GetNumberValue("KeepUnflipped") == -1 then
 		self.keepFlipped = true;
 	else
 		self.keepFlipped = false;
 	end
 	
-	self.pinPos = self.Pos;
-	
+	self.pinPos = Vector(self.Pos.X, self.Pos.Y);
 
 end
 

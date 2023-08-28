@@ -27,10 +27,18 @@ function Create(self)
 	self.shotsPerBurst = self:NumberValueExists("ShotsPerBurst") and self:GetNumberValue("ShotsPerBurst") or 3;
 	self.coolDownDelay = 500;	
 	
+	if self:NumberValueExists("KeepUnflipped") then
+		self.keepFlipped = true;
+	else
+		self.keepFlipped = false;
+	end
+	
 
 end
 
 function Update(self)
+
+	self.HFlipped = self.keepFlipped;
 
 	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
 	
