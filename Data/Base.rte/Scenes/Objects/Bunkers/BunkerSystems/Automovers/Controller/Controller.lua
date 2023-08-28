@@ -1,3 +1,4 @@
+require("Utilities");
 require("Scenes/Objects/Bunkers/BunkerSystems/Automovers/GlobalAutomoverFunctions");
 
 local automoverUtilityFunctions = {};
@@ -678,7 +679,7 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 	return closestNode;
 end
 
-automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positionToFindClosestNodeFor, nodeThatMustHaveConnectingAutomoverPath, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas, pathfinderTeam, pathfinderDigStrength)
+automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas, pathfinderTeam, pathfinderDigStrength)
 	local teamNodeTable = AutomoverData[self.Team].nodeData;
 	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
@@ -690,6 +691,7 @@ automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positio
 			nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
 			if not nodeSatisfiesConditions then
 				local connectingAreaDirectionToCheck = Directions.None;
+				local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
 				if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
 					connectingAreaDirectionToCheck = Directions.Up;
 				elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
@@ -713,7 +715,7 @@ automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positio
 	while coroutine.status(shortestPathCoroutine) ~= "dead" do
 		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, false, pathfinderDigStrength);
 		if result then
-			return result.key;
+			return result;
 		else
 			coroutine.yield();
 		end
