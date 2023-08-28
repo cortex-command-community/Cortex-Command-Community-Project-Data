@@ -949,7 +949,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			if _abrt then return true end
 		end
 		
-		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
+		if MovableMan:ValidMO(movableObject) and IsHeldDevice(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) then
 				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
@@ -974,33 +974,34 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
-			
-			local pathMultipler = 1;
-			if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-				pathMultipler = 0.4; -- prioritize primary or heavy weapons
-			elseif device.ClassName == "TDExplosive" then
-				pathMultipler = 1.4; -- avoid grenades if there are other weapons
-			elseif device:IsTool() then
-				if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-					pathMultipler = 1.8; -- avoid diggers if there are other weapons
-				else
-					pathMultipler = -1; -- disregard non-digger tools
+			if MovableMan:ValidMO(device) then
+				local pathMultipler = 1;
+				if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
+					pathMultipler = 0.4; -- prioritize primary or heavy weapons
+				elseif device.ClassName == "TDExplosive" then
+					pathMultipler = 1.4; -- avoid grenades if there are other weapons
+				elseif device:IsTool() then
+					if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
+						pathMultipler = 1.8; -- avoid diggers if there are other weapons
+					else
+						pathMultipler = -1; -- disregard non-digger tools
+					end
 				end
-			end
 
-			if MovableMan:ValidMO(device) and pathMultipler ~= -1 then
-				local deviceID = device.UniqueID;
-				SceneMan.Scene:CalculatePathAsync(
-					function(pathRequest)
-						local pathLength = pathRequest.PathLength;
-						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
-							local score = pathLength * pathMultipler;
-							table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
-						end
-						searchesRemaining = searchesRemaining - 1;
-					end, 
-					Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
-				);
+				if pathMultipler ~= -1 then
+					local deviceID = device.UniqueID;
+					SceneMan.Scene:CalculatePathAsync(
+						function(pathRequest)
+							local pathLength = pathRequest.PathLength;
+							if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+								local score = pathLength * pathMultipler;
+								table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
+							end
+							searchesRemaining = searchesRemaining - 1;
+						end, 
+						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+					);
+				end
 			end
 		end
 		
@@ -1077,7 +1078,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, maxSearchDistance, -1, true) do
 		mosSearched = mosSearched + 1;
 		
-		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
+		if MovableMan:ValidMO(movableObject) and IsHeldDevice(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) and device:HasObjectInGroup("Tools - Diggers") then
 				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
