@@ -25,7 +25,7 @@ function Create(self)
 	
 
 	self.shotsPerBurst = self:NumberValueExists("ShotsPerBurst") and self:GetNumberValue("ShotsPerBurst") or 3;
-	self.coolDownDelay = (60000/self.RateOfFire) + 100;	
+	self.coolDownDelay = 500;	
 	
 
 end
