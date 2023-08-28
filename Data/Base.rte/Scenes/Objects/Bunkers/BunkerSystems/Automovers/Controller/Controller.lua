@@ -941,7 +941,6 @@ automoverActorFunctions.convertWaypointDataToActorWaypoints = function(self, act
 				actor:AddAISceneWaypoint(sceneTarget);
 			end
 		end
-		actor:UpdateMovePath();
 
 		actorData.waypointData = nil;
 	end
@@ -1389,7 +1388,7 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 
 			local endNodeData = teamNodeTable[waypointData.endNode];
 			if #waypointData.exitPath > 0 and not endNodeData.zoneBox:IsWithinBox(waypointData.exitPath[1]) and (endNodeData.connectedNodeData[actorData.direction] == nil or not endNodeData.connectingAreas[actorData.direction]:IsInside(waypointData.exitPath[1])) then
-				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 10;
+				local velocityToAddToActor = distanceFromActorToFirstExitPathPosition.Normalized:FlipX(true):FlipY(true) * self.movementAcceleration * 5;
 				if math.abs(velocityToAddToActor.X) < 1 and velocityToAddToActor.Y < 0 and SceneMan.GlobalAcc.Y > 0 then
 					velocityToAddToActor.Y = velocityToAddToActor.Y * 2;
 				end
