@@ -1,11 +1,12 @@
 -- This script incorporates Filipawn Industries code and the vanilla burstfire script together
 -- There is likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
 
--- Last worked on 12/4/2023
+-- Last worked on 29/08/2023
 
 function OnFire(self)
 
 	self.FireTimer:Reset();
+	CameraMan:AddScreenShake(10, self.Pos);
 	
 end
 
@@ -13,14 +14,17 @@ function Create(self)
 
 	self.preSound = CreateSoundContainer("Coalition Bunker Cannon Pre", "Coalition.rte");
 	
+	self.explosiveShot = CreateAEmitter("Coalition Bunker Cannon Explosive Shot", "Coalition.rte");
+	self.slugShot = CreateAEmitter("Coalition Bunker Cannon Slug Shot", "Coalition.rte");
+	
 	self.FireTimer = Timer();
 	
 	self.delayedFire = false
 	self.delayedFireTimer = Timer();
-	self.delayedFireTimeMS = 50
-	self.delayedFireEnabled = true	
-	self.fireDelayTimer = Timer()
-	self.activated = false
+	self.delayedFireTimeMS = 90;
+	self.delayedFireEnabled = true;
+	self.fireDelayTimer = Timer();
+	self.activated = false;
 	self.delayedFirstShot = true;
 	
 
@@ -47,40 +51,9 @@ function Update(self)
 	self.Frame = math.floor(f * 8 + 0.55);
 	
 	if self:DoneReloading() or self:IsReloading() then
-		self.fireDelayTimer:Reset()
+		self.fireDelayTimer:Reset();
 		self.activated = false;
 		self.delayedFire = false;
-	end
-	
-	local fire = self:IsActivated() and self.RoundInMagCount > 0;
-
-	if self.parent and self.delayedFirstShot == true then
-		if self.RoundInMagCount > 0 then
-			self:Deactivate()
-		end
-		
-		--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
-		if fire and not self:IsReloading() then
-			if not self.Magazine or self.Magazine.RoundCount < 1 then
-				--self:Reload()
-				self:Activate()
-			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
-				self.activated = true
-				
-				self.preSound:Play(self.Pos);
-				
-				self.fireDelayTimer:Reset()
-				
-				self.delayedFire = true
-				self.delayedFireTimer:Reset()
-			end
-		else
-			if self.activated then
-				self.activated = false
-			end
-		end
-	elseif fire == false then
-		self.delayedFirstShot = true;
 	end
 	
 	if self.delayedFire and self.delayedFireTimer:IsPastSimMS(self.delayedFireTimeMS) then
@@ -106,17 +79,67 @@ function Update(self)
 				
 			self:Activate();
 			if self.FiredFrame then
+			
+				local shot = self.slugShot:Clone();
+				shot.Pos = self.MuzzlePos;
+				shot.Vel = self.Vel + Vector(160, 0):RadRotate(self.RotAngle);
+				shot.Team = self.Team;
+				shot.RotAngle = self.RotAngle;
+				shot.HFlipped = self.HFlipped;
+				MovableMan:AddParticle(shot);
+				
 				self.shotCounter = self.shotCounter + 1;
 				if self.shotCounter >= self.shotsPerBurst then
 					self.coolDownTimer = Timer();
 				end
 			end
 		elseif self.FiredFrame then
+		
+			local shot = self.explosiveShot:Clone();
+			shot.Pos = self.MuzzlePos;
+			shot.Vel = self.Vel + Vector(160, 0):RadRotate(self.RotAngle);
+			shot.Team = self.Team;
+			shot.RotAngle = self.RotAngle;
+			shot.HFlipped = self.HFlipped;
+			MovableMan:AddParticle(shot);
+			
 			self.shotCounter = 1;
 		end
 	else
 		self.coolDownTimer, self.shotCounter = nil;
 	end	
 
+	local fire = self:IsActivated() and self.RoundInMagCount > 0;
+
+	if not self.shotCounter then
+		if self.parent and self.delayedFirstShot == true then
+			if self.RoundInMagCount > 0 then
+				self:Deactivate()
+			end
+			
+			--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
+			if fire and not self:IsReloading() then
+				if not self.Magazine or self.Magazine.RoundCount < 1 then
+					--self:Reload()
+					self:Activate()
+				elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
+					self.activated = true
+					
+					self.preSound:Play(self.Pos);
+					
+					self.fireDelayTimer:Reset()
+					
+					self.delayedFire = true
+					self.delayedFireTimer:Reset()
+				end
+			else
+				if self.activated then
+					self.activated = false
+				end
+			end
+		elseif fire == false then
+			self.delayedFirstShot = true;
+		end
+	end
 	
 end
