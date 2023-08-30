@@ -46,6 +46,8 @@ function Update(self)
 
 	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
 	
+	self.playerControlled = (self.parent and self.parent:IsPlayerControlled()) and true or false;
+	
 	-- Mathemagical firing anim by filipex
 	local f = math.max(1 - math.min((self.FireTimer.ElapsedSimTimeMS) / 200, 1), 0)
 	self.Frame = math.floor(f * 8 + 0.55);
@@ -62,15 +64,19 @@ function Update(self)
 		self.delayedFirstShot = false;
 	end
 	
-	
 	if self.Magazine then
 		if self.coolDownTimer then
-			if self.coolDownTimer:IsPastSimMS(self.coolDownDelay) and not (self:IsActivated() and self.triggerPulled) then
+			if self.coolDownTimer:IsPastSimMS(self.coolDownDelay) and (self.playerControlled == false or self.triggerPulled == false) then
 				self.coolDownTimer, self.shotCounter = nil;
-			else
+				self.delayedFirstShot = true;
+				-- it really throws off the AI if we don't deactivate here too, it'll only fire once
+				-- i don't know why this is, it should just let it fire again
 				self:Deactivate();
-				if self.parent and ToActor(self.parent):IsPlayerControlled() then
+			else
+				if not self:IsActivated() then
 					self.triggerPulled = false;
+				else	
+					self:Deactivate();
 				end
 			end
 		elseif self.shotCounter then
@@ -91,9 +97,14 @@ function Update(self)
 				self.shotCounter = self.shotCounter + 1;
 				if self.shotCounter >= self.shotsPerBurst then
 					self.coolDownTimer = Timer();
+					if self.RoundInMagCount == 0 then
+						self:Reload();
+					end
 				end
 			end
 		elseif self.FiredFrame then
+		
+			self.triggerPulled = false;
 		
 			local shot = self.explosiveShot:Clone();
 			shot.Pos = self.MuzzlePos;
@@ -119,7 +130,7 @@ function Update(self)
 			
 			--if self.parent:GetController():IsState(Controller.WEAPON_FIRE) and not self:IsReloading() then
 			if fire and not self:IsReloading() then
-				if not self.Magazine or self.Magazine.RoundCount < 1 then
+				if not self.Magazine or self.RoundInMagCount < 1 then
 					--self:Reload()
 					self:Activate()
 				elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
