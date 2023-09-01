@@ -10,7 +10,19 @@ function OnFire(self)
 	
 end
 
+function OnReload(self)
+
+	self.reloadToSmoke = true;
+	self.reloadSmokeTimer:Reset();
+	
+end
+
 function Create(self)
+
+	self.servoLoopSound = CreateSoundContainer("Coalition Bunker Cannon Servo Loop", "Coalition.rte");
+	self.servoLoopSound.Volume = 0;
+	self.servoLoopSound.Pitch = 1;
+	self.servoLoopSound:Play(self.Pos);
 
 	self.preSound = CreateSoundContainer("Coalition Bunker Cannon Pre", "Coalition.rte");
 	
@@ -27,6 +39,11 @@ function Create(self)
 	self.activated = false;
 	self.delayedFirstShot = true;
 	
+	self.reloadSmokeTimer = Timer();
+	
+	self.rotationSpeed = 0.10;
+	self.smoothedRotAngle = self.RotAngle;
+	self.InheritedRotAngleTarget = 0;
 
 	self.shotsPerBurst = self:NumberValueExists("ShotsPerBurst") and self:GetNumberValue("ShotsPerBurst") or 3;
 	self.coolDownDelay = 500;	
@@ -42,11 +59,37 @@ end
 
 function Update(self)
 
-	self.HFlipped = self.keepFlipped;
+	self.servoLoopSound.Pos = self.Pos;
 
+	self.HFlipped = self.keepFlipped;
+	
 	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
 	
 	self.playerControlled = (self.parent and self.parent:IsPlayerControlled()) and true or false;
+	
+	-- reticule of actual aim line so the gun feels cannon-y rather than unresponsive
+	
+	if self.playerControlled then
+		for i = 1, 24 do
+			if i % 3 == 0 then
+				PrimitiveMan:DrawLinePrimitive(Vector(i*self.FlipFactor, 0):RadRotate(self.RotAngle) + self.Pos + Vector(self.SharpLength* 1.09 * self.FlipFactor, 0):RadRotate(self.RotAngle),
+											   Vector(i*self.FlipFactor, 0):RadRotate(self.RotAngle) + self.Pos + Vector((self.SharpLength* 1.09) * self.FlipFactor, 0):RadRotate(self.RotAngle),
+											   116, 2);
+			end
+		end
+	end
+	-- rotation smoothing, for a cannon-y feel:
+	
+	if self.smoothedRotAngle ~= self.RotAngle then
+		self.smoothedRotAngle = self.smoothedRotAngle - (self.rotationSpeed * (self.smoothedRotAngle - self.RotAngle));
+	end
+	
+	self.servoLoopSoundVolumeTarget = 0 + math.abs(self.smoothedRotAngle - self.RotAngle)
+	self.servoLoopSound.Volume = self.playerControlled and (self.servoLoopSound.Volume - (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget)) or 0;
+	self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - self.RotAngle)
+	self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
+	
+	self.RotAngle = self.smoothedRotAngle;
 	
 	-- Mathemagical firing anim by filipex
 	local f = math.max(1 - math.min((self.FireTimer.ElapsedSimTimeMS) / 200, 1), 0)
@@ -152,5 +195,37 @@ function Update(self)
 			self.delayedFirstShot = true;
 		end
 	end
+	
+	if self:IsReloading() then
+		-- manually timed according to sound
+		if self.reloadToSmoke and self.reloadSmokeTimer:IsPastSimMS(900) then
+			self.reloadToSmoke = false;
+			
+			for i = 1, 8 do
+				local particle = CreateMOSParticle("Small Smoke Ball 1", "Base.rte");
+				particle.GlobalAccScalar = 0.005
+				particle.Lifetime = math.random(800, 2500);
+				particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-40, -30)/100);
+				particle.Pos = self.Pos + Vector(-math.random(15, 17)*self.FlipFactor, math.random(-3, 3));
+				MovableMan:AddParticle(particle);
+			end
+			
+			for i = 1, 6 do
+				local particle = CreateMOSParticle("Small Smoke Ball 1", "Base.rte");
+				particle.GlobalAccScalar = 0.005
+				particle.Lifetime = math.random(800, 2500);
+				particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-100, -30)/100);
+				particle.Pos = self.Pos + Vector(-math.random(15, 17)*self.FlipFactor, math.random(-3, 3));
+				MovableMan:AddParticle(particle);
+			end	
+			
+		end
+	end
+	
+end
+
+function Destroy(self)
+
+	self.servoLoopSound:Stop(-1);
 	
 end
