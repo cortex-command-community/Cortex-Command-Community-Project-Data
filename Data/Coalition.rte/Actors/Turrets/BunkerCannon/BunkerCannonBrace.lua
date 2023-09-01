@@ -18,6 +18,8 @@ function Create(self)
 		self:SetNumberValue("BunkerCannonPinPosY", self.pinPos.Y);
 	end
 
+	self.AIMode = Actor.AIMODE_SENTRY;
+
 end
 
 function Update(self)
