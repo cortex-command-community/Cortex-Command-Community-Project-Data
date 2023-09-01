@@ -69,12 +69,11 @@ function Update(self)
 	
 	-- reticule of actual aim line so the gun feels cannon-y rather than unresponsive
 	
-	if self.playerControlled then
+	if self.playerControlled and self.parent.SharpAimProgress > 0.13 then
 		for i = 1, 24 do
 			if i % 3 == 0 then
-				PrimitiveMan:DrawLinePrimitive(Vector(i*self.FlipFactor, 0):RadRotate(self.RotAngle) + self.Pos + Vector(self.SharpLength* 1.09 * self.FlipFactor, 0):RadRotate(self.RotAngle),
-											   Vector(i*self.FlipFactor, 0):RadRotate(self.RotAngle) + self.Pos + Vector((self.SharpLength* 1.09) * self.FlipFactor, 0):RadRotate(self.RotAngle),
-											   116, 2);
+				local dotVec = Vector(i*self.FlipFactor, 0):RadRotate(self.RotAngle) + self.Pos + Vector((self.SharpLength + 15) * self.FlipFactor, 0):RadRotate(self.RotAngle)*self.parent.SharpAimProgress;
+				PrimitiveMan:DrawLinePrimitive(dotVec, dotVec, 116, 2);
 			end
 		end
 	end
@@ -85,7 +84,7 @@ function Update(self)
 	end
 	
 	self.servoLoopSoundVolumeTarget = 0 + math.abs(self.smoothedRotAngle - self.RotAngle)
-	self.servoLoopSound.Volume = self.playerControlled and (self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget))) or 0;
+	self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
 	self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - self.RotAngle)
 	self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
 	
