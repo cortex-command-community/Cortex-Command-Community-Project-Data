@@ -194,6 +194,7 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 
 	local SharpTimer = Timer();
 	local IdleAimTimer = Timer();
+	local sharpAimTime = AI.idleAimTime;
 	local angDiff = 1;
 	AI.deviceState = ACrab.POINTING;
 
@@ -236,10 +237,10 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 			SharpTimer:Reset();
 
 			if AI.deviceState == ACrab.AIMING then
-				aimTime = RangeRand(AI.idleAimTime * 0.5, AI.idleAimTime * 1.5);
+				sharpAimTime = RangeRand(AI.idleAimTime * 0.5, AI.idleAimTime * 1.5);
 				AI.deviceState = ACrab.POINTING;
 			else
-				aimTime = RangeRand(AI.idleAimTime * 3, AI.idleAimTime * 6) * angDiff;
+				sharpAimTime = RangeRand(AI.idleAimTime * 3, AI.idleAimTime * 6) * angDiff;
 				AI.deviceState = ACrab.AIMING;
 			end
 
