@@ -85,7 +85,7 @@ function Update(self)
 	end
 	
 	self.servoLoopSoundVolumeTarget = 0 + math.abs(self.smoothedRotAngle - self.RotAngle)
-	self.servoLoopSound.Volume = self.playerControlled and (self.servoLoopSound.Volume - (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget)) or 0;
+	self.servoLoopSound.Volume = self.playerControlled and (self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget))) or 0;
 	self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - self.RotAngle)
 	self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
 	
