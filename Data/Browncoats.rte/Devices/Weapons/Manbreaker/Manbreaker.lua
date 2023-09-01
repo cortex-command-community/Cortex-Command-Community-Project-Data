@@ -6,6 +6,9 @@
 function OnFire(self)
 
 	CameraMan:AddScreenShake(3, self.Pos);
+	
+	self.mechTailSound:Play(self.Pos);
+	
 	if self.firstShot then
 		self.firstShotSound:Play(self.Pos);
 		self.firstShot = false;
@@ -21,6 +24,8 @@ function Create(self)
 	
 	self.firstShotSound = CreateSoundContainer("First Shot Browncoat MG-85", "Browncoat.rte");
 	self.shotSound = CreateSoundContainer("Shot Browncoat MG-85", "Browncoat.rte");
+	
+	self.mechTailSound = CreateSoundContainer("Mech Tail Browncoat MG-85", "Browncoat.rte");
 	
 	self.firstShot = true;
 	
