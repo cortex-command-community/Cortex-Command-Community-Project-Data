@@ -272,7 +272,7 @@ function MaginotMission:UpdateScreenText()
 end
 
 function MaginotMission:UpdateAttackerSpawns()
-	if self.spawnTimer:IsPastSimMS(self.spawnTime) and MovableMan:GetTeamMOIDCount(self.attackerTeam) <= rte.DefenderMOIDMax then
+	if self.spawnTimer:IsPastSimMS(self.spawnTime) then
 		self.spawnTimer:Reset();
 
 		local createAttackerAHuman = function(self, attackerIsHeavyActor)

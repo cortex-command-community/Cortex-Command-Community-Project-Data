@@ -49,7 +49,6 @@ function WaveDefense:StartActivity(isNewGame)
 		self.AI.HuntTimer = Timer();
 
 		self.AI.bombChance = math.min(math.max(self.Difficulty/100+math.random(-0.1, 0.1), 0), 1);
-		self.AI.timeToSpawn = 8000 - 50 * self.Difficulty; -- Time before the first AI spawn: from 8s to 3s
 		self.AI.timeToBomb = (42000 - 300 * self.Difficulty) * math.random(0.7, 1.1); -- From 42s to 12s
 		self.AI.baseSpawnTime = 9000 - 40 * self.Difficulty; -- From 9s to 5s
 		self.AI.randomSpawnTime = 6000 - 30 * self.Difficulty; -- From 6s to 3s
@@ -98,6 +97,11 @@ function WaveDefense:StartNewGame()
 	self.triggerWaveInit = true;
 	self.wave = 1;
 	self.wavesDefeated = 0;
+
+	-- Just spawn all the time
+	-- We used to vary this by difficulty, but eh, why bother. It just stretches the length of each round out.
+	-- Instead we spawn constantly >:)
+	self.AI.timeToSpawn = 0;
 
 	-- Set all actors defined in the ini-file to sentry mode, and set their team to the player's.
 	for actor in MovableMan.AddedActors do
@@ -244,7 +248,6 @@ function WaveDefense:UpdateActivity()
 			self.StartTimer:Reset();
 			self:CheckBrains();
 			self:InitWave();
-			self:EnforceMOIDLimit();
 
 			-- Give back control of the actors
 			for Act in MovableMan.Actors do
@@ -441,12 +444,9 @@ function WaveDefense:UpdateActivity()
 
 							if obstacleHeight > 200 and math.random() < 0.4 then
 								-- This target is very difficult to reach: cancel this attack and search for another target again soon
-								self.AI.timeToSpawn = 500;
 								self.AI.AttackTarget = nil;
 								self.AI.AttackPos = nil;
 							else
-								self.AI.timeToSpawn = (self.AI.baseSpawnTime + math.random(self.AI.randomSpawnTime)) * rte.SpawnIntervalScale;
-
 								if obstacleHeight < 30 then
 									self:CreateHeavyDrop(xPosLZ, self.AI.AttackPos);
 								elseif obstacleHeight < 100 then
@@ -492,7 +492,6 @@ function WaveDefense:UpdateActivity()
 						else
 							-- No target found
 							self.AI.SpawnTimer:Reset();
-							self.AI.timeToSpawn = 5000;
 						end
 					end
 				end
@@ -1044,45 +1043,5 @@ function WaveDefense:CreateScoutInfantry()
 		Passenger.AIMode = Actor.AIMODE_BRAINHUNT;
 		Passenger.Team = self.CPUTeam;
 		return Passenger;
-	end
-end
-
--- Get the total MOIDFootprint of the player's actors
-function WaveDefense:GetPlayerMOIDCount()
-	local playerMOID = 0;
-	for Act in MovableMan.Actors do
-		if Act.Team == self.playerTeam then
-			playerMOID = playerMOID + Act.MOIDFootprint;
-		end
-	end
-
-	return playerMOID;
-end
-
--- Make sure there are enough MOIDs to land AI units
-function WaveDefense:EnforceMOIDLimit()
-	local ids = self:GetPlayerMOIDCount() - rte.MOIDCountMax * 0.8;
-	if ids > 0 then
-		local Prune = {};
-		for Item in MovableMan.Items do
-			table.insert(Prune, Item);
-		end
-
-		-- Sort the tables so we delete the oldest object first
-		table.sort(Prune, function(A, B) return A.Age < B.Age end);
-
-		while true do
-			local Object = table.remove(Prune);
-			if Object then
-				Object.ToSettle = true;
-
-				ids = ids - Object.MOIDFootprint;
-				if ids < 1 then
-					break;
-				end
-			else
-				break;
-			end
-		end
 	end
 end
