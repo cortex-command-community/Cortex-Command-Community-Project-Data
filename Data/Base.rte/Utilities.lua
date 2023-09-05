@@ -17,22 +17,25 @@ function FindStartPositionWithShortestPathToEndPosition(startPositions, endPosit
 	
 	local closestStartPositionKey;
 	local closestStartPosition;
-	local totalCostToClosestStartPosition;
+	local totalCostToClosestStartPosition = 1/0;
 	local pathRequestsCompleted = 0;
+	local totalPathingRequests = 0;
 	for startPositionKey, startPosition in pairs(startPositions) do
 		SceneMan.Scene:CalculatePathAsync(
 			function(pathRequest)
-				if totalCostToClosestStartPosition == nil or pathRequest.TotalCost < totalCostToClosestStartPosition then
+				if pathRequest.TotalCost < totalCostToClosestStartPosition then
 					closestStartPositionKey = startPositionKey;
 					closestStartPosition = startPosition;
 					totalCostToClosestStartPosition = pathRequest.TotalCost;
 				end
 				pathRequestsCompleted = pathRequestsCompleted + 1;
-			end
-		, startPosition, endPosition, movePathToGround, digStrength, team);
+			end, 
+			startPosition, endPosition, movePathToGround, digStrength, team
+		);
+		totalPathingRequests = totalPathingRequests + 1;
 	end
 	
-	while pathRequestsCompleted < #startPositions do
+	while pathRequestsCompleted < totalPathingRequests do
 		if totalCostToClosestStartPosition == 0 then
 			break;
 		end
