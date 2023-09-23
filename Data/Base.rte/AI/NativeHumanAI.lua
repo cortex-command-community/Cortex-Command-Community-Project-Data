@@ -51,12 +51,10 @@ function NativeHumanAI:Create(Owner)
 	-- the native AI assume the jetpack cannot be destroyed
 	if Owner.Jetpack then
 		if not Members.isPlayerOwned then
-			Owner.Jetpack.Throttle = Owner.Jetpack.Throttle + 0.15	-- increase jetpack strength slightly to compensate for AI ineptitude
+			Owner.Jetpack.JetTimeTotal = Owner.Jetpack.JetTimeTotal * 1.2;	-- increase jetpack fuel to compensate for extra fuel spend
 		end
 
-		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs;
-		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5;
-		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.JetTimeTotal*0.99); -- in milliseconds
+		Members.minBurstTime = math.min(Owner.Jetpack.BurstSpacing*2, Owner.Jetpack.JetTimeTotal*0.99); -- in milliseconds
 	end
 
 	setmetatable(Members, self);
@@ -66,6 +64,12 @@ end
 
 function NativeHumanAI:Update(Owner)
 	self.Ctrl = Owner:GetController();
+
+	-- Our jetpack might have thrust balancing enabled, so update for our current mass
+	if Owner.Jetpack then		
+		Members.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs;
+		Members.jetBurstFactor = (Owner.Jetpack:EstimateImpulse(true) * GetPPM() / TimerMan.DeltaTimeSecs - Members.jetImpulseFactor) * math.pow(TimerMan.DeltaTimeSecs, 2) * 0.5;
+	end
 
 	if self.isPlayerOwned then
 		if self.PlayerInterferedTimer:IsPastSimTimeLimit() then
@@ -580,7 +584,7 @@ function NativeHumanAI:Update(Owner)
 	if (not self.jump and Owner.Vel.Y > 18) then
 		self.jump = true;
 	end
-	if self.jump and Owner.JetTimeLeft > TimerMan.AIDeltaTimeMS then
+	if self.jump and Owner.Jetpack.JetTimeLeft > TimerMan.AIDeltaTimeMS then
 		if self.jumpState == AHuman.PREJUMP then
 			self.jumpState = AHuman.UPJUMP;
 		elseif self.jumpState ~= AHuman.UPJUMP then	-- the jetpack is off

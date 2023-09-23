@@ -1261,7 +1261,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 		if AI.refuel and Owner.Jetpack then
 			-- if jetpack is full or we are falling we can stop refuelling
-			if Owner.JetTimeLeft > Owner.JetTimeTotal * 0.98 or (AI.flying and Owner.Vel.Y < -3 and Owner.JetTimeLeft > AI.minBurstTime*2) then
+			if Owner.Jetpack.JetTimeLeft > Owner.Jetpack.JetTimeTotal * 0.98 or (AI.flying and Owner.Vel.Y < -3 and Owner.Jetpack.JetTimeLeft > AI.minBurstTime*2) then
 				AI.refuel = false;
 			elseif not AI.flying then
 				AI.jump = false;
@@ -1279,7 +1279,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			WptList = nil; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
 			if AI.jump then
-				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
+				if Owner.Jetpack and Owner.Jetpack.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
 					AI.refuel = true;
 					nextLatMove = Actor.LAT_STILL;
@@ -1306,7 +1306,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 
 				-- refuelling done
-				if AI.refuel and Owner.Jetpack and Owner.JetTimeLeft >= Owner.JetTimeTotal * 0.99 then
+				if AI.refuel and Owner.Jetpack and Owner.Jetpack.JetTimeLeft >= Owner.Jetpack.JetTimeTotal * 0.99 then
 					AI.jump = true;
 				end
 			end
@@ -1761,7 +1761,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 
 								if Owner.Jetpack and Owner.Head and Owner.Head:IsAttached() then
-									if Owner.JetTimeLeft < AI.minBurstTime then
+									if Owner.Jetpack.JetTimeLeft < AI.minBurstTime then
 										AI.jump = false; -- not enough fuel left, no point in jumping yet
 										if not AI.flying or Owner.Vel.Y > 1 then
 											AI.refuel = true;
@@ -1773,13 +1773,13 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											if AI.flying then
 												-- predict jetpack movement when jumping and there is a target (check one direction)
 												local jetStrength = AI.jetImpulseFactor / Owner.Mass;
-												local t = math.min(0.4, Owner.JetTimeLeft*0.001);
+												local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
 												local PixelVel = Owner.Vel * (GetPPM() * t);
 												local Accel = SceneMan.GlobalAcc * GetPPM();
 
 												-- a burst use 10x more fuel
 												if Owner.Jetpack:CanTriggerBurst() then
-													t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
+													t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 												end
 
 												-- test jumping
@@ -1833,13 +1833,13 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 											-- predict jetpack movement...
 											local jetStrength = AI.jetImpulseFactor / Owner.Mass;
-											local t = math.min(0.4, Owner.JetTimeLeft*0.001);
+											local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
 											local PixelVel = Owner.Vel * (GetPPM() * t);
 											local Accel = SceneMan.GlobalAcc * GetPPM();
 
 											-- a burst use 10x more fuel
 											if Owner.Jetpack:CanTriggerBurst() then
-												t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
+												t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 											end
 
 											-- when jumping (check four directions)
