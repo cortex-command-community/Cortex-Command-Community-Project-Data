@@ -584,7 +584,7 @@ function NativeHumanAI:Update(Owner)
 	if (not self.jump and Owner.Vel.Y > 18) then
 		self.jump = true;
 	end
-	if self.jump and Owner.Jetpack.JetTimeLeft > TimerMan.AIDeltaTimeMS then
+	if self.jump and Owner.Jetpack and Owner.Jetpack.JetTimeLeft > TimerMan.AIDeltaTimeMS then
 		if self.jumpState == AHuman.PREJUMP then
 			self.jumpState = AHuman.UPJUMP;
 		elseif self.jumpState ~= AHuman.UPJUMP then	-- the jetpack is off
