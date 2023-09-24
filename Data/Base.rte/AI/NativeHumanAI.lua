@@ -220,7 +220,7 @@ function NativeHumanAI:Update(Owner)
 
 
 	-- check if the feet reach the ground
-	if self.AirTimer:IsPastSimMS(120) then
+	if self.AirTimer:IsPastSimMS(250) then
 		self.AirTimer:Reset();
 
 		local Origin = {};
@@ -459,7 +459,12 @@ function NativeHumanAI:Update(Owner)
 				end
 			end
 		elseif self.flying then	-- avoid falling damage
-			if (not self.jump and Owner.Vel.Y > 9) or (self.jump and Owner.Vel.Y > 6) then
+			local jumpThreshold = 9;
+			if Owner.Jetpack and Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
+				jumpThreshold = jumpThreshold * 3;
+			end
+
+			if (not self.jump and Owner.Vel.Y > jumpThreshold) or (self.jump and Owner.Vel.Y > jumpThreshold * 0.66) then
 				self.jump = true;
 
 				-- try falling straight down

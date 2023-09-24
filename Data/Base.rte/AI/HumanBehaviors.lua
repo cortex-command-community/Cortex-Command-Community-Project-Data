@@ -1295,6 +1295,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 			else
 				local updateInterval = SettingsMan.AIUpdateInterval;
+
 				-- Try swapping direction, with a 15% random chance per tick while we're stuck
 				if PosRand() > (1 - 0.15) / updateInterval then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT;
@@ -1306,7 +1307,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 
 				-- refuelling done
-				if AI.refuel and Owner.Jetpack and Owner.Jetpack.JetTimeLeft >= Owner.Jetpack.JetTimeTotal * 0.99 then
+				if AI.refuel and Owner.Jetpack and Owner.Jetpack.JetpackType == AEJetpack.Standard and Owner.Jetpack.JetTimeLeft >= Owner.Jetpack.JetTimeTotal * 0.99 then
 					AI.jump = true;
 				end
 			end
@@ -1770,7 +1771,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										-- do we have a target we want to shoot at?
 										if (AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget") then
 											-- are we also flying
-											if AI.flying then
+											if AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- predict jetpack movement when jumping and there is a target (check one direction)
 												local jetStrength = AI.jetImpulseFactor / Owner.Mass;
 												local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
@@ -1816,7 +1817,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												AI.jump = false;
 											end
 										else
-											if Waypoint.Type ~= "drop" and not Lower(Waypoint, Owner, 20) then
+											if Waypoint.Type ~= "drop" and not Lower(Waypoint, Owner, 20) and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- jump over low obstacles unless we want to jump off a ledge
 												if nextLatMove == Actor.LAT_RIGHT and (Obstacles[Obst.R_LOW] or Obstacles[Obst.R_FRONT]) and not Obstacles[Obst.R_UP] then
 													AI.jump = true;
@@ -1872,11 +1873,16 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
 											SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
+											local deltaToJump = 25;
+											if Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
+												deltaToJump = deltaToJump * 1.4;
+											end
+
 											table.sort(Facings, function(A, B) return A.range < B.range end);
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range;
 											if delta < 1 then
 												AI.jump = false;
-											elseif AI.flying or delta > 25 then
+											elseif delta > deltaToJump or (AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard) then
 												AI.jump = true;
 												nextAimAngle = Owner:GetAimAngle(false) * 0.5 + Facings[1].aim * 0.5; -- adjust jetpack nozzle direction
 												nextLatMove = Actor.LAT_STILL;
