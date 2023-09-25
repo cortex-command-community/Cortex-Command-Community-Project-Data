@@ -1,9 +1,6 @@
 dofile("Base.rte/Constants.lua")
-require("AI/NativeHumanAI")  --dofile("Base.rte/AI/NativeHumanAI.lua")
 
 function Create(self)
-
-	self.AI = NativeHumanAI:Create(self)
 
 	self.stepSound = CreateSoundContainer("Browncoat Boss Stride", "Browncoats.rte");	
 	self.jumpSound = CreateSoundContainer("Browncoat Boss Jump", "Browncoats.rte");	
@@ -147,10 +144,5 @@ function Update(self)
 			end
 		end
 	end
-
-end
-
-function UpdateAI(self)
-	self.AI:Update(self)
 
 end
