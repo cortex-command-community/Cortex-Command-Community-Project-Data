@@ -34,8 +34,13 @@ function NativeHumanAI:Create(Owner)
 
 	-- set shooting skill
 	Members.aimSpeed, Members.aimSkill, Members.skill = HumanBehaviors.GetTeamShootingSkill(Owner.Team);
+	
+	Members.aimSpeed = Owner:NumberValueExists("AIAimSpeed") and Owner:GetNumberValue("AIAimSpeed") or Members.aimSpeed;
+	Members.aimSkill = Owner:NumberValueExists("AIAimSkill") and Owner:GetNumberValue("AIAimSkill") or Members.aimSkill;
+	Members.skill = Owner:NumberValueExists("AISkill") and Owner:GetNumberValue("AISkill") or Members.skill;
+	
 	-- default to enhanced AI if AI skill has been set high enough
-	if Members.skill >= GameActivity.NUTSDIFFICULTY or Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Actors - Snipers") then
+	if Members.skill >= GameActivity.NUTSDIFFICULTY or Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Actors - Snipers") or Owner:HasObjectInGroup("Actors - Boss") then
 		Members.SpotTargets = HumanBehaviors.CheckEnemyLOS;
 	else
 		Members.SpotTargets = HumanBehaviors.LookForTargets;
@@ -623,6 +628,17 @@ function NativeHumanAI:Destroy(Owner)
 end
 
 -- functions that create behaviors. the default behaviors are stored in the HumanBehaviors table. store your custom behaviors in a table to avoid name conflicts between mods.
+function NativeHumanAI:CreateQuickthrowBehavior(Owner)
+	if self.Target then
+		if Owner:EquipThrowable(true) then
+			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
+			self.NextBehaviorName = "ThrowTarget";	
+		end
+	else
+		return false;
+	end
+end
+
 function NativeHumanAI:CreateSentryBehavior(Owner)
 	if self.Target then
 		self:CreateAttackBehavior(Owner);

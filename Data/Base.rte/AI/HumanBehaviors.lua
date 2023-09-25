@@ -2091,7 +2091,7 @@ end
 
 -- go prone if we can shoot from the prone position and return the result
 function HumanBehaviors.GoProne(AI, Owner, TargetPos, targetID)
-	if not Owner.Head or AI.proneState == AHuman.PRONE then
+	if (not Owner.Head or AI.proneState == AHuman.PRONE) or (Owner:NumberValueExists("AIDisableProne")) then
 		return false;
 	end
 
