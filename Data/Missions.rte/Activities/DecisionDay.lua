@@ -419,8 +419,12 @@ function DecisionDay:StartNewGame()
 		deadBody.Team = self.aiTeam;
 		deadBody.Pos = box.Center;
 		deadBody.Vel.X = -2;
-		deadBody.DeathSound.Volume = 0;
-		deadBody.PainSound.Volume = 0;
+		if deadBody.DeathSound then 
+			deadBody.DeathSound.Volume = 0; 
+		end
+		if deadBody.PainSound then 
+			deadBody.PainSound.Volume = 0; 
+		end
 		deadBody.HFlipped = true;
 		deadBody.Health = 0;
 		MovableMan:AddActor(deadBody);
@@ -1799,7 +1803,7 @@ end
 function DecisionDay:DoHumanBrainPieSliceHandling()
 	for _, player in pairs(self.humanPlayers) do
 		local brain = self:GetPlayerBrain(player);
-		if brain and not brain:IsInGroup("Deployed Brain " .. player) then
+		if brain and MovableMan:ValidMO(brain) and not brain:IsInGroup("Deployed Brain " .. player) then
 			local pieSlice = brain.PieMenu:GetFirstPieSliceByPresetName(self.deployBrainPieSlice.PresetName);
 			if not pieSlice then
 				brain.PieMenu:AddPieSlice(self.deployBrainPieSlice:Clone(), self);
