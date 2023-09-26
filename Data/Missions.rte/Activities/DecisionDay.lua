@@ -419,8 +419,12 @@ function DecisionDay:StartNewGame()
 		deadBody.Team = self.aiTeam;
 		deadBody.Pos = box.Center;
 		deadBody.Vel.X = -2;
-		deadBody.DeathSound.Volume = 0;
-		deadBody.PainSound.Volume = 0;
+		if deadBody.DeathSound then 
+			deadBody.DeathSound.Volume = 0; 
+		end
+		if deadBody.PainSound then 
+			deadBody.PainSound.Volume = 0; 
+		end
 		deadBody.HFlipped = true;
 		deadBody.Health = 0;
 		MovableMan:AddActor(deadBody);

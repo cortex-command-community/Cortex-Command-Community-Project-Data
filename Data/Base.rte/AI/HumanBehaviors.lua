@@ -954,7 +954,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			if _abrt then return true end
 		end
 		
-		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
+		if MovableMan:ValidMO(movableObject) and IsHeldDevice(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) then
 				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
@@ -979,33 +979,34 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		local devicesToPickUp = {};
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
-			
-			local pathMultipler = 1;
-			if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-				pathMultipler = 0.4; -- prioritize primary or heavy weapons
-			elseif device.ClassName == "TDExplosive" then
-				pathMultipler = 1.4; -- avoid grenades if there are other weapons
-			elseif device:IsTool() then
-				if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-					pathMultipler = 1.8; -- avoid diggers if there are other weapons
-				else
-					pathMultipler = -1; -- disregard non-digger tools
+			if MovableMan:ValidMO(device) then
+				local pathMultipler = 1;
+				if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
+					pathMultipler = 0.4; -- prioritize primary or heavy weapons
+				elseif device.ClassName == "TDExplosive" then
+					pathMultipler = 1.4; -- avoid grenades if there are other weapons
+				elseif device:IsTool() then
+					if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
+						pathMultipler = 1.8; -- avoid diggers if there are other weapons
+					else
+						pathMultipler = -1; -- disregard non-digger tools
+					end
 				end
-			end
 
-			if MovableMan:ValidMO(device) and pathMultipler ~= -1 then
-				local deviceID = device.UniqueID;
-				SceneMan.Scene:CalculatePathAsync(
-					function(pathRequest)
-						local pathLength = pathRequest.PathLength;
-						if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
-							local score = pathLength * pathMultipler;
-							table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
-						end
-						searchesRemaining = searchesRemaining - 1;
-					end, 
-					Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
-				);
+				if pathMultipler ~= -1 then
+					local deviceID = device.UniqueID;
+					SceneMan.Scene:CalculatePathAsync(
+						function(pathRequest)
+							local pathLength = pathRequest.PathLength;
+							if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
+								local score = pathLength * pathMultipler;
+								table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
+							end
+							searchesRemaining = searchesRemaining - 1;
+						end, 
+						Owner.Pos, device.Pos, false, Owner.DigStrength, Owner.Team
+					);
+				end
 			end
 		end
 		
@@ -1082,7 +1083,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	for movableObject in MovableMan:GetMOsInRadius(Owner.Pos, maxSearchDistance, -1, true) do
 		mosSearched = mosSearched + 1;
 		
-		if IsHeldDevice(movableObject) and MovableMan:ValidMO(movableObject) then
+		if MovableMan:ValidMO(movableObject) and IsHeldDevice(movableObject) then
 			local device = ToHeldDevice(movableObject);
 			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) and device:HasObjectInGroup("Tools - Diggers") then
 				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
@@ -1265,7 +1266,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 		if AI.refuel and Owner.Jetpack then
 			-- if jetpack is full or we are falling we can stop refuelling
-			if Owner.JetTimeLeft > Owner.JetTimeTotal * 0.98 or (AI.flying and Owner.Vel.Y < -3 and Owner.JetTimeLeft > AI.minBurstTime*2) then
+			if Owner.Jetpack.JetTimeLeft > Owner.Jetpack.JetTimeTotal * 0.98 or (AI.flying and Owner.Vel.Y < -3 and Owner.Jetpack.JetTimeLeft > AI.minBurstTime*2) then
 				AI.refuel = false;
 			elseif not AI.flying then
 				AI.jump = false;
@@ -1283,7 +1284,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 			WptList = nil; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
 			if AI.jump then
-				if Owner.Jetpack and Owner.JetTimeLeft < AI.minBurstTime then	-- out of fuel
+				if Owner.Jetpack and Owner.Jetpack.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
 					AI.refuel = true;
 					nextLatMove = Actor.LAT_STILL;
@@ -1299,6 +1300,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 			else
 				local updateInterval = SettingsMan.AIUpdateInterval;
+
 				-- Try swapping direction, with a 15% random chance per tick while we're stuck
 				if PosRand() > (1 - 0.15) / updateInterval then
 					nextLatMove = AI.lateralMoveState == Actor.LAT_LEFT and Actor.LAT_RIGHT or Actor.LAT_LEFT;
@@ -1310,7 +1312,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				end
 
 				-- refuelling done
-				if AI.refuel and Owner.Jetpack and Owner.JetTimeLeft >= Owner.JetTimeTotal * 0.99 then
+				if AI.refuel and Owner.Jetpack and Owner.Jetpack.JetpackType == AEJetpack.Standard and Owner.Jetpack.JetTimeLeft >= Owner.Jetpack.JetTimeTotal * 0.99 then
 					AI.jump = true;
 				end
 			end
@@ -1765,7 +1767,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 
 								if Owner.Jetpack and Owner.Head and Owner.Head:IsAttached() then
-									if Owner.JetTimeLeft < AI.minBurstTime then
+									if Owner.Jetpack.JetTimeLeft < AI.minBurstTime then
 										AI.jump = false; -- not enough fuel left, no point in jumping yet
 										if not AI.flying or Owner.Vel.Y > 1 then
 											AI.refuel = true;
@@ -1774,16 +1776,16 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										-- do we have a target we want to shoot at?
 										if (AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget") then
 											-- are we also flying
-											if AI.flying then
+											if AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- predict jetpack movement when jumping and there is a target (check one direction)
 												local jetStrength = AI.jetImpulseFactor / Owner.Mass;
-												local t = math.min(0.4, Owner.JetTimeLeft*0.001);
+												local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
 												local PixelVel = Owner.Vel * (GetPPM() * t);
 												local Accel = SceneMan.GlobalAcc * GetPPM();
 
 												-- a burst use 10x more fuel
 												if Owner.Jetpack:CanTriggerBurst() then
-													t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
+													t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 												end
 
 												-- test jumping
@@ -1820,7 +1822,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												AI.jump = false;
 											end
 										else
-											if Waypoint.Type ~= "drop" and not Lower(Waypoint, Owner, 20) then
+											if Waypoint.Type ~= "drop" and not Lower(Waypoint, Owner, 20) and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- jump over low obstacles unless we want to jump off a ledge
 												if nextLatMove == Actor.LAT_RIGHT and (Obstacles[Obst.R_LOW] or Obstacles[Obst.R_FRONT]) and not Obstacles[Obst.R_UP] then
 													AI.jump = true;
@@ -1837,13 +1839,13 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 
 											-- predict jetpack movement...
 											local jetStrength = AI.jetImpulseFactor / Owner.Mass;
-											local t = math.min(0.4, Owner.JetTimeLeft*0.001);
+											local t = math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001);
 											local PixelVel = Owner.Vel * (GetPPM() * t);
 											local Accel = SceneMan.GlobalAcc * GetPPM();
 
 											-- a burst use 10x more fuel
 											if Owner.Jetpack:CanTriggerBurst() then
-												t = math.max(math.min(0.4, Owner.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
+												t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 											end
 
 											-- when jumping (check four directions)
@@ -1876,11 +1878,16 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 											local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
 											SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
+											local deltaToJump = 25;
+											if Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
+												deltaToJump = deltaToJump * 1.4;
+											end
+
 											table.sort(Facings, function(A, B) return A.range < B.range end);
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range;
 											if delta < 1 then
 												AI.jump = false;
-											elseif AI.flying or delta > 25 then
+											elseif delta > deltaToJump or (AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard) then
 												AI.jump = true;
 												nextAimAngle = Owner:GetAimAngle(false) * 0.5 + Facings[1].aim * 0.5; -- adjust jetpack nozzle direction
 												nextLatMove = Actor.LAT_STILL;
