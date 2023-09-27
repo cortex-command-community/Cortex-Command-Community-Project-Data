@@ -37,36 +37,9 @@ function Update(self)
 	self.abilityShockwaveWhooshSound.Pos = self.Pos;
 
 	if not self:IsDead() then
-
 		if not self:HasObjectInGroup("Bombs") then 
-		
 			local explosive = self.quickThrowExplosive:Clone();
 			self:AddInventoryItem(explosive);
-					
-		end
-		
-	end
-
-	if not self:IsPlayerControlled() and self.AI.Target then -- just in case
-
-		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
-		
-			self.quickThrowTimer:Reset();
-			
-			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
-				
-				if self.AI:CreateQuickthrowBehavior(self, true) then
-					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
-				end
-				
-			end
-		end
-	end
-	
-	if not self.quickThrowTimer:IsPastSimMS(2000) then
-		self.controller:SetState(Controller.PRIMARY_ACTION, false);
-		if self.EquippedItem then
-			self.EquippedItem:Deactivate();
 		end
 	end
 	
@@ -95,6 +68,24 @@ function Update(self)
 end
 
 function UpdateAI(self)
+	if not self:IsPlayerControlled() and self.AI.Target then -- just in case
+		self.quickThrowTimer:Reset();
+		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then		
+			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
+				if self.AI:CreateQuickthrowBehavior(self, true) then
+					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
+				end
+			end
+		end
+	end
+	
+	if not self.quickThrowTimer:IsPastSimMS(2000) then
+		self.controller:SetState(Controller.PRIMARY_ACTION, false);
+		if self.EquippedItem then
+			self.EquippedItem:Deactivate();
+		end
+	end
+
 	self.AI:Update(self);
 end
 function Destroy(self)
