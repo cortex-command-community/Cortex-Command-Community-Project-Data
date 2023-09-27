@@ -143,7 +143,9 @@ end
 function Create(self)
 
 	self.voiceSounds = {
-	JumpAttack = CreateSoundContainer("Browncoat Boss VO JumpAttack", "Browncoats.rte")}
+	JumpAttack = CreateSoundContainer("Browncoat Boss VO JumpAttack", "Browncoats.rte"),
+	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO OilThrowTaunt", "Browncoats.rte"),
+	ThrowGrunt = CreateSoundContainer("Browncoat Boss VO ThrowGrunt", "Browncoats.rte")}
 	
 	self.voiceSound = CreateSoundContainer("Browncoat Boss JumpPack", "Browncoats.rte");
 	-- MEANINGLESS! this is just so we can do voiceSound.Pos without an if check first! it will be overwritten first actual VO play
@@ -153,6 +155,7 @@ function Create(self)
 	self.stepSound = CreateSoundContainer("Browncoat Boss Stride", "Browncoats.rte");	
 	self.jumpSound = CreateSoundContainer("Browncoat Boss Jump", "Browncoats.rte");	
 	self.landSound = CreateSoundContainer("Browncoat Boss Land", "Browncoats.rte");
+	self.throwFoleySound = CreateSoundContainer("Browncoat Boss ThrowFoley", "Browncoats.rte");
 	
 	-- leg Collision Detection system
 	self.foot = 0;
@@ -368,6 +371,16 @@ function Update(self)
 				
 			end
 		end
+	end
+	
+	-- Throw Foley
+	
+	if self.EquippedItem and IsTDExplosive(self.EquippedItem) and (self.EquippedItem:IsActivated() or self.controller:IsState(Controller.PRIMARY_ACTION)) then
+		self.toThrowFoley = true;
+	elseif self.toThrowFoley then
+		self.toThrowFoley = false;
+		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.ThrowGrunt, 3, false);
+		self.throwFoleySound:Play(self.Pos);
 	end
 
 end

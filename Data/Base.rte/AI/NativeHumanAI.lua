@@ -641,7 +641,8 @@ function NativeHumanAI:CreateQuickthrowBehavior(Owner)
 	if self.Target then
 		if Owner:EquipThrowable(true) then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
-			self.NextBehaviorName = "ThrowTarget";	
+			self.NextBehaviorName = "ThrowTarget";
+			return true;
 		end
 	else
 		return false;

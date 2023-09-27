@@ -27,8 +27,8 @@ function Create(self)
 	self.abilityShockwaveStrength = 700;
 	
 	self.quickThrowTimer = Timer();
-	self.quickThrowDelay = 15000;
-	self.quickThrowExplosive = CreateTDExplosive("Fuel Bomb", "Browncoats.rte");	
+	self.quickThrowDelay = 5000;
+	self.quickThrowExplosive = CreateTDExplosive("Browncoat Boss Oil Bomb", "Browncoats.rte");	
 	
 end
 
@@ -41,25 +41,32 @@ function Update(self)
 		if not self:HasObjectInGroup("Bombs") then 
 		
 			local explosive = self.quickThrowExplosive:Clone();
-			explosive.MinThrowVel = 30;
-			explosive.MaxThrowVel = 30;
 			self:AddInventoryItem(explosive);
 					
 		end
 		
 	end
 
-	if not self:IsPlayerControlled() then -- just in case
+	if not self:IsPlayerControlled() and self.AI.Target then -- just in case
 
 		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
 		
 			self.quickThrowTimer:Reset();
 			
 			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
-
-				self.AI:CreateQuickthrowBehavior(self);
+				
+				if self.AI:CreateQuickthrowBehavior(self, true) then
+					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
+				end
 				
 			end
+		end
+	end
+	
+	if not self.quickThrowTimer:IsPastSimMS(2000) then
+		self.controller:SetState(Controller.PRIMARY_ACTION, false);
+		if self.EquippedItem then
+			self.EquippedItem:Deactivate();
 		end
 	end
 	
