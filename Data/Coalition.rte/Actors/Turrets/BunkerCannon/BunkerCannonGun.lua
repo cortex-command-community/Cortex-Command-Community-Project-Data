@@ -88,7 +88,7 @@ function Update(self)
 	self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - self.RotAngle)
 	self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
 	
-	self.RotAngle = self.smoothedRotAngle;
+	self.InheritedRotAngleOffset = self.smoothedRotAngle - self.RotAngle;
 	
 	-- Mathemagical firing anim by filipex
 	local f = math.max(1 - math.min((self.FireTimer.ElapsedSimTimeMS) / 200, 1), 0)
