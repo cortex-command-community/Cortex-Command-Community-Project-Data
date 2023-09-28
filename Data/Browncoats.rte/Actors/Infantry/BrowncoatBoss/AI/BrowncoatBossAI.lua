@@ -70,9 +70,8 @@ function Create(self)
 	self.abilityShockwaveStrength = 700;
 	
 	self.quickThrowTimer = Timer();
-	self.quickThrowDelay = 5000;
+	self.quickThrowDelay = 10000;
 	self.quickThrowExplosive = CreateTDExplosive("Browncoat Boss Oil Bomb", "Browncoats.rte");	
-	
 	
 	self.deathScripted = false;
 	self.deathScriptedTimer = Timer();
@@ -223,10 +222,10 @@ function UpdateAI(self)
 
 	-- Quick throw AI trigger on a timer
 
-	if not self:IsPlayerControlled() and self.AI.Target then -- just in case
+	if not self:IsPlayerControlled() then -- just in case
 		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
 			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
-				if self.AI:CreateQuickthrowBehavior(self, true) then
+				if self.AI:CreateQuickthrowBehavior(self) then
 					self.quickThrowTimer:Reset();
 					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
 				end
