@@ -1,3 +1,10 @@
+function OnDetach(self)
+
+	if not self.activated then
+		self.ToDelete = true;
+	end
+end
+
 function Create(self)
 
 	self.thrownSound = CreateSoundContainer("Browncoat Boss Oil Bomb Thrown", "Browncoats.rte");
@@ -5,6 +12,8 @@ function Create(self)
 	self.fuzeDelay = 1500;
 	
 	self.throwForcedDelay = 1000;
+	
+	self.HUDVisible = false;
 
 end
 
