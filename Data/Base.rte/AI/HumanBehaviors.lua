@@ -2700,8 +2700,8 @@ function HumanBehaviors.ThrowTarget(AI, Owner, Abort)
 				end
 
 				ID = rte.NoMOID;
-				if Owner:IsWithinRange(Vector(AimPoint.X, AimPoint.Y)) then	-- TODO: use grenade properties to decide this
-				--if true then
+				--if Owner:IsWithinRange(Vector(AimPoint.X, AimPoint.Y)) then	-- TODO: use grenade properties to decide this
+				if true then
 					Dist = SceneMan:ShortestDistance(Owner.EyePos, AimPoint, false);
 					ID = SceneMan:CastMORay(Owner.EyePos, Dist, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, false, 3);
 					if ID < 1 or ID == rte.NoMOID then	-- not found, look for any head or legs
