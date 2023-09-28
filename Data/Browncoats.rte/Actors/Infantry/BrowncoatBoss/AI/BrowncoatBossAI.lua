@@ -224,10 +224,10 @@ function UpdateAI(self)
 	-- Quick throw AI trigger on a timer
 
 	if not self:IsPlayerControlled() and self.AI.Target then -- just in case
-		self.quickThrowTimer:Reset();
-		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then		
+		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
 			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
 				if self.AI:CreateQuickthrowBehavior(self, true) then
+					self.quickThrowTimer:Reset();
 					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
 				end
 			end
