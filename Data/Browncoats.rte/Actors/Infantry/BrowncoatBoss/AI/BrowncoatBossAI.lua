@@ -88,9 +88,6 @@ function Create(self)
 end
 
 function Update(self)
-
-
-
 	self.abilityShockwaveWhooshSound.Pos = self.Pos;
 	
 	local debugHealthTrigger = UInputMan:KeyPressed(Key.N);
@@ -110,6 +107,14 @@ function Update(self)
 				self:AddInventoryItem(explosive);
 			end
 			
+		end
+
+		-- The boss LMG already has its own OnAttach delay and animation, but might as well do it here too for a post-quickthrow pause
+		if not self.quickThrowTimer:IsPastSimMS(2000) then
+			self.controller:SetState(Controller.PRIMARY_ACTION, false);
+			if self.EquippedItem then
+				self.EquippedItem:Deactivate();
+			end
 		end
 		
 		-- Boss health bar
@@ -226,15 +231,6 @@ function UpdateAI(self)
 					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
 				end
 			end
-		end
-	end
-	
-	-- The boss LMG already has its own OnAttach delay and animation, but might as well do it here too for a post-quickthrow pause
-	
-	if not self.quickThrowTimer:IsPastSimMS(2000) then
-		self.controller:SetState(Controller.PRIMARY_ACTION, false);
-		if self.EquippedItem then
-			self.EquippedItem:Deactivate();
 		end
 	end
 
