@@ -483,25 +483,31 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 		end
 	end
 
-	coroutine.yield(); -- wait until next frame
+	local pathRequestsCompleted = 0;
+	local completedPathRequests = {};
 
 	-- measure the distance to the destination
 	for k, LZ in pairs(GoodLZs) do
-		if SceneMan.Scene:CalculatePath(Vector(LZ.X, LZ.Y), Destination, false, digStrenght, team) > -1 then
-			local Path = {};
-			for Wpt in SceneMan.Scene:GetScenePath() do
-				table.insert(Path, Wpt);
-			end
+		SceneMan.Scene:CalculatePathAsync(
+			function(pathRequest)
+				pathRequestsCompleted = pathRequestsCompleted + 1;
+				completedPathRequests[k] = pathRequest;
+			end, 
+			Vector(LZ.X, LZ.Y), Destination, false, digStrenght, team);
+	end
 
-			coroutine.yield(); -- wait until the next frame
+	while pathRequestsCompleted ~= #GoodLZs do
+		coroutine.yield(); -- wait until all paths are complete
+	end
 
+	for k, LZ in pairs(GoodLZs) do
+		pathRequest = completedPathRequests[k];
+		if pathRequest.PathLength > -1 then
 			local NextWpt, PrevWpt, deltaY;
 			local height = 0;
-			local pathLength = 0;
 			local pathObstMaxHeight = 0;
 
-			for _, Wpt in pairs(Path) do
-				pathLength = pathLength + 1;
+			for Wpt in pathRequest.Path do
 				NextWpt = SceneMan:MovePointToGround(Wpt, 20, 12);
 
 				if PrevWpt then
@@ -519,15 +525,12 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 				end
 
 				PrevWpt = NextWpt;
-				if pathLength % 17 == 0 then
-					coroutine.yield(); -- wait until the next frame
-				end
 			end
 
 			GoodLZs[k].terrainScore = LZ.score;
-			GoodLZs[k].pathLength = pathLength;
+			GoodLZs[k].pathLength = pathRequest.PathLength;
 			GoodLZs[k].pathObstMaxHeight = pathObstMaxHeight;
-			GoodLZs[k].score = LZ.score - (pathLength * 0.2 + math.floor(pathObstMaxHeight/15) * 12); -- recalculate the score so we can find a safe LZ that has an easy path to the destination
+			GoodLZs[k].score = LZ.score - (pathRequest.PathLength * 0.2 + math.floor(pathObstMaxHeight/15) * 12); -- recalculate the score so we can find a safe LZ that has an easy path to the destination
 		else
 			-- unknown path
 			GoodLZs[k].terrainScore = LZ.score;
@@ -535,19 +538,13 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 			GoodLZs[k].pathObstMaxHeight = 200;
 			GoodLZs[k].score = LZ.score - 100;
 		end
-
-		coroutine.yield(); -- wait until the next frame
 	end
-
-	coroutine.yield(); -- wait until the next frame
 
 	table.sort(GoodLZs, function(A, B) return A.score > B.score end); -- the best LZ first
 	local MobilityLZ, selected_index = self:SelectLZ(GoodLZs, 12);
 	if selected_index then
 		table.remove(GoodLZs, selected_index); -- don't select this LZ again
 	end
-
-	coroutine.yield(); -- wait until the next frame
 
 	-- recalculate the score so we can find a safe LZ that is close to the destination
 	for k, LZ in pairs(GoodLZs) do
