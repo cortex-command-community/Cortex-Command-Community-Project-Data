@@ -37,6 +37,59 @@ function BrowncoatBossFunctions.createVoiceSoundEffect(self, soundContainer, pri
 	end
 end
 
+function BrowncoatBossFunctions.updateHealth(self)
+
+	local healthTimerReady = self.healthUpdateTimer:IsPastSimMS(750);
+	local wasInjured = self.Health < (self.oldHealth - self.PainThreshold) or self.Health <= 0;
+
+	if (healthTimerReady or wasInjured) and not self.deathScripted then
+	
+		self.oldHealth = self.Health;
+		self.healthUpdateTimer:Reset();
+		if self.Health <= 0 then
+			if not self.bossMode then
+				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Death, 11, true);
+			else
+				
+				self.deathScripted = true;
+				self.deathScriptedTimer:Reset();
+				CameraMan:AddScreenShake(6, self.Pos);
+				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.DeathScripted, 11, true);
+				
+				local woundTable = {};
+				for wound in self:GetWounds() do
+					table.insert(woundTable, wound);
+				end
+				
+				print(#woundTable)
+				
+				if #woundTable > 0 then
+					local fatalWoundedPart = woundTable[#woundTable]:GetParent();
+					print(woundTable[#woundTable]);
+					print(fatalWoundedPart);
+					
+					if fatalWoundedPart.UniqueID ~= self.Head.UniqueID and fatalWoundedPart.UniqueID ~= self.UniqueID then
+						fatalWoundedPart.MissionCritical = false;
+						fatalWoundedPart.BreakWound = CreateAEmitter("Browncoat Boss Scripted Death Break Wound", "Browncoats.rte");
+						fatalWoundedPart.ParentBreakWound = CreateAEmitter("Browncoat Boss Scripted Death Break Wound", "Browncoats.rte");
+						ToAttachable(fatalWoundedPart):RemoveFromParent(true, true);
+					elseif fatalWoundedPart.UniqueID == self.Head.UniqueID then
+						self.Head.Frame = 1;
+					else -- it's the torso
+						--self.Frame = 1;
+					end
+					
+				end
+				
+			end
+		elseif wasInjured then
+			BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Pain, 2, true);
+		end
+
+	end
+	
+end
+
 function BrowncoatBossFunctions.abilityShockwaveLanding(self)
 
 	self.Jetpack.NegativeThrottleMultiplier = self.jumpPackDefaultNegativeMult;
@@ -143,7 +196,12 @@ end
 function Create(self)
 
 	self.voiceSounds = {
-	JumpAttack = CreateSoundContainer("Browncoat Boss VO JumpAttack", "Browncoats.rte")}
+	Pain = CreateSoundContainer("Browncoat Boss VO Pain", "Browncoats.rte"),
+	Death = CreateSoundContainer("Browncoat Boss VO Death", "Browncoats.rte"),
+	DeathScripted = CreateSoundContainer("Browncoat Boss VO DeathScripted", "Browncoats.rte"),
+	JumpAttack = CreateSoundContainer("Browncoat Boss VO JumpAttack", "Browncoats.rte"),
+	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO OilThrowTaunt", "Browncoats.rte"),
+	ThrowGrunt = CreateSoundContainer("Browncoat Boss VO ThrowGrunt", "Browncoats.rte")}
 	
 	self.voiceSound = CreateSoundContainer("Browncoat Boss JumpPack", "Browncoats.rte");
 	-- MEANINGLESS! this is just so we can do voiceSound.Pos without an if check first! it will be overwritten first actual VO play
@@ -153,6 +211,12 @@ function Create(self)
 	self.stepSound = CreateSoundContainer("Browncoat Boss Stride", "Browncoats.rte");	
 	self.jumpSound = CreateSoundContainer("Browncoat Boss Jump", "Browncoats.rte");	
 	self.landSound = CreateSoundContainer("Browncoat Boss Land", "Browncoats.rte");
+	self.throwFoleySound = CreateSoundContainer("Browncoat Boss ThrowFoley", "Browncoats.rte");
+	
+	self.healthUpdateTimer = Timer();
+	self.oldHealth = self.Health;
+	
+	self.PainThreshold = 7;
 	
 	-- leg Collision Detection system
 	self.foot = 0;
@@ -166,7 +230,6 @@ function Create(self)
 	self.jumpTimer = Timer();
 	self.jumpDelay = 500;
 	self.jumpStop = Timer();
-	
 
 	self.jumpPackDefaultNegativeMult = 8;
 	self.jumpPackDefaultPositiveMult = 12;
@@ -233,6 +296,8 @@ function Update(self)
 	self.voiceSound.Pos = self.Pos;
 
 	self.controller = self:GetController();
+	
+	BrowncoatBossFunctions.updateHealth(self);
 
 	-- Leg Collision Detection system
     --local i = 0
@@ -368,6 +433,16 @@ function Update(self)
 				
 			end
 		end
+	end
+	
+	-- Throw Foley
+	
+	if self.EquippedItem and IsTDExplosive(self.EquippedItem) and (self.EquippedItem:IsActivated() or self.controller:IsState(Controller.PRIMARY_ACTION)) then
+		self.toThrowFoley = true;
+	elseif self.toThrowFoley then
+		self.toThrowFoley = false;
+		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.ThrowGrunt, 3, false);
+		self.throwFoleySound:Play(self.Pos);
 	end
 
 end

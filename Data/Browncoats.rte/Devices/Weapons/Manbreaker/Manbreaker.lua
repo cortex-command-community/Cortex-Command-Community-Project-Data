@@ -5,9 +5,12 @@
 
 function OnAttach(self)
 
-	--if self.bossMode then
-	--	self.Heat = 0;
-	--end
+	if self.bossMode then
+		--self.Heat = 0;
+		self.bossChamberAnim = true;
+		self.bossChamberTimer:Reset();
+		self.bossChamberSoundPlayed = false;
+	end
 
 end
 
