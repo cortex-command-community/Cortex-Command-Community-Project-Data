@@ -231,8 +231,8 @@ function Create(self)
 	self.jumpDelay = 500;
 	self.jumpStop = Timer();
 
-	self.jumpPackDefaultNegativeMult = 8;
-	self.jumpPackDefaultPositiveMult = 12;
+	self.jumpPackDefaultNegativeMult = 0.7;
+	self.jumpPackDefaultPositiveMult = 1.3;
 	self.jumpPackCooldownTimer = Timer();
 	self.jumpPackCooldownTime = 0;
 	

@@ -70,9 +70,8 @@ function Create(self)
 	self.abilityShockwaveStrength = 700;
 	
 	self.quickThrowTimer = Timer();
-	self.quickThrowDelay = 5000;
+	self.quickThrowDelay = 10000;
 	self.quickThrowExplosive = CreateTDExplosive("Browncoat Boss Oil Bomb", "Browncoats.rte");	
-	
 	
 	self.deathScripted = false;
 	self.deathScriptedTimer = Timer();
@@ -88,9 +87,6 @@ function Create(self)
 end
 
 function Update(self)
-
-
-
 	self.abilityShockwaveWhooshSound.Pos = self.Pos;
 	
 	local debugHealthTrigger = UInputMan:KeyPressed(Key.N);
@@ -110,6 +106,14 @@ function Update(self)
 				self:AddInventoryItem(explosive);
 			end
 			
+		end
+
+		-- The boss LMG already has its own OnAttach delay and animation, but might as well do it here too for a post-quickthrow pause
+		if not self.quickThrowTimer:IsPastSimMS(2000) then
+			self.controller:SetState(Controller.PRIMARY_ACTION, false);
+			if self.EquippedItem then
+				self.EquippedItem:Deactivate();
+			end
 		end
 		
 		-- Boss health bar
@@ -218,23 +222,14 @@ function UpdateAI(self)
 
 	-- Quick throw AI trigger on a timer
 
-	if not self:IsPlayerControlled() and self.AI.Target then -- just in case
-		self.quickThrowTimer:Reset();
-		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then		
+	if not self:IsPlayerControlled() then -- just in case
+		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
 			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
-				if self.AI:CreateQuickthrowBehavior(self, true) then
+				if self.AI:CreateQuickthrowBehavior(self) then
+					self.quickThrowTimer:Reset();
 					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
 				end
 			end
-		end
-	end
-	
-	-- The boss LMG already has its own OnAttach delay and animation, but might as well do it here too for a post-quickthrow pause
-	
-	if not self.quickThrowTimer:IsPastSimMS(2000) then
-		self.controller:SetState(Controller.PRIMARY_ACTION, false);
-		if self.EquippedItem then
-			self.EquippedItem:Deactivate();
 		end
 	end
 

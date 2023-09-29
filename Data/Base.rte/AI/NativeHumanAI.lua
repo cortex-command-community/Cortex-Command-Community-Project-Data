@@ -638,15 +638,14 @@ end
 
 -- functions that create behaviors. the default behaviors are stored in the HumanBehaviors table. store your custom behaviors in a table to avoid name conflicts between mods.
 function NativeHumanAI:CreateQuickthrowBehavior(Owner)
-	if self.Target then
-		if Owner:EquipThrowable(true) then
+	if self.Target and MovableMan:ValidMO(self.Target) then
+		if Owner:EquipThrowable(true) and Owner.ThrowableIsReady then
 			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
 			self.NextBehaviorName = "ThrowTarget";
 			return true;
 		end
-	else
-		return false;
 	end
+	return false;
 end
 
 function NativeHumanAI:CreateSentryBehavior(Owner)

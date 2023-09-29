@@ -154,6 +154,7 @@ function Create(self)
 		self.bossMode = true;
 		self.Magazine.RoundCount = 300;
 		self.heatLimit = 200;
+		self.HUDVisible = false;
 	end
 
 	self.preSound = CreateSoundContainer("Pre Browncoat MG-85", "Browncoat.rte");
