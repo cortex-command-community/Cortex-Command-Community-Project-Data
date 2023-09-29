@@ -7,18 +7,16 @@ function Create(self)
 		self.Throttle = 0;
 	end
 	
-	-- for full functionality: have a FlameProperties.lua or similar that sets the following values to whatever you desire:
+	-- extra hurty particle toggle when on ground/without target
+	self.extraParticles = self:NumberValueExists("ExtraParticles") or false;
 	
-		-- extra hurty particle toggle when on ground/without target
-	--self.extraParticles = false;
+	-- team awareness toggle... friendly fire hahahahahahaah
+	self.teamAware = self:NumberValueExists("TeamAware") or false;
 	
-		-- team awareness toggle... friendly fire hahahahahahaah
-	--self.teamAware = false;
+	self.flameLingerChance = self:NumberValueExists("FlameLingerChance") and self:GetNumberValue("FlameLingerChance") or 0.5;
 	
-	self.flameLingerChance = self.flameLingerChance or 0.5;
-	
-		-- i am not sure why this grass interaction occurs, but i'm not going to remove it, Chesterton's Fence and all
-	--self.grassInteraction = true;
+	-- i am not sure why this grass interaction occurs, but i'm not going to remove it, Chesterton's Fence and all
+	self.grassInteraction = self:NumberValueExists("DisableGrassInteraction") and false or true;
 	
 end
 
@@ -28,7 +26,7 @@ function Update(self)
 	--TODO: Use Throttle to combine multiple flames into one
 	self.Throttle = self.Throttle - TimerMan.DeltaTimeMS/self.Lifetime;
 
-	if self.target and IsMOSRotating(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete and (self.teamAware ~= true or self.target.Team ~= self.Team) then
+	if self.target and IsMOSRotating(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete and (self.teamAware == false or self.target.Team ~= self.Team) then
 		self.Vel = Vector();
 		self.Pos = self.target.Pos + Vector(self.stickOffset.X, self.stickOffset.Y):RadRotate(self.target.RotAngle - self.targetStickAngle);
 		local actor = self.target:GetRootParent();
@@ -75,7 +73,7 @@ function OnCollideWithMO(self, mo, rootMO)
 end
 
 function OnCollideWithTerrain(self, terrainID)
-	if self.grassInteraction ~= false and terrainID == rte.grassID then
+	if self.grassInteraction and terrainID == rte.grassID then
 		local newFlame = CreatePEmitter("Ground Flame", "Base.rte");
 		newFlame.Pos = self.Pos;
 		newFlame.Vel = self.Vel;
