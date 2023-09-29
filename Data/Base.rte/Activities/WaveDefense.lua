@@ -51,8 +51,8 @@ function WaveDefense:StartActivity(isNewGame)
 		self.AI.bombChance = math.min(math.max(self.Difficulty/100+math.random(-0.1, 0.1), 0), 1);
 		self.AI.timeToSpawn = 8000 - 50 * self.Difficulty; -- Time before the first AI spawn: from 8s to 3s
 		self.AI.timeToBomb = (42000 - 300 * self.Difficulty) * math.random(0.7, 1.1); -- From 42s to 12s
-		self.AI.baseSpawnTime = 9000 - 40 * self.Difficulty; -- From 9s to 5s
-		self.AI.randomSpawnTime = 6000 - 30 * self.Difficulty; -- From 6s to 3s
+		self.AI.baseSpawnTime = 4000 - 30 * self.Difficulty; -- From 4s to 2s
+		self.AI.randomSpawnTime = 3000 - 20 * self.Difficulty; -- From 3s to 1s
 
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
 		self.AI.LZmap = require("Activities/LandingZoneMap"); --self.AI.LZmap = dofile("Base.rte/Activities/LandingZoneMap.lua")
@@ -492,7 +492,7 @@ function WaveDefense:UpdateActivity()
 						else
 							-- No target found
 							self.AI.SpawnTimer:Reset();
-							self.AI.timeToSpawn = 5000;
+							self.AI.timeToSpawn = 500;
 						end
 					end
 				end

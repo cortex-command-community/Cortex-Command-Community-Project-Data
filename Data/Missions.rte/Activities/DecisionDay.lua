@@ -1803,7 +1803,7 @@ end
 function DecisionDay:DoHumanBrainPieSliceHandling()
 	for _, player in pairs(self.humanPlayers) do
 		local brain = self:GetPlayerBrain(player);
-		if brain and not brain:IsInGroup("Deployed Brain " .. player) then
+		if brain and MovableMan:ValidMO(brain) and not brain:IsInGroup("Deployed Brain " .. player) then
 			local pieSlice = brain.PieMenu:GetFirstPieSliceByPresetName(self.deployBrainPieSlice.PresetName);
 			if not pieSlice then
 				brain.PieMenu:AddPieSlice(self.deployBrainPieSlice:Clone(), self);
