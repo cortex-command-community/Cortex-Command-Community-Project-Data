@@ -136,14 +136,18 @@ function NativeDropShipAI:Update(Owner)
 	end
 
 	self.PlayerInterferedTimer:Reset();
+	
+	if self.AIMode == nil then
+		self.Waypoint = Owner:GetLastAIWaypoint();
+	end
 
 	-- Control right/left movement
 	local Dist = SceneMan:ShortestDistance(Owner.Pos+Owner.Vel*30, self.Waypoint, false);
 	local change = self.XposPID:Update(Dist.X, 0);
-	if change > 2 then
-		Ctrl.AnalogMove = Vector(change/30, 0);
-	elseif change < -2 then
-		Ctrl.AnalogMove = Vector(change/30, 0);
+	if change > 0.6 then
+		Ctrl.AnalogMove = Vector(change/8, 0);
+	elseif change < -0.6 then
+		Ctrl.AnalogMove = Vector(change/8, 0);
 	end
 
 	-- Control up/down movement
