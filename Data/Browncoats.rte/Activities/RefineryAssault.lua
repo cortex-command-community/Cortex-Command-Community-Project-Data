@@ -246,14 +246,22 @@ function RefineryAssault:UpdateActivity()
 				craft.DeliveryState = ACraft.STANDBY;
 				craft.AIMode = Actor.AIMODE_NONE;
 				
-				-- help these fucking things along, i'm sorry they're too stupid
-				local distVectorFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true)
-				if distVectorFromDockArea.X > 1 then
-					craft.Vel.X = math.max(craft.Vel.X - 1 * TimerMan.DeltaTimeSecs, 0)
-				elseif distVectorFromDockArea.X < -1 then
-					craft.Vel.X = math.min(craft.Vel.X + 1 * TimerMan.DeltaTimeSecs, 0)
+				if dockTable.dockingStage ~= 3 then
+					-- help these fucking things along, i'm sorry they're too stupid
+					local distVectorFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true)
+					if math.abs(distVectorFromDockArea.X) > 1 then -- we're helplessly off-course, abort
+						print("aborted")
+						dockTable.dockingStage = 3;
+						craft:ClearAIWaypoints();
+						craft:AddAISceneWaypoint(Vector(craft.Pos.X, SceneMan.Scene.Height + 500));
+						craft:CloseHatch();		
+					elseif distVectorFromDockArea.X > 0.5 then
+						craft.Vel.X = math.max(craft.Vel.X - 0.02 * TimerMan.DeltaTimeSecs, 0)
+					elseif distVectorFromDockArea.X < -0.5 then
+						craft.Vel.X = math.min(craft.Vel.X + 0.02 * TimerMan.DeltaTimeSecs, 0)
+					end
 				end
-				
+					
 				if dockTable.dockingStage == 2 then
 					craft:OpenHatch();
 					if craft:IsInventoryEmpty() then
