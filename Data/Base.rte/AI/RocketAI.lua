@@ -182,20 +182,38 @@ function UpdateAI(self)
 			end
 		end
 	end
+	
+	if self.AIMode == Actor.AIMODE_NONE then
+		self.LZpos = self:GetLastAIWaypoint();
+		self.DeliveryState = ACraft.LAUNCH;
+	end
+	
+	local dist
+	local change
 
 	-- Control up/down movement
 	if self.DeliveryState ~= ACraft.UNLOAD then
-		local change = self.YposPID:Update(-(self.LZpos.Y - (self.Pos.Y + self.Vel.Y)), 0);
+		dist = SceneMan:ShortestDistance(self.Pos+self.Vel, self.LZpos, false);
+		change = self.YposPID:Update(dist.Y, 0);
 		if math.abs(self.RotAngle) < 0.9 then
-			if self.DeliveryState == ACraft.LAUNCH and change > 7 then
-				self.burstUp = nil;
-				self.Ctrl:SetState(Controller.MOVE_UP, true);	-- Don't burst when returning to orbit
-			else
-				if change > 7 and not self.burstUp then
-					self.burstUp = math.max(9 - change, 2); -- Wait n frames until next burst (lower -> better control)
-				elseif change < -20 then
+			if self.AIMode == Actor.AIMODE_NONE then
+			
+				if change < -0.5 and self.Vel.Magnitude < 10 then
 					self.burstUp = nil;
-					self.Ctrl:SetState(Controller.MOVE_DOWN, true);
+					self.Ctrl:SetState(Controller.MOVE_UP, true);
+				end
+					
+			else
+				if self.DeliveryState == ACraft.LAUNCH and change < -7 then
+					self.burstUp = nil;
+					self.Ctrl:SetState(Controller.MOVE_UP, true);	-- Don't burst when returning to orbit
+				else
+					if change < -7 and not self.burstUp then
+						self.burstUp = math.max(9 - change, 2); -- Wait n frames until next burst (lower -> better control)
+					elseif change > 20 then
+						self.burstUp = nil;
+						self.Ctrl:SetState(Controller.MOVE_DOWN, true);
+					end
 				end
 			end
 		elseif self.RotAngle > 2.14 and self.RotAngle < 4.14 then	-- Upside down
@@ -204,8 +222,8 @@ function UpdateAI(self)
 	end
 
 	-- Control right/left movement (the rocket will move sideways if rotated to the side)
-	local dist = SceneMan:ShortestDistance(self.Pos + self.Vel * 20, self.LZpos, false).X;
-	local change = self.XposPID:Update(dist, 0);
+	dist = SceneMan:ShortestDistance(self.Pos + self.Vel * 20, self.LZpos, false).X;
+	change = self.XposPID:Update(dist, 0);
 	local targetAng = 0;
 	if self.Vel.Y > 0 then
 		if change < -4 then

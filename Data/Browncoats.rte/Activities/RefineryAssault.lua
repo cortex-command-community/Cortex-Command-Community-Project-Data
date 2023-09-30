@@ -42,12 +42,28 @@ function RefineryAssault:StartActivity()
 	
 	-- Set up docks
 	
-	self.activeDockTable = {};
+	self.activeDSDockTable = {};
 	
-	-- Center of Dock, Craft, Docking Stage Int
+	self.activeDSDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship dock 1").Center + Vector(0, 0),["activeCraft"] =  nil,["dockingStage"] =  nil};
+	self.activeDSDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship dock 2").Center + Vector(0, 0),["activeCraft"] =  nil,["dockingStage"] =  nil};
 	
-	self.activeDockTable[1] = {SceneMan.Scene:GetArea("Dropship dock 1").Center + Vector(0, 0), nil, nil};
-	self.activeDockTable[2] = {SceneMan.Scene:GetArea("Dropship dock 2").Center + Vector(0, 0), nil, nil};
+	
+	self.activeRocketDockTable = {};
+	
+	self.activeRocketDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket dock 1").Center + Vector(0, 0),["activeCraft"] =  nil,["dockingStage"] =  nil};
+	self.activeRocketDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket dock 2").Center + Vector(0, 0),["activeCraft"] =  nil,["dockingStage"] =  nil};
+	
+	-- Place rocket capturer docks
+	
+	for i, dockTable in ipairs(self.activeRocketDockTable) do
+		local dockObject = CreateMOSRotating("Rocket Dock 2", "Base.rte");
+		dockObject.Pos = dockTable.dockPosition
+		dockObject.MissionCritical = true;
+		dockObject.GibImpulseLimit = 9999999999;
+		dockObject.GibWoundLimit = 9999999999;
+		dockObject.PinStrength = 9999999999;
+		MovableMan:AddParticle(dockObject);
+	end
 	
 	
 end
@@ -83,16 +99,17 @@ function RefineryAssault:UpdateActivity()
 	
 	local debugTrigger = UInputMan:KeyPressed(Key.I)
 	
+	local debugRocketTrigger = UInputMan:KeyPressed(Key.U)
+	
 	if debugTrigger then
 	
-		for i, dockTable in ipairs(self.activeDockTable) do
-			if not dockTable[2] then
+		for i, dockTable in ipairs(self.activeDSDockTable) do
+			if not dockTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
 				
 				local craft = RandomACDropShip("Craft", "Base.rte");
 				craft.AIMode = Actor.AIMODE_NONE;
 				craft.Team = 0
-				craft.Pos = Vector(dockTable[1].X, SceneMan.Scene.Height - 100);
-				craft.HoverHeightModifier = -craft.Diameter*0.75 -- to get it to go where the hell we tell it to go
+				craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 				craft.DeliveryState = ACraft.STANDBY;
 				
 				local passenger = CreateAHuman("Green Dummy");
@@ -107,21 +124,53 @@ function RefineryAssault:UpdateActivity()
 				
 				MovableMan:AddActor(craft);
 				
-				craft:AddAISceneWaypoint(dockTable[1]);
+				craft:AddAISceneWaypoint(dockTable.dockPosition);
 				
-				dockTable[2] = craft.UniqueID;
-				dockTable[3] = 1;
+				dockTable.activeCraft = craft.UniqueID;
+				dockTable.dockingStage = 1;
+			end
+		end
+	end
+	
+	if debugRocketTrigger then
+	
+		for i, dockTable in ipairs(self.activeRocketDockTable) do
+			if not dockTable.activeCraft and not self.activeDSDockTable[i].activeCraft then
+				
+				local craft = RandomACRocket("Craft", "Base.rte");
+				craft.AIMode = Actor.AIMODE_NONE;
+				craft.Team = 0
+				craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+				craft.Vel = Vector(0, -30);
+				craft.DeliveryState = ACraft.STANDBY;
+				
+				local passenger = CreateAHuman("Green Dummy");
+				passenger.Team = 0;
+				
+				craft:AddInventoryItem(passenger);
+				
+				local passenger2 = CreateAHuman("Green Dummy");
+				passenger2.Team = 0;
+				
+				craft:AddInventoryItem(passenger2);
+				
+				MovableMan:AddActor(craft);
+				
+				craft:AddAISceneWaypoint(dockTable.dockPosition);
+				
+				dockTable.activeCraft = craft.UniqueID;
+				dockTable.dockingStage = 1;
 			end
 		end
 	end
 	
 	-- Monitor dropship activity
 	
-	for i, dockTable in ipairs(self.activeDockTable) do
-		if dockTable[2] then
+	for i, dockTable in ipairs(self.activeDSDockTable) do
+		if dockTable.activeCraft then
 			
 			local direction = i % 2 == 0 and 1 or -1;	
-			local craft = MovableMan:FindObjectByUniqueID(dockTable[2]);
+			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);
 			
 			if craft and MovableMan:ValidMO(craft) then
 			
@@ -130,54 +179,97 @@ function RefineryAssault:UpdateActivity()
 				craft.DeliveryState = ACraft.STANDBY;
 				craft.AIMode = Actor.AIMODE_NONE;
 				
-				if dockTable[3] == 3 then
+				if dockTable.dockingStage == 3 then
 				
-					--print(SceneMan:ShortestDistance(craft.Pos, dockTable[1], true))
+					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true))
 				
-					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable[1], true).Magnitude
+					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
-						dockTable[3] = 3;
+						dockTable.dockingStage = 3;
 						craft:ClearAIWaypoints();
-						craft:AddAISceneWaypoint(dockTable[1] + Vector(0, SceneMan.Scene.Height + 500));
+						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, SceneMan.Scene.Height + 500));
 						craft:CloseHatch();
 						
 					end	
 					
-				elseif dockTable[3] == 2 then
+				elseif dockTable.dockingStage == 2 then
 				
-					--print(SceneMan:ShortestDistance(craft.Pos, dockTable[1] + Vector(200 * direction, 0), true))
+					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(200 * direction, 0), true))
 				
-					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable[1] + Vector(150 * direction, 0), true).Magnitude
+					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(150 * direction, 0), true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						craft:OpenHatch();
 						if craft:IsInventoryEmpty() then
-							dockTable[3] = 3;
+							dockTable.dockingStage = 3;
 							craft:ClearAIWaypoints();
-							craft:AddAISceneWaypoint(dockTable[1]);
+							craft:AddAISceneWaypoint(dockTable.dockPosition);
 							craft:CloseHatch();
 						end
 					end	
 					
-				elseif dockTable[3] == 1 then
+				elseif dockTable.dockingStage == 1 then
 				
-					--print(SceneMan:ShortestDistance(craft.Pos, dockTable[1], true))
+					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true))
 				
-					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable[1], true).Magnitude
+					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
-						dockTable[3] = 2;
+						dockTable.dockingStage = 2;
 						craft:ClearAIWaypoints();
-						craft:AddAISceneWaypoint(dockTable[1] + Vector(150 * direction, 0));
+						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0));
 					end
 					
 				end
 				
 						
 			else
-				dockTable[2] = nil;
-				dockTable[3] = nil;
+				dockTable.activeCraft = nil;
+				dockTable.dockingStage = nil;
+			end
+
+		end
+	end
+	
+	-- Monitor rocket activity
+	
+	for i, dockTable in ipairs(self.activeRocketDockTable) do
+		if dockTable.activeCraft then
+
+			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);
+
+			if craft and MovableMan:ValidMO(craft) then
+			
+				craft = ToACraft(craft)
+				
+				craft.DeliveryState = ACraft.STANDBY;
+				craft.AIMode = Actor.AIMODE_NONE;
+				
+				-- help these fucking things along, i'm sorry they're too stupid
+				local distVectorFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true)
+				if distVectorFromDockArea.X > 1 then
+					craft.Vel.X = math.max(craft.Vel.X - 1 * TimerMan.DeltaTimeSecs, 0)
+				elseif distVectorFromDockArea.X < -1 then
+					craft.Vel.X = math.min(craft.Vel.X + 1 * TimerMan.DeltaTimeSecs, 0)
+				end
+				
+				if dockTable.dockingStage == 2 then
+					craft:OpenHatch();
+					if craft:IsInventoryEmpty() then
+						dockTable.dockingStage = 3;
+						craft:ClearAIWaypoints();
+						craft:AddAISceneWaypoint(Vector(dockTable.dockPosition.X, SceneMan.Scene.Height + 500));
+						craft:CloseHatch();
+					end
+				elseif dockTable.dockingStage == 1 and craft:NumberValueExists("Docked") then
+					dockTable.dockingStage = 2;
+					craft:OpenHatch();
+				end
+
+			else
+				dockTable.activeCraft = nil;
+				dockTable.dockingStage = nil;
 			end
 
 		end
