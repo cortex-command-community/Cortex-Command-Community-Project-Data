@@ -1,12 +1,24 @@
 function Create(self)
+
+	self.captureSound = CreateSoundContainer("Dock Capture", "Base.rte");
+	self.releaseSound = CreateSoundContainer("Dock Release", "Base.rte");
+
+
 	self.updateTimer = Timer();
 	self.healTimer = Timer();
 	self.HoldTimer = Timer();
 	self.ReleaseTimer = Timer();
+	
 	self.HoldTime = 5000;
 	self.ReleaseTime = 800;
+	
 	self.detectionRange = 45; -- Default 40
+	
+	self.visualDockDistance = 30; -- in pixels from the SpriteOffset, horizontally
+	
 	self.HasDockedCraft = false;
+	self.confirmCapture = true;
+	
 end
 
 function Update(self)
@@ -25,11 +37,41 @@ function Update(self)
 			if not self.HasDockedCraft then
 				self.craft.AIMode = Actor.AIMODE_STAY;
 				self.HasDockedCraft = true;
-				self.craft:SetNumberValue("Docked", 1);
 			end
 			self.ReleaseTimer:Reset(); -- During the time the HoldTimer isn't reached, prevent ReleaseTimer from going
 		end
 		if self.HasDockedCraft then
+		
+			if self.confirmCapture and self.HoldTimer:IsPastSimMS(650) then
+				self.confirmCapture = false;
+				
+				self.craft:SetNumberValue("Docked", 1);
+
+				for i = 1, 2 do				
+					local direction = 1;
+				
+					if i == 2 then direction = -1 end;
+					
+					for i = 1, 8 do
+						local particle = CreateMOSParticle("Small Smoke Ball 1", "Base.rte");
+						particle.GlobalAccScalar = 0.005
+						particle.Lifetime = math.random(800, 2500);
+						particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-40, -30)/100);
+						particle.Pos = self.Pos + Vector(self.visualDockDistance * direction + math.random(-4, 4), math.random(-3, 3));
+						MovableMan:AddParticle(particle);
+					end
+					
+					for i = 1, 6 do
+						local particle = CreateMOSParticle("Small Smoke Ball 1", "Base.rte");
+						particle.GlobalAccScalar = 0.005
+						particle.Lifetime = math.random(800, 2500);
+						particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-100, -30)/100);
+						particle.Pos = self.Pos + Vector(self.visualDockDistance * direction + math.random(-4, 4), math.random(-3, 3));
+						MovableMan:AddParticle(particle);
+					end					
+				end						
+			end
+		
 			--Disable collisions with the ship
 			self.craft:SetWhichMOToNotHit(self, 100);
 			--Pin the ship and pull it nicely into the docking unit.
@@ -55,6 +97,35 @@ function Update(self)
 			self.craft:RemoveNumberValue("Docked");
 			self.craft = nil; --Forget about the craft thus starting all over again
 			self.ReleaseTimer:Reset();
+			self.releaseSound:Play(self.Pos);
+
+			for i = 1, 2 do
+			
+				local direction = 1;
+			
+				if i == 2 then direction = -1 end;
+				
+				for i = 1, 8 do
+					local particle = CreateMOSParticle("Small Smoke Ball 1", "Base.rte");
+					particle.GlobalAccScalar = 0.005
+					particle.Lifetime = math.random(800, 2500);
+					particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-40, -30)/100);
+					particle.Pos = self.Pos + Vector(self.visualDockDistance * direction + math.random(-4, 4), math.random(-3, 3));
+					MovableMan:AddParticle(particle);
+				end
+				
+				for i = 1, 6 do
+					local particle = CreateMOSParticle("Small Smoke Ball 1", "Base.rte");
+					particle.GlobalAccScalar = 0.005
+					particle.Lifetime = math.random(800, 2500);
+					particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-100, -30)/100);
+					particle.Pos = self.Pos + Vector(self.visualDockDistance * direction + math.random(-4, 4), math.random(-3, 3));
+					MovableMan:AddParticle(particle);
+				end	
+				
+			end
+	
+			
 		end
 	elseif self.ReleaseTimer:IsPastSimMS(self.ReleaseTime * 4) and self.updateTimer:IsPastSimMS(200) then
 		self.craft = nil;
@@ -62,6 +133,8 @@ function Update(self)
 			--See if a live rocket is within 45 pixel range of the docking unit
 			if mo.ClassName == "ACRocket" and not ToActor(mo):IsDead() then
 				self.craft = ToACRocket(mo);
+				self.confirmCapture = true;
+				self.captureSound:Play(self.Pos);
 			end
 		end
 		self.HoldTimer:Reset();

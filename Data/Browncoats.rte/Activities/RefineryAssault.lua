@@ -128,6 +128,8 @@ function RefineryAssault:UpdateActivity()
 				
 				dockTable.activeCraft = craft.UniqueID;
 				dockTable.dockingStage = 1;
+				
+				break;
 			end
 		end
 	end
@@ -272,6 +274,8 @@ function RefineryAssault:UpdateActivity()
 					end
 				elseif dockTable.dockingStage == 1 and craft:NumberValueExists("Docked") then
 					dockTable.dockingStage = 2;
+					craft:ClearAIWaypoints();
+					craft:AddAISceneWaypoint(Vector(craft.Pos.X, SceneMan.Scene.Height + 500));
 					craft:OpenHatch();
 				end
 
