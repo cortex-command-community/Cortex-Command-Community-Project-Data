@@ -38,6 +38,12 @@ function RefineryAssault:StartActivity()
 	
 	
 	
+	-- Set up player dropship dock wait list
+	
+	self.playerDSDockWaitList = {};
+	
+	self.playerDSDockCheckTimer = Timer();
+	self.playerDSDockCheckDelay = 4000;
 	
 	
 	-- Set up docks
@@ -94,8 +100,19 @@ end
 
 function RefineryAssault:UpdateActivity()
 
+	-- Dropship docking explanation:
+	
+	-- Stage 1 is below the dock, to line up any stray dropships such as detected player dropships awaiting AI delivery
+	-- This is the most prone stage to collisions, but we just have to live with them in lieu of real pathfinding
+	-- Stage 2 is in the dock, still in open air
+	-- Stage 3 is in the dock's dropoff zone
+	-- Stage 4 is back in the open air area of the dock
+	-- Stage 5 is all the way outside the map, straight down
+
 
 	-- Docking system initial tests
+	
+	self.lastAddedCraftUniqueID = nil;
 	
 	local debugTrigger = UInputMan:KeyPressed(Key.I)
 	
@@ -108,7 +125,7 @@ function RefineryAssault:UpdateActivity()
 				
 				local craft = RandomACDropShip("Craft", "Base.rte");
 				craft.AIMode = Actor.AIMODE_NONE;
-				craft.Team = 0
+				craft.Team = -1;
 				craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 				craft.DeliveryState = ACraft.STANDBY;
 				
@@ -124,12 +141,15 @@ function RefineryAssault:UpdateActivity()
 				
 				MovableMan:AddActor(craft);
 				
-				craft:AddAISceneWaypoint(dockTable.dockPosition);
+				self.lastAddedCraftID = craft.UniqueID;
+				
+				-- Mark this craft's dock number, not used except to see if there's any dock at all
+				craft:SetNumberValue("Dock Number", i);
+				
+				craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
 				
 				dockTable.activeCraft = craft.UniqueID;
 				dockTable.dockingStage = 1;
-				
-				break;
 			end
 		end
 	end
@@ -166,6 +186,96 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
+	-- Monitor for unknown crafts that might want to deliver stuff
+	
+	for actor in MovableMan.AddedActors do
+		if actor.UniqueID ~= self.lastAddedCraftUniqueID then
+			if IsACDropShip(actor) then
+				local craft = ToACDropShip(actor);
+				
+				-- See if we have any docks available right now
+				
+				local noDockFound = true;
+			
+				for i, dockTable in ipairs(self.activeDSDockTable) do
+					if not dockTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
+						
+						craft.AIMode = Actor.AIMODE_NONE;
+						--craft.Team = 0
+						craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+						craft.DeliveryState = ACraft.STANDBY;
+						
+						-- Mark this craft's dock number, not used except to see if there's any dock at all
+						craft:SetNumberValue("Dock Number", i);
+						
+						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+						
+						dockTable.activeCraft = craft.UniqueID;
+						dockTable.dockingStage = 1;
+						
+						noDockFound = false;
+						
+						break;
+					end
+				end
+				
+				if noDockFound then
+				
+					-- Put the craft in the wait table
+					
+					table.insert(self.playerDSDockWaitList, craft.UniqueID);
+					
+				end		
+				
+			end
+		end
+	end
+	
+	if self.playerDSDockCheckTimer:IsPastSimMS(self.playerDSDockCheckDelay) then
+		
+		self.playerDSDockCheckTimer:Reset();
+		
+		-- Iterate back to front so we can remove things safely
+		
+		for i=#self.playerDSDockWaitList, 1, -1 do
+		
+			local craft = MovableMan:FindObjectByUniqueID(self.playerDSDockWaitList[i]);
+			
+			if not craft then
+				table.remove(self.playerDSDockWaitList, i)
+				
+				-- this break will make everyone wait for 4 seconds again, but that's fine
+				break;
+			end
+			
+			craft = ToACDropShip(craft);
+		
+			-- See if we have any docks available
+	
+			for i2, dockTable in ipairs(self.activeDSDockTable) do
+				if not dockTable.activeCraft and not self.activeRocketDockTable[i2].activeCraft then
+					
+					craft.AIMode = Actor.AIMODE_NONE;
+					--craft.Team = 0
+					craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+					craft.DeliveryState = ACraft.STANDBY;
+					
+					-- Mark this craft's dock number, not used except to see if there's any dock at all
+					craft:SetNumberValue("Dock Number", i2);
+					
+					craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+					
+					dockTable.activeCraft = craft.UniqueID;
+					dockTable.dockingStage = 1;
+					
+					table.remove(self.playerDSDockWaitList, i)
+					
+					break;
+				end
+			end
+		end
+	end
+				
 	-- Monitor dropship activity
 	
 	for i, dockTable in ipairs(self.activeDSDockTable) do
@@ -181,21 +291,21 @@ function RefineryAssault:UpdateActivity()
 				craft.DeliveryState = ACraft.STANDBY;
 				craft.AIMode = Actor.AIMODE_NONE;
 				
-				if dockTable.dockingStage == 3 then
+				if dockTable.dockingStage == 4 then
 				
 					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true))
 				
 					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
-						dockTable.dockingStage = 3;
+						dockTable.dockingStage = 5;
 						craft:ClearAIWaypoints();
 						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, SceneMan.Scene.Height + 500));
 						craft:CloseHatch();
 						
 					end	
 					
-				elseif dockTable.dockingStage == 2 then
+				elseif dockTable.dockingStage == 3 then
 				
 					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(200 * direction, 0), true))
 				
@@ -204,23 +314,35 @@ function RefineryAssault:UpdateActivity()
 					if distFromDockArea < 20 then
 						craft:OpenHatch();
 						if craft:IsInventoryEmpty() then
-							dockTable.dockingStage = 3;
+							dockTable.dockingStage = 4;
 							craft:ClearAIWaypoints();
 							craft:AddAISceneWaypoint(dockTable.dockPosition);
 							craft:CloseHatch();
 						end
 					end	
 					
-				elseif dockTable.dockingStage == 1 then
+				elseif dockTable.dockingStage == 2 then
 				
 					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true))
 				
 					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
-						dockTable.dockingStage = 2;
+						dockTable.dockingStage = 3;
 						craft:ClearAIWaypoints();
 						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0));
+					end			
+					
+				elseif dockTable.dockingStage == 1 then
+				
+					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition, true))
+				
+					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition  + Vector(0, 500), true).Magnitude
+					--print(distFromDockArea)
+					if distFromDockArea < 20 then
+						dockTable.dockingStage = 2;
+						craft:ClearAIWaypoints();
+						craft:AddAISceneWaypoint(dockTable.dockPosition);
 					end
 					
 				end
