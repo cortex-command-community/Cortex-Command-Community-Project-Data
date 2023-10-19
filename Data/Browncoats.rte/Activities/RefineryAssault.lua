@@ -141,8 +141,8 @@ function RefineryAssault:SpawnDockingCraft(team, useRocketsInsteadOfDropShips, i
 		craft = useRocketsInsteadOfDropShips and RandomACRocket("Craft", "Base.rte") or RandomACDropShip("Craft", "Base.rte");
 	end
 	craft.Team = team;
-	craft.PlayerControllable = false;
-	craft.HUDVisible = team ~= self.humanTeam;
+	--craft.PlayerControllable = false;
+	--craft.HUDVisible = team ~= self.humanTeam;
 	if team == self.humanTeam then
 		craft:SetGoldValue(0);
 	end
@@ -172,8 +172,8 @@ function RefineryAssault:SpawnDockingCraft(team, useRocketsInsteadOfDropShips, i
 	
 	local selectionSuccess = false;
 	
-	craft.AIMode = Actor.AIMODE_NONE;
-	craft.DeliveryState = ACraft.STANDBY;
+	craft.AIMode = Actor.AIMODE_GOTO;
+	--craft.DeliveryState = ACraft.STANDBY;
 	
 	if IsACDropShip(craft) then
 	
@@ -188,6 +188,9 @@ function RefineryAssault:SpawnDockingCraft(team, useRocketsInsteadOfDropShips, i
 				craft:SetNumberValue("Dock Number", i);
 				
 				craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+				craft:AddAISceneWaypoint(dockTable.dockPosition);
+				local direction = i % 2 == 0 and -1 or 1;	
+				craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0))
 				
 				dockTable.activeCraft = craft.UniqueID;
 				dockTable.dockingStage = 1;
@@ -230,7 +233,8 @@ function RefineryAssault:SpawnDockingCraft(team, useRocketsInsteadOfDropShips, i
 	print(craft.Pos)
 		
 	if selectionSuccess == true then
-		MovableMan:AddActor(craft);		
+		MovableMan:AddActor(craft);
+		craft:UpdateMovePath();
 	else
 		return false;
 	end
@@ -276,15 +280,18 @@ function RefineryAssault:UpdateDockingCraft()
 				for i, dockTable in ipairs(self.activeDSDockTable) do
 					if not dockTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
 						
-						craft.AIMode = Actor.AIMODE_NONE;
+						craft.AIMode = Actor.AIMODE_GOTO;
 						--craft.Team = 0
 						craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
-						craft.DeliveryState = ACraft.STANDBY;
+						--craft.DeliveryState = ACraft.STANDBY;
 						
 						-- Mark this craft's dock number, not used except to see if there's any dock at all
 						craft:SetNumberValue("Dock Number", i);
 						
 						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+						craft:AddAISceneWaypoint(dockTable.dockPosition);
+						local direction = i % 2 == 0 and -1 or 1;	
+						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0))
 						
 						dockTable.activeCraft = craft.UniqueID;
 						dockTable.dockingStage = 1;
@@ -331,10 +338,10 @@ function RefineryAssault:UpdateDockingCraft()
 			for i2, dockTable in ipairs(self.activeDSDockTable) do
 				if not dockTable.activeCraft and not self.activeRocketDockTable[i2].activeCraft then
 					
-					craft.AIMode = Actor.AIMODE_NONE;
+					craft.AIMode = Actor.AIMODE_GOTO;
 					--craft.Team = 0
 					craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
-					craft.DeliveryState = ACraft.STANDBY;
+					--craft.DeliveryState = ACraft.STANDBY;
 					
 					-- Mark this craft's dock number, not used except to see if there's any dock at all
 					craft:SetNumberValue("Dock Number", i2);
@@ -364,8 +371,7 @@ function RefineryAssault:UpdateDockingCraft()
 			
 				craft = ToACraft(craft)
 				
-				craft.DeliveryState = ACraft.STANDBY;
-				craft.AIMode = Actor.AIMODE_NONE;
+				--craft.DeliveryState = ACraft.STANDBY;
 				
 				if dockTable.dockingStage == 4 then
 				
@@ -375,8 +381,6 @@ function RefineryAssault:UpdateDockingCraft()
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						dockTable.dockingStage = 5;
-						craft:ClearAIWaypoints();
-						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, SceneMan.Scene.Height + 500));
 						craft:CloseHatch();
 						
 					end	
@@ -389,10 +393,13 @@ function RefineryAssault:UpdateDockingCraft()
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						craft:OpenHatch();
+						craft.AIMode = Actor.AIMODE_NONE;
 						if craft:IsInventoryEmpty() then
-							dockTable.dockingStage = 4;
 							craft:ClearAIWaypoints();
 							craft:AddAISceneWaypoint(dockTable.dockPosition);
+							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, SceneMan.Scene.Height + 1000));
+							craft.AIMode = Actor.AIMODE_GOTO;
+							dockTable.dockingStage = 5;
 							craft:CloseHatch();
 						end
 					end	
@@ -405,8 +412,6 @@ function RefineryAssault:UpdateDockingCraft()
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						dockTable.dockingStage = 3;
-						craft:ClearAIWaypoints();
-						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0));
 					end			
 					
 				elseif dockTable.dockingStage == 1 then
@@ -417,8 +422,6 @@ function RefineryAssault:UpdateDockingCraft()
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						dockTable.dockingStage = 2;
-						craft:ClearAIWaypoints();
-						craft:AddAISceneWaypoint(dockTable.dockPosition);
 					end
 					
 				end
@@ -443,8 +446,8 @@ function RefineryAssault:UpdateDockingCraft()
 			
 				craft = ToACraft(craft)
 				
-				craft.DeliveryState = ACraft.STANDBY;
-				craft.AIMode = Actor.AIMODE_NONE;
+				--craft.DeliveryState = ACraft.STANDBY;
+				craft.AIMode = Actor.AIMODE_GOTO;
 				
 				if dockTable.dockingStage ~= 3 then
 					-- help these fucking things along, i'm sorry they're too stupid
