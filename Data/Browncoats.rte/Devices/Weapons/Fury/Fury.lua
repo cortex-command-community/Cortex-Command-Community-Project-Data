@@ -101,6 +101,16 @@ function Update(self)
 		
 		if self.otherHandGun or not self.parent.BGArm or not self.parent.FGArm then
 			self.FullAuto = false;
+			if self.fanFire then
+				--self.FullAuto = false;
+				self.fanFire = false;
+				self.cockDelay = 300;
+				self.StanceOffset = self.origStanceOffset;
+				self.SharpStanceOffset = self.origStanceOffset;
+				--self.SharpLength = self.origSharpLength;
+				self.ShakeRange = self.origShakeRange;
+				self.SharpShakeRange = self.origShakeRange;
+			end
 		else
 			self.FullAuto = true;
 		end
