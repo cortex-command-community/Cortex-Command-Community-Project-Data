@@ -73,9 +73,43 @@ function Update(self)
 
 	self.fanFireSound.Pos = self.Pos;
 	self.cockSound.Pos = self.Pos;
-	self.preSound.Pos = self.Pos;	
+	self.preSound.Pos = self.Pos;
+	
+	self.Reloadable = true;
+	
+	if IsAHuman(self:GetRootParent()) then
+		self.parent = ToAHuman(self:GetRootParent())
+		if self:GetParent().UniqueID == self.parent.FGArm.UniqueID then
+			if self.parent.BGArm and self.parent.EquippedBGItem then
+				self.otherHandGun = self.parent.EquippedBGItem;
+			else
+				self.otherHandGun = nil;
+			end
+		else
+			if self.parent.FGArm and self.parent.EquippedItem then
+				self.otherHandGun = self.parent.EquippedItem;
+			else
+				self.otherHandGun = nil;
+			end
+		end
+		
+		if self.otherHandGun then
+			if self.otherHandGun:IsReloading() then
+				self.Reloadable = false;
+			end
+		end
+		
+		if self.otherHandGun or not self.parent.BGArm or not self.parent.FGArm then
+			self.FullAuto = false;
+		else
+			self.FullAuto = true;
+		end
+	else
+		self.parent = nil;
+	end
 
 	if self.FiredFrame then
+		self.fanFireSound:Stop(-1);
 		self.ammoCounter = self.ammoCounter - 1;
 		self.shellsToEject = self.shellsToEject + 1;
 		self.ReloadStartSound = self.reloadStartSound;
@@ -88,7 +122,7 @@ function Update(self)
 	end
 	if self.Magazine then
 	
-		if not self.reloadCycle and self:IsActivated() and self.fanFireTimer:IsPastSimMS(self.fanFireHoldTime) then
+		if self.FullAuto and not self.reloadCycle and self:IsActivated() and self.fanFireTimer:IsPastSimMS(self.fanFireHoldTime) then
 			self.fanFire = true;
 			--self.FullAuto = true;
 			self.delayedFirstShot = true;
@@ -151,8 +185,7 @@ function Update(self)
 			end
 		end
 		if self.reloadCycle and self.reloadTimer:IsPastSimMS(self.reloadDelay) then
-			local actor = self:GetRootParent();
-			if MovableMan:IsActor(actor) then
+			if self.parent then
 				self:Reload();
 			end
 		end
@@ -215,7 +248,7 @@ function Update(self)
 		
 		if fire and not self:IsReloading() then
 			if not self.Magazine or self.RoundInMagCount < 1 then
-				self:Activate()
+				--self:Activate()
 			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
 				self.activated = true
 				
