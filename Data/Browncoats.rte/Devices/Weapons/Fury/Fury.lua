@@ -6,7 +6,10 @@ end
 
 function Create(self)
 
+	self.fanFireSound = CreateSoundContainer("Fanfire Browncoat R-500", "Browncoats.rte");
+	self.fanFireSound.Volume = 0.6
 	self.cockSound = CreateSoundContainer("Cock Browncoat R-500", "Browncoats.rte");
+	self.reloadStartNoEjectSound = CreateSoundContainer("Reload Start No Eject Browncoat R-500", "Browncoats.rte");
 	self.reloadStartSound = CreateSoundContainer("Reload Start Browncoat R-500", "Browncoats.rte");
 	self.reloadEndSound = CreateSoundContainer("Reload End Browncoat R-500", "Browncoats.rte");
 	self.preSound = CreateSoundContainer("Pre Browncoat R-500", "Browncoats.rte");
@@ -18,6 +21,14 @@ function Create(self)
 
 	self.reloadDelay = 150;
 	self.origReloadTime = 1200;
+	
+	self.origStanceOffset = self.StanceOffset;
+	self.origSharpStanceOffset = self.SharpStanceOffset;
+	
+	self.origShakeRange = self.ShakeRange;
+	self.origSharpShakeRange = self.SharpShakeRange;
+	
+	self.origSharpLength = self.SharpLength;
 	
 	self.origReloadAngle = self.ReloadAngle
 	self.origOneHandedReloadAngle = self.OneHandedReloadAngle;
@@ -37,6 +48,16 @@ function Create(self)
 	self.activated = false;
 	self.delayedFirstShot = true;
 	
+	self.fanFireTimer = Timer();
+	self.fanFireHoldTime = 200;
+	self.fanFire = false;
+	
+	self.fanFireStanceOffset = Vector(7, 7);
+	self.fanFireSharpStanceOffset = self.fanFireStanceOffset;
+	self.fanFireShakeRange = 6;
+	self.fanFireSharpShakeRange = 6;
+	self.fanFireSharpLength = 100;
+	
 	self.InheritedRotAngleTarget = 0;
 	self.InheritedRotAngleOffset = 0;
 	self.recoilAngleSize = 0.45;
@@ -50,29 +71,61 @@ end
 
 function Update(self)
 
+	self.fanFireSound.Pos = self.Pos;
 	self.cockSound.Pos = self.Pos;
-	self.preSound.Pos = self.Pos;
+	self.preSound.Pos = self.Pos;	
 
 	if self.FiredFrame then
 		self.ammoCounter = self.ammoCounter - 1;
+		self.shellsToEject = self.shellsToEject + 1;
+		self.ReloadStartSound = self.reloadStartSound;
 		self.Frame = 1;
 		self.cockTimer:Reset();
 		self.cockDelay = 300;
+		if self.fanFire then
+			self.cockDelay = 100;
+		end
 	end
 	if self.Magazine then
+	
+		if not self.reloadCycle and self:IsActivated() and self.fanFireTimer:IsPastSimMS(self.fanFireHoldTime) then
+			self.fanFire = true;
+			--self.FullAuto = true;
+			self.delayedFirstShot = true;
+			self.cockDelay = 100;
+			self.StanceOffset = self.fanFireStanceOffset;
+			self.SharpStanceOffset = self.fanFireStanceOffset;
+			--self.SharpLength = self.fanFireSharpLength;
+			self.ShakeRange = self.fanFireShakeRange;
+			self.SharpShakeRange = self.fanFireShakeRange;
+		elseif not self:IsActivated() then
+			self.fanFireTimer:Reset();
+			if self.fanFire then
+				--self.FullAuto = false;
+				self.fanFire = false;
+				self.cockDelay = 300;
+				self.StanceOffset = self.origStanceOffset;
+				self.SharpStanceOffset = self.origStanceOffset;
+				--self.SharpLength = self.origSharpLength;
+				self.ShakeRange = self.origShakeRange;
+				self.SharpShakeRange = self.origShakeRange;
+			end
+		end
 	
 		if not self.reloadCycle and self.Frame == 1 then
 			self:Deactivate();
 			self.delayedFire = false;
 			
 			if self.cockTimer:IsPastSimMS(self.cockDelay) then
-				self.cockSound:Play(self.Pos);
+				if self.fanFire then
+					--self.fanFireSound:Play(self.Pos);
+				else
+					self.cockSound:Play(self.Pos);
+				end
 				self.InheritedRotAngleTarget = 0;
 				self.Frame = 0;
 			end
 		end
-	
-		self.shellsToEject = self.Magazine.Capacity - self.Magazine.RoundCount;
 	
 		if self.loadedShell then
 			self.ReloadAngle = -0.25;
@@ -83,29 +136,29 @@ function Update(self)
 			self.loadedShell = false;
 		end
 		if self.reloadCycleEndNext == true then
-			self.ReloadStartSound = self.reloadStartSound;
+			self.Magazine.RoundCount = self.ammoCounter;
+			self.prematureCycleEnd = false;
+			self.ReloadStartSound = self.reloadStartNoEjectSound;
 			self.reloadCycleEndNext = false;
 			self.BaseReloadTime = self.origReloadTime;
 			self.ReloadAngle = self.origReloadAngle
 			self.OneHandedReloadAngle = self.origOneHandedReloadAngle;
 			self.reloadCycle = false;
 		end
+		if self:IsActivated() then
+			if self.reloadCycle then
+				self.prematureCycleEnd = true;
+			end
+		end
 		if self.reloadCycle and self.reloadTimer:IsPastSimMS(self.reloadDelay) then
 			local actor = self:GetRootParent();
 			if MovableMan:IsActor(actor) then
-				self.shellsToEject = 0;
 				self:Reload();
 			end
 		end
 	else
 	
 		self.cockTimer:Reset();
-	
-		if self.ammoCounter == self.maxAmmoCount then
-			self.ReloadEndSound = self.reloadEndSound;
-			self.reloadCycleEndNext = true;			
-			self.BaseReloadTime = self.reloadDelay;
-		end
 	
 		self.reloadTimer:Reset();
 		
@@ -128,9 +181,16 @@ function Update(self)
 		
 		self.shellsToEject = 0;
 		self.loadedShell = true;
-	end
-	if self:IsActivated() then
-		self.reloadCycle = false;
+		
+		if self.ammoCounter == self.maxAmmoCount or self.prematureCycleEnd then
+			self.ReloadAngle = 0.1;
+			self.OneHandedReloadAngle = 0.2;
+			self.loadedShell = false;
+			self.ReloadEndSound = self.reloadEndSound;
+			self.reloadCycleEndNext = true;			
+			self.BaseReloadTime = self.reloadDelay;
+		end		
+		
 	end
 	
 	if self:DoneReloading() then
@@ -159,7 +219,11 @@ function Update(self)
 			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
 				self.activated = true
 				
-				self.preSound:Play(self.Pos);
+				if self.fanFire then
+					self.fanFireSound:Play(self.Pos);
+				else
+					self.preSound:Play(self.Pos);
+				end
 				
 				self.fireDelayTimer:Reset()
 				
@@ -167,7 +231,6 @@ function Update(self)
 				self.delayedFireTimer:Reset()
 			end
 		else
-			
 			if self.activated then
 				self.activated = false
 			end
