@@ -81,6 +81,8 @@ function Update(self)
 		self.parent = ToAHuman(self:GetRootParent())
 		if self:GetParent().UniqueID == self.parent.FGArm.UniqueID then
 			if self.parent.BGArm and self.parent.EquippedBGItem then
+				-- dumb edge case fix...
+				self.reloadDelay = 135;
 				self.otherHandGun = self.parent.EquippedBGItem;
 			else
 				self.otherHandGun = nil;
@@ -88,6 +90,7 @@ function Update(self)
 		else
 			if self.parent.FGArm and self.parent.EquippedItem then
 				self.otherHandGun = self.parent.EquippedItem;
+				self.reloadDelay = 175;
 			else
 				self.otherHandGun = nil;
 			end
@@ -113,6 +116,7 @@ function Update(self)
 			end
 		else
 			self.FullAuto = true;
+			self.reloadDelay = 150;
 		end
 	else
 		self.parent = nil;
