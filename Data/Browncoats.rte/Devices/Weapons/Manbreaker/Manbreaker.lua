@@ -442,7 +442,7 @@ function Update(self)
 	
 	if self.InheritedRotAngleOffset ~= self.InheritedRotAngleTarget then
 		self.InheritedRotAngleOffset = self.InheritedRotAngleOffset - (self.rotationSpeed * (self.InheritedRotAngleOffset - self.InheritedRotAngleTarget))
-	end	
+	end
 	
 end
 
