@@ -11,7 +11,6 @@ end
 
 function Create(self)
 
-	self.firstAddSound = CreateSoundContainer("First Add Browncoat SG-10", "Browncoat.rte");
 	self.preSound = CreateSoundContainer("Pre Browncoat SG-10", "Browncoat.rte");
 	self.mechSound = CreateSoundContainer("Mech Browncoat A", "Browncoat.rte");
 	

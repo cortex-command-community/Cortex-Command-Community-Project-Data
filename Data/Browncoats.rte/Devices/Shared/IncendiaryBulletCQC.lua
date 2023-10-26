@@ -8,7 +8,7 @@ function Create(self)
 	self.deviationTimer = Timer();
 	self.deviationDelayMin = 13;
 	self.deviationDelayMax = 200;
-	self.deviationDelay = 100;
+	self.deviationDelay = 75;
 	
 	self.smokeTrailLifeTime = 5000;
 	self.smokeTrailTwirl = 0.0;
