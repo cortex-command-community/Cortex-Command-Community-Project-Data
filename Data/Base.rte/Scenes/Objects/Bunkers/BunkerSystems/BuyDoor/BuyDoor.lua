@@ -21,6 +21,15 @@ function Create(self)
 	self.openCloseSound:Play();
 	
 	
+	self.Activity = ToGameActivity(ActivityMan:GetActivity());
+	
+	self.orderTimer = Timer();
+	self.orderDelay = 5000;
+	
+	self.Message = "";
+	self.messageTimer = Timer();
+	self.messageTime = 0;
+	
 	self.closeActorTable = {};
 	self.actorUpdateTimer = Timer();
 	self.actorUpdateDelay = 50;
@@ -41,6 +50,20 @@ function Update(self)
 		self.isStayingOpen = true;
 		self.stayOpenTimer:Reset();
 		self.SpriteAnimMode = MOSprite.NOANIM;
+		
+		if self.currentOrder then
+			for k, item in ipairs(self.currentOrder) do
+				item.Pos = self.Pos;
+				item.Team = self.currentTeam;
+				if IsActor(item) then
+					MovableMan:AddActor(item)
+				else
+					MovableMan:AddItem(item);
+				end
+			end
+			self.currentOrder = nil;
+		end
+		
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
 		self.isStayingOpen = false;
@@ -56,13 +79,14 @@ function Update(self)
 			if (not self.closeActorTable[actor.UniqueID]) and IsAHuman(actor) or IsACrab(actor) then
 				actor = ToActor(actor);
 				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.orderPieSlice:Clone(), self);
-				table.insert(self.closeActorTable, actor.UniqueID);
+				self.closeActorTable[actor.UniqueID] = actor.UniqueID;
 			end
 		end
 		
-		for k, v in ipairs(self.closeActorTable) do
-			local actor = ToActor(MovableMan:FindObjectByUniqueID(v));
+		for k, v in pairs(self.closeActorTable) do
+			local actor = MovableMan:FindObjectByUniqueID(v);
 			if actor and MovableMan:ValidMO(actor) then
+				actor = ToActor(actor);
 				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, true).Magnitude;
 				if dist > self.detectRange then
 					actor.PieMenu:RemovePieSlicesByPresetName(self.orderPieSlice.PresetName);
@@ -71,7 +95,110 @@ function Update(self)
 				else
 					if actor:NumberValueExists("BuyDoor_Order") then
 						actor:RemoveNumberValue("BuyDoor_Order");
-						self.order = true;
+						if not self.currentOrder then
+							-- Set up order here
+							
+							-- We have to rebuild this table each time, because teams can change
+							
+							-- self.playerTeamTable = {};
+							-- for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+								-- if self.Activity:PlayerActive(player) and self.Activity:PlayerHuman(player) then
+									-- self.playerTeamTable[self.Activity:GetTeamOfPlayer(player)] = player;
+								-- end
+							-- end
+							
+							local team = actor.Team;
+							local player = actor:GetController().Player;		
+							local buyGUI = self.Activity:GetBuyGUI(player);
+							local orderCost = buyGUI:GetTotalCartCost();
+							
+							local funds = self.Activity:GetTeamFunds(team);
+							
+							--print("cost: "..orderCost)
+							--print("funds: "..funds)
+							
+							if funds < orderCost then
+								self.Message = "Insufficient funds!"
+								self.messageTime = 4000;
+								self.messageTimer:Reset();
+								return;
+							else
+								self.Activity:SetTeamFunds(funds - orderCost, team);
+							end
+							
+							local orderList = buyGUI:GetOrderList();
+							
+							local preActorItemList = {};
+							local lastActor
+							local finalOrder = {};
+							for item in orderList do
+								--print(item)
+								local handleItem
+								if IsAHuman(item) then
+									lastActor = CreateAHuman(item.PresetName, item.ModuleName);
+									if preActorItemList and #preActorItemList > 0 then
+										for k, preActorItem in ipairs(preActorItemList) do
+											lastActor:AddInventoryItem(preActorItem);
+										end
+										preActorItemList = nil;
+									end
+									table.insert(finalOrder, lastActor);
+								-- ugly workaround to GetOrderList giving wacko unclonable entities
+								elseif IsACrab(item) then			
+									item = CreateAHuman(item.PresetName, item.ModuleName);
+									table.insert(finalOrder, item);
+								elseif IsActor(item) then			
+									item = CreateActor(item.PresetName, item.ModuleName);
+									table.insert(finalOrder, item);
+								elseif IsTDExplosive(item) then
+									item = CreateTDExplosive(item.PresetName, item.ModuleName);
+									handleItem = true;	
+								elseif IsThrownDevice(item) then
+									item = CreateThrownDevice(item.PresetName, item.ModuleName);
+									handleItem = true;
+								elseif IsHDFirearm(item) then
+									item = CreateHDFirearm(item.PresetName, item.ModuleName);
+									handleItem = true;
+								elseif IsHeldDevice(item) then
+									item = CreateHeldDevice(item.PresetName, item.ModuleName);
+									handleItem = true;
+								else
+									print("Buy Door was given an order item with a class it couldn't handle: " .. item);
+								end
+									
+									
+								if handleItem then
+									if lastActor then
+										ToAHuman(lastActor):AddInventoryItem(item);
+									else
+										table.insert(preActorItemList, item);
+									end
+								end
+							end
+							
+							-- No AHumans could take the items we bought
+							if preActorItemList and #preActorItemList > 0 then
+								for k, preActorItem in ipairs(preActorItemList) do
+									table.insert(finalOrder, preActorItem);
+								end
+								preActorItemList = nil;
+							end
+							
+							if #finalOrder == 0 then
+								self.Message = "Nothing to order!"
+								self.messageTime = 4000;
+								self.messageTimer:Reset();
+								return;
+							end
+							
+							self.orderTimer:Reset();
+							self.currentOrder = finalOrder;
+							self.currentTeam = actor.Team;
+							self.orderDelivering = true;
+							
+							self.orderTimer:Reset();
+						end
+						
 					end
 				end
 			else
@@ -80,8 +207,19 @@ function Update(self)
 		end
 	end
 	
-	if self.order then
+	if self.orderDelivering then
+		if self.orderTimer:IsPastSimMS(self.orderDelay) then
+			self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
+			self.isClosing = false;
+			self.orderDelivering = false;
+			self.openCloseSound:Play();
+		else
+			PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
+		end
+	end
 	
+	if not self.messageTimer:IsPastSimMS(self.messageTime) then
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos, self.Message, true, 1);
 	end
 	
 end
