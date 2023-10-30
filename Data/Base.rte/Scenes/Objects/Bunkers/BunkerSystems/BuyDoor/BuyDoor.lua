@@ -1,3 +1,95 @@
+function BuyDoorSetupOrder(self, orderList, isCraftInventory)
+
+	local preActorItemList = {};
+	local lastActor
+	local finalOrder = {};
+
+	if isCraftInventory then
+		for item in orderList do
+			print(item);
+			local class = item.ClassName;
+			local typeCast = "To" .. class
+			
+			local clonedItem = _G[typeCast](item):Clone();
+			if IsActor(item) then
+				item = ToActor(item);
+				for inventoryItem in item.Inventory do
+					print("    " .. tostring(inventoryItem));
+					local class = inventoryItem.ClassName;
+					local typeCast = "To" .. class
+					
+					local clonedInventoryItem = _G[typeCast](inventoryItem):Clone();	
+					clonedItem:AddInventoryItem(clonedInventoryItem);
+				end
+			end
+			table.insert(finalOrder, clonedItem);
+		end
+	else
+
+		for item in orderList do
+			local handleItem
+			if IsAHuman(item) then
+				lastActor = CreateAHuman(item.PresetName, item.ModuleName);
+				if preActorItemList and #preActorItemList > 0 then
+					for k, preActorItem in ipairs(preActorItemList) do
+						lastActor:AddInventoryItem(preActorItem);
+					end
+					preActorItemList = nil;
+				end
+				table.insert(finalOrder, lastActor);
+			-- ugly workaround to GetOrderList giving wacko unclonable entities
+			elseif IsACrab(item) then			
+				item = CreateAHuman(item.PresetName, item.ModuleName);
+				table.insert(finalOrder, item);
+			elseif IsActor(item) then			
+				item = CreateActor(item.PresetName, item.ModuleName);
+				table.insert(finalOrder, item);
+			elseif IsTDExplosive(item) then
+				item = CreateTDExplosive(item.PresetName, item.ModuleName);
+				handleItem = true;	
+			elseif IsThrownDevice(item) then
+				item = CreateThrownDevice(item.PresetName, item.ModuleName);
+				handleItem = true;
+			elseif IsHDFirearm(item) then
+				item = CreateHDFirearm(item.PresetName, item.ModuleName);
+				handleItem = true;
+			elseif IsHeldDevice(item) then
+				item = CreateHeldDevice(item.PresetName, item.ModuleName);
+				handleItem = true;
+			else
+				print("Buy Door was given an order item with a class it couldn't handle: " .. item);
+			end
+				
+				
+			if handleItem then
+				if lastActor then
+					ToAHuman(lastActor):AddInventoryItem(item);
+				else
+					table.insert(preActorItemList, item);
+				end
+			end
+		end
+	end
+	
+	-- No AHumans could take the items we bought
+	if preActorItemList and #preActorItemList > 0 then
+		for k, preActorItem in ipairs(preActorItemList) do
+			table.insert(finalOrder, preActorItem);
+		end
+		preActorItemList = nil;
+	end
+	
+	if #finalOrder == 0 then
+		self.Message = "Nothing to order!"
+		self.messageTime = 4000;
+		self.messageTimer:Reset();
+		return nil;
+	end
+	
+	return finalOrder;
+
+end
+
 function Create(self)
 
 	-- Frame 0 is used to display the control console that we will place
@@ -22,6 +114,9 @@ function Create(self)
 	
 	
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
+	
+	self.cooldownTimer = Timer();
+	self.cooldownTime = 3000;
 	
 	self.orderTimer = Timer();
 	self.orderDelay = 5000;
@@ -128,75 +223,16 @@ function Update(self)
 							
 							local orderList = buyGUI:GetOrderList();
 							
-							local preActorItemList = {};
-							local lastActor
-							local finalOrder = {};
-							for item in orderList do
-								--print(item)
-								local handleItem
-								if IsAHuman(item) then
-									lastActor = CreateAHuman(item.PresetName, item.ModuleName);
-									if preActorItemList and #preActorItemList > 0 then
-										for k, preActorItem in ipairs(preActorItemList) do
-											lastActor:AddInventoryItem(preActorItem);
-										end
-										preActorItemList = nil;
-									end
-									table.insert(finalOrder, lastActor);
-								-- ugly workaround to GetOrderList giving wacko unclonable entities
-								elseif IsACrab(item) then			
-									item = CreateAHuman(item.PresetName, item.ModuleName);
-									table.insert(finalOrder, item);
-								elseif IsActor(item) then			
-									item = CreateActor(item.PresetName, item.ModuleName);
-									table.insert(finalOrder, item);
-								elseif IsTDExplosive(item) then
-									item = CreateTDExplosive(item.PresetName, item.ModuleName);
-									handleItem = true;	
-								elseif IsThrownDevice(item) then
-									item = CreateThrownDevice(item.PresetName, item.ModuleName);
-									handleItem = true;
-								elseif IsHDFirearm(item) then
-									item = CreateHDFirearm(item.PresetName, item.ModuleName);
-									handleItem = true;
-								elseif IsHeldDevice(item) then
-									item = CreateHeldDevice(item.PresetName, item.ModuleName);
-									handleItem = true;
-								else
-									print("Buy Door was given an order item with a class it couldn't handle: " .. item);
-								end
-									
-									
-								if handleItem then
-									if lastActor then
-										ToAHuman(lastActor):AddInventoryItem(item);
-									else
-										table.insert(preActorItemList, item);
-									end
-								end
+							local finalOrder = BuyDoorSetupOrder(self, orderList);
+							
+							if finalOrder then
+							
+								self.orderTimer:Reset();
+								self.currentOrder = finalOrder;
+								self.currentTeam = actor.Team;
+								self.orderDelivering = true;
+								
 							end
-							
-							-- No AHumans could take the items we bought
-							if preActorItemList and #preActorItemList > 0 then
-								for k, preActorItem in ipairs(preActorItemList) do
-									table.insert(finalOrder, preActorItem);
-								end
-								preActorItemList = nil;
-							end
-							
-							if #finalOrder == 0 then
-								self.Message = "Nothing to order!"
-								self.messageTime = 4000;
-								self.messageTimer:Reset();
-								return;
-							end
-							
-							self.orderTimer:Reset();
-							self.currentOrder = finalOrder;
-							self.currentTeam = actor.Team;
-							self.orderDelivering = true;
-							
-							self.orderTimer:Reset();
 						end
 						
 					end
@@ -207,15 +243,45 @@ function Update(self)
 		end
 	end
 	
-	if self.orderDelivering then
-		if self.orderTimer:IsPastSimMS(self.orderDelay) then
-			self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
-			self.isClosing = false;
-			self.orderDelivering = false;
-			self.openCloseSound:Play();
+	if self.cooldownTimer:IsPastSimMS(self.cooldownTime) then
+		if self.orderDelivering then
+			if self.orderTimer:IsPastSimMS(self.orderDelay) then
+				self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
+				self.isClosing = false;
+				self.orderDelivering = false;
+				self.openCloseSound:Play();
+				
+				self.cooldownTimer:Reset();
+			else
+				PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
+			end
 		else
-			PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
+			if self:NumberValueExists("BuyDoor_CraftInventoryOrderUniqueID") then
+				local craft = MovableMan:FindObjectByUniqueID(self:GetNumberValue("BuyDoor_CraftInventoryOrderUniqueID"));
+				if craft then
+							
+					local orderList = ToACraft(craft).Inventory;
+					
+					local finalOrder = BuyDoorSetupOrder(self, orderList, true);
+					
+					if finalOrder then
+					
+						self.orderTimer:Reset();
+						self.currentOrder = finalOrder;
+						self.currentTeam = craft.Team;
+						self.orderDelivering = true;
+						
+					else
+						print("Buy Door was given a craft UniqueID to copy the inventory of, but it had no items!");
+					end
+				end
+				self:RemoveNumberValue("BuyDoor_CraftInventoryOrderUniqueID");
+			end
 		end
+	else
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -10), "Reorganizing...", true, 1);
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.cooldownTime/1000 - self.cooldownTimer.ElapsedSimTimeS)), true, 1);
+		self.orderDelivering = false;
 	end
 	
 	if not self.messageTimer:IsPastSimMS(self.messageTime) then

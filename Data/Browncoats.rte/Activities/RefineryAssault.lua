@@ -128,10 +128,10 @@ function RefineryAssault:CreateCrab(team, createTurret)
 end
 
 -----------------------------------------------------------------------------------------
--- Spawn Docking Craft
+-- Create Delivery
 -----------------------------------------------------------------------------------------
 
-function RefineryAssault:SpawnDockingCraft(team, useRocketsInsteadOfDropShips, infantryType, passengerCount)
+function RefineryAssault:CreateDelivery(team, useRocketsInsteadOfDropShips, infantryType, passengerCount, useBuyDoor)
 	local tech = team == self.humanTeam and self.humanTeamTech or self.aiTeamTech;
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(tech);
 	crabToHumanSpawnRatio = 0;
@@ -170,69 +170,78 @@ function RefineryAssault:SpawnDockingCraft(team, useRocketsInsteadOfDropShips, i
 		end
 	end
 	
-	local selectionSuccess = false;
+	if useBuyDoor then
 	
-	craft.AIMode = Actor.AIMODE_GOTO;
-	--craft.DeliveryState = ACraft.STANDBY;
-	
-	if IsACDropShip(craft) then
-	
-		for i, dockTable in ipairs(self.activeDSDockTable) do
-			if not dockTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
-				
-				craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
-				
-				self.lastAddedCraftUniqueID = craft.UniqueID;
-				
-				-- Mark this craft's dock number, not used except to see if there's any dock at all
-				craft:SetNumberValue("Dock Number", i);
-				
-				craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
-				craft:AddAISceneWaypoint(dockTable.dockPosition);
-				local direction = i % 2 == 0 and -1 or 1;	
-				craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0))
-				
-				dockTable.activeCraft = craft.UniqueID;
-				dockTable.dockingStage = 1;
-				
-				selectionSuccess = true;
-				
-				break;
-			end
-		end
+		-- TODO non debug behavior
 		
+		-- i would call this hacky if it wasn't the tidiest most genius way to do it.
+		-- we have already constructed our exact order and packaged it neatly in a craft,
+		-- so instead of trying to construct some other fake list or fake AI buy menu cart,
+		-- why not just... send the craft over?
+		self.buyDoorSavedCraft = craft;
+		self.buyDoorSavedCraft.Team = team;
+		self.buyDoorTable[1]:SetNumberValue("BuyDoor_CraftInventoryOrderUniqueID", self.buyDoorSavedCraft.UniqueID);
+	
 	else
 	
-		for i, dockTable in ipairs(self.activeRocketDockTable) do
-			if not dockTable.activeCraft and not self.activeDSDockTable[i].activeCraft then
-				
-				print("selected dock Pos");
-				print(dockTable.dockPosition);
-				
-				craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
-				craft.Vel = Vector(0, -30);
-				
-				self.lastAddedCraftUniqueID = craft.UniqueID;
-				
-				-- Mark this craft's dock number, not used except to see if there's any dock at all
-				craft:SetNumberValue("Dock Number", i);
-				
-				craft:AddAISceneWaypoint(dockTable.dockPosition);
-				
-				dockTable.activeCraft = craft.UniqueID;
-				dockTable.dockingStage = 1;
-				
-				selectionSuccess = true;
-				
-				break;
+		local dockingSuccess = false;
+		
+		craft.AIMode = Actor.AIMODE_GOTO;
+		--craft.DeliveryState = ACraft.STANDBY;
+		
+		if IsACDropShip(craft) then
+		
+			for i, dockTable in ipairs(self.activeDSDockTable) do
+				if not dockTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
+					
+					craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+					
+					self.lastAddedCraftUniqueID = craft.UniqueID;
+					
+					-- Mark this craft's dock number, not used except to see if there's any dock at all
+					craft:SetNumberValue("Dock Number", i);
+					
+					craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+					craft:AddAISceneWaypoint(dockTable.dockPosition);
+					local direction = i % 2 == 0 and -1 or 1;	
+					craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0))
+					
+					dockTable.activeCraft = craft.UniqueID;
+					dockTable.dockingStage = 1;
+					
+					dockingSuccess = true;
+					
+					break;
+				end
+			end
+			
+		else
+		
+			for i, dockTable in ipairs(self.activeRocketDockTable) do
+				if not dockTable.activeCraft and not self.activeDSDockTable[i].activeCraft then
+					
+					craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+					craft.Vel = Vector(0, -30);
+					
+					self.lastAddedCraftUniqueID = craft.UniqueID;
+					
+					-- Mark this craft's dock number, not used except to see if there's any dock at all
+					craft:SetNumberValue("Dock Number", i);
+					
+					craft:AddAISceneWaypoint(dockTable.dockPosition);
+					
+					dockTable.activeCraft = craft.UniqueID;
+					dockTable.dockingStage = 1;
+					
+					dockingSuccess = true;
+					
+					break;
+				end
 			end
 		end
 	end
-	
-	print("craft Pos");
-	print(craft.Pos)
 		
-	if selectionSuccess == true then
+	if dockingSuccess == true then
 		MovableMan:AddActor(craft);
 		craft:UpdateMovePath();
 	else
@@ -261,10 +270,6 @@ function RefineryAssault:UpdateDockingCraft()
 	-- Docking system initial tests
 	
 	self.lastAddedCraftUniqueID = nil;
-	
-	local debugTrigger = UInputMan:KeyPressed(Key.I)
-	
-	local debugRocketTrigger = UInputMan:KeyPressed(Key.U)
 	
 	-- Monitor for unknown crafts that might want to deliver stuff
 	
@@ -495,17 +500,9 @@ function RefineryAssault:UpdateDockingCraft()
 		end
 	end
 	
-	if debugTrigger then
-	
-		self:SpawnDockingCraft(0, false, true, 2);
-		
+	if UInputMan:KeyPressed(Key.SPACE) then
+		self.ActivityState = Activity.EDITING;
 	end
-	
-	if debugRocketTrigger then
-	
-		self:SpawnDockingCraft(0, true, true, 2);
-		
-	end	
 	
 end
 
@@ -527,7 +524,7 @@ end
 -----------------------------------------------------------------------------------------
 
 function RefineryAssault:StartActivity()
-	print("START! -- Test:StartActivity()!");
+	print("START! -- RefineryAssault:StartActivity()!");
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -564,6 +561,21 @@ function RefineryAssault:StartActivity()
 	self.aiTeam = Activity.TEAM_2;
 	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
+	
+	-- Find and save all buy doors
+	
+	self.buyDoorTable = {};
+	
+	for mo in MovableMan.AddedParticles do
+		print(mo)
+		if mo.PresetName == "Reinforcement Door" then
+			table.insert(self.buyDoorTable, ToMOSRotating(mo));
+			print("yes")
+		end
+	end
+	
+	self.attackerBuyDoorTable = {};
+	self.defenderBuyDoorTable = {};
 	
 	
 	-- Set up player dropship dock wait list
@@ -611,7 +623,7 @@ end
 -----------------------------------------------------------------------------------------
 
 function RefineryAssault:PauseActivity(pause)
-	print("PAUSE! -- Test:PauseActivity()!");
+	print("PAUSE! -- RefineryAssault:PauseActivity()!");
 end
 
 -----------------------------------------------------------------------------------------
@@ -619,7 +631,7 @@ end
 -----------------------------------------------------------------------------------------
 
 function RefineryAssault:EndActivity()
-	print("END! -- Test:EndActivity()!");
+	print("END! -- RefineryAssault:EndActivity()!");
 end
 
 -----------------------------------------------------------------------------------------
@@ -629,6 +641,30 @@ end
 function RefineryAssault:UpdateActivity()
 
 	self:UpdateDockingCraft();
+	
+	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
+	
+	local debugTrigger = UInputMan:KeyPressed(Key.I)
+	
+	local debugRocketTrigger = UInputMan:KeyPressed(Key.U)
+	
+	if debugDoorTrigger then
+	
+		self:CreateDelivery(0, false, "CQB", 2, true);
+		
+	end
+	
+	if debugTrigger then
+	
+		self:CreateDelivery(0, false, "Heavy", 2);
+		
+	end
+	
+	if debugRocketTrigger then
+	
+		self:CreateDelivery(0, true, "Light", 2);
+		
+	end	
 
 	if self.doorMessageTimer then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
