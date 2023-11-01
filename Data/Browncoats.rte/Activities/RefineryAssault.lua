@@ -23,6 +23,10 @@ function RefineryAssault:CreateInfantry(team, infantryType)
 	if not allowAdvancedEquipment and self.difficultyRatio > 1 then
 		allowAdvancedEquipment = math.random() < (1 - (4 / (self.difficultyRatio * 3)));
 	end
+	
+	
+	-- todo change debug behavior
+	allowAdvancedEquipment = nil;
 
 	local actorType = (infantryType == "Heavy" or infantryType == "CQB") and "Actors - Heavy" or "Actors - Light";
 	if infantryType == "CQB" and math.random() < 0.25 then
@@ -33,7 +37,7 @@ function RefineryAssault:CreateInfantry(team, infantryType)
 		actor = RandomAHuman("Actors", tech);
 	end
 	actor.Team = team;
-	actor.PlayerControllable = self.humansAreControllingAlliedActors;
+	actor.PlayerControllable = true or self.humansAreControllingAlliedActors;
 
 	if infantryType == "Light" then
 		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
@@ -650,7 +654,7 @@ function RefineryAssault:UpdateActivity()
 	
 	if debugDoorTrigger then
 	
-		self:CreateDelivery(0, false, "CQB", 2, true);
+		self:CreateDelivery(0, false, "Light", 1, true);
 		
 	end
 	
@@ -682,7 +686,21 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 
-	if UInputMan.FlagAltState and UInputMan:KeyPressed(Key.K_1) then
+	if UInputMan:KeyPressed(Key.N) then
+		-- Find and save all buy doors
+	
+		self.buyDoorTable = {};
+	
+		for mo in MovableMan.Particles do
+			print(mo)
+			if mo.PresetName == "Reinforcement Door" then
+				table.insert(self.buyDoorTable, ToMOSRotating(mo));
+				print("yes")
+			end
+		end
+		
+		self.attackerBuyDoorTable = {};
+		self.defenderBuyDoorTable = {};
 		MovableMan:OpenAllDoors(not self.allDoorsOpened, Activity.NOTEAM);
 		self.allDoorsOpened = not self.allDoorsOpened;
 	end

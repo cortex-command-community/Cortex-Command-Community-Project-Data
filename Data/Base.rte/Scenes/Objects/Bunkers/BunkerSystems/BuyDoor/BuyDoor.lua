@@ -11,15 +11,15 @@ function BuyDoorSetupOrder(self, orderList, isCraftInventory)
 			local typeCast = "To" .. class
 			
 			local clonedItem = _G[typeCast](item):Clone();
-			if IsActor(item) then
-				item = ToActor(item);
+			if IsAHuman(item) then
+				item = ToAHuman(item);
 				for inventoryItem in item.Inventory do
 					print("    " .. tostring(inventoryItem));
 					local class = inventoryItem.ClassName;
 					local typeCast = "To" .. class
 					
 					local clonedInventoryItem = _G[typeCast](inventoryItem):Clone();	
-					clonedItem:AddInventoryItem(clonedInventoryItem);
+					--clonedItem:AddInventoryItem(clonedInventoryItem);
 				end
 			end
 			table.insert(finalOrder, clonedItem);
