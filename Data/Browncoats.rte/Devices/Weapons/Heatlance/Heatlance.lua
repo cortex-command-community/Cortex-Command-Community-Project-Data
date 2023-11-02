@@ -129,3 +129,17 @@ function Update(self)
 		end
 	end
 end
+
+function OnDestroy(self)
+
+	self.flameSwingLoopSound.Volume = 0;
+	self.plumeLoopSound.Volume = 0;
+	
+end
+
+function OnDetach(self)
+
+	self.flameSwingLoopSound.Volume = 0;
+	self.plumeLoopSound.Volume = 0;
+	
+end
