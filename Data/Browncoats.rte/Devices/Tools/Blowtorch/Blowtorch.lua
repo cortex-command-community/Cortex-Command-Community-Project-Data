@@ -1,6 +1,6 @@
 function Create(self)
-	self.startSound = CreateSoundContainer("Blowtorch Fire Sound Start", "Browncoats.rte");
-	self.endSound = CreateSoundContainer("Blowtorch Fire Sound End", "Browncoats.rte");
+	self.startSound = CreateSoundContainer("Ignite DG-1000", "Browncoats.rte");
+	self.endSound = CreateSoundContainer("Loop End DG-1000", "Browncoats.rte");
 end
 
 function Update(self)

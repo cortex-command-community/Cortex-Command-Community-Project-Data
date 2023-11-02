@@ -107,18 +107,19 @@ function Update(self)
 			self.plumeCheckTimer:Reset();
 			
 			local finalVec = Vector();
-			local flameVector = Vector(300 * self.FlipFactor, 0):RadRotate(self.RotAngle);
+			local flameVector = Vector(270 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 			SceneMan:CastObstacleRay(self.Pos, flameVector, Vector(), finalVec, self.ID, self.Team, 128, 7);
 			self.plumePosDifference = SceneMan:ShortestDistance(self.plumeLoopSound.Pos, finalVec, false);
 			
 		end
 		if self.plumePosDifference.Magnitude > 5 then
-			self.plumeLoopSound.Pos = self.plumeLoopSound.Pos + (self.plumePosDifference*TimerMan.DeltaTimeSecs);
+			self.plumeLoopSound.Pos = self.plumeLoopSound.Pos + (self.plumePosDifference*(TimerMan.DeltaTimeSecs*2));
 		end
 		if self.plumeLoopSound.Volume < 1 then
 			self.plumeLoopSound.Volume = math.min(1, self.plumeLoopSound.Volume + TimerMan.DeltaTimeSecs * 7);
 			self.plumeEndSound.Volume = self.plumeLoopSound.Volume;
 		end
+		--PrimitiveMan:DrawCirclePrimitive(self.plumeLoopSound.Pos, 10, 50);
 	else
 		if self.plumeLoopSound.Volume > 0 then
 			self.plumeLoopSound.Volume = math.max(0, self.plumeLoopSound.Volume - TimerMan.DeltaTimeSecs * 10);
