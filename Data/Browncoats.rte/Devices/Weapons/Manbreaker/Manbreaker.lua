@@ -65,6 +65,11 @@ function OnFire(self)
 	
 	if self.Heat > self.heatLimit * self.heatWarningLimitMultiplier then
 		self.preSound.Volume = 1.5;
+		if IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()):IsPlayerControlled() then
+			self.preSound.PanningStrengthMultiplier = 0;
+		else
+			self.preSound.PanningStrengthMultiplier = 1;
+		end
 		self.preSound:Play(self.Pos);
 		local particle = CreateMOSParticle("Side Thruster Blast Ball 1", "Base.rte");
 		particle.HitsMOs = false;
@@ -74,7 +79,7 @@ function OnFire(self)
 		MovableMan:AddParticle(particle);
 	end
 	
-	self.Heat = math.min(self.heatLimit, self.Heat + 5);
+	self.Heat = math.min(self.heatLimit, self.Heat + self.heatPerShot);
 	
 	if self.Heat == self.heatLimit then
 	
@@ -150,13 +155,6 @@ end
 
 function Create(self)
 
-	if self:NumberValueExists("Boss Mode") then
-		self.bossMode = true;
-		self.Magazine.RoundCount = 300;
-		self.heatLimit = 200;
-		self.HUDVisible = false;
-	end
-
 	self.preSound = CreateSoundContainer("Pre Browncoat MG-85", "Browncoat.rte");
 	
 	self.firstShotSound = CreateSoundContainer("First Shot Browncoat MG-85", "Browncoat.rte");
@@ -185,7 +183,8 @@ function Create(self)
 	self.heatFXTimer = Timer();
 	self.Heat = 0;
 	self.heatLimit = 100;
-	self.heatWarningLimitMultiplier = 0.8;
+	self.heatWarningLimitMultiplier = 0.7;
+	self.heatPerShot = 2.5;
 	
 	self.overheatCount = 0;
 	self.overheatFixTimer = Timer();
@@ -209,6 +208,7 @@ function Create(self)
 		self.Magazine.RoundCount = 300;
 		self.heatLimit = 200;
 		self.heatWarningLimitMultiplier = 0.6;
+		self.heatPerShot = 5;
 		
 		self.screenShakeAmount = 6;
 		
@@ -288,7 +288,7 @@ function Update(self)
 				self.activated = true
 				
 				self.preSound.Volume = 1;
-				
+				self.preSound.PanningStrengthMultiplier = 1;
 				self.preSound:Play(self.Pos);
 				
 				self.fireDelayTimer:Reset()

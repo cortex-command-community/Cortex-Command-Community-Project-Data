@@ -291,7 +291,7 @@ function RefineryAssault:UpdateDockingCraft()
 						
 						craft.AIMode = Actor.AIMODE_GOTO;
 						--craft.Team = 0
-						craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+						--craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 						--craft.DeliveryState = ACraft.STANDBY;
 						
 						-- Mark this craft's dock number, not used except to see if there's any dock at all
@@ -349,7 +349,7 @@ function RefineryAssault:UpdateDockingCraft()
 					
 					craft.AIMode = Actor.AIMODE_GOTO;
 					--craft.Team = 0
-					craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+					--craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 					--craft.DeliveryState = ACraft.STANDBY;
 					
 					-- Mark this craft's dock number, not used except to see if there's any dock at all
