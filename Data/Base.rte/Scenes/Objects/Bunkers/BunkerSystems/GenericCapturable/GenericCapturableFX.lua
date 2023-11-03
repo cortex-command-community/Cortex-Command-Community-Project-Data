@@ -17,10 +17,10 @@ function Update(self)
 		self.startCaptureSound:Play(self.Pos);
 		self.capturingTimer:Reset();
 	end
-	if self.FXcapturing then
+	if self.FXcapturing or self.Contested then
 		local sound = self.capturingSound;
 		self.capturingDelay = 500;
-		if self.dominantTeam == self.capturingTeam then
+		if self.dominantTeam == self.capturingTeam and not self.Contested then
 			self.capturingDelay = 250;
 		end
 		if self.capturingTimer:IsPastSimMS(self.capturingDelay) then

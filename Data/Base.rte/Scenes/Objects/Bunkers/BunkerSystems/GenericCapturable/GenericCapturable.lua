@@ -24,6 +24,8 @@ function Create(self)
 	self.dominantTeam = self.Team;
 	
 	self.instantReset = self:GetNumberValue("InstantReset") == 1 and true or false;
+	self.neutralIfNotFullyCapped = self:GetNumberValue("NeutralIfNotFullyCapped") == 1 and true or false;
+	self.needFullControlToCap = self:GetNumberValue("NeedFullControlToCap") == 1 and true or false;
 	
 	self.secondsToCapture = self:NumberValueExists("SecondsToCapture") and self:GetNumberValue("SecondsToCapture") or 10;
 	self.captureRate = 1/(self.secondsToCapture / 2);
@@ -76,6 +78,7 @@ function Update(self)
 		
 		local largestNum = 0;
 		local noDominantTeam = true;
+		self.Contested = false;
 		
 		for i = -1, #self.actorTeamNumTable do
 			if self.actorTeamNumTable[i] > largestNum then
@@ -83,6 +86,14 @@ function Update(self)
 				noDominantTeam = false;
 				if self.dominantTeam ~= i then
 					self.dominantTeam = i;
+				end
+			elseif not noDominantTeam then
+				if self.needFullControlToCap then
+					if self.actorTeamNumTable[i] > 0 then
+						self.Contested = true;
+					end
+				elseif self.actorTeamNumTable[i] == largestNum then
+					self.Contested = true;
 				end
 			end
 			if noDominantTeam then
@@ -104,30 +115,41 @@ function Update(self)
 		self.FXcapturing = false;
 	end
 	
-	if self.dominantTeam ~= self.capturingTeam then	
+	if not self.Contested then
 	
-		if self.captureProgress > 0 then
-			self.captureProgress = math.max(0, self.captureProgress - TimerMan.DeltaTimeSecs * self.captureRate);
+		if self.dominantTeam ~= self.capturingTeam then	
+		
+			if self.captureProgress > 0 then
+				self.captureProgress = math.max(0, self.captureProgress - TimerMan.DeltaTimeSecs * self.captureRate);
+			else
+				self.capturingTeam = self.dominantTeam;
+				if self.neutralIfNotFullyCapped then
+					self.Team = -1;
+				end
+			end
+			
 		else
-			self.capturingTeam = self.dominantTeam;
+		
+			if self.captureProgress < 1 then
+				self.captureProgress = math.min(1, self.captureProgress + TimerMan.DeltaTimeSecs * self.captureRate);
+				if self.Team == -1 and self.dominantTeam == self.Team then
+					self.captureProgress = 0;
+				end
+					
+			else
+				if self.dominantTeam ~= self.Team then
+					self.Team = self.dominantTeam;
+					self.FXcaptureSuccess = true;
+				end
+			end
+
 		end
 		
-	else
-	
-		if self.captureProgress < 1 then
-			self.captureProgress = math.min(1, self.captureProgress + TimerMan.DeltaTimeSecs * self.captureRate);
-		else
-			if self.dominantTeam ~= self.Team then
-				self.Team = self.dominantTeam;
-				self.FXcaptureSuccess = true;
-			end
+		if self.instantReset and self.dominantTeam == self.Team then
+			self.captureProgress = self.Team ~= -1 and 1 or 0;
+			self.capturingTeam = self.Team;
 		end
-
-	end
-	
-	if self.instantReset and self.dominantTeam == self.Team then
-		self.captureProgress = 1;
-		self.capturingTeam = self.Team;
+		
 	end
 	
 	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring("Team: " .. self.Team), true, 1);
