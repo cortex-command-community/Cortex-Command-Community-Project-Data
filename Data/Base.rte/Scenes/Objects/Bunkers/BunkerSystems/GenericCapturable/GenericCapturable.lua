@@ -7,8 +7,6 @@ function Create(self)
 	self.deactivationMessage = self:GetStringValue("DeactivationMessage");
 	self.activationMessage = self:GetStringValue("ActivationMessage");
 	
-	self.captureSpeed = self:NumberValueExists("CaptureSpeed") and self:GetNumberValue("CaptureSpeed") or 10;
-	
 	self.actorCheckTimer = Timer();
 	self.actorCheckDelay = 250;
 	
@@ -17,13 +15,18 @@ function Create(self)
 	
 	if self:StringValueExists("SceneCaptureArea") then
 		if self.Scene:HasArea(self:GetStringValue("SceneCaptureArea")) then
-			self.captureArea = self.Scene:GetArea(self:GetStringValue("SceneCaptureArea"))
+			self.captureArea = self.Scene:GetArea(self:GetStringValue("SceneCaptureArea"));
 		end
 	end
 	
-	-- goes -100 to 100
-	self.captureProgress = -100;
+	self.captureProgress = 1;
+	self.capturingTeam = self.Team;
 	self.dominantTeam = self.Team;
+	
+	self.instantReset = self:GetNumberValue("InstantReset") == 1 and true or false;
+	
+	self.secondsToCapture = self:NumberValueExists("SecondsToCapture") and self:GetNumberValue("SecondsToCapture") or 10;
+	self.captureSpeed = self.secondsToCapture / 2;
 	
 	self.actorTeamNumTable = {  [-1] = 0,
 								[0] = 0,
@@ -49,18 +52,26 @@ function Update(self)
 									[2] = 0,
 									[3] = 0};
 									
-		local actorList
 		
 		if self.captureArea then
-			actorList = MovableMan:GetMOsInBox(self.captureArea, -1, true);
-		else
-			actorList = MovableMan:GetMOsInRadius(self.Pos, self.Diameter * 2, -1, true);
-		end
-		
-		for actor in actorList do
-			if IsActor(actor) then
-				self.actorTeamNumTable[actor.Team] = self.actorTeamNumTable[actor.Team] + 1
+			
+			for box in self.captureArea.Boxes do
+				for actor in MovableMan:GetMOsInBox(box, -1, true) do
+					if IsActor(actor) then
+						self.actorTeamNumTable[actor.Team] = self.actorTeamNumTable[actor.Team] + 1
+					end
+				end
 			end
+			
+		else -- fallback
+		
+			local actorList = MovableMan:GetMOsInRadius(self.Pos, self.Diameter * 2, -1, true);
+			for actor in actorList do
+				if IsActor(actor) then
+					self.actorTeamNumTable[actor.Team] = self.actorTeamNumTable[actor.Team] + 1
+				end
+			end
+			
 		end
 		
 		local largestNum = 0;
@@ -75,22 +86,32 @@ function Update(self)
 		
 	end
 	
-	if self.dominantTeam ~= self.Team then
-		if self.captureProgress < 100 then
-			self.captureProgress = math.min(100, self.captureProgress + TimerMan.DeltaTimeSecs * self.captureSpeed);
+	if self.dominantTeam ~= self.capturingTeam then
+	
+		if self.captureProgress > 0 then
+			self.captureProgress = math.max(0, self.captureProgress - TimerMan.DeltaTimeSecs / self.captureSpeed);
 		else
-			self.Team = self.dominantTeam;
-			self.captureProgress = -100;
+			self.capturingTeam = self.dominantTeam;
 		end
 		
 	else
-		if self.captureProgress > -100 then
-			self.captureProgress = math.max(-100, self.captureProgress - TimerMan.DeltaTimeSecs * self.captureSpeed);	
+	
+		if self.captureProgress < 1 then
+			self.captureProgress = math.min(1, self.captureProgress + TimerMan.DeltaTimeSecs / self.captureSpeed);
+		else
+			self.Team = self.dominantTeam;
 		end
+
 	end
 	
-	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring(self.Team), true, 1);
+	if self.instantReset and self.dominantTeam == self.Team then
+		self.captureProgress = 1;
+		self.capturingTeam = self.Team;
+	end
 	
-	PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress), true, 1);
+	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring("Team: " .. self.Team), true, 1);
+	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -30), tostring("Capturing Team: " .. self.capturingTeam), true, 1);
+	
+	PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress * 100), true, 1);
 				
 end
