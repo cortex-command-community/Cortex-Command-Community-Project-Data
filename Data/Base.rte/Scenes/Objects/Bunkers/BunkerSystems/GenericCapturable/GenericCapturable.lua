@@ -26,7 +26,7 @@ function Create(self)
 	self.instantReset = self:GetNumberValue("InstantReset") == 1 and true or false;
 	
 	self.secondsToCapture = self:NumberValueExists("SecondsToCapture") and self:GetNumberValue("SecondsToCapture") or 10;
-	self.captureSpeed = self.secondsToCapture / 2;
+	self.captureRate = 1/(self.secondsToCapture / 2);
 	
 	self.actorTeamNumTable = {  [-1] = 0,
 								[0] = 0,
@@ -75,21 +75,39 @@ function Update(self)
 		end
 		
 		local largestNum = 0;
-		self.dominantTeam = self.Team;
+		local noDominantTeam = true;
 		
 		for i = -1, #self.actorTeamNumTable do
 			if self.actorTeamNumTable[i] > largestNum then
 				largestNum = self.actorTeamNumTable[i];
-				self.dominantTeam = i;
+				noDominantTeam = false;
+				if self.dominantTeam ~= i then
+					self.dominantTeam = i;
+				end
+			end
+			if noDominantTeam then
+				self.dominantTeam = self.Team;
 			end
 		end
 		
 	end
 	
-	if self.dominantTeam ~= self.capturingTeam then
+	if self.dominantTeam ~= self.Team then
+		if not self.FXcapturing then
+			self.FXstartCapture = true;
+			self.FXcapturing = true;
+		end
+	else
+		if self.FXcapturing then
+			self.FXstopCapture = true;
+		end
+		self.FXcapturing = false;
+	end
+	
+	if self.dominantTeam ~= self.capturingTeam then	
 	
 		if self.captureProgress > 0 then
-			self.captureProgress = math.max(0, self.captureProgress - TimerMan.DeltaTimeSecs / self.captureSpeed);
+			self.captureProgress = math.max(0, self.captureProgress - TimerMan.DeltaTimeSecs * self.captureRate);
 		else
 			self.capturingTeam = self.dominantTeam;
 		end
@@ -97,9 +115,12 @@ function Update(self)
 	else
 	
 		if self.captureProgress < 1 then
-			self.captureProgress = math.min(1, self.captureProgress + TimerMan.DeltaTimeSecs / self.captureSpeed);
+			self.captureProgress = math.min(1, self.captureProgress + TimerMan.DeltaTimeSecs * self.captureRate);
 		else
-			self.Team = self.dominantTeam;
+			if self.dominantTeam ~= self.Team then
+				self.Team = self.dominantTeam;
+				self.FXcaptureSuccess = true;
+			end
 		end
 
 	end
@@ -111,6 +132,7 @@ function Update(self)
 	
 	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring("Team: " .. self.Team), true, 1);
 	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -30), tostring("Capturing Team: " .. self.capturingTeam), true, 1);
+	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -40), tostring("Dominant Team: " .. self.dominantTeam), true, 1);
 	
 	PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress * 100), true, 1);
 				
