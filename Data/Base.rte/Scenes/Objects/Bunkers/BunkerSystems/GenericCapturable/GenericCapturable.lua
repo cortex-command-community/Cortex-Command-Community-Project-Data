@@ -1,6 +1,32 @@
+function OnGlobalMessage(self, message, object)
+
+	if message == self.deactivationMessage then
+		self.Deactivated = true;
+		self.dominantTeam = self.Team;
+		self.capturingTeam = self.Team;
+		self.captureProgress = 1;
+	elseif message == self.activationMessage then
+		self.Deactivated = false;
+	end
+
+end
+
+function OnMessage(self, message, object)
+
+	if message == self.deactivationMessage then
+		self.Deactivated = true;
+		self.dominantTeam = self.Team;
+		self.capturingTeam = self.Team;
+		self.captureProgress = 1;
+	elseif message == self.activationMessage then
+		self.Deactivated = false;
+	end
+
+end
+
 function Create(self)
 	
-	self.Team = 2
+	self.Team = self:NumberValueExists("StartTeam") and self:GetNumberValue("StartTeam") or 0;
 
 	self.messageOnCapture = self:GetStringValue("CaptureMessage");
 	
@@ -115,7 +141,7 @@ function Update(self)
 		self.FXcapturing = false;
 	end
 	
-	if not self.Contested then
+	if not self.Contested and not self.Deactivated then
 	
 		if self.dominantTeam ~= self.capturingTeam then	
 		
@@ -140,6 +166,7 @@ function Update(self)
 				if self.dominantTeam ~= self.Team then
 					self.Team = self.dominantTeam;
 					self.FXcaptureSuccess = true;
+					self.Activity:SendMessage(self.messageOnCapture, self.Team);
 				end
 			end
 
@@ -157,5 +184,8 @@ function Update(self)
 	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -40), tostring("Dominant Team: " .. self.dominantTeam), true, 1);
 	
 	PrimitiveMan:DrawTextPrimitive(self.Pos, tostring(self.captureProgress * 100), true, 1);
-				
+	
+	if self.Deactivated then
+		PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -60), "DEACTIVATED"	, true, 1);	
+	end
 end
