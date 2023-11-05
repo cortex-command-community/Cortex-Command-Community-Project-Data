@@ -27,9 +27,12 @@ function BuyDoorSetupOrder(self, orderList, isCraftInventory)
 	else
 
 		for item in orderList do
-			local handleItem
+			local class = item.ClassName;
+			local typeCast = "To" .. class
+			
+			local clonedItem = _G[typeCast](item):Clone();
 			if IsAHuman(item) then
-				lastActor = CreateAHuman(item.PresetName, item.ModuleName);
+				lastActor = clonedItem;
 				if preActorItemList and #preActorItemList > 0 then
 					for k, preActorItem in ipairs(preActorItemList) do
 						lastActor:AddInventoryItem(preActorItem);
@@ -37,37 +40,21 @@ function BuyDoorSetupOrder(self, orderList, isCraftInventory)
 					preActorItemList = nil;
 				end
 				table.insert(finalOrder, lastActor);
-			-- ugly workaround to GetOrderList giving wacko unclonable entities
-			elseif IsACrab(item) then			
-				item = CreateAHuman(item.PresetName, item.ModuleName);
-				table.insert(finalOrder, item);
 			elseif IsActor(item) then			
-				item = CreateActor(item.PresetName, item.ModuleName);
+				item = clonedItem;
 				table.insert(finalOrder, item);
-			elseif IsTDExplosive(item) then
-				item = CreateTDExplosive(item.PresetName, item.ModuleName);
-				handleItem = true;	
-			elseif IsThrownDevice(item) then
-				item = CreateThrownDevice(item.PresetName, item.ModuleName);
-				handleItem = true;
-			elseif IsHDFirearm(item) then
-				item = CreateHDFirearm(item.PresetName, item.ModuleName);
-				handleItem = true;
 			elseif IsHeldDevice(item) then
-				item = CreateHeldDevice(item.PresetName, item.ModuleName);
-				handleItem = true;
-			else
-				print("Buy Door was given an order item with a class it couldn't handle: " .. item);
-			end
-				
-				
-			if handleItem then
+				item = clonedItem;
 				if lastActor then
 					ToAHuman(lastActor):AddInventoryItem(item);
 				else
 					table.insert(preActorItemList, item);
 				end
+			else
+				print("Buy Door was given an order item with a class it couldn't handle: " .. item);
 			end
+				
+			
 		end
 	end
 	
