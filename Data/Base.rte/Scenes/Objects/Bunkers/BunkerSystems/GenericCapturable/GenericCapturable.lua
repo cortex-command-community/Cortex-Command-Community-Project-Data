@@ -1,5 +1,7 @@
 function OnGlobalMessage(self, message, object)
 
+	print("capturablegotglobalmessage")
+
 	if message == self.deactivationMessage then
 		self.Deactivated = true;
 		self.dominantTeam = self.Team;
@@ -42,6 +44,7 @@ function Create(self)
 	if self:StringValueExists("SceneCaptureArea") then
 		if self.Scene:HasArea(self:GetStringValue("SceneCaptureArea")) then
 			self.captureArea = self.Scene:GetArea(self:GetStringValue("SceneCaptureArea"));
+			print("foundarea")
 		end
 	end
 	
@@ -131,8 +134,8 @@ function Update(self)
 	
 	if self.dominantTeam ~= self.Team then
 		if not self.FXcapturing then
-			self.FXstartCapture = true;
-			self.FXcapturing = true;
+			self.FXstartCapture = not self.Deactivated and true or false;
+			self.FXcapturing = not self.Deactivated and true or false;
 		end
 	else
 		if self.FXcapturing then
