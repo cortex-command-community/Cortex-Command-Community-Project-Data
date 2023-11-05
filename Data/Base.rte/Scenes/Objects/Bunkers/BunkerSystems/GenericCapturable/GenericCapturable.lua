@@ -151,6 +151,7 @@ function Update(self)
 			if self.captureProgress > 0 then
 				self.captureProgress = math.max(0, self.captureProgress - TimerMan.DeltaTimeSecs * self.captureRate);
 			else
+				self.FXcaptureUncapped = true;
 				self.capturingTeam = self.dominantTeam;
 				if self.neutralIfNotFullyCapped then
 					self.Team = -1;
