@@ -38,7 +38,14 @@ function Update(self)
 				self.craft.AIMode = Actor.AIMODE_STAY;
 				self.HasDockedCraft = true;
 			end
+			if self.craft.Status < Actor.DYING then
+				self.craft.Status = Actor.UNSTABLE;	--Deactivated
+			end
 			self.ReleaseTimer:Reset(); -- During the time the HoldTimer isn't reached, prevent ReleaseTimer from going
+		else
+			if self.craft.Status < Actor.DYING then
+				self.craft.Status = 0;
+			end
 		end
 		if self.HasDockedCraft then
 		

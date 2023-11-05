@@ -68,8 +68,6 @@ function NativeDropShipAI:Update(Owner)
 
 	if hoverHeightModifierChanged or Owner.AIMode ~= self.LastAIMode then
 	
-		--print("changed")
-	
 		Owner:UpdateMovePath();
 		
 		self.LastAIMode = Owner.AIMode;

@@ -197,12 +197,10 @@ function UpdateAI(self)
 		change = self.YposPID:Update(dist.Y, 0);
 		if math.abs(self.RotAngle) < 0.9 then
 			if self.AIMode == Actor.AIMODE_GOTO then
-			
-				if change < -0.5 and self.Vel.Magnitude < 10 then
+				if change < -0.5 then
 					self.burstUp = nil;
 					self.Ctrl:SetState(Controller.MOVE_UP, true);
 				end
-					
 			else
 				if self.DeliveryState == ACraft.LAUNCH and change < -7 then
 					self.burstUp = nil;
