@@ -34,9 +34,13 @@ function Update(self)
 	if self.FXcaptureSuccess then
 		self.captureSuccessSound:Play(self.Pos);
 	end
+	if self.FXcaptureUncapped then
+		self.capturingTimer:Reset();
+	end
 
 	self.FXstartCapture = false;
 	self.FXstopCapture = false;
 	self.FXcaptureSuccess = false;
+	self.FXcaptureUncapped = false;
 				
 end
