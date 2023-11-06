@@ -7,6 +7,15 @@ function RefineryAssault:OnMessage(message, object)
 	print(message)
 
 	if message == "Captured_RefineryTestCapturable1" then
+	
+		self.tacticsHandler:RemoveTask("Attack Hack Console 1", 0)
+		self.tacticsHandler:RemoveTask("Defend Hack Console 1", 1)
+		
+		local taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryTestCapturable2").Center;
+		
+		self.tacticsHandler:AddTask("Attack Hack Console 2", 0, taskPos, "Attack", 10);
+		self.tacticsHandler:AddTask("Defend Hack Console 2", 1, taskPos, "Defend", 10);		
+	
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable1");
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryTestCapturable2");
 		print("triedtoswitchcapturables")
@@ -163,10 +172,6 @@ function RefineryAssault:StartActivity()
 	self.tacticsHandler:AddTask("Attack Hack Console 1", 0, taskPos, "Attack", 10);
 	self.tacticsHandler:AddTask("Defend Hack Console 1", 1, taskPos, "Defend", 10);
 	
-	taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryTestCapturable2").Center;
-	
-	self.tacticsHandler:AddTask("Attack Hack Console 2", 0, taskPos, "Attack", 10);
-	self.tacticsHandler:AddTask("Defend Hack Console 2", 1, taskPos, "Defend", 10);
 	
 end
 

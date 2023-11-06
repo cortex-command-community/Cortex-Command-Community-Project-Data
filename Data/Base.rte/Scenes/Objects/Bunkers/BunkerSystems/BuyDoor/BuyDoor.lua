@@ -25,7 +25,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 	if isCustomOrder then
 		for i = 1, #orderList do
 			local item = orderList[i];
-			print(item)
+			--print(item)
 			table.insert(finalOrder, item);
 			self.currentTeam = item.Team;
 		end

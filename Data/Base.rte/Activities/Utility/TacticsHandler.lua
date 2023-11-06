@@ -27,7 +27,9 @@ function TacticsHandler:Initialize(activity)
 	self.Activity = activity;
 	
 	self.taskUpdateTimer = Timer();
-	self.taskUpdateDelay = 1000;
+	self.taskUpdateDelay = 10000;
+	
+	self.teamToCheckNext = 0;
 	
 	self.teamList = {};
 	
@@ -36,6 +38,7 @@ function TacticsHandler:Initialize(activity)
 		self.teamList[i].squadList = {};
 		self.teamList[i].taskList = {};
 	end
+	print("activity team count: " .. self.Activity.TeamCount)
 	
 	-- We cannot account for actors added outside of our system
 	
@@ -44,6 +47,42 @@ function TacticsHandler:Initialize(activity)
 			-- table.insert(self.teamList[actor.Team].actorList, actor);
 		-- end
 	-- end
+	
+end
+
+function TacticsHandler:RemoveTask(name, team)
+
+	if name and team then
+		local task;
+		local taskIndex;
+		for i = 1, #self.teamList[team].taskList do
+			if self.teamList[team].taskList[i].Name == name then
+				task = self.teamList[team].taskList[i];
+				taskIndex = i;
+				break;
+			end
+		end
+		if task then
+			-- retask squads before deleting
+			for i = 1, #self.teamList[team].squadList do
+				if self.teamList[team].squadList[i].taskName == task.Name then
+					for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
+						self.teamList[team].squadList[i].Actors[actorIndex]:ClearAIWaypoints();
+					end
+				end
+			end
+					
+			table.remove(self.teamList[team].taskList, taskIndex);
+		else
+			print("Tactics Handler was asked to remove a task it didn't have!");
+			return false;
+		end
+	else
+		print("Tactics Handler was asked to remove a task, but not given a name and a team!");
+		return false;
+	end
+	
+	return true;
 	
 end
 
@@ -77,7 +116,9 @@ end
 function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 	
 	if team and squadTable and taskName then
-		local squadEntry = {squadTable, taskName};
+		local squadEntry = {};
+		squadEntry.Actors = squadTable;
+		squadEntry.taskName = taskName;
 		table.insert(self.teamList[team].squadList, squadEntry); 
 	else
 		print("Tried to add a tasked squad without all required arguments!");
@@ -93,25 +134,25 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 	if self.taskUpdateTimer:IsPastSimMS(self.taskUpdateDelay) then
 		self.taskUpdateTimer:Reset();
 
-		for i = 0, #goldAmountsTable do
-			if goldAmountsTable[i] > 0 then
-				-- random weighted select
-				local totalPriority = 0;
-				for t = 1, #self.teamList[i].taskList do
-					totalPriority = totalPriority + self.teamList[i].taskList[t].Priority;
-				end
-				
-				local randomSelect = math.random(1, totalPriority);
-				local finalSelection = 1;
-				for t = 1, #self.teamList[i].taskList do
-					randomSelect = randomSelect - self.teamList[i].taskList[t].Priority;
-					if randomSelect < 0 then
-						finalSelection = t;
-					end
-				end
-				
-				return i, self.teamList[i].taskList[finalSelection];
+		local i = self.teamToCheckNext;
+		if goldAmountsTable[i] > 0 then
+			-- random weighted select
+			local totalPriority = 0;
+			for t = 1, #self.teamList[i].taskList do
+				totalPriority = totalPriority + self.teamList[i].taskList[t].Priority;
 			end
+			
+			local randomSelect = math.random(1, totalPriority);
+			local finalSelection = 1;
+			for t = 1, #self.teamList[i].taskList do
+				randomSelect = randomSelect - self.teamList[i].taskList[t].Priority;
+				if randomSelect < 0 then
+					finalSelection = t;
+				end
+			end
+			-- TODO replace debug teamcount faker (the modulo)
+			self.teamToCheckNext = (self.teamToCheckNext + 1) % 2;
+			return i, self.teamList[i].taskList[finalSelection];
 		end
 	end
 	
