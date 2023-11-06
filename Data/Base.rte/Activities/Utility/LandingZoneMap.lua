@@ -3,7 +3,7 @@
 	*** INSTRUCTIONS ***
 
 	Create the LZmap object in the StartActivity() function with require:
-		e.g. self.LZmap = require("Activities/LandingZoneMap")
+		e.g. self.LZmap = require("Activities/Utility/LandingZoneMap")
 
 	Initialize the internal data about enemies and LZ altitudes etc with a table of team numbers that are contolled by the AI and optionally whether to ignore the fog (defaults to false):
 		e.g. self.LZmap:Initialize({self.CPUTeam}) or self.LZmap:Initialize({Activity.TEAM_3, Activity.TEAM_4})
