@@ -40,10 +40,12 @@ function DockingHandler:Create()
 	return Members;
 end
 
-function DockingHandler:Initialize()
+function DockingHandler:Initialize(activity)
 	
 	print("dockhandler inited")
 	print(SceneMan.SceneOrbitDirection)
+	
+	self.Activity = activity;
 	
 	-- Set up player dropship dock wait list
 	

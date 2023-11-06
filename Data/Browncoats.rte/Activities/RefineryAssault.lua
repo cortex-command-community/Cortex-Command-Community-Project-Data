@@ -25,196 +25,32 @@ end
 
 -----------------------------------------------------------------------------------------
 
-
------------------------------------------------------------------------------------------
--- Create Infantry
------------------------------------------------------------------------------------------
-
-function RefineryAssault:CreateInfantry(team, infantryType)
-	local tech = team == self.humanTeam and self.humanTeamTech or self.aiTeamTech;
-	if infantryType == nil then
-		local infantryTypes = {"Light", "Sniper", "Heavy", "CQB"};
-		infantryType = infantryTypes[math.random(#infantryTypes)];
-	end
-	local allowAdvancedEquipment = team == self.humanTeam or self.bunkerRegions["Main Bunker Armory"].ownerTeam == team;
-	if not allowAdvancedEquipment and self.difficultyRatio > 1 then
-		allowAdvancedEquipment = math.random() < (1 - (4 / (self.difficultyRatio * 3)));
-	end
-	
-	
-	-- todo change debug behavior
-	allowAdvancedEquipment = nil;
-
-	local actorType = (infantryType == "Heavy" or infantryType == "CQB") and "Actors - Heavy" or "Actors - Light";
-	if infantryType == "CQB" and math.random() < 0.25 then
-		actorType = "Actors - Light";
-	end
-	local actor = RandomAHuman(actorType, tech);
-	if actor.ModuleID ~= tech then
-		actor = RandomAHuman("Actors", tech);
-	end
-	actor.Team = team;
-	actor.PlayerControllable = true or self.humansAreControllingAlliedActors;
-
-	if infantryType == "Light" then
-		actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
-		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-		if allowAdvancedEquipment then
-			if math.random() < 0.5 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-			elseif math.random() < 0.1 then
-				actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
-			elseif math.random() < 0.3 then
-				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-			end
-		end
-	elseif infantryType == "Sniper" then
-		if allowAdvancedEquipment then
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Sniper", tech));
-		else
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Light", tech));
-		end
-		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-		if allowAdvancedEquipment then
-			if math.random() < 0.3 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-			elseif math.random() < 0.5 then
-				actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-			end
-		end
-	elseif infantryType == "Heavy" then
-		if allowAdvancedEquipment then
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Heavy", tech));
-		else
-			actor:AddInventoryItem(RandomHDFirearm("Weapons - Primary", tech));
-		end
-		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-		if allowAdvancedEquipment and math.random() < 0.3 then
-			if math.random() < 0.5 then
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-				if math.random() < 0.1 then
-					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
-				end
-			else
-				actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
-				if math.random() < 0.3 then
-					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-				end
-			end
-		end
-	elseif infantryType == "CQB" then
-		actor:AddInventoryItem(RandomHDFirearm("Weapons - CQB", tech));
-		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-		if allowAdvancedEquipment then
-			if math.random() < 0.3 then
-				actor:AddInventoryItem(RandomHeldDevice("Shields", tech));
-				if math.random() < 0.3 then
-					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
-				end
-			else
-				actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", tech));
-				if math.random() < 0.1 then
-					actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", tech));
-				end
-			end
-		end
-	end
-
-	return actor;
-end
-
------------------------------------------------------------------------------------------
--- Create Crab
------------------------------------------------------------------------------------------
-
-function RefineryAssault:CreateCrab(team, createTurret)
-	local tech = team == self.humanTeam and self.humanTeamTech or self.aiTeamTech;
-	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(tech);
-	local group = createTurret and "Actors - Turrets" or "Actors - Mecha";
-
-	local actor;
-	if crabToHumanSpawnRatio > 0 then
-		actor = RandomACrab(group, tech);
-	end
-	if actor == nil or (createTurret and not actor:IsInGroup("Actors - Turrets")) then
-		if createTurret then
-			actor = CreateACrab("TradeStar Turret", "Base.rte");
-		else
-			return self:CreateInfantry(team, "Heavy");
-		end
-	end
-	actor.Team = team;
-	actor.PlayerControllable = createTurret or self.humansAreControllingAlliedActors;
-	return actor;
-end
-
 -----------------------------------------------------------------------------------------
 -- Create Delivery
 -----------------------------------------------------------------------------------------
 
-function RefineryAssault:CreateDelivery(team, useRocketsInsteadOfDropShips, infantryType, passengerCount, useBuyDoor)
-	local tech = team == self.humanTeam and self.humanTeamTech or self.aiTeamTech;
-	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(tech);
-	crabToHumanSpawnRatio = 0;
+function RefineryAssault:SendDockDelivery(team, forceRocketusage, squadType)
 
-	local craft = useRocketsInsteadOfDropShips and RandomACRocket("Craft", tech) or RandomACDropShip("Craft", tech);
-	if not craft or craft.MaxInventoryMass <= 0 then
-		craft = useRocketsInsteadOfDropShips and RandomACRocket("Craft", "Base.rte") or RandomACDropShip("Craft", "Base.rte");
-	end
-	craft.Team = team;
-	--craft.PlayerControllable = false;
-	--craft.HUDVisible = team ~= self.humanTeam;
-	if team == self.humanTeam then
-		craft:SetGoldValue(0);
-	end
-
-	if passengerCount == nil then
-		passengerCount = math.random(math.ceil(craft.MaxPassengers * 0.5), craft.MaxPassengers);
-	end
-	passengerCount = math.min(passengerCount, craft.MaxPassengers);
-	for i = 1, passengerCount do
-		local actor;
-		if infantryType then
-			passenger = self:CreateInfantry(team, infantryType);
-		elseif math.random() < crabToHumanSpawnRatio then
-			passenger = self:CreateCrab(team);
-		else
-			passenger = self:CreateInfantry(team);
-		end
-
-		if passenger then
-			passenger.Team = team;
-			craft:AddInventoryItem(passenger);
-			if craft.InventoryMass > craft.MaxInventoryMass then
-				break;
-			end
-		end
-	end
+	local craft = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
 	
-	if useBuyDoor then
-	
-		-- TODO non debug behavior
-		
-		-- i would call this hacky if it wasn't the tidiest most genius way to do it.
-		-- we have already constructed our exact order and packaged it neatly in a craft,
-		-- so instead of trying to construct some other fake list or fake AI buy menu cart,
-		-- why not just... send the craft over?
-		self.buyDoorSavedCraft = craft;
-		self.buyDoorSavedCraft.Team = team;
-		self.buyDoorTable[1]:SetNumberValue("BuyDoor_CraftInventoryOrderUniqueID", self.buyDoorSavedCraft.UniqueID);
-	
-	else
-	
-		local dockingSuccess = self.dockingHandler:SpawnDockingCraft(craft)
+	local dockingSuccess = self.dockingHandler:SpawnDockingCraft(craft)
 			
-		return dockingSuccess;
-		
-	end
-	
-	return true;
+	return dockingSuccess;
 	
 end
 
+function RefineryAssault:SendBuyDoorDelivery(team, squadType, specificIndex)
+
+	local order = self.deliveryCreationHandler:CreateSquad(team);
+	
+	if order then
+		self.buyDoorHandler:SendCustomOrder(order);
+		return true;
+	end
+	
+	return false;
+	
+end
 
 -----------------------------------------------------------------------------------------
 
@@ -271,19 +107,15 @@ function RefineryAssault:StartActivity()
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
-	self.dockingHandler:Initialize();
+	self.dockingHandler:Initialize(self);
 	
-	-- Find and save all buy doors
+	self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
+	self.buyDoorHandler:Initialize(self);
 	
-	self.buyDoorTable = {};
+	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
+	self.deliveryCreationHandler:Initialize(self);
 	
-	for mo in MovableMan.AddedParticles do
-		print(mo)
-		if mo.PresetName == "Reinforcement Door" then
-			table.insert(self.buyDoorTable, ToMOSRotating(mo));
-			print("yes")
-		end
-	end
+	print(self.buyDoorHandler.buyDoorTable)
 	
 	self.attackerBuyDoorTable = {};
 	self.defenderBuyDoorTable = {};
@@ -330,20 +162,20 @@ function RefineryAssault:UpdateActivity()
 	
 	if debugDoorTrigger then
 	
-		self:CreateDelivery(0, false, "Light", 1, true);
+		self:SendBuyDoorDelivery(self.humanTeam);
 		
 	end
 	
 	if debugTrigger then
 	
-		self:CreateDelivery(0, false, "Heavy", 2);
+		self:SendDockDelivery(self.humanTeam, false);
 		print("tried dropship")
 		
 	end
 	
 	if debugRocketTrigger then
 	
-		self:CreateDelivery(0, true, "Light", 2);
+		self:SendDockDelivery(self.humanTeam, true);
 		
 	end	
 

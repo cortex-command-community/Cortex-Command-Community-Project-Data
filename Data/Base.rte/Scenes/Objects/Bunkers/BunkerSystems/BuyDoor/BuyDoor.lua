@@ -1,28 +1,38 @@
-function BuyDoorSetupOrder(self, orderList, isCraftInventory)
+function OnMessage(self, message, orderList)
+
+	if message == "BuyDoor_CustomTableOrder" then
+		local finalOrder = BuyDoorSetupOrder(self, orderList, true);
+		
+		if finalOrder then
+		
+			self.orderTimer:Reset();
+			self.currentOrder = finalOrder;
+			self.orderDelivering = true;
+			
+		else
+			print("Buy Door was given a custom table order, but it had no items!");
+		end
+	end
+
+end
+
+function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 
 	local preActorItemList = {};
 	local lastActor
 	local finalOrder = {};
 
-	if isCraftInventory then
-		for item in orderList do
-			print(item);
+	if isCustomOrder then
+		for i = 1, #orderList do
+			local item = orderList[i];
+			print(item)
+			
 			local class = item.ClassName;
 			local typeCast = "To" .. class
+			local item = _G[typeCast](item);
 			
-			local clonedItem = _G[typeCast](item):Clone();
-			if IsAHuman(item) then
-				item = ToAHuman(item);
-				for inventoryItem in item.Inventory do
-					print("    " .. tostring(inventoryItem));
-					local class = inventoryItem.ClassName;
-					local typeCast = "To" .. class
-					
-					local clonedInventoryItem = _G[typeCast](inventoryItem):Clone();	
-					--clonedItem:AddInventoryItem(clonedInventoryItem);
-				end
-			end
-			table.insert(finalOrder, clonedItem);
+			table.insert(finalOrder, item);
+			self.currentTeam = item.Team;
 		end
 	else
 
@@ -241,28 +251,6 @@ function Update(self)
 				self.cooldownTimer:Reset();
 			else
 				PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
-			end
-		else
-			if self:NumberValueExists("BuyDoor_CraftInventoryOrderUniqueID") then
-				local craft = MovableMan:FindObjectByUniqueID(self:GetNumberValue("BuyDoor_CraftInventoryOrderUniqueID"));
-				if craft then
-							
-					local orderList = ToACraft(craft).Inventory;
-					
-					local finalOrder = BuyDoorSetupOrder(self, orderList, true);
-					
-					if finalOrder then
-					
-						self.orderTimer:Reset();
-						self.currentOrder = finalOrder;
-						self.currentTeam = craft.Team;
-						self.orderDelivering = true;
-						
-					else
-						print("Buy Door was given a craft UniqueID to copy the inventory of, but it had no items!");
-					end
-				end
-				self:RemoveNumberValue("BuyDoor_CraftInventoryOrderUniqueID");
 			end
 		end
 	else
