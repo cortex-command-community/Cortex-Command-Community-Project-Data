@@ -156,7 +156,7 @@ function RefineryAssault:StartActivity()
 
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Pos = Vector();
-	automoverController.Team = 1;
+	automoverController.Team = self.aiTeam;
 	MovableMan:AddActor(automoverController);
 	
 	-- Grand Strategic WhateverTheFuck
@@ -169,8 +169,8 @@ function RefineryAssault:StartActivity()
 	
 	-- Test tasks
 	
-	self:SetTeamFunds(0, 200);
-	self:SetTeamFunds(1, 200);
+	self:SetTeamFunds(self.humanTeam, 200);
+	self:SetTeamFunds(self.aiTeam, 200);
 	
 	local taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryTestCapturable1").Center;
 	
