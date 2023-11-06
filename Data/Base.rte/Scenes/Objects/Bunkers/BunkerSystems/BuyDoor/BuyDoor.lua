@@ -104,7 +104,6 @@ function Create(self)
 	self.openCloseSound.Pos = self.Pos;
 	self.openCloseSound:Play();
 	
-	
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	
 	self.cooldownTimer = Timer();
@@ -112,6 +111,9 @@ function Create(self)
 	
 	self.orderTimer = Timer();
 	self.orderDelay = 5000;
+
+	self.spawnTimer = Timer();
+	self.spawnDelay = 500;
 	
 	self.Message = "";
 	self.messageTimer = Timer();
@@ -124,7 +126,6 @@ function Create(self)
 	self.detectRange = 100;
 	
 	self.orderPieSlice = CreatePieSlice("Buy Door Order", "Base.rte");
-	
 end
 
 function Update(self)
@@ -137,20 +138,25 @@ function Update(self)
 		self.isStayingOpen = true;
 		self.stayOpenTimer:Reset();
 		self.SpriteAnimMode = MOSprite.NOANIM;
-		
-		if self.currentOrder then
-			for k, item in ipairs(self.currentOrder) do
-				item.Pos = self.Pos;
-				item.Team = self.currentTeam;
-				if IsActor(item) then
-					MovableMan:AddActor(item)
-				else
-					MovableMan:AddItem(item);
-				end
+	elseif self.isStayingOpen and self.currentOrder then
+		-- Spawn the next object
+		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
+			local item = table.remove(self.currentOrder, 1);
+			item.Pos = self.Pos;
+			item.Team = self.currentTeam;
+			if IsActor(item) then
+				MovableMan:AddActor(item);
+			else
+				MovableMan:AddItem(item);
 			end
+			self.spawnTimer:Reset();
+		end
+
+		-- Wait until we spawn the next guy
+		if #self.currentOrder == 0 then
+			self.cooldownTimer:Reset();
 			self.currentOrder = nil;
 		end
-		
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
 		self.isStayingOpen = false;
@@ -248,7 +254,7 @@ function Update(self)
 				PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
 			end
 		end
-	else
+	elseif self.currentOrder == nil then
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -10), "Reorganizing...", true, 1);
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.cooldownTime/1000 - self.cooldownTimer.ElapsedSimTimeS)), true, 1);
 		self.orderDelivering = false;
