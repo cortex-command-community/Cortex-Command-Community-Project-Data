@@ -224,13 +224,10 @@ end
 
 function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType)
 
-	print(forceRocketUsage)
-
 	local craft = forceRocketUsage and RandomACRocket("Craft", self.teamTechTable[team]) or RandomACDropShip("Craft", self.teamTechTable[team]);
 	if not craft or craft.MaxInventoryMass <= 0 then
 		craft = forceRocketUsage and RandomACRocket("Craft", "Base.rte") or RandomACDropShip("Craft", "Base.rte");
 	end
-	print(craft)
 	craft.Team = team;
 	
 	local squad = self:CreateSquad(team, squadCount, squadType);
