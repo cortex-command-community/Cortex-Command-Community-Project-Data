@@ -55,7 +55,7 @@ function WaveDefense:StartActivity(isNewGame)
 		self.AI.randomSpawnTime = 3000 - 20 * self.Difficulty; -- From 3s to 1s
 
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-		self.AI.LZmap = require("Activities/LandingZoneMap"); --self.AI.LZmap = dofile("Base.rte/Activities/LandingZoneMap.lua")
+		self.AI.LZmap = require("Activities/Utility/LandingZoneMap");
 		self.AI.LZmap:Initialize({self.CPUTeam});
 
 		-- Store data about player teams: self.AI.OnPlayerTeam[Act.Team] is true if "Act" is an enemy to the AI
