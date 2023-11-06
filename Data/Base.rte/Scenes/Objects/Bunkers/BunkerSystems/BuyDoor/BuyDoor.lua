@@ -26,6 +26,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 		for i = 1, #orderList do
 			local item = orderList[i];
 			print(item)
+			print("iterated")
 			
 			local class = item.ClassName;
 			local typeCast = "To" .. class

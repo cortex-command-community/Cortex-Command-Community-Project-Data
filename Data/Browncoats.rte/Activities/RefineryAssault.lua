@@ -29,10 +29,17 @@ end
 -- Create Delivery
 -----------------------------------------------------------------------------------------
 
-function RefineryAssault:SendDockDelivery(team, forceRocketusage, squadType)
+function RefineryAssault:SendDockDelivery(team, forceRocketUsage, squadType)
 
 	local craft = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
 	
+	table.insert(self.actorList, craft)
+	for item in craft.Inventory do
+		if IsActor(item) then
+			table.insert(self.actorList, item)
+		end
+	end
+		
 	local dockingSuccess = self.dockingHandler:SpawnDockingCraft(craft)
 			
 	return dockingSuccess;
@@ -44,6 +51,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, squadType, specificIndex)
 	local order = self.deliveryCreationHandler:CreateSquad(team);
 	
 	if order then
+		for i = 1, #order do
+			table.insert(self.actorList, order[i]);
+		end
 		self.buyDoorHandler:SendCustomOrder(order);
 		return true;
 	end
@@ -120,6 +130,10 @@ function RefineryAssault:StartActivity()
 	self.attackerBuyDoorTable = {};
 	self.defenderBuyDoorTable = {};
 	
+	-- Grand Strategic WhateverTheFuck
+	
+	self.actorList = {};
+	
 	-- Capturable setup
 	
 	MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
@@ -176,6 +190,7 @@ function RefineryAssault:UpdateActivity()
 	if debugRocketTrigger then
 	
 		self:SendDockDelivery(self.humanTeam, true);
+		print("triedrocket")
 		
 	end	
 
