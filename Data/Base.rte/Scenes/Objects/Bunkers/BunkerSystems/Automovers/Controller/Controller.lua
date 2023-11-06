@@ -1044,14 +1044,20 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 
 	local analogMove = actorController.AnalogMove;
 
-	-- TODO; We need to not move-to-ground points inside automovers
 	if not actor:IsPlayerControlled() and actor.MovePathSize > 0 then
 		-- Just get the direction to the next waypoint
 		local wptPos;
+
 		-- ugh
 		for pos in actor.MovePath do
 			wptPos = pos;
-			break;
+
+			-- hack, get the node after the automover network itself, get the next point outside the network
+			-- (avoids, but doesn't fully fix, issues with points being moved-to-ground and making us do weird stuff)
+			local closestNode = self:findClosestNode(pos, nil, false, true);
+			if closestNode == nil then
+				break;
+			end
 		end
 
 		analogMove = wptPos - actor.Pos;
