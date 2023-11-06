@@ -157,7 +157,7 @@ function RefineryAssault:StartActivity()
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Pos = Vector();
 	automoverController.Team = 1;
-	MovableMan:AddActor(automoverController);
+	--MovableMan:AddActor(automoverController);
 	
 	-- Grand Strategic WhateverTheFuck
 	
