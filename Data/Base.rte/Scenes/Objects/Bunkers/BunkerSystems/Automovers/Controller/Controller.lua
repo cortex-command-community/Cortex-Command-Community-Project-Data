@@ -144,6 +144,11 @@ function Create(self)
 	self.allBoxesAdded = false;
 	self.allPathsAdded = false;
 
+	if not SceneMan.Scene:HasArea("NoGravityArea") then
+		local noGravArea = Area("NoGravityArea");
+		SceneMan.Scene:SetArea(noGravArea);
+	end
+
 	self.combinedAutomoverArea = Area();
 	self.pathTable = {};
 
@@ -515,6 +520,7 @@ automoverUtilityFunctions.addAllBoxes = function(self)
 	for node, nodeData in pairs(teamNodeTable) do
 		if nodeData.zoneBox ~= nil then
 			self.combinedAutomoverArea:AddBox(nodeData.zoneBox);
+			SceneMan.Scene:GetArea("NoGravityArea"):AddBox(nodeData.zoneBox);
 		else
 			print("Automover Error: Automover at position " .. tostring(node.Pos) .. " had no ZoneBox.");
 		end
@@ -1051,13 +1057,7 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 		-- ugh
 		for pos in actor.MovePath do
 			wptPos = pos;
-
-			-- hack, get the node after the automover network itself, get the next point outside the network
-			-- (avoids, but doesn't fully fix, issues with points being moved-to-ground and making us do weird stuff)
-			local closestNode = self:findClosestNode(pos, nil, false, true);
-			if closestNode == nil then
-				break;
-			end
+			break;
 		end
 
 		analogMove = wptPos - actor.Pos;
