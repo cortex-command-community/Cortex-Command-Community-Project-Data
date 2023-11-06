@@ -144,6 +144,11 @@ function RefineryAssault:StartActivity()
 	
 	self.attackerBuyDoorTable = {};
 	self.defenderBuyDoorTable = {};
+
+	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
+	automoverController.Pos = Vector();
+	automoverController.Team = 1;
+	MovableMan:AddActor(automoverController);
 	
 	-- Grand Strategic WhateverTheFuck
 	
