@@ -26,12 +26,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 		for i = 1, #orderList do
 			local item = orderList[i];
 			print(item)
-			print("iterated")
-			
-			local class = item.ClassName;
-			local typeCast = "To" .. class
-			local item = _G[typeCast](item);
-			
 			table.insert(finalOrder, item);
 			self.currentTeam = item.Team;
 		end
