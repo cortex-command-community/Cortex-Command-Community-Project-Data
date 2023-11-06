@@ -46,16 +46,30 @@ function RefineryAssault:SendDockDelivery(team, forceRocketUsage, squadType)
 	
 end
 
-function RefineryAssault:SendBuyDoorDelivery(team, squadType, specificIndex)
+function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificIndex)
 
-	local order = self.deliveryCreationHandler:CreateSquad(team);
+	local order, goldCost = self.deliveryCreationHandler:CreateSquad(team);
 	
 	if order then
+		self:SetTeamFunds(team, self:GetTeamFunds(team) - goldCost);
 		for i = 1, #order do
 			table.insert(self.actorList, order[i]);
+			if task then
+				if task.Type == "Defend" or task.Type == "Attack" then
+					order[i].AIMode = Actor.AIMODE_GOTO;
+					if task.Position.PresetName then -- ghetto check if this is an MO
+						order[i]:AddAIMOWaypoint(task.Position);
+					else
+						order[i]:AddAISceneWaypoint(task.Position);
+					end
+				else
+					order[i].AIMode = Actor.AIMODE_BRAINHUNT;
+				end
+			end
+				
 		end
 		self.buyDoorHandler:SendCustomOrder(order);
-		return true;
+		return order;
 	end
 	
 	return false;
@@ -116,6 +130,9 @@ function RefineryAssault:StartActivity()
 	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 	
+	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
+	self.tacticsHandler:Initialize(self);
+	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
 	self.dockingHandler:Initialize(self);
 	
@@ -124,8 +141,6 @@ function RefineryAssault:StartActivity()
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self);
-	
-	print(self.buyDoorHandler.buyDoorTable)
 	
 	self.attackerBuyDoorTable = {};
 	self.defenderBuyDoorTable = {};
@@ -137,6 +152,21 @@ function RefineryAssault:StartActivity()
 	-- Capturable setup
 	
 	MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
+	
+	-- Test tasks
+	
+	self:SetTeamFunds(0, 200);
+	self:SetTeamFunds(1, 200);
+	
+	local taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryTestCapturable1").Center;
+	
+	self.tacticsHandler:AddTask("Attack Hack Console 1", 0, taskPos, "Attack", 10);
+	self.tacticsHandler:AddTask("Defend Hack Console 1", 1, taskPos, "Defend", 10);
+	
+	taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryTestCapturable2").Center;
+	
+	self.tacticsHandler:AddTask("Attack Hack Console 2", 0, taskPos, "Attack", 10);
+	self.tacticsHandler:AddTask("Defend Hack Console 2", 1, taskPos, "Defend", 10);
 	
 end
 
@@ -166,7 +196,30 @@ end
 
 function RefineryAssault:UpdateActivity()
 
+	local goldAmountsTable = {};
+	goldAmountsTable[0] = self:GetTeamFunds(0);
+	goldAmountsTable[1] = self:GetTeamFunds(1);
+	
+	self:SetTeamFunds(0, self:GetTeamFunds(0) + 1);
+	self:SetTeamFunds(1, self:GetTeamFunds(1) + 1);
+	
+	local team, task = self.tacticsHandler:UpdateTacticsHandler(goldAmountsTable);
+	
+	if task then
+		local squad = self:SendBuyDoorDelivery(team, task);
+		if squad then
+			self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
+		end
+	end
+	
 	self.dockingHandler:UpdateDockingCraft();
+	
+	
+	
+	
+	
+	
+	
 	
 	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
 	
