@@ -1,28 +1,33 @@
-function BuyDoorSetupOrder(self, orderList, isCraftInventory)
+function OnMessage(self, message, orderList)
+
+	if message == "BuyDoor_CustomTableOrder" then
+		local finalOrder = BuyDoorSetupOrder(self, orderList, true);
+		
+		if finalOrder then
+		
+			self.orderTimer:Reset();
+			self.currentOrder = finalOrder;
+			self.orderDelivering = true;
+			
+		else
+			print("Buy Door was given a custom table order, but it had no items!");
+		end
+	end
+
+end
+
+function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 
 	local preActorItemList = {};
 	local lastActor
 	local finalOrder = {};
 
-	if isCraftInventory then
-		for item in orderList do
-			print(item);
-			local class = item.ClassName;
-			local typeCast = "To" .. class
-			
-			local clonedItem = _G[typeCast](item):Clone();
-			if IsAHuman(item) then
-				item = ToAHuman(item);
-				for inventoryItem in item.Inventory do
-					print("    " .. tostring(inventoryItem));
-					local class = inventoryItem.ClassName;
-					local typeCast = "To" .. class
-					
-					local clonedInventoryItem = _G[typeCast](inventoryItem):Clone();	
-					--clonedItem:AddInventoryItem(clonedInventoryItem);
-				end
-			end
-			table.insert(finalOrder, clonedItem);
+	if isCustomOrder then
+		for i = 1, #orderList do
+			local item = orderList[i];
+			print(item)
+			table.insert(finalOrder, item);
+			self.currentTeam = item.Team;
 		end
 	else
 
@@ -99,7 +104,6 @@ function Create(self)
 	self.openCloseSound.Pos = self.Pos;
 	self.openCloseSound:Play();
 	
-	
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	
 	self.cooldownTimer = Timer();
@@ -107,6 +111,9 @@ function Create(self)
 	
 	self.orderTimer = Timer();
 	self.orderDelay = 5000;
+
+	self.spawnTimer = Timer();
+	self.spawnDelay = 500;
 	
 	self.Message = "";
 	self.messageTimer = Timer();
@@ -119,7 +126,6 @@ function Create(self)
 	self.detectRange = 100;
 	
 	self.orderPieSlice = CreatePieSlice("Buy Door Order", "Base.rte");
-	
 end
 
 function Update(self)
@@ -132,20 +138,25 @@ function Update(self)
 		self.isStayingOpen = true;
 		self.stayOpenTimer:Reset();
 		self.SpriteAnimMode = MOSprite.NOANIM;
-		
-		if self.currentOrder then
-			for k, item in ipairs(self.currentOrder) do
-				item.Pos = self.Pos;
-				item.Team = self.currentTeam;
-				if IsActor(item) then
-					MovableMan:AddActor(item)
-				else
-					MovableMan:AddItem(item);
-				end
+	elseif self.isStayingOpen and self.currentOrder then
+		-- Spawn the next object
+		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
+			local item = table.remove(self.currentOrder, 1);
+			item.Pos = self.Pos;
+			item.Team = self.currentTeam;
+			if IsActor(item) then
+				MovableMan:AddActor(item);
+			else
+				MovableMan:AddItem(item);
 			end
+			self.spawnTimer:Reset();
+		end
+
+		-- Wait until we spawn the next guy
+		if #self.currentOrder == 0 then
+			self.cooldownTimer:Reset();
 			self.currentOrder = nil;
 		end
-		
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
 		self.isStayingOpen = false;
@@ -242,30 +253,8 @@ function Update(self)
 			else
 				PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
 			end
-		else
-			if self:NumberValueExists("BuyDoor_CraftInventoryOrderUniqueID") then
-				local craft = MovableMan:FindObjectByUniqueID(self:GetNumberValue("BuyDoor_CraftInventoryOrderUniqueID"));
-				if craft then
-							
-					local orderList = ToACraft(craft).Inventory;
-					
-					local finalOrder = BuyDoorSetupOrder(self, orderList, true);
-					
-					if finalOrder then
-					
-						self.orderTimer:Reset();
-						self.currentOrder = finalOrder;
-						self.currentTeam = craft.Team;
-						self.orderDelivering = true;
-						
-					else
-						print("Buy Door was given a craft UniqueID to copy the inventory of, but it had no items!");
-					end
-				end
-				self:RemoveNumberValue("BuyDoor_CraftInventoryOrderUniqueID");
-			end
 		end
-	else
+	elseif self.currentOrder == nil then
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -10), "Reorganizing...", true, 1);
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.cooldownTime/1000 - self.cooldownTimer.ElapsedSimTimeS)), true, 1);
 		self.orderDelivering = false;
