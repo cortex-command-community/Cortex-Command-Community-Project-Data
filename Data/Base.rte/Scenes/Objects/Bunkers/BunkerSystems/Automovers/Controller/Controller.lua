@@ -213,12 +213,12 @@ function Update(self)
 								else
 									actorData.movementMode = self.movementModes.freeze;
 								end
-
-								if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
-									self:updateDirectionsFromActorControllerInput(actorData);
-								end
-							elseif actorData.movementMode ~= self.movementModes.leaveAutomovers then
+							elseif actorData.movementMode == self.movementModes.teleporting then
 								self:updateDirectionsFromWaypoints(actorData);
+							end
+
+							if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
+								self:updateDirectionsFromActorControllerInput(actorData);
 							end
 
 							local actorController = actor:GetController();
@@ -1042,8 +1042,22 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 
 	actorData.direction = Directions.None;
 
-	local deadZone = 0.1;
 	local analogMove = actorController.AnalogMove;
+
+	-- TODO; We need to not move-to-ground points inside automovers
+	if not actor:IsPlayerControlled() and actor.MovePathSize > 0 then
+		-- Just get the direction to the next waypoint
+		local wptPos;
+		-- ugh
+		for pos in actor.MovePath do
+			wptPos = pos;
+			break;
+		end
+
+		analogMove = wptPos - actor.Pos;
+	end
+
+	local deadZone = 0.1;
 	if analogMove:MagnitudeIsGreaterThan(deadZone) then
 		if math.abs(analogMove.X) < math.abs(analogMove.Y) then
 			actorData.direction = analogMove.Y > 0 and Directions.Down or Directions.Up;
