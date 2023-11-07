@@ -547,6 +547,7 @@ automoverUtilityFunctions.addAllBoxes = function(self)
 				for wrappedConnectingBox in SceneMan:WrapBox(Box(connectedNode.Pos + connectingBoxTopLeftCornerOffset, node.Pos + connectingBoxBottomRightCornerOffset)) do
 					nodeData.connectingAreas[direction]:AddBox(wrappedConnectingBox);
 					self.combinedAutomoverArea:AddBox(wrappedConnectingBox);
+					SceneMan.Scene:GetArea("NoGravityArea"):AddBox(wrappedConnectingBox);
 				end
 			end
 		end
