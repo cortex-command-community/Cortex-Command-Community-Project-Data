@@ -165,10 +165,10 @@ function RefineryAssault:StartActivity()
 	automoverController.Team = self.aiTeam;
 	MovableMan:AddActor(automoverController);
 
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
+	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
 	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
+	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
+	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
 	-- Grand Strategic WhateverTheFuck
 	
