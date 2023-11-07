@@ -164,6 +164,11 @@ function RefineryAssault:StartActivity()
 	automoverController.Pos = Vector();
 	automoverController.Team = self.aiTeam;
 	MovableMan:AddActor(automoverController);
+
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
 	-- Grand Strategic WhateverTheFuck
 	
@@ -182,8 +187,6 @@ function RefineryAssault:StartActivity()
 	
 	self.tacticsHandler:AddTask("Attack Hack Console 1", 0, taskPos, "Attack", 10);
 	self.tacticsHandler:AddTask("Defend Hack Console 1", 1, taskPos, "Defend", 10);
-	
-	
 end
 
 function RefineryAssault:OnSave()
