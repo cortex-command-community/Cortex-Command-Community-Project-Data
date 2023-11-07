@@ -59,7 +59,7 @@ function BuyDoorHandler:SendCustomOrder(order, specificIndex)
 		if #nonBusyIndexesTable > 0 then
 			self.buyDoorTable[nonBusyIndexesTable[math.random(1, #nonBusyIndexesTable)]]:SendMessage("BuyDoor_CustomTableOrder", order);
 		else
-			print("Buy Door Handler could not find any non-busy Buy Doors to send a custom order to!");
+			--print("Buy Door Handler could not find any non-busy Buy Doors to send a custom order to!");
 			return false;
 		end
 	end

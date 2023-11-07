@@ -200,7 +200,7 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 		-- check if we can afford a new tasked squad, tell the activity to send it in
 		local team = self.teamToCheckNext;
 		if goldAmountsTable[team] > 0 then
-			print("team " .. team .. " " .. goldAmountsTable[team]);
+			--print("team " .. team .. " " .. goldAmountsTable[team]);
 			-- TODO replace debug teamcount faker (the modulo)
 			self.teamToCheckNext = (self.teamToCheckNext + 1) % self.Activity.TeamCount;
 			local task = self:PickTask(team);

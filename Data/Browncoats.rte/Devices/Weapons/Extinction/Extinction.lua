@@ -79,7 +79,7 @@ function Update(self)
 	
 	if IsAHuman(self:GetRootParent()) then
 		self.parent = ToAHuman(self:GetRootParent())
-		if self:GetParent().UniqueID == self.parent.FGArm.UniqueID then
+		if self.parent.FGArm and self:GetParent().UniqueID == self.parent.FGArm.UniqueID then
 			if self.parent.BGArm and self.parent.EquippedBGItem then
 				-- dumb edge case fix...
 				self.reloadDelay = 135;

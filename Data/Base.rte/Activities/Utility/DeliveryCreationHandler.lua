@@ -218,7 +218,7 @@ function DeliveryCreationHandler:CreateSquad(team, squadCount, squadType)
 		end
 	end
 	
-	print("buydoor goldcost: " .. goldCost);
+	--print("buydoor goldcost: " .. goldCost);
 	return squadTable, goldCost
 
 end
