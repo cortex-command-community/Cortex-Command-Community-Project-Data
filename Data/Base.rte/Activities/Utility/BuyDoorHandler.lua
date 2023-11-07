@@ -64,6 +64,8 @@ function BuyDoorHandler:SendCustomOrder(order, specificIndex)
 		end
 	end
 
+	return true;
+
 end
 
 
