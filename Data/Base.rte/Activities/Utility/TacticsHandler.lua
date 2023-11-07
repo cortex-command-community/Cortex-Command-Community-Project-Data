@@ -67,7 +67,14 @@ function TacticsHandler:RemoveTask(name, team)
 			for i = 1, #self.teamList[team].squadList do
 				if self.teamList[team].squadList[i].taskName == task.Name then
 					for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
-						self.teamList[team].squadList[i].Actors[actorIndex]:ClearAIWaypoints();
+						-- Todo, due to oddities with how this terrible game is programmed, actor can theoretically point to an actor that shouldn't belong to us anymore
+						-- This is due to memory pooling and MOs being reused. In fact, this game somehow managed to survive with a in-built memory corruption any time everything was deleted, for *years*
+						-- And it only worked because of memory pooling hiding it. Terrible.
+						-- Anyways, we should probably store uniqueIds instead and look those up at point of usage
+						local actor = self.teamList[team].squadList[i].Actors[actorIndex];
+						if actor and MovableMan:ValidMO(actor) then
+							actor:ClearAIWaypoints();
+						end
 					end
 				end
 			end
