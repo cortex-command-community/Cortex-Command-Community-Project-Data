@@ -1,16 +1,19 @@
 function OnMessage(self, message, orderList)
 
-	if message == "BuyDoor_CustomTableOrder" then
-		local finalOrder = BuyDoorSetupOrder(self, orderList, true);
-		
-		if finalOrder then
-		
-			self.orderTimer:Reset();
-			self.currentOrder = finalOrder;
-			self.orderDelivering = true;
+
+	if not self.currentOrder then
+		if message == "BuyDoor_CustomTableOrder" then
+			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
 			
-		else
-			print("Buy Door was given a custom table order, but it had no items!");
+			if finalOrder then
+			
+				self.orderTimer:Reset();
+				self.currentOrder = finalOrder;
+				self.orderDelivering = true;
+				
+			else
+				print("Buy Door was given a custom table order, but it had no items!");
+			end
 		end
 	end
 
@@ -242,7 +245,9 @@ function Update(self)
 	end
 	
 	if self.cooldownTimer:IsPastSimMS(self.cooldownTime) then
+		self:RemoveNumberValue("BuyDoor_Busy");
 		if self.orderDelivering then
+			self:SetNumberValue("BuyDoor_Busy", 1);
 			if self.orderTimer:IsPastSimMS(self.orderDelay) then
 				self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
 				self.isClosing = false;
@@ -255,6 +260,7 @@ function Update(self)
 			end
 		end
 	elseif self.currentOrder == nil then
+		self:SetNumberValue("BuyDoor_Busy", 1);
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -10), "Reorganizing...", true, 1);
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.cooldownTime/1000 - self.cooldownTimer.ElapsedSimTimeS)), true, 1);
 		self.orderDelivering = false;

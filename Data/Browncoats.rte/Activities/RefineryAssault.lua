@@ -60,7 +60,6 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 	local order, goldCost = self.deliveryCreationHandler:CreateSquad(team);
 	
 	if order then
-		self:SetTeamFunds(team, self:GetTeamFunds(team) - goldCost);
 		for i = 1, #order do
 			table.insert(self.actorList, order[i]);
 			if task then
@@ -77,8 +76,11 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			end
 				
 		end
-		self.buyDoorHandler:SendCustomOrder(order);
-		return order;
+		local success = self.buyDoorHandler:SendCustomOrder(order);
+		if success then
+			self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
+			return order;
+		end
 	end
 	
 	return false;
@@ -138,6 +140,10 @@ function RefineryAssault:StartActivity()
 	self.aiTeam = Activity.TEAM_2;
 	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
+	
+	self.goldTimer = Timer();
+	self.goldIncreaseDelay = 4000;
+	self.goldIncreaseAmount = 10;
 	
 	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
 	self.tacticsHandler:Initialize(self);
@@ -206,12 +212,18 @@ end
 
 function RefineryAssault:UpdateActivity()
 
-	local goldAmountsTable = {};
-	goldAmountsTable[0] = self:GetTeamFunds(0);
-	goldAmountsTable[1] = self:GetTeamFunds(1);
+	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
 	
-	self:SetTeamFunds(0, self:GetTeamFunds(0) + 1);
-	self:SetTeamFunds(1, self:GetTeamFunds(1) + 1);
+		self.goldTimer:Reset();
+		
+		self:ChangeTeamFunds(self.goldIncreaseAmount, self.humanTeam);
+		self:ChangeTeamFunds(self.goldIncreaseAmount, self.aiTeam);
+	
+	end
+	
+	local goldAmountsTable = {};
+	goldAmountsTable[0] = self:GetTeamFunds(self.humanTeam);
+	goldAmountsTable[1] = self:GetTeamFunds(self.aiTeam);
 	
 	local team, task = self.tacticsHandler:UpdateTacticsHandler(goldAmountsTable);
 	

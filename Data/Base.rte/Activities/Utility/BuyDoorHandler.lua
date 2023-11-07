@@ -43,9 +43,25 @@ end
 function BuyDoorHandler:SendCustomOrder(order, specificIndex)
 	
 	if specificIndex then
-		self.buyDoorTable[specificIndex]:SendMessage("BuyDoor_CustomTableOrder", order);
+		if not self.buyDoorTable[specificIndex]:NumberValueExists("BuyDoor_Busy") then
+			self.buyDoorTable[specificIndex]:SendMessage("BuyDoor_CustomTableOrder", order);
+		else
+			print("Buy Door Handler was asked to send a custom order to a busy specific index!");
+			return false;
+		end
 	else
-		self.buyDoorTable[math.random(1, #self.buyDoorTable)]:SendMessage("BuyDoor_CustomTableOrder", order);
+		local nonBusyIndexesTable = {};
+		for i = 1, #self.buyDoorTable do
+			if not self.buyDoorTable[i]:NumberValueExists("BuyDoor_Busy") then
+				table.insert(nonBusyIndexesTable, i);
+			end
+		end
+		if #nonBusyIndexesTable > 0 then
+			self.buyDoorTable[nonBusyIndexesTable[math.random(1, #nonBusyIndexesTable)]]:SendMessage("BuyDoor_CustomTableOrder", order);
+		else
+			print("Buy Door Handler could not find any non-busy Buy Doors to send a custom order to!");
+			return false;
+		end
 	end
 
 end
