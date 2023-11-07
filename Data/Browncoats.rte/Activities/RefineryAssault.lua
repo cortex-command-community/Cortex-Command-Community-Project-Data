@@ -143,7 +143,7 @@ function RefineryAssault:StartActivity()
 	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
-	self.goldIncreaseAmount = 10;
+	self.goldIncreaseAmount = 50;
 	
 	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
 	self.tacticsHandler:Initialize(self);
