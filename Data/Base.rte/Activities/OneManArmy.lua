@@ -300,7 +300,7 @@ function OneManArmy:UpdateActivity()
 		end
 
 		--Spawn the AI
-		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 and then
+		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 then
 			local ship, actorsInCargo;
 
 			if math.random() < 0.5 then
