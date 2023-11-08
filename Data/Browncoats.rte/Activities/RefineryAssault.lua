@@ -8,10 +8,17 @@ function RefineryAssault:OnMessage(message, object)
 
 	if message == "Captured_RefineryTestCapturable1" then
 	
+		table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
+		self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+		
+		for k, v in pairs(self.buyDoorTables.LC1) do
+			v.Team = self.humanTeam;
+		end
+	
 		self.tacticsHandler:RemoveTask("Attack Hack Console 1", 0)
 		self.tacticsHandler:RemoveTask("Defend Hack Console 1", 1)
 		
-		local taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryTestCapturable2").Center;
+		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 2", 0, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 2", 1, taskPos, "Defend", 10);		
@@ -20,6 +27,14 @@ function RefineryAssault:OnMessage(message, object)
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryTestCapturable2");
 		print("triedtoswitchcapturables")
 	elseif message == "Captured_RefineryTestCapturable2" then
+	
+		table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
+		self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+
+		for k, v in pairs(self.buyDoorTables.LC2) do
+			v.Team = self.humanTeam;
+		end
+	
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 	end
@@ -38,20 +53,40 @@ end
 -- Create Delivery
 -----------------------------------------------------------------------------------------
 
-function RefineryAssault:SendDockDelivery(team, forceRocketUsage, squadType)
+function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
-	local craft = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
+	local craft, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
 	
 	table.insert(self.actorList, craft)
+	local squadTable = {};
 	for item in craft.Inventory do
 		if IsActor(item) then
-			table.insert(self.actorList, item)
+			item = ToActor(item);
+			table.insert(squadTable, item);
+			table.insert(self.actorList, item);
+			if task then
+				if task.Type == "Defend" or task.Type == "Attack" then
+					item.AIMode = Actor.AIMODE_GOTO;
+					if task.Position.PresetName then -- ghetto check if this is an MO
+						item:AddAIMOWaypoint(task.Position);
+					else
+						item:AddAISceneWaypoint(task.Position);
+					end
+				else
+					item.AIMode = Actor.AIMODE_BRAINHUNT;
+				end
+			end
 		end
 	end
 		
-	local dockingSuccess = self.dockingHandler:SpawnDockingCraft(craft)
+	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
-	return dockingSuccess;
+	if success then
+		self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
+		return squadTable
+	end
+	
+	return false;
 	
 end
 
@@ -76,15 +111,79 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			end
 				
 		end
-		local success = self.buyDoorHandler:SendCustomOrder(order);
-		if success then
-			self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
-			return order;
+		
+		local taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
+		-- check if it's in an area this team owns
+		local areaThisIsIn
+		for i = 1, #self.buyDoorTables.teamAreas[team] do
+			local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][i]);
+			if area:IsInside(taskPos) then
+				areaThisIsIn = self.buyDoorTables.teamAreas[team][i];
+				break;
+			end
+		end
+		
+		if not areaThisIsIn then
+			-- select any owned area if we don't own the task area
+			-- everyone should always own at least one buy door area after stage 2, so.....
+			areaThisIsIn = self.buyDoorTables.teamAreas[team][math.random(1, #self.buyDoorTables.teamAreas[team])];
+		end
+		
+		if areaThisIsIn then
+			
+			local keyset = {};
+			local n = 0;
+			for k, v in pairs(self.buyDoorTables[areaThisIsIn]) do
+				n = n + 1;
+				keyset[n] = tonumber(k);
+			end
+			local randomSelection = keyset[math.random(1, #keyset)];
+			-- at this point we should have a global buydoor index....
+				
+			if randomSelection then
+				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
+				if success then
+					self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
+					return order;
+				end
+			end
 		end
 	end
 	
 	return false;
 	
+end
+
+function RefineryAssault:SetupBuyDoorAreaTable(self, area)
+
+	-- remove BuyDoorArea_ from the area name to get our table key
+	local areaKey = string.sub(area.Name, 13, -1);
+	
+	print("area key: " .. areaKey);
+
+	self.buyDoorTables[areaKey] = {};
+	
+	-- does not work, actors are not added properly yet at this stage
+	
+	-- for box in area.Boxes do
+		-- print("onebox")
+		-- for mo in MovableMan:GetMOsInBox(box, -1, false) do
+			-- print(mo)
+			-- if mo.PresetName == "Reinforcement Door" then
+				-- table.insert(self.buyDoorTables.All, mo)
+				-- self.buyDoorTables[areaKey][tostring(#self.buyDoorTables.All)] = mo;
+			-- end
+		-- end
+	-- end
+	
+	for mo in MovableMan.AddedParticles do
+		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) then
+			table.insert(self.buyDoorTables.All, mo)
+			self.buyDoorTables[areaKey][tostring(#self.buyDoorTables.All)] = mo;
+		end
+	end
+		
+
 end
 
 -----------------------------------------------------------------------------------------
@@ -157,8 +256,37 @@ function RefineryAssault:StartActivity()
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self);
 	
-	self.attackerBuyDoorTable = {};
-	self.defenderBuyDoorTable = {};
+
+	-- Set up buy door areas
+	-- it would be great to handle this generically, but we have specific
+	-- areas and capturing of buy doors within those areas etc and that's
+	-- not generic enough anymore
+	
+	-- the All table holds all buy doors so we can supply them to the handler,
+	-- and also get what index to save in the area-specific tables.
+	-- so each area-specific table will be made up of the actual indexes
+	-- in the All table which we can SendCustomOrder with.
+	
+	self.buyDoorTables = {};
+	self.buyDoorTables.All = {};
+	
+	local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC1");
+	self:SetupBuyDoorAreaTable(self, area);
+	
+	local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC2");
+	self:SetupBuyDoorAreaTable(self, area);
+
+	self.buyDoorHandler:ReplaceBuyDoorTable(self.buyDoorTables.All);
+	
+	self.buyDoorTables.teamAreas = {};
+	self.buyDoorTables.teamAreas[self.humanTeam] = {};
+	self.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2"};
+	
+	for k, v in pairs(self.buyDoorTables.All) do
+		print(v)
+		v.Team = self.aiTeam;
+	end
+	
 
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Pos = Vector();
@@ -166,7 +294,7 @@ function RefineryAssault:StartActivity()
 	MovableMan:AddActor(automoverController);
 
 	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
+	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
 	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
 	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
@@ -183,7 +311,7 @@ function RefineryAssault:StartActivity()
 	self:SetTeamFunds(self.humanTeam, 200);
 	self:SetTeamFunds(self.aiTeam, 200);
 	
-	local taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryTestCapturable1").Center;
+	local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
 	
 	self.tacticsHandler:AddTask("Attack Hack Console 1", 0, taskPos, "Attack", 10);
 	self.tacticsHandler:AddTask("Defend Hack Console 1", 1, taskPos, "Defend", 10);
@@ -231,9 +359,15 @@ function RefineryAssault:UpdateActivity()
 	local team, task = self.tacticsHandler:UpdateTacticsHandler(goldAmountsTable);
 	
 	if task then
+		--print("gottask")
 		local squad = self:SendBuyDoorDelivery(team, task);
 		if squad then
 			self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
+		elseif team == self.humanTeam then
+			squad = self:SendDockDelivery(team, task);
+			if squad then
+				self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
+			end
 		end
 	end
 	

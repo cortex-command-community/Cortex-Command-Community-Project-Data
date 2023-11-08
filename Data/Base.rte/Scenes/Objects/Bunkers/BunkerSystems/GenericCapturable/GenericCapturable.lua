@@ -40,7 +40,7 @@ function Create(self)
 	
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	self.Scene = SceneMan.Scene;
-	
+	print(self:GetStringValue("SceneCaptureArea"))
 	if self:StringValueExists("SceneCaptureArea") then
 		if self.Scene:HasArea(self:GetStringValue("SceneCaptureArea")) then
 			self.captureArea = self.Scene:GetArea(self:GetStringValue("SceneCaptureArea"));

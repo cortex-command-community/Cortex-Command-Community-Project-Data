@@ -12,7 +12,7 @@ function Create(self)
 	self.HoldTime = 5000;
 	self.ReleaseTime = 800;
 	
-	self.detectionRange = 45; -- Default 40
+	self.detectionRange = 55; -- Default 40
 	
 	self.visualDockDistance = 85; -- in pixels from the SpriteOffset, horizontally
 	

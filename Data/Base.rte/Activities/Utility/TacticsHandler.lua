@@ -63,7 +63,8 @@ function TacticsHandler:PickTask(team)
 		local finalSelection = 1;
 		for t = 1, #self.teamList[team].taskList do
 			randomSelect = randomSelect - self.teamList[team].taskList[t].Priority;
-			if randomSelect < 0 then
+			if randomSelect <= 0 then
+				print("gotfinalselection")
 				finalSelection = t;
 			end
 		end
@@ -108,6 +109,8 @@ function TacticsHandler:RetaskSquad(squad, team)
 end
 
 function TacticsHandler:RemoveTask(name, team)
+
+	print("removedttask: " .. name);
 
 	if name and team then
 		local task;
@@ -196,13 +199,15 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 
 	if self.taskUpdateTimer:IsPastSimMS(self.taskUpdateDelay) then
 		self.taskUpdateTimer:Reset();
+		--print("tactics updated")
+		--print(self.teamToCheckNext)
 
 		-- check if we can afford a new tasked squad, tell the activity to send it in
 		local team = self.teamToCheckNext;
+		self.teamToCheckNext = (self.teamToCheckNext + 1) % self.Activity.TeamCount;
 		if goldAmountsTable[team] > 0 then
 			--print("team " .. team .. " " .. goldAmountsTable[team]);
 			-- TODO replace debug teamcount faker (the modulo)
-			self.teamToCheckNext = (self.teamToCheckNext + 1) % self.Activity.TeamCount;
 			local task = self:PickTask(team);
 			if task then
 				return team, task;
