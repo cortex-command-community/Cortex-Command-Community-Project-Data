@@ -13,10 +13,10 @@ end
 
 function Create(self)
 
-	self.spinUpSound = CreateSoundContainer("Spin Up Browncoat RG-1400", "Browncoat.rte");
-	self.spinDownSound = CreateSoundContainer("Spin Down Browncoat RG-1400", "Browncoat.rte");
-	self.startShotSound = CreateSoundContainer("Start Shot Browncoat RG-1400", "Browncoat.rte");
-	self.tailSound = CreateSoundContainer("Tail Browncoat RG-1400", "Browncoat.rte");
+	self.spinUpSound = CreateSoundContainer("Spin Up Browncoat RG-1100", "Browncoat.rte");
+	self.spinDownSound = CreateSoundContainer("Spin Down Browncoat RG-1100", "Browncoat.rte");
+	self.startShotSound = CreateSoundContainer("Start Shot Browncoat RG-1100", "Browncoat.rte");
+	self.tailSound = CreateSoundContainer("Tail Browncoat RG-1100", "Browncoat.rte");
 	
 	self.spinUpTimer = Timer();
 	self.spinUpTime = 1000;
