@@ -49,6 +49,31 @@ function BuyDoorHandler:ReplaceBuyDoorTable(newTable)
 
 end
 
+function BuyDoorHandler:IsBusyDoorBusy(specificIndex)
+
+	return self.buyDoorTable[specificIndex]:NumberValueExists("BuyDoor_Unusable");
+	
+end
+
+function BuyDoorHandler:GetAvailableBuyDoorsInArea(area, team)
+
+	local usableIndexesTable = {};
+	for i = 1, #self.buyDoorTable do
+		if not self.buyDoorTable[i]:NumberValueExists("BuyDoor_Unusable") and (team and self.buyDoorTable[i].Team == team) or (not team) then
+			if area:IsInside(self.buyDoorTable[i].Pos) then
+				table.insert(usableIndexesTable, i);
+			end
+		end
+	end
+	
+	if #usableIndexesTable > 0 then
+		return usableIndexesTable;
+	else
+		return false;
+	end
+	
+end
+
 function BuyDoorHandler:SendCustomOrder(order, team, specificIndex)
 	
 	if specificIndex then

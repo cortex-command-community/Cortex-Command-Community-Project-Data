@@ -14,14 +14,14 @@ function RefineryAssault:OnMessage(message, object)
 		for k, v in pairs(self.buyDoorTables.LC1) do
 			v.Team = self.humanTeam;
 		end
-	
-		self.tacticsHandler:RemoveTask("Attack Hack Console 1", 0)
-		self.tacticsHandler:RemoveTask("Defend Hack Console 1", 1)
 		
 		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 2", 0, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 2", 1, taskPos, "Defend", 10);		
+	
+		self.tacticsHandler:RemoveTask("Attack Hack Console 1", 0)
+		self.tacticsHandler:RemoveTask("Defend Hack Console 1", 1)
 	
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable1");
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryTestCapturable2");
@@ -118,28 +118,33 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 		for i = 1, #self.buyDoorTables.teamAreas[team] do
 			local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][i]);
 			if area:IsInside(taskPos) then
-				areaThisIsIn = self.buyDoorTables.teamAreas[team][i];
+				areaThisIsIn = area;
 				break;
 			end
 		end
 		
-		if not areaThisIsIn then
+		if not areaThisIsIn or not self.buyDoorHandler:GetAvailableBuyDoorsInArea(areaThisIsIn, team) then
 			-- select any owned area if we don't own the task area
 			-- everyone should always own at least one buy door area after stage 2, so.....
-			areaThisIsIn = self.buyDoorTables.teamAreas[team][math.random(1, #self.buyDoorTables.teamAreas[team])];
+			if #self.buyDoorTables.teamAreas[team] > 0 then
+				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][math.random(1, #self.buyDoorTables.teamAreas[team])]);
+				--print(areaThisIsIn.Name)
+				--print("reverted to any buy door area pick")
+			else
+				--print("team " .. team .. " doesn't have a backup area");
+			end
 		end
 		
 		if areaThisIsIn then
+			--print(areaThisIsIn.Name)
 			
-			local keyset = {};
-			local n = 0;
-			for k, v in pairs(self.buyDoorTables[areaThisIsIn]) do
-				n = n + 1;
-				keyset[n] = tonumber(k);
+			local randomSelection;
+			local usableBuyDoorTable = self.buyDoorHandler:GetAvailableBuyDoorsInArea(areaThisIsIn, team)
+			
+			if usableBuyDoorTable then
+				randomSelection = usableBuyDoorTable[math.random(1, #usableBuyDoorTable)]
 			end
-			local randomSelection = keyset[math.random(1, #keyset)];
-			-- at this point we should have a global buydoor index....
-				
+			
 			if randomSelection then
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
@@ -242,7 +247,7 @@ function RefineryAssault:StartActivity()
 	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
-	self.goldIncreaseAmount = 50;
+	self.goldIncreaseAmount = 5000;
 	
 	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
 	self.tacticsHandler:Initialize(self);

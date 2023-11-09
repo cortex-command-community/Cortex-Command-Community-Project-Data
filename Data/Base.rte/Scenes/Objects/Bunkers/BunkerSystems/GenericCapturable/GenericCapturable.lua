@@ -1,6 +1,6 @@
 function OnGlobalMessage(self, message, object)
 
-	print("capturablegotglobalmessage")
+	--print("capturablegotglobalmessage")
 
 	if message == self.deactivationMessage then
 		self.Deactivated = true;
