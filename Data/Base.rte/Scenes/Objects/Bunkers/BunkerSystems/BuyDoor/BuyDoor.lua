@@ -3,6 +3,7 @@ function OnMessage(self, message, orderList)
 
 	if not self.currentOrder then
 		if message == "BuyDoor_CustomTableOrder" then
+			self.Unusable = true;
 			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
 			
 			if finalOrder then
@@ -126,7 +127,7 @@ function Create(self)
 	self.actorUpdateTimer = Timer();
 	self.actorUpdateDelay = 50;
 	
-	self.detectRange = 100;
+	self.detectRange = 200;
 	
 	self.orderPieSlice = CreatePieSlice("Buy Door Order", "Base.rte");
 end
@@ -170,10 +171,36 @@ function Update(self)
 		self.SpriteAnimMode = MOSprite.NOANIM;
 	end
 	
+	if self.cooldownTimer:IsPastSimMS(self.cooldownTime) then
+		self.Unusable = false;
+		if self.orderDelivering then
+			self.Unusable = true;
+			if self.orderTimer:IsPastSimMS(self.orderDelay) then
+				self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
+				self.isClosing = false;
+				self.orderDelivering = false;
+				self.openCloseSound:Play();
+				
+				self.cooldownTimer:Reset();
+			else
+				PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
+			end
+		end
+	elseif self.currentOrder == nil then
+		self.Unusable = true;
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -10), "Reorganizing...", true, 1);
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.cooldownTime/1000 - self.cooldownTimer.ElapsedSimTimeS)), true, 1);
+		self.orderDelivering = false;
+	end
+	
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
 		for actor in MovableMan:GetMOsInRadius(self.Pos, self.detectRange) do
 			if (not self.closeActorTable[actor.UniqueID]) and IsAHuman(actor) or IsACrab(actor) then
 				actor = ToActor(actor);
+				-- nearby enemies disable use
+				if actor.Team ~= self.Team then
+					self.Unusable = true;
+				end
 				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.orderPieSlice:Clone(), self);
 				self.closeActorTable[actor.UniqueID] = actor.UniqueID;
 			end
@@ -191,7 +218,7 @@ function Update(self)
 				else
 					if actor:NumberValueExists("BuyDoor_Order") then
 						actor:RemoveNumberValue("BuyDoor_Order");
-						if not self.currentOrder then
+						if not self.currentOrder and not self.Unusable then
 							-- Set up order here
 							
 							-- We have to rebuild this table each time, because teams can change
@@ -244,30 +271,17 @@ function Update(self)
 		end
 	end
 	
-	if self.cooldownTimer:IsPastSimMS(self.cooldownTime) then
-		self:RemoveNumberValue("BuyDoor_Busy");
-		if self.orderDelivering then
-			self:SetNumberValue("BuyDoor_Busy", 1);
-			if self.orderTimer:IsPastSimMS(self.orderDelay) then
-				self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
-				self.isClosing = false;
-				self.orderDelivering = false;
-				self.openCloseSound:Play();
-				
-				self.cooldownTimer:Reset();
-			else
-				PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
-			end
-		end
-	elseif self.currentOrder == nil then
-		self:SetNumberValue("BuyDoor_Busy", 1);
-		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -10), "Reorganizing...", true, 1);
-		PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.cooldownTime/1000 - self.cooldownTimer.ElapsedSimTimeS)), true, 1);
-		self.orderDelivering = false;
-	end
-	
 	if not self.messageTimer:IsPastSimMS(self.messageTime) then
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos, self.Message, true, 1);
+	end
+	
+	PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
+	
+	if self.Unusable then
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -20), "UNUSABLE", true, 1);
+		self:SetNumberValue("BuyDoor_Unusable", 1);
+	else
+		self:RemoveNumberValue("BuyDoor_Unusable");
 	end
 	
 end

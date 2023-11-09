@@ -115,17 +115,17 @@ end
 
 function DockingHandler:SpawnDockingCraft(craft, specificDock)
 	if self.undersideScene then
-		self:SpawnUndersideDockingCraft(craft, specificDock);
+		return self:SpawnUndersideDockingCraft(craft, specificDock);
 	else
-		self:SpawnRegularDockingCraft(craft, specificDock);
+		return self:SpawnRegularDockingCraft(craft, specificDock);
 	end
 end
 
 function DockingHandler:UpdateDockingCraft()
 	if self.undersideScene then
-		self:UpdateUndersideDockingCraft();
+		return self:UpdateUndersideDockingCraft();
 	else
-		self:UpdateRegularDockingCraft();
+		return self:UpdateRegularDockingCraft();
 	end
 end
 
@@ -544,7 +544,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 		MovableMan:AddActor(craft);
 		craft:UpdateMovePath();
 	else
-		print("failed")
+		--print("failed")
 		return false;
 	end
 	
