@@ -2,9 +2,11 @@ package.loaded.Constants = nil; require("Constants");
 
 function RefineryAssault:OnMessage(message, object)
 
-	print("activitygotmessage")
+	self.tacticsHandler:OnMessage(message, object);
+
+	--print("activitygotmessage")
 	
-	print(message)
+	--print(message)
 
 	if message == "Captured_RefineryTestCapturable1" then
 	

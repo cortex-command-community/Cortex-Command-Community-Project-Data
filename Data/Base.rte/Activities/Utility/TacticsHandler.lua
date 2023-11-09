@@ -50,6 +50,23 @@ function TacticsHandler:Initialize(activity)
 	
 end
 
+function TacticsHandler:OnMessage(message, object)
+
+	--print("tacticshandlergotmessage")
+
+	if message == "TacticsHandler_InvalidateActor" then
+		self:InvalidateActor(object);
+	end
+	
+end
+
+function TacticsHandler:InvalidateActor(infoTable)
+
+	self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = nil;
+	--print("actor invalidated through function")
+	
+end
+
 function TacticsHandler:PickTask(team)
 
 	if #self.teamList[team].taskList > 0 then
@@ -91,7 +108,7 @@ function TacticsHandler:RetaskSquad(squad, team)
 			-- This is due to memory pooling and MOs being reused. In fact, this game somehow managed to survive with a in-built memory corruption any time everything was deleted, for *years*
 			-- And it only worked because of memory pooling hiding it. Terrible.
 			-- Anyways, we should probably store uniqueIds instead and look those up at point of usage
-			if actor and MovableMan:ValidMO(actor) then
+			if actor then
 				if newTask then
 					if newTask.Type == "Defend" or newTask.Type == "Attack" then
 						actor.AIMode = Actor.AIMODE_GOTO;
@@ -199,11 +216,16 @@ function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 	if team and squadTable and taskName then
 		local squadEntry = {};
 		squadEntry.Actors = squadTable;
-		for k, act in ipairs(squadEntry.Actors) do
-			--print("new squadmate: " .. act.PresetName)
-		end
 		squadEntry.taskName = taskName;
 		table.insert(self.teamList[team].squadList, squadEntry); 
+		for k, act in ipairs(squadEntry.Actors) do
+			local squadInfo = {};
+			squadInfo.Team = team;
+			squadInfo.squadIndex = #self.teamList[team].squadList;
+			squadInfo.actorIndex = k;
+			act:AddScript("Base.rte/Activities/Utility/TacticsActorInvalidator.lua");
+			act:SendMessage("TacticsHandler_InitSquadInfo", squadInfo);
+		end
 		--print("addedtaskedsquad: " .. #self.teamList[team].squadList)
 		--print("newtaskname: " .. self.teamList[team].squadList[#self.teamList[team].squadList].taskName)
 	else
@@ -256,14 +278,12 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 					if #self.teamList[team].squadList[i].Actors > 0 and actor then
 
 						-- all is well
-						-- we cannot ValidMO here because it will insta-wipe actors that haven't even left their craft yet.
-						-- we rely on RetaskSquad eventually cleaning up so we can delete the entry below...
 
 					else
-						--print("actor invalid")
+						print("actor invalid")
 						self.teamList[team].squadList[i].Actors[actorIndex] = nil; -- actor no longer actual
 						if #self.teamList[team].squadList[i].Actors == 0 then
-							--print("removed wiped squad")
+							print("removed wiped squad")
 							table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
 							break;
 						end
