@@ -1,6 +1,4 @@
---[[MULTITHREAD]]--
-
-require("AI/NativeCrabAI");
+require("AI/NativeCrabAI"); --dofile("Base.rte/Actors/AI/NativeCrabAI.lua")
 
 function Create(self)
 	self.AI = NativeCrabAI:Create(self);
