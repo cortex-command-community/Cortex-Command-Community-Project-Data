@@ -109,17 +109,16 @@ function TacticsHandler:RetaskSquad(squad, team)
 			-- And it only worked because of memory pooling hiding it. Terrible.
 			-- Anyways, we should probably store uniqueIds instead and look those up at point of usage
 			if actor then
-				if newTask then
-					if newTask.Type == "Defend" or newTask.Type == "Attack" then
-						actor.AIMode = Actor.AIMODE_GOTO;
-						if newTask.Position.PresetName then -- ghetto check if this is an MO
-							actor:AddAIMOWaypoint(newTask.Position);
-						else
-							actor:AddAISceneWaypoint(newTask.Position);
-						end
+				actor:ClearAIWaypoints();
+				if newTask.Type == "Defend" or newTask.Type == "Attack" then
+					actor.AIMode = Actor.AIMODE_GOTO;
+					if newTask.Position.PresetName then -- ghetto check if this is an MO
+						actor:AddAIMOWaypoint(newTask.Position);
 					else
-						actor.AIMode = Actor.AIMODE_BRAINHUNT;
+						actor:AddAISceneWaypoint(newTask.Position);
 					end
+				else
+					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
 			else
 				print("during retasking, actor was invalidated")
