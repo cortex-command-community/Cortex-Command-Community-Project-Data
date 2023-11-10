@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 require("AI/NativeHumanAI");
 
 function Create(self)

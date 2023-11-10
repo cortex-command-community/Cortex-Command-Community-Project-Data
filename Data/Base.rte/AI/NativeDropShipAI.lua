@@ -1,3 +1,4 @@
+require("Constants")
 require("AI/PID");
 
 NativeDropShipAI = {};

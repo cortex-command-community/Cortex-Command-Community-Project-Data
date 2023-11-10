@@ -1,3 +1,4 @@
+require("Constants")
 require("AI/HumanBehaviors");
 
 NativeHumanAI = {};
