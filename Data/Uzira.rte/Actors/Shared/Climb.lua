@@ -18,7 +18,7 @@ function Update(self)
 				if lowerCheck ~= rte.NoMOID then
 					local mo = MovableMan:GetMOFromID(lowerCheck):GetRootParent();
 					if mo and mo.Team == self.Team and IsActor(mo) then
-						grabbedMO = ToActor(mo);
+						self.grabbedMO = ToActor(mo);
 						break;
 					end
 				end
@@ -31,9 +31,9 @@ function Update(self)
 	end
 end
 
-function SyncedUpdate(self)	
+function SyncedUpdate(self)
 	if self.grabbedMO then
-		grabbedMO:AddForce(self.Vel * self.Mass, Vector());
+		self.grabbedMO:AddForce(self.Vel * self.Mass, Vector());
 		--If the ID of the grabbed MO is lower than this actor's, it will have its forces applied to it before this, so halve the anti-gravitational force
 		if self.grabbedMO.ID < self.ID then
 			self.Vel = (self.Vel + self.grabbedMO.Vel - SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs) * 0.5;
