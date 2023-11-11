@@ -1,4 +1,6 @@
-require("AI/NativeDropShipAI"); --dofile("Base.rte/Actors/AI/NativeDropShipAI.lua");
+--[[MULTITHREAD]]--
+
+require("AI/NativeDropShipAI");
 
 function Create(self)
 	self.AI = NativeDropShipAI:Create(self);
