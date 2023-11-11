@@ -183,14 +183,12 @@ function Update(self)
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 			local item = self:RemoveInventoryItemAtIndex(0);
-			item.Pos = self.Pos;
-			item.Team = self.currentTeam;
-			if IsActor(item) then
-				MovableMan:AddActor(item);
-			else
-				MovableMan:AddItem(item);
+			if item then
+				item.Pos = self.Pos;
+				item.Team = self.currentTeam;
+				MovableMan:AddMO(item);
+				self.spawnTimer:Reset();
 			end
-			self.spawnTimer:Reset();
 		end
 
 		-- Wait until we spawn the next guy
