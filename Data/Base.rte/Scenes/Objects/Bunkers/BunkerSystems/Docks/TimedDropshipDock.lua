@@ -3,6 +3,8 @@ function Create(self)
 	self.captureSound = CreateSoundContainer("Dock Capture", "Base.rte");
 	self.releaseSound = CreateSoundContainer("Dock Release", "Base.rte");
 
+	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
+	self.saveLoadHandler:Initialize(self);
 
 	self.updateTimer = Timer();
 	self.healTimer = Timer();
@@ -18,6 +20,16 @@ function Create(self)
 	
 	self.HasDockedCraft = false;
 	self.confirmCapture = true;
+	
+	if self:StringValueExists("savedDockedCraft") then
+	
+		-- without also saving our timers, we will hold these guys for the full duration.
+		-- but that's fine. who's gonna notice?
+	
+		self.craft = self.saveLoadHandler:LoadLocallySavedMO(self, "savedDockedCraft");
+		self.HasDockedCraft = true;
+		
+	end
 	
 end
 
@@ -145,4 +157,14 @@ function Update(self)
 		self.HoldTimer:Reset();
 		self.updateTimer:Reset();
 	end
+end
+
+function OnSave(self)
+
+	if self.craft then
+	
+		self.saveLoadHandler:SaveMOLocally(self, "savedDockedCraft", self.craft);
+		
+	end
+
 end

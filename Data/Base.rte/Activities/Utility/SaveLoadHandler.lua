@@ -215,11 +215,11 @@ end
 
 function SaveLoadHandler:SaveMOLocally(self, name, mo)
 	mo:SetNumberValue("saveLoadHandlerUniqueID", mo.UniqueID);
-	self:SaveString(name, "SAVELOADHANDLERUNIQUEID_" .. tostring(mo.UniqueID));
+	self:SetStringValue(name, "SAVELOADHANDLERUNIQUEID_" .. tostring(mo.UniqueID));
 end
 
 function SaveLoadHandler:LoadLocallySavedMO(self, name)
-	local v = self:LoadString(name);
+	local v = self:GetStringValue(name);
 	local didNotFindAnMO = false;
 	
 	local notFound = true;

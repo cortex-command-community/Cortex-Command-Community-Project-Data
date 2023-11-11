@@ -69,6 +69,8 @@ function TacticsHandler:OnLoad(saveLoadHandler)
 	self.teamList = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerTeamList");
 	print("loaded tacticshandler!");
 	
+	self:ReapplyAllTasks();
+	
 end
 
 function TacticsHandler:OnSave(saveLoadHandler)
@@ -82,6 +84,62 @@ function TacticsHandler:InvalidateActor(infoTable)
 	self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = nil;
 	--print("actor invalidated through function")
 	
+end
+
+function TacticsHandler:ReapplyAllTasks()
+
+	-- Includes general cleanup and task sanitizing work
+
+	for team = 0, #self.teamList do
+		for i = 1, #self.teamList[team].squadList do
+		
+			local taskName = self.teamList[team].squadList[i].taskName
+			if not (taskName and self:GetTaskByName(taskName, team)) then
+	
+				self:RetaskSquad(self.teamList[team].squadList[i], team);
+				
+			else
+			
+				local task = self:GetTaskByName(taskName, team);
+				
+				for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
+					local actor = self.teamList[team].squadList[i].Actors[actorIndex];
+					if #self.teamList[team].squadList[i].Actors > 0 and actor then
+
+						if task.Position.PresetName then -- ghetto check if this is an MO
+							actor:AddAIMOWaypoint(task.Position);
+						else
+							actor:AddAISceneWaypoint(task.Position);
+						end
+
+					else
+						print("actor invalid")
+						self.teamList[team].squadList[i].Actors[actorIndex] = nil; -- actor no longer actual
+						if #self.teamList[team].squadList[i].Actors == 0 then
+							print("removed wiped squad")
+							table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
+							break;
+						end
+					end
+				end
+			end
+		end
+	end
+
+end
+
+function TacticsHandler:GetTaskByName(taskName, team)
+	
+	if team then
+		for t = 1, #self.teamList[team].taskList do
+			if self.teamList[team].taskList[t].Name == taskName then
+				return self.teamList[team].taskList[t];
+			end
+		end
+	end
+	
+	return false;
+
 end
 
 function TacticsHandler:PickTask(team)

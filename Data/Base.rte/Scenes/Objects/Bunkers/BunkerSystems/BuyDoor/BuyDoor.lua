@@ -103,7 +103,7 @@ function Create(self)
 	
 	if self:StringValueExists("savedConsoleMO") then
 	
-		self.console = self.saveLoadHandled:LoadLocallySavedMO(self, "savedConsoleMO");
+		self.console = self.saveLoadHandler:LoadLocallySavedMO(self, "savedConsoleMO");
 		
 	end
 	
