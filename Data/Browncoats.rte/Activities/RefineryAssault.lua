@@ -94,7 +94,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 
 	local order, goldCost = self.deliveryCreationHandler:CreateSquad(team);
 	
-	print("tried order for team: " .. team);
+	--print("tried order for team: " .. team);
 	
 	if order then
 		for i = 1, #order do
@@ -129,10 +129,10 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			-- everyone should always own at least one buy door area after stage 2, so.....
 			if #self.buyDoorTables.teamAreas[team] > 0 then
 				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][math.random(1, #self.buyDoorTables.teamAreas[team])]);
-				print(areaThisIsIn.Name)
-				print("reverted to any buy door area pick")
+				--print(areaThisIsIn.Name)
+				--print("reverted to any buy door area pick")
 			else
-				print("team " .. team .. " doesn't have a backup area");
+				--print("team " .. team .. " doesn't have a backup area");
 			end
 		end
 		

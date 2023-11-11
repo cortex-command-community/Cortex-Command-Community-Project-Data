@@ -583,7 +583,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 	
 	for actor in MovableMan.AddedActors do
 		if actor.UniqueID ~= self.mainTable.lastAddedCraftUniqueID then
-			if IsACDropShip(actor) then
+			if IsACDropShip(actor) and not actor:NumberValueExists("Dock Numbe") then
 				local craft = ToACDropShip(actor);
 				
 				-- See if we have any docks available right now
@@ -682,6 +682,8 @@ function DockingHandler:UpdateRegularDockingCraft()
 			if craft and MovableMan:ValidMO(craft) then
 			
 				craft = ToACraft(craft)
+				
+				PrimitiveMan:DrawCirclePrimitive(craft.Pos,60, 100);
 				
 				--craft.DeliveryState = ACraft.STANDBY;
 				

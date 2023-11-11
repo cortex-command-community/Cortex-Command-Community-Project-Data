@@ -27,7 +27,7 @@ function TacticsHandler:Initialize(activity, newGame)
 	self.Activity = activity;
 	
 	self.taskUpdateTimer = Timer();
-	self.taskUpdateDelay = 500;
+	self.taskUpdateDelay = 1000;
 	
 	self.teamToCheckNext = 0;
 	
@@ -59,6 +59,10 @@ function TacticsHandler:OnMessage(message, object)
 
 	if message == "TacticsHandler_InvalidateActor" then
 		self:InvalidateActor(object);
+		print("was told to invalidate actor!")
+		for k, v in pairs(object) do
+			print(k .. v);
+		end
 	end
 	
 end
@@ -88,6 +92,8 @@ end
 
 function TacticsHandler:ReapplyAllTasks()
 
+	print("ReapplyAllTasks")
+
 	-- Includes general cleanup and task sanitizing work
 
 	for team = 0, #self.teamList do
@@ -105,7 +111,8 @@ function TacticsHandler:ReapplyAllTasks()
 				for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
 					local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
 					if #self.teamList[team].squadList[i].Actors > 0 and actor then
-
+						print("Trying to reapply task to actor: " .. actor.PresetName .. " of team " .. team)
+						actor:ClearAIWaypoints();
 						if task.Position.PresetName then -- ghetto check if this is an MO
 							actor:AddAIMOWaypoint(task.Position);
 						else
@@ -130,6 +137,8 @@ end
 
 function TacticsHandler:GetTaskByName(taskName, team)
 	
+	print("GetTaskByName")
+	
 	if team then
 		for t = 1, #self.teamList[team].taskList do
 			if self.teamList[team].taskList[t].Name == taskName then
@@ -143,6 +152,8 @@ function TacticsHandler:GetTaskByName(taskName, team)
 end
 
 function TacticsHandler:PickTask(team)
+
+	print("PickTask")
 
 	if #self.teamList[team].taskList > 0 then
 		-- random weighted select
@@ -211,7 +222,7 @@ end
 
 function TacticsHandler:RemoveTask(name, team)
 
-	--print("removedttask: " .. name);
+	print("Removedtask: " .. name);
 
 	if name and team then
 		local task;
@@ -250,6 +261,8 @@ end
 
 function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 
+	print("AddTask")
+
 	if name and team and taskPos then
 	
 		for i = 1, #self.teamList[team].taskList do
@@ -286,6 +299,8 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 end
 
 function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
+
+	print("AddTaskSquad" .. team)
 	
 	if team and squadTable and taskName then
 		local squadEntry = {};
@@ -324,7 +339,7 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 		local team = self.teamToCheckNext;
 		self.teamToCheckNext = (self.teamToCheckNext + 1) % self.Activity.TeamCount;
 		if goldAmountsTable[team] > 0 then
-			print("team " .. team .. " " .. goldAmountsTable[team]);
+			--print("team " .. team .. " " .. goldAmountsTable[team]);
 			local task = self:PickTask(team);
 			if task then
 				return team, task;
@@ -353,6 +368,8 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 				for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
 					local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
 					if #self.teamList[team].squadList[i].Actors > 0 and actor then
+						PrimitiveMan:DrawCirclePrimitive(actor.Pos,30, 50);
+						--print(actor.PresetName .. actor.Team)
 
 						-- all is well
 
