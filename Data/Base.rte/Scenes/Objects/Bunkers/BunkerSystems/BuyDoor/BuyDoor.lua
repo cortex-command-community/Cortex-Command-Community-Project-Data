@@ -94,7 +94,9 @@ function Create(self)
 
 	-- hoo boy... the things we do for draw order
 	local us = MovableMan:RemoveActor(self);
-	MovableMan:AddParticle(us);
+	if us then -- fixed issue when reloading scripts
+		MovableMan:AddParticle(us);
+	end
 
 	-- Frame 0 is used to display the control console that we will place
 	
