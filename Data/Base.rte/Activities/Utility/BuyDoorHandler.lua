@@ -20,21 +20,37 @@ function BuyDoorHandler:Create()
 	return Members;
 end
 
-function BuyDoorHandler:Initialize(activity)
+function BuyDoorHandler:Initialize(activity, newGame)
 	
 	print("buydoorhandlerinited")
 	
 	self.Activity = activity;
 	
-	-- find and save buy doors
+	if newGame then
 	
-	self.buyDoorTable = {};
-	
-	for mo in MovableMan.AddedParticles do
-		if mo.PresetName == "Reinforcement Door" then
-			table.insert(self.buyDoorTable, ToMOSRotating(mo));
+		-- find and save buy doors
+		
+		self.buyDoorTable = {};
+		
+		for mo in MovableMan.AddedParticles do
+			if mo.PresetName == "Reinforcement Door" then
+				table.insert(self.buyDoorTable, ToMOSRotating(mo));
+			end
 		end
+		
 	end
+	
+end
+
+function BuyDoorHandler:OnLoad(saveLoadHandler)
+	
+	self.buyDoorTable = saveLoadHandler:ReadSavedStringAsTable("buyDoorHandlerBuyDoorTable");
+	
+end
+
+function BuyDoorHandler:OnSave(saveLoadHandler)
+	
+	saveLoadHandler:SaveTableAsString("buyDoorHandlerBuyDoorTable", self.buyDoorTable);
 	
 end
 

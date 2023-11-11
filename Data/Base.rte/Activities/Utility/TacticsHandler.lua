@@ -20,7 +20,7 @@ function TacticsHandler:Create()
 	return Members;
 end
 
-function TacticsHandler:Initialize(activity)
+function TacticsHandler:Initialize(activity, newGame)
 	
 	print("TacticsHandlerinited")
 	
@@ -31,22 +31,25 @@ function TacticsHandler:Initialize(activity)
 	
 	self.teamToCheckNext = 0;
 	
-	self.teamList = {};
+	if newGame then
 	
-	for i = 0, self.Activity.TeamCount do
-		self.teamList[i] = {};
-		self.teamList[i].squadList = {};
-		self.teamList[i].taskList = {};
-	end
-	--print("activity team count: " .. self.Activity.TeamCount)
-	
-	-- We cannot account for actors added outside of our system
-	
-	-- for actor in MovableMan.AddedActors do
-		-- if actor.Team ~= -1 then
-			-- table.insert(self.teamList[actor.Team].actorList, actor);
+		self.teamList = {};
+		
+		for i = 0, self.Activity.TeamCount do
+			self.teamList[i] = {};
+			self.teamList[i].squadList = {};
+			self.teamList[i].taskList = {};
+		end
+		--print("activity team count: " .. self.Activity.TeamCount)
+		
+		-- We cannot account for actors added outside of our system
+		
+		-- for actor in MovableMan.AddedActors do
+			-- if actor.Team ~= -1 then
+				-- table.insert(self.teamList[actor.Team].actorList, actor);
+			-- end
 		-- end
-	-- end
+	end
 	
 end
 
@@ -57,6 +60,18 @@ function TacticsHandler:OnMessage(message, object)
 	if message == "TacticsHandler_InvalidateActor" then
 		self:InvalidateActor(object);
 	end
+	
+end
+
+function TacticsHandler:OnLoad(saveLoadHandler)
+	
+	self.teamList = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerTeamList");
+	
+end
+
+function TacticsHandler:OnSave(saveLoadHandler)
+	
+	saveLoadHandler:SaveTableAsString("tacticsHandlerTeamList", self.teamList);
 	
 end
 

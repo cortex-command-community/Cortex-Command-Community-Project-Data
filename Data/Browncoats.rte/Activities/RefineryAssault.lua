@@ -208,7 +208,7 @@ end
 -- Start Activity
 -----------------------------------------------------------------------------------------
 
-function RefineryAssault:StartActivity()
+function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -235,10 +235,6 @@ function RefineryAssault:StartActivity()
 			end
 		end
 	end
-
-	self.doorMessageTimer = Timer();
-	self.doorMessageTimer:SetSimTimeLimitMS(5000);
-	self.allDoorsOpened = false;
 	
 	self.humansAreControllingAlliedActors = false;
 	
@@ -249,83 +245,111 @@ function RefineryAssault:StartActivity()
 	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
-	self.goldIncreaseAmount = 5000;
+	self.goldIncreaseAmount = 100;
+	
+	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
+	self.saveLoadHandler:Initialize(self);
 	
 	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
-	self.tacticsHandler:Initialize(self);
+	self.tacticsHandler:Initialize(self, newGame);
 	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
-	self.dockingHandler:Initialize(self);
+	self.dockingHandler:Initialize(self, newGame);
 	
 	self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
-	self.buyDoorHandler:Initialize(self);
+	self.buyDoorHandler:Initialize(self, newGame);
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self);
 	
+	if newGame then
+	
+		-- Set up buy door areas
+		-- it would be great to handle this generically, but we have specific
+		-- areas and capturing of buy doors within those areas etc and that's
+		-- not generic enough anymore
+		
+		-- the All table holds all buy doors so we can supply them to the handler,
+		-- and also get what index to save in the area-specific tables.
+		-- so each area-specific table will be made up of the actual indexes
+		-- in the All table which we can SendCustomOrder with.
+		
+		self.buyDoorTables = {};
+		self.buyDoorTables.All = {};
+		
+		local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC1");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC2");
+		self:SetupBuyDoorAreaTable(self, area);
 
-	-- Set up buy door areas
-	-- it would be great to handle this generically, but we have specific
-	-- areas and capturing of buy doors within those areas etc and that's
-	-- not generic enough anymore
-	
-	-- the All table holds all buy doors so we can supply them to the handler,
-	-- and also get what index to save in the area-specific tables.
-	-- so each area-specific table will be made up of the actual indexes
-	-- in the All table which we can SendCustomOrder with.
-	
-	self.buyDoorTables = {};
-	self.buyDoorTables.All = {};
-	
-	local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC1");
-	self:SetupBuyDoorAreaTable(self, area);
-	
-	local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC2");
-	self:SetupBuyDoorAreaTable(self, area);
+		self.buyDoorHandler:ReplaceBuyDoorTable(self.buyDoorTables.All);
+		
+		self.buyDoorTables.teamAreas = {};
+		self.buyDoorTables.teamAreas[self.humanTeam] = {};
+		self.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2"};
+		
+		for k, v in pairs(self.buyDoorTables.All) do
+			print(v)
+			v.Team = self.aiTeam;
+		end
+		
 
-	self.buyDoorHandler:ReplaceBuyDoorTable(self.buyDoorTables.All);
+		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
+		automoverController.Pos = Vector();
+		automoverController.Team = self.aiTeam;
+		MovableMan:AddActor(automoverController);
+
+		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
+		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
+		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
+		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
+		
+		-- Grand Strategic WhateverTheFuck
+		
+		self.actorList = {};
+		
+		-- Capturable setup
+		
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
+		
+		-- Test tasks
+		
+		self:SetTeamFunds(self.humanTeam, 200);
+		self:SetTeamFunds(self.aiTeam, 200);
+		
+		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
+		
+		self.tacticsHandler:AddTask("Attack Hack Console 1", 0, taskPos, "Attack", 10);
+		self.tacticsHandler:AddTask("Defend Hack Console 1", 1, taskPos, "Defend", 10);
 	
-	self.buyDoorTables.teamAreas = {};
-	self.buyDoorTables.teamAreas[self.humanTeam] = {};
-	self.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2"};
-	
-	for k, v in pairs(self.buyDoorTables.All) do
-		print(v)
-		v.Team = self.aiTeam;
+	else
+		self:ResumeLoadedGame();
 	end
-	
+end
 
-	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
-	automoverController.Pos = Vector();
-	automoverController.Team = self.aiTeam;
-	MovableMan:AddActor(automoverController);
+function RefineryAssault:ResumeLoadedGame()
 
-	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
-	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
-	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
-	--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
+	self.buyDoorTables = self.saveLoadHandler:ReadSavedStringAsTable("buyDoorTables");
 	
-	-- Grand Strategic WhateverTheFuck
+	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
 	
-	self.actorList = {};
-	
-	-- Capturable setup
-	
-	MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
-	
-	-- Test tasks
-	
-	self:SetTeamFunds(self.humanTeam, 200);
-	self:SetTeamFunds(self.aiTeam, 200);
-	
-	local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
-	
-	self.tacticsHandler:AddTask("Attack Hack Console 1", 0, taskPos, "Attack", 10);
-	self.tacticsHandler:AddTask("Defend Hack Console 1", 1, taskPos, "Defend", 10);
+	-- Handlers
+	self.tacticsHandler:OnLoad(self.saveLoadHandler);
+	self.dockingHandler:OnLoad(self.saveLoadHandler);
+	self.buyDoorHandler:OnLoad(self.saveLoadHandler);
+		
 end
 
 function RefineryAssault:OnSave()
-	-- Don't have to do anything, just need this to allow saving/loading.
+	
+	self.saveLoadHandler:SaveTableAsString("buyDoorTables", self.buyDoorTables);
+	
+	self:SaveNumber("goldTimer", self.goldTimer.ElapsedRealTimeMS);
+	
+	-- Handlers
+	self.tacticsHandler:OnSave(self.saveLoadHandler);
+	
 end
 
 -----------------------------------------------------------------------------------------
@@ -350,6 +374,8 @@ end
 
 function RefineryAssault:UpdateActivity()
 
+	-- Gold increasing for teams
+
 	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
 	
 		self.goldTimer:Reset();
@@ -358,6 +384,9 @@ function RefineryAssault:UpdateActivity()
 		self:ChangeTeamFunds(self.goldIncreaseAmount, self.aiTeam);
 	
 	end
+	
+	-- Seek tasks to create squads for
+	-- Only human team uses docks
 	
 	local goldAmountsTable = {};
 	goldAmountsTable[0] = self:GetTeamFunds(self.humanTeam);
@@ -378,6 +407,8 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
+	-- Update docking craft
+	
 	self.dockingHandler:UpdateDockingCraft();
 	
 	
@@ -385,7 +416,7 @@ function RefineryAssault:UpdateActivity()
 	
 	
 	
-	
+	-- Debug
 	
 	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
 	
@@ -412,39 +443,4 @@ function RefineryAssault:UpdateActivity()
 		print("triedrocket")
 		
 	end	
-
-	if self.doorMessageTimer then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:SetScreenText("NOTE: You can press ALT + 1 to open or close all doors", player, 0, -1, false);
-			end
-		end
-		if self.doorMessageTimer:IsPastSimTimeLimit() then
-			self.doorMessageTimer = nil;
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				if self:PlayerActive(player) and self:PlayerHuman(player) then
-					FrameMan:ClearScreenText(player);
-				end
-			end
-		end
-	end
-
-	if UInputMan:KeyPressed(Key.N) then
-		-- Find and save all buy doors
-	
-		self.buyDoorTable = {};
-	
-		for mo in MovableMan.Particles do
-			print(mo)
-			if mo.PresetName == "Reinforcement Door" then
-				table.insert(self.buyDoorTable, ToMOSRotating(mo));
-				print("yes")
-			end
-		end
-		
-		self.attackerBuyDoorTable = {};
-		self.defenderBuyDoorTable = {};
-		MovableMan:OpenAllDoors(not self.allDoorsOpened, Activity.NOTEAM);
-		self.allDoorsOpened = not self.allDoorsOpened;
-	end
 end

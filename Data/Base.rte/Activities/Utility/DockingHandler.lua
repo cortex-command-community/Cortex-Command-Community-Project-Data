@@ -40,7 +40,7 @@ function DockingHandler:Create()
 	return Members;
 end
 
-function DockingHandler:Initialize(activity)
+function DockingHandler:Initialize(activity, newGame)
 	
 	print("dockhandler inited")
 	print(SceneMan.SceneOrbitDirection)
@@ -48,8 +48,6 @@ function DockingHandler:Initialize(activity)
 	self.Activity = activity;
 	
 	-- Set up player dropship dock wait list
-	
-	self.playerDSDockWaitList = {};
 	
 	self.playerDSDockCheckTimer = Timer();
 	self.playerDSDockCheckDelay = 4000;
@@ -62,34 +60,56 @@ function DockingHandler:Initialize(activity)
 	
 	-- Set up docks
 	-- TODO make better with iteration
+	
+	if newGame then
+	
+		self.mainTable = {};
+		
+		self.mainTable.playerDSDockWaitList = {};
+		
+		self.mainTable.playerDSDockCheckTimer = Timer();
+		self.mainTable.playerDSDockCheckDelay = 4000;
 
-	self.activeDSDockTable = {};
-	
-	self.activeDSDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock 1").Center + Vector(0, 0),
-	["activeCraft"] =  nil,
-	["dockingStage"] =  nil};
-	
-	self.activeDSDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock 2").Center + Vector(0, 0),
-	["activeCraft"] =  nil, 
-	["dockingStage"] =  nil};
-	
-	
-	self.activeRocketDockTable = {};
-	
-	self.activeRocketDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock 1").Center + Vector(0, 0),
-	["activeCraft"] =  nil, 
-	["dockingStage"] =  nil};
-	
-	self.activeRocketDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock 2").Center + Vector(0, 0),
-	["activeCraft"] =  nil, 
-	["dockingStage"] =  nil};
-	
-	if not self.undersideScene then
-	
-		-- Place dropship capturer docks if relevant
-	
-		for i, dockTable in ipairs(self.activeDSDockTable) do
-			local dockObject = CreateMOSRotating("Dropship Dock 2", "Base.rte");
+		self.mainTable.activeDSDockTable = {};
+		
+		self.mainTable.activeDSDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock 1").Center + Vector(0, 0),
+		["activeCraft"] =  nil,
+		["dockingStage"] =  nil};
+		
+		self.mainTable.activeDSDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock 2").Center + Vector(0, 0),
+		["activeCraft"] =  nil, 
+		["dockingStage"] =  nil};
+		
+		
+		self.mainTable.activeRocketDockTable = {};
+		
+		self.mainTable.activeRocketDockTable[1] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock 1").Center + Vector(0, 0),
+		["activeCraft"] =  nil, 
+		["dockingStage"] =  nil};
+		
+		self.mainTable.activeRocketDockTable[2] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock 2").Center + Vector(0, 0),
+		["activeCraft"] =  nil, 
+		["dockingStage"] =  nil};
+		
+		if not self.mainTable.undersideScene then
+		
+			-- Place dropship capturer docks if relevant
+		
+			for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+				local dockObject = CreateMOSRotating("Dropship Dock 2", "Base.rte");
+				dockObject.Pos = dockTable.dockPosition
+				dockObject.MissionCritical = true;
+				dockObject.GibImpulseLimit = 9999999999;
+				dockObject.GibWoundLimit = 9999999999;
+				dockObject.PinStrength = 9999999999;
+				MovableMan:AddParticle(dockObject);
+			end
+		end
+		
+		-- Place rocket capturer docks
+		
+		for i, dockTable in ipairs(self.mainTable.activeRocketDockTable) do
+			local dockObject = CreateMOSRotating("Rocket Dock 2", "Base.rte");
 			dockObject.Pos = dockTable.dockPosition
 			dockObject.MissionCritical = true;
 			dockObject.GibImpulseLimit = 9999999999;
@@ -99,17 +119,17 @@ function DockingHandler:Initialize(activity)
 		end
 	end
 	
-	-- Place rocket capturer docks
+end
+
+function DockingHandler:OnLoad(saveLoadHandler)
 	
-	for i, dockTable in ipairs(self.activeRocketDockTable) do
-		local dockObject = CreateMOSRotating("Rocket Dock 2", "Base.rte");
-		dockObject.Pos = dockTable.dockPosition
-		dockObject.MissionCritical = true;
-		dockObject.GibImpulseLimit = 9999999999;
-		dockObject.GibWoundLimit = 9999999999;
-		dockObject.PinStrength = 9999999999;
-		MovableMan:AddParticle(dockObject);
-	end
+	self.mainTable = saveLoadHandler:ReadSavedStringAsTable("dockingHandlerMainTable");
+	
+end
+
+function DockingHandler:OnSave(saveLoadHandler)
+	
+	saveLoadHandler:SaveTableAsString("dockingHandlerMainTable", self.mainTable);
 	
 end
 
@@ -141,8 +161,8 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 		local dockToDockAt = nil;
 		local dockTable;
 		if specificDock == nil then
-			for i, dockInfoTable in ipairs(self.activeDSDockTable) do
-				if not dockInfoTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
+			for i, dockInfoTable in ipairs(self.mainTable.activeDSDockTable) do
+				if not dockInfoTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
 					dockToDockAt = i;
 					dockTable = dockInfoTable;
 					break;
@@ -155,7 +175,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 		if dockToDockAt then
 			craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 			
-			self.lastAddedCraftUniqueID = craft.UniqueID;
+			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -176,8 +196,8 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 		local dockToDockAt = nil;
 		local dockTable;
 		if specificDock == nil then
-			for i, dockInfoTable in ipairs(self.activeRocketDockTable) do
-				if not dockInfoTable.activeCraft and not self.activeDSDockTable[i].activeCraft then
+			for i, dockInfoTable in ipairs(self.mainTable.activeRocketDockTable) do
+				if not dockInfoTable.activeCraft and not self.mainTable.activeDSDockTable[i].activeCraft then
 					dockToDockAt = i;
 					dockTable = dockInfoTable;
 					break;
@@ -192,7 +212,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 			craft.Vel = Vector(0, -30);
 			
-			self.lastAddedCraftUniqueID = craft.UniqueID;
+			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -232,12 +252,12 @@ function DockingHandler:UpdateUndersideDockingCraft()
 
 	-- Docking system initial tests
 	
-	self.lastAddedCraftUniqueID = nil;
+	self.mainTable.lastAddedCraftUniqueID = nil;
 	
 	-- Monitor for unknown crafts that might want to deliver stuff
 	
 	for actor in MovableMan.AddedActors do
-		if actor.UniqueID ~= self.lastAddedCraftUniqueID then
+		if actor.UniqueID ~= self.mainTable.lastAddedCraftUniqueID then
 			if IsACDropShip(actor) then
 				local craft = ToACDropShip(actor);
 				
@@ -245,8 +265,8 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 				local noDockFound = true;
 			
-				for i, dockTable in ipairs(self.activeDSDockTable) do
-					if not dockTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
+				for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+					if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
 						
 						craft.AIMode = Actor.AIMODE_GOTO;
 						--craft.Team = 0
@@ -274,7 +294,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 					-- Put the craft in the wait table
 					
-					table.insert(self.playerDSDockWaitList, craft.UniqueID);
+					table.insert(self.mainTable.playerDSDockWaitList, craft.UniqueID);
 					
 				end		
 				
@@ -288,12 +308,12 @@ function DockingHandler:UpdateUndersideDockingCraft()
 		
 		-- Iterate back to front so we can remove things safely
 		
-		for i=#self.playerDSDockWaitList, 1, -1 do
+		for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
 		
-			local craft = MovableMan:FindObjectByUniqueID(self.playerDSDockWaitList[i]);
+			local craft = MovableMan:FindObjectByUniqueID(self.mainTable.playerDSDockWaitList[i]);
 			
 			if not craft then
-				table.remove(self.playerDSDockWaitList, i)
+				table.remove(self.mainTable.playerDSDockWaitList, i)
 				
 				-- this break will make everyone wait for 4 seconds again, but that's fine
 				break;
@@ -303,8 +323,8 @@ function DockingHandler:UpdateUndersideDockingCraft()
 		
 			-- See if we have any docks available
 	
-			for i2, dockTable in ipairs(self.activeDSDockTable) do
-				if not dockTable.activeCraft and not self.activeRocketDockTable[i2].activeCraft then
+			for i2, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+				if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i2].activeCraft then
 					
 					craft.AIMode = Actor.AIMODE_GOTO;
 					--craft.Team = 0
@@ -319,7 +339,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 					dockTable.activeCraft = craft.UniqueID;
 					dockTable.dockingStage = 1;
 					
-					table.remove(self.playerDSDockWaitList, i)
+					table.remove(self.mainTable.playerDSDockWaitList, i)
 					
 					break;
 				end
@@ -329,7 +349,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 	-- Monitor dropship activity
 	
-	for i, dockTable in ipairs(self.activeDSDockTable) do
+	for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
 		if dockTable.activeCraft then
 			
 			local direction = i % 2 == 0 and -1 or 1;	
@@ -405,7 +425,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 	
 	-- Monitor rocket activity
 	
-	for i, dockTable in ipairs(self.activeRocketDockTable) do
+	for i, dockTable in ipairs(self.mainTable.activeRocketDockTable) do
 		if dockTable.activeCraft then
 
 			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);
@@ -477,8 +497,8 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 		local dockToDockAt = nil;
 		local dockTable;
 		if specificDock == nil then
-			for i, dockInfoTable in ipairs(self.activeDSDockTable) do
-				if not dockInfoTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
+			for i, dockInfoTable in ipairs(self.mainTable.activeDSDockTable) do
+				if not dockInfoTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
 					dockToDockAt = i;
 					dockTable = dockInfoTable;
 					break;
@@ -491,7 +511,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 		if dockToDockAt then
 			craft.Pos = Vector(dockTable.dockPosition.X, 0);
 			
-			self.lastAddedCraftUniqueID = craft.UniqueID;
+			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -509,8 +529,8 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 		local dockToDockAt = nil;
 		local dockTable;
 		if specificDock == nil then
-			for i, dockInfoTable in ipairs(self.activeRocketDockTable) do
-				if not dockInfoTable.activeCraft and not self.activeDSDockTable[i].activeCraft then
+			for i, dockInfoTable in ipairs(self.mainTable.activeRocketDockTable) do
+				if not dockInfoTable.activeCraft and not self.mainTable.activeDSDockTable[i].activeCraft then
 					dockToDockAt = i;
 					dockTable = dockInfoTable;
 					break;
@@ -525,7 +545,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 			craft.Pos = Vector(dockTable.dockPosition.X, 0);
 			craft.Vel = Vector(0, 0);
 			
-			self.lastAddedCraftUniqueID = craft.UniqueID;
+			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -553,12 +573,12 @@ end
 
 function DockingHandler:UpdateRegularDockingCraft()
 
-	self.lastAddedCraftUniqueID = nil;
+	self.mainTable.lastAddedCraftUniqueID = nil;
 	
 	-- Monitor for unknown crafts that might want to deliver stuff
 	
 	for actor in MovableMan.AddedActors do
-		if actor.UniqueID ~= self.lastAddedCraftUniqueID then
+		if actor.UniqueID ~= self.mainTable.lastAddedCraftUniqueID then
 			if IsACDropShip(actor) then
 				local craft = ToACDropShip(actor);
 				
@@ -566,8 +586,8 @@ function DockingHandler:UpdateRegularDockingCraft()
 				
 				local noDockFound = true;
 			
-				for i, dockTable in ipairs(self.activeDSDockTable) do
-					if not dockTable.activeCraft and not self.activeRocketDockTable[i].activeCraft then
+				for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+					if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
 						
 						craft.AIMode = Actor.AIMODE_GOTO;
 						--craft.Team = 0
@@ -593,7 +613,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 				
 					-- Put the craft in the wait table
 					
-					table.insert(self.playerDSDockWaitList, craft.UniqueID);
+					table.insert(self.mainTable.playerDSDockWaitList, craft.UniqueID);
 					
 				end		
 				
@@ -601,18 +621,18 @@ function DockingHandler:UpdateRegularDockingCraft()
 		end
 	end
 	
-	if self.playerDSDockCheckTimer:IsPastSimMS(self.playerDSDockCheckDelay) then
+	if self.mainTable.playerDSDockCheckTimer:IsPastSimMS(self.mainTable.playerDSDockCheckDelay) then
 		
-		self.playerDSDockCheckTimer:Reset();
+		self.mainTable.playerDSDockCheckTimer:Reset();
 		
 		-- Iterate back to front so we can remove things safely
 		
-		for i=#self.playerDSDockWaitList, 1, -1 do
+		for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
 		
-			local craft = MovableMan:FindObjectByUniqueID(self.playerDSDockWaitList[i]);
+			local craft = MovableMan:FindObjectByUniqueID(self.mainTable.playerDSDockWaitList[i]);
 			
 			if not craft then
-				table.remove(self.playerDSDockWaitList, i)
+				table.remove(self.mainTable.playerDSDockWaitList, i)
 				
 				-- this break will make everyone wait for 4 seconds again, but that's fine
 				break;
@@ -622,8 +642,8 @@ function DockingHandler:UpdateRegularDockingCraft()
 		
 			-- See if we have any docks available
 	
-			for i2, dockTable in ipairs(self.activeDSDockTable) do
-				if not dockTable.activeCraft and not self.activeRocketDockTable[i2].activeCraft then
+			for i2, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+				if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i2].activeCraft then
 					
 					craft.AIMode = Actor.AIMODE_GOTO;
 					--craft.Team = 0
@@ -639,7 +659,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 					dockTable.activeCraft = craft.UniqueID;
 					dockTable.dockingStage = 1;
 					
-					table.remove(self.playerDSDockWaitList, i)
+					table.remove(self.mainTable.playerDSDockWaitList, i)
 					
 					break;
 				end
@@ -649,7 +669,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 				
 	-- Monitor dropship activity
 	
-	for i, dockTable in ipairs(self.activeDSDockTable) do
+	for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
 		if dockTable.activeCraft then
 			
 			local direction = i % 2 == 0 and -1 or 1;	
@@ -688,7 +708,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 	
 	-- Monitor rocket activity
 	
-	for i, dockTable in ipairs(self.activeRocketDockTable) do
+	for i, dockTable in ipairs(self.mainTable.activeRocketDockTable) do
 		if dockTable.activeCraft then
 
 			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);

@@ -82,6 +82,8 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 		return nil;
 	end
 	
+	local serializedFinalOrder = self.saveLoadHandler:SerializeTable()
+	
 	return finalOrder;
 
 end
@@ -89,6 +91,9 @@ end
 function Create(self)
 
 	-- Frame 0 is used to display the control console that we will place
+	
+	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
+	self.saveLoadHandler:Initialize(self);
 	
 	self.console = CreateMOSRotating("Buy Door Console", "Base.rte");
 	self.console.Pos = self.Pos + Vector(0, -26);
