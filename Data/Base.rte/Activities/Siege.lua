@@ -21,8 +21,6 @@ Add defender units by placing areas named:
 --]]
 
 function Siege:StartActivity()
-	collectgarbage("collect");
-
 	self.PlayerTeam = Activity.TEAM_2;
 
 	-- Select a tech for the CPU player
