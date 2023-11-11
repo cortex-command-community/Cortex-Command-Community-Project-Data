@@ -1,6 +1,5 @@
 function OnMessage(self, message, orderList)
 
-
 	if self:IsInventoryEmpty() then
 		if message == "BuyDoor_CustomTableOrder" then
 			self.Unusable = true;
@@ -95,16 +94,30 @@ end
 
 function Create(self)
 
+	-- hoo boy... the things we do for draw order
+	MovableMan:RemoveActor(self);
+	MovableMan:AddParticle(self);
+
 	-- Frame 0 is used to display the control console that we will place
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self);
 	
-	self.console = CreateMOSRotating("Buy Door Console", "Base.rte");
-	self.console.Pos = self.Pos + Vector(0, -26);
-	self.console.Team = self.Team;
+	if self:StringValueExists("savedConsoleMO") then
 	
-	MovableMan:AddParticle(self.console);
+		self.console = self.saveLoadHandled:LoadLocallySavedMO(self, "savedConsoleMO");
+		
+	end
+	
+	if not console then -- just in case the above fails
+	
+		self.console = CreateMOSRotating("Buy Door Console", "Base.rte");
+		self.console.Pos = self.Pos + Vector(0, -26);
+		self.console.Team = self.Team;
+		
+		MovableMan:AddParticle(self.console);
+
+	end
 
 	self.Frame = 1;
 
@@ -121,9 +134,17 @@ function Create(self)
 	self.Activity = ToGameActivity(ActivityMan:GetActivity());
 	
 	self.cooldownTimer = Timer();
+	if self:NumberValueExists("cooldownTimer") then
+		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("cooldownTimer");
+		self:RemoveNumberValue("cooldownTimer");
+	end
 	self.cooldownTime = 3000;
 	
 	self.orderTimer = Timer();
+	if self:NumberValueExists("orderTimer") then
+		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("orderTimer");
+		self:RemoveNumberValue("orderTimer");
+	end
 	self.orderDelay = 5000;
 
 	self.spawnTimer = Timer();
@@ -292,4 +313,12 @@ function Update(self)
 		self:RemoveNumberValue("BuyDoor_Unusable");
 	end
 	
+end
+
+function OnSave(self)
+
+	self.saveLoadHandler:SaveMOLocally(self, "savedConsoleMO", self.console);
+	self:SetNumberValue("cooldownTimer", self.cooldownTimer.ElapsedRealTimeMS);
+	self:SetNumberValue("orderTimer", self.orderTimer.ElapsedRealTimeMS);
+
 end

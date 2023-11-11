@@ -111,4 +111,58 @@ function SaveLoadHandler:SaveTableAsString(name, tab)
 	ActivityMan:GetActivity():SaveString(name, tabStr)
 end
 
+function SaveLoadHandler:SaveMOLocally(self, name, mo)
+	mo:SetNumberValue("saveLoadHandlerUniqueID", val.UniqueID);
+	self:SetStringValue(name, "SAVELOADHANDLERUNIQUEID_" .. tostring(val.UniqueID));
+end
+
+function SaveLoadHandler:LoadLocallySavedMO(self, name)
+	local v = self:GetStringValue(name);
+	local didNotFindAnMO = false;
+	
+	local notFound = true;
+	
+	local id = string.sub(v, 26, -1);
+	for particle in MovableMan.AddedParticles do
+		if particle:GetNumberValue("saveLoadHandlerUniqueID") == id then
+			particle:RemoveNumberValue("saveLoadHandlerUniqueID");
+			v = particle;
+			notFound = false;
+			break;
+		end
+	end
+	for act in MovableMan.AddedActors do
+		if act:GetNumberValue("saveLoadHandlerUniqueID") == id then
+			act:RemoveNumberValue("saveLoadHandlerUniqueID");
+			v = act;
+			notFound = false;
+			break;
+		end
+		for item in act.Inventory do
+			if item:GetNumberValue("saveLoadHandlerUniqueID") == id then
+				item:RemoveNumberValue("saveLoadHandlerUniqueID");
+				v = item;
+				notFound = false;
+				break;
+			end
+		end
+	end
+	for item in MovableMan.AddedItems do
+		if item:GetNumberValue("saveLoadHandlerUniqueID") == id then
+			item:RemoveNumberValue("saveLoadHandlerUniqueID");
+			v = item;
+			notFound = false;
+			break;
+		end
+	end
+	
+	if notFound then
+		print("WARNING: SaveLoadHandler could not resolve a locally saved MO!");
+		return false;
+	end
+	
+	return v;
+
+end
+
 return SaveLoadHandler:Create();
