@@ -1,4 +1,6 @@
-require("AI/NativeTurretAI"); --dofile("Base.rte/Actors/AI/NativeTurretAI.lua");
+--[[MULTITHREAD]]--
+
+require("AI/NativeTurretAI");
 
 function Create(self)
 	self.AI = NativeTurretAI:Create(self);

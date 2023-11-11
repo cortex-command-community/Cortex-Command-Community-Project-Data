@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 require("AI/PID");
 
 function Create(self)
