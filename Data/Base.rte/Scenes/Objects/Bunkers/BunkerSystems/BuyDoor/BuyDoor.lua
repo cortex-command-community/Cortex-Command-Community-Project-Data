@@ -93,8 +93,8 @@ end
 function Create(self)
 
 	-- hoo boy... the things we do for draw order
-	--MovableMan:RemoveActor(self);
-	--MovableMan:AddParticle(self);
+	MovableMan:RemoveActor(self);
+	MovableMan:AddParticle(self);
 
 	-- Frame 0 is used to display the control console that we will place
 	
@@ -183,12 +183,10 @@ function Update(self)
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 			local item = self:RemoveInventoryItemAtIndex(0);
-			if item then
-				item.Pos = self.Pos;
-				item.Team = self.currentTeam;
-				MovableMan:AddMO(item);
-				self.spawnTimer:Reset();
-			end
+			item.Pos = self.Pos;
+			item.Team = self.currentTeam;
+			MovableMan:AddMO(item);
+			self.spawnTimer:Reset();
 		end
 
 		-- Wait until we spawn the next guy
