@@ -103,7 +103,7 @@ function TacticsHandler:ReapplyAllTasks()
 				local task = self:GetTaskByName(taskName, team);
 				
 				for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
-					local actor = self.teamList[team].squadList[i].Actors[actorIndex];
+					local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
 					if #self.teamList[team].squadList[i].Actors > 0 and actor then
 
 						if task.Position.PresetName then -- ghetto check if this is an MO
@@ -178,7 +178,7 @@ function TacticsHandler:RetaskSquad(squad, team)
 		print("new task is:" .. newTask.Name)
 		squad.taskName = newTask.Name;
 		for actorIndex = 1, #squad.Actors do
-			local actor = squad.Actors[actorIndex];
+			local actor = ToActor(squad.Actors[actorIndex]);
 			-- Todo, due to oddities with how this terrible game is programmed, actor can theoretically point to an actor that shouldn't belong to us anymore
 			-- This is due to memory pooling and MOs being reused. In fact, this game somehow managed to survive with a in-built memory corruption any time everything was deleted, for *years*
 			-- And it only worked because of memory pooling hiding it. Terrible.
@@ -351,7 +351,7 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 				
 			else
 				for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
-					local actor = self.teamList[team].squadList[i].Actors[actorIndex];
+					local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
 					if #self.teamList[team].squadList[i].Actors > 0 and actor then
 
 						-- all is well

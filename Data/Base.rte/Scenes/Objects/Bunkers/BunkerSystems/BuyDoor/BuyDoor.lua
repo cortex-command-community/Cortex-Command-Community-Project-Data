@@ -93,8 +93,8 @@ end
 function Create(self)
 
 	-- hoo boy... the things we do for draw order
-	MovableMan:RemoveActor(self);
-	MovableMan:AddParticle(self);
+	--MovableMan:RemoveActor(self);
+	--MovableMan:AddParticle(self);
 
 	-- Frame 0 is used to display the control console that we will place
 	
