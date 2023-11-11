@@ -44,12 +44,15 @@ end
 
 function BuyDoorHandler:OnLoad(saveLoadHandler)
 	
+	print("loading buydoorhandler...");
 	self.buyDoorTable = saveLoadHandler:ReadSavedStringAsTable("buyDoorHandlerBuyDoorTable");
+	print("loaded buydoorhandler!");
 	
 end
 
 function BuyDoorHandler:OnSave(saveLoadHandler)
 	
+	print("saving buy door")
 	saveLoadHandler:SaveTableAsString("buyDoorHandlerBuyDoorTable", self.buyDoorTable);
 	
 end

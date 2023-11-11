@@ -80,8 +80,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 		return nil;
 	end
 	
-	local serializedFinalOrder = self.saveLoadHandler:SerializeTable()
-	
 	-- Finally, add the order to our inventory
 	
 	for k, item in pairs(finalOrder) do
@@ -95,8 +93,8 @@ end
 function Create(self)
 
 	-- hoo boy... the things we do for draw order
-	MovableMan:RemoveActor(self);
-	MovableMan:AddParticle(self);
+	--MovableMan:RemoveActor(self);
+	--MovableMan:AddParticle(self);
 
 	-- Frame 0 is used to display the control console that we will place
 	
@@ -146,6 +144,14 @@ function Create(self)
 		self:RemoveNumberValue("orderTimer");
 	end
 	self.orderDelay = 5000;
+	
+	if self:NumberValueExists("orderDelivering") and self:GetNumberValue("orderDelivering") == 1 then
+		self.orderDelivering = true;
+	end
+	if self:NumberValueExists("currentTeam") then
+		self.currentTeam = self:GetNumberValue("currentTeam");
+		self:RemoveNumberValue("currentTeam");
+	end
 
 	self.spawnTimer = Timer();
 	self.spawnDelay = 500;
@@ -204,6 +210,7 @@ function Update(self)
 	if self.cooldownTimer:IsPastSimMS(self.cooldownTime) then
 		self.Unusable = false;
 		if self.orderDelivering then
+			--print("trying to deliver....")
 			self.Unusable = true;
 			if self.orderTimer:IsPastSimMS(self.orderDelay) then
 				self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -320,5 +327,7 @@ function OnSave(self)
 	self.saveLoadHandler:SaveMOLocally(self, "savedConsoleMO", self.console);
 	self:SetNumberValue("cooldownTimer", self.cooldownTimer.ElapsedRealTimeMS);
 	self:SetNumberValue("orderTimer", self.orderTimer.ElapsedRealTimeMS);
+	self:SetNumberValue("orderDelivering", self.orderDelivering and 1 or 0);
+	self:SetNumberValue("currentTeam", self.currentTeam);
 
 end

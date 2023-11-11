@@ -59,13 +59,11 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 
 	local craft, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
 	
-	table.insert(self.actorList, craft)
 	local squadTable = {};
 	for item in craft.Inventory do
 		if IsActor(item) then
 			item = ToActor(item);
 			table.insert(squadTable, item);
-			table.insert(self.actorList, item);
 			if task then
 				if task.Type == "Defend" or task.Type == "Attack" then
 					item.AIMode = Actor.AIMODE_GOTO;
@@ -96,9 +94,10 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 
 	local order, goldCost = self.deliveryCreationHandler:CreateSquad(team);
 	
+	print("tried order for team: " .. team);
+	
 	if order then
 		for i = 1, #order do
-			table.insert(self.actorList, order[i]);
 			if task then
 				if task.Type == "Defend" or task.Type == "Attack" then
 					order[i].AIMode = Actor.AIMODE_GOTO;
@@ -130,10 +129,10 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			-- everyone should always own at least one buy door area after stage 2, so.....
 			if #self.buyDoorTables.teamAreas[team] > 0 then
 				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][math.random(1, #self.buyDoorTables.teamAreas[team])]);
-				--print(areaThisIsIn.Name)
-				--print("reverted to any buy door area pick")
+				print(areaThisIsIn.Name)
+				print("reverted to any buy door area pick")
 			else
-				--print("team " .. team .. " doesn't have a backup area");
+				print("team " .. team .. " doesn't have a backup area");
 			end
 		end
 		
@@ -186,7 +185,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	for mo in MovableMan.AddedActors do
 		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) then
 			table.insert(self.buyDoorTables.All, mo)
-			self.buyDoorTables[areaKey][tostring(#self.buyDoorTables.All)] = mo;
+			self.buyDoorTables[areaKey][tonumber(#self.buyDoorTables.All)] = mo;
 		end
 	end
 		
@@ -245,7 +244,7 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
-	self.goldIncreaseAmount = 100;
+	self.goldIncreaseAmount = 500;
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self);
@@ -307,8 +306,6 @@ function RefineryAssault:StartActivity(newGame)
 		
 		-- Grand Strategic WhateverTheFuck
 		
-		self.actorList = {};
-		
 		-- Capturable setup
 		
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
@@ -330,7 +327,9 @@ end
 
 function RefineryAssault:ResumeLoadedGame()
 
+	print("loading local refineryassault buy door table...");
 	self.buyDoorTables = self.saveLoadHandler:ReadSavedStringAsTable("buyDoorTables");
+	print("loaded local refineryassault buy door table!");
 	
 	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
 	
@@ -338,6 +337,8 @@ function RefineryAssault:ResumeLoadedGame()
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
 	self.dockingHandler:OnLoad(self.saveLoadHandler);
 	self.buyDoorHandler:OnLoad(self.saveLoadHandler);
+	
+	self.buyDoorHandler:ReplaceBuyDoorTable(self.buyDoorTables.All);
 		
 end
 
@@ -349,6 +350,8 @@ function RefineryAssault:OnSave()
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);
+	self.dockingHandler:OnSave(self.saveLoadHandler);
+	self.buyDoorHandler:OnSave(self.saveLoadHandler);
 	
 end
 

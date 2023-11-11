@@ -1,7 +1,9 @@
 function Create(self)
 
-	if self.saveLoadHandler and self:StringValueExists("tacticsActorInvalidatorSquadInfo") then
-		self.tacticsHandlerSquadInfo = loadstring("return " .. self:GetStringValue("tacticsActorInvalidatorSquadInfo"))()
+	if self:LoadString("tacticsActorInvalidatorSquadInfo") ~= "" then
+		--print("tried to create load serialized invalidator")
+		--print(self:LoadString("tacticsActorInvalidatorSquadInfo"))
+		self.tacticsHandlerSquadInfo = loadstring("return " .. self:LoadString("tacticsActorInvalidatorSquadInfo"))()
 	end
 	
 end
@@ -13,15 +15,21 @@ function OnMessage(self, message, squadInfo)
 		self.tacticsHandlerSquadInfo = {};
 		for k, v in pairs(squadInfo) do
 			self.tacticsHandlerSquadInfo[k] = v;
+			print("got squad info:" .. k .. v)
 		end
 		
 		self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 		self.saveLoadHandler:Initialize(self);
 		
-		self:SetStringValue("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))		
-		
 	end
 	
+end
+
+function OnSave(self)
+
+	--print("tried to save...?")
+	self:SaveString("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))		
+
 end
 
 function Destroy(self)

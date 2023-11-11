@@ -67,8 +67,8 @@ function DockingHandler:Initialize(activity, newGame)
 		
 		self.mainTable.playerDSDockWaitList = {};
 		
-		self.mainTable.playerDSDockCheckTimer = Timer();
-		self.mainTable.playerDSDockCheckDelay = 4000;
+		self.playerDSDockCheckTimer = Timer();
+		self.playerDSDockCheckDelay = 4000;
 
 		self.mainTable.activeDSDockTable = {};
 		
@@ -123,12 +123,16 @@ end
 
 function DockingHandler:OnLoad(saveLoadHandler)
 	
+	print("loading dockinghandler...");
 	self.mainTable = saveLoadHandler:ReadSavedStringAsTable("dockingHandlerMainTable");
+	print("loaded dockinghandler!");
 	
 end
 
 function DockingHandler:OnSave(saveLoadHandler)
 	
+	print("saved docking maintable!")
+	print(self.mainTable)
 	saveLoadHandler:SaveTableAsString("dockingHandlerMainTable", self.mainTable);
 	
 end
@@ -185,7 +189,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			local direction = dockToDockAt % 2 == 0 and -1 or 1;	
 			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0))
 			
-			dockTable.activeCraft = craft.UniqueID;
+			dockTable.activeCraft = craft;
 			dockTable.dockingStage = 1;
 			
 			dockingSuccess = true;
@@ -219,7 +223,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			
 			craft:AddAISceneWaypoint(dockTable.dockPosition);
 			
-			dockTable.activeCraft = craft.UniqueID;
+			dockTable.activeCraft = craft;
 			dockTable.dockingStage = 1;
 			
 			dockingSuccess = true;
@@ -281,7 +285,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 						local direction = i % 2 == 0 and -1 or 1;	
 						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(150 * direction, 0))
 						
-						dockTable.activeCraft = craft.UniqueID;
+						dockTable.activeCraft = craft;
 						dockTable.dockingStage = 1;
 						
 						noDockFound = false;
@@ -294,7 +298,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 					-- Put the craft in the wait table
 					
-					table.insert(self.mainTable.playerDSDockWaitList, craft.UniqueID);
+					table.insert(self.mainTable.playerDSDockWaitList, craft);
 					
 				end		
 				
@@ -310,7 +314,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 		
 		for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
 		
-			local craft = MovableMan:FindObjectByUniqueID(self.mainTable.playerDSDockWaitList[i]);
+			local craft = self.mainTable.playerDSDockWaitList[i];
 			
 			if not craft then
 				table.remove(self.mainTable.playerDSDockWaitList, i)
@@ -336,7 +340,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 					
 					craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
 					
-					dockTable.activeCraft = craft.UniqueID;
+					dockTable.activeCraft = craft;
 					dockTable.dockingStage = 1;
 					
 					table.remove(self.mainTable.playerDSDockWaitList, i)
@@ -353,7 +357,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 		if dockTable.activeCraft then
 			
 			local direction = i % 2 == 0 and -1 or 1;	
-			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);
+			local craft = dockTable.activeCraft;
 			
 			if craft and MovableMan:ValidMO(craft) then
 			
@@ -428,7 +432,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 	for i, dockTable in ipairs(self.mainTable.activeRocketDockTable) do
 		if dockTable.activeCraft then
 
-			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);
+			local craft = dockTable.activeCraft;
 
 			if craft and MovableMan:ValidMO(craft) then
 			
@@ -518,7 +522,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 			
 			craft:AddAISceneWaypoint(dockTable.dockPosition);	
 			
-			dockTable.activeCraft = craft.UniqueID;
+			dockTable.activeCraft = craft;
 			dockTable.dockingStage = 1;
 			
 			dockingSuccess = true;
@@ -552,7 +556,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 			
 			craft:AddAISceneWaypoint(dockTable.dockPosition);
 			
-			dockTable.activeCraft = craft.UniqueID;
+			dockTable.activeCraft = craft;
 			dockTable.dockingStage = 1;
 			
 			dockingSuccess = true;
@@ -600,7 +604,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -500));
 						craft:AddAISceneWaypoint(dockTable.dockPosition);
 						
-						dockTable.activeCraft = craft.UniqueID;
+						dockTable.activeCraft = craft;
 						dockTable.dockingStage = 1;
 						
 						noDockFound = false;
@@ -613,7 +617,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 				
 					-- Put the craft in the wait table
 					
-					table.insert(self.mainTable.playerDSDockWaitList, craft.UniqueID);
+					table.insert(self.mainTable.playerDSDockWaitList, craft);
 					
 				end		
 				
@@ -621,17 +625,17 @@ function DockingHandler:UpdateRegularDockingCraft()
 		end
 	end
 	
-	if self.mainTable.playerDSDockCheckTimer:IsPastSimMS(self.mainTable.playerDSDockCheckDelay) then
+	if self.playerDSDockCheckTimer:IsPastSimMS(self.playerDSDockCheckDelay) then
 		
-		self.mainTable.playerDSDockCheckTimer:Reset();
+		self.playerDSDockCheckTimer:Reset();
 		
 		-- Iterate back to front so we can remove things safely
 		
 		for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
 		
-			local craft = MovableMan:FindObjectByUniqueID(self.mainTable.playerDSDockWaitList[i]);
+			local craft = self.mainTable.playerDSDockWaitList[i];
 			
-			if not craft then
+			if not craft or not MovableMan:ValidMO(craft) then
 				table.remove(self.mainTable.playerDSDockWaitList, i)
 				
 				-- this break will make everyone wait for 4 seconds again, but that's fine
@@ -656,7 +660,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 					craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -500));
 					craft:AddAISceneWaypoint(dockTable.dockPosition);
 					
-					dockTable.activeCraft = craft.UniqueID;
+					dockTable.activeCraft = craft;
 					dockTable.dockingStage = 1;
 					
 					table.remove(self.mainTable.playerDSDockWaitList, i)
@@ -673,7 +677,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 		if dockTable.activeCraft then
 			
 			local direction = i % 2 == 0 and -1 or 1;	
-			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);
+			local craft = dockTable.activeCraft;
 			
 			if craft and MovableMan:ValidMO(craft) then
 			
@@ -711,7 +715,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 	for i, dockTable in ipairs(self.mainTable.activeRocketDockTable) do
 		if dockTable.activeCraft then
 
-			local craft = MovableMan:FindObjectByUniqueID(dockTable.activeCraft);
+			local craft = dockTable.activeCraft;
 
 			if craft and MovableMan:ValidMO(craft) then
 			

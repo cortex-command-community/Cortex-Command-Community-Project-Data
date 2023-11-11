@@ -65,7 +65,9 @@ end
 
 function TacticsHandler:OnLoad(saveLoadHandler)
 	
+	print("loading tacticshandler...");
 	self.teamList = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerTeamList");
+	print("loaded tacticshandler!");
 	
 end
 
@@ -237,6 +239,8 @@ function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 			squadInfo.Team = team;
 			squadInfo.squadIndex = #self.teamList[team].squadList;
 			squadInfo.actorIndex = k;
+			--print("added script and sent message")
+			--print("task: " .. taskName)
 			act:AddScript("Base.rte/Activities/Utility/TacticsActorInvalidator.lua");
 			act:SendMessage("TacticsHandler_InitSquadInfo", squadInfo);
 		end
@@ -262,11 +266,12 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 		local team = self.teamToCheckNext;
 		self.teamToCheckNext = (self.teamToCheckNext + 1) % self.Activity.TeamCount;
 		if goldAmountsTable[team] > 0 then
-			----print("team " .. team .. " " .. goldAmountsTable[team]);
-			-- TODO replace debug teamcount faker (the modulo)
+			print("team " .. team .. " " .. goldAmountsTable[team]);
 			local task = self:PickTask(team);
 			if task then
 				return team, task;
+			else
+				print("found no tasks")
 			end
 		end
 		
