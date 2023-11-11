@@ -1,3 +1,5 @@
+require("Loadouts");
+
 function Create(self)
 	self.updateTimer = Timer();
 	if self.Head then
