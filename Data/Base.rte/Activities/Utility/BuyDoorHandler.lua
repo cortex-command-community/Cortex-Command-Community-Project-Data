@@ -32,7 +32,7 @@ function BuyDoorHandler:Initialize(activity, newGame)
 		
 		self.buyDoorTable = {};
 		
-		for mo in MovableMan.AddedParticles do
+		for mo in MovableMan.AddedActors do
 			if mo.PresetName == "Reinforcement Door" then
 				table.insert(self.buyDoorTable, ToMOSRotating(mo));
 			end

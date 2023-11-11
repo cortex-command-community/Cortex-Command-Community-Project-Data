@@ -11,15 +11,16 @@ function OnMessage(self, message, squadInfo)
 	if message == "TacticsHandler_InitSquadInfo" then
 		-- a table of three values: team, squad index, and our index within that squad
 		self.tacticsHandlerSquadInfo = {};
-		for k, v in ipairs(squadInfo) do
+		for k, v in pairs(squadInfo) do
 			self.tacticsHandlerSquadInfo[k] = v;
 		end
+		
+		self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
+		self.saveLoadHandler:Initialize(self);
+		
+		self:SetStringValue("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))		
+		
 	end
-	
-	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
-	self.saveLoadHandler:Initialize(self);
-	
-	self:SetStringValue("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))
 	
 end
 

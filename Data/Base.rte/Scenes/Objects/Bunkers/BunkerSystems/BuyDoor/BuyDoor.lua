@@ -1,7 +1,7 @@
 function OnMessage(self, message, orderList)
 
 
-	if not self.currentOrder then
+	if self:IsInventoryEmpty() then
 		if message == "BuyDoor_CustomTableOrder" then
 			self.Unusable = true;
 			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
@@ -9,7 +9,6 @@ function OnMessage(self, message, orderList)
 			if finalOrder then
 			
 				self.orderTimer:Reset();
-				self.currentOrder = finalOrder;
 				self.orderDelivering = true;
 				
 			else
@@ -84,6 +83,12 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 	
 	local serializedFinalOrder = self.saveLoadHandler:SerializeTable()
 	
+	-- Finally, add the order to our inventory
+	
+	for k, item in pairs(finalOrder) do
+		self:AddInventoryItem(item);
+	end
+	
 	return finalOrder;
 
 end
@@ -147,10 +152,10 @@ function Update(self)
 		self.isStayingOpen = true;
 		self.stayOpenTimer:Reset();
 		self.SpriteAnimMode = MOSprite.NOANIM;
-	elseif self.isStayingOpen and self.currentOrder then
+	elseif self.isStayingOpen and not self:IsInventoryEmpty() then
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
-			local item = table.remove(self.currentOrder, 1);
+			local item = self:RemoveInventoryItemAtIndex(0);
 			item.Pos = self.Pos;
 			item.Team = self.currentTeam;
 			if IsActor(item) then
@@ -162,9 +167,8 @@ function Update(self)
 		end
 
 		-- Wait until we spawn the next guy
-		if #self.currentOrder == 0 then
+		if self:IsInventoryEmpty() then
 			self.cooldownTimer:Reset();
-			self.currentOrder = nil;
 		end
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -191,7 +195,7 @@ function Update(self)
 				PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.orderDelay/1000 - self.orderTimer.ElapsedSimTimeS)), true, 1);
 			end
 		end
-	elseif self.currentOrder == nil then
+	elseif self:IsInventoryEmpty() then
 		self.Unusable = true;
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -10), "Reorganizing...", true, 1);
 		PrimitiveMan:DrawTextPrimitive(self.console.Pos, tostring(math.ceil(self.cooldownTime/1000 - self.cooldownTimer.ElapsedSimTimeS)), true, 1);
@@ -223,7 +227,7 @@ function Update(self)
 				else
 					if actor:NumberValueExists("BuyDoor_Order") then
 						actor:RemoveNumberValue("BuyDoor_Order");
-						if not self.currentOrder and not self.Unusable then
+						if self:IsInventoryEmpty() and not self.Unusable then
 							-- Set up order here
 							
 							-- We have to rebuild this table each time, because teams can change
@@ -261,7 +265,6 @@ function Update(self)
 							if finalOrder then
 							
 								self.orderTimer:Reset();
-								self.currentOrder = finalOrder;
 								self.currentTeam = actor.Team;
 								self.orderDelivering = true;
 								
