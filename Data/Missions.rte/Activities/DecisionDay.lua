@@ -1852,7 +1852,7 @@ function DecisionDay:DeployHumanBrain(player)
 		self.BuyMenuEnabled = true;
 		for actor in MovableMan.Actors do
 			if actor.Team == self.humanTeam and actor.PlayerControllable then
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.buyMenuPieSlice:Clone(), self);
+				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.buyMenuPieSlice, self);
 			end
 		end
 	end
@@ -1894,8 +1894,8 @@ function DecisionDay:DeployHumanBrain(player)
 			existingBrain:GetController().InputMode = Controller.CIM_DISABLED;
 			existingBrain.Pos.Y = existingBrain.Pos.Y - 20;
 			existingBrain.PieMenu:RemovePieSlicesByPresetName(self.deployBrainPieSlice.PresetName);
-			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.undeployBrainPieSlice:Clone(), self);
-			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.swapControlPieSlice:Clone(), self);
+			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.undeployBrainPieSlice, self);
+			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.swapControlPieSlice, self);
 			existingBrain:AddToGroup("Deployed Brain " .. player);
 		end
 

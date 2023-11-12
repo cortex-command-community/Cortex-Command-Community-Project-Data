@@ -189,86 +189,7 @@ function Update(self)
 			end
 
 			if self.actorMovementUpdateTimer:IsPastSimTimeLimit() then
-				for actorUniqueID, actorData in pairs(self.affectedActors) do
-					local actor = actorData.actor;
-					if not MovableMan:ValidMO(actor) or actor.Health <= 0 or not self.combinedAutomoverArea:IsInside(actor.Pos) then
-						self:removeActorFromAutomoverTable(actor, actorUniqueID);
-					else
-						if actor:NumberValueExists("Automover_LeaveAutomoverNetwork") then
-							self:setActorMovementModeToLeaveAutomovers(actorData);
-							actor:RemoveNumberValue("Automover_LeaveAutomoverNetwork");
-						end
-						if actor:IsPlayerControlled() and actor:NumberValueExists("Automover_ChooseTeleporter") then
-							self:setupManualTeleporterData(actorData);
-							actor:RemoveNumberValue("Automover_ChooseTeleporter");
-						end
-
-						if actorData.movementMode ~= self.movementModes.leaveAutomovers then
-							if actor:IsPlayerControlled() then
-								local closestNode = self:findClosestNode(actor.Pos, nil, false, false);
-								if closestNode ~= nil and AutomoverData[self.Team].teleporterNodes[closestNode] ~= nil and AutomoverData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
-									actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice:Clone(), self);
-								else
-									actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
-								end
-
-								if actorData.manualTeleporterData then
-									self:chooseTeleporterForPlayerControlledActor(actorData);
-									actorData.movementMode = self.movementModes.teleporting;
-								else
-									actorData.movementMode = self.movementModes.freeze;
-								end
-							elseif actorData.movementMode == self.movementModes.teleporting then
-								self:updateDirectionsFromWaypoints(actorData);
-							end
-
-							if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
-								self:updateDirectionsFromActorControllerInput(actorData);
-							end
-
-							local actorController = actor:GetController();
-							actorController:SetState(Controller.MOVE_LEFT, false);
-							actorController:SetState(Controller.MOVE_RIGHT, false);
-							actorController:SetState(Controller.MOVE_UP, false);
-							actorController:SetState(Controller.MOVE_DOWN, false);
-							actorController:SetState(Controller.BODY_JUMP, false);
-							actorController:SetState(Controller.BODY_JUMPSTART, false);
-
-							if IsACDropShip(actor) then
-								actor = ToACDropShip(actor);
-								actor.RightEngine:EnableEmission(false);
-								actor.LeftEngine:EnableEmission(false);
-								actor.RightThruster:EnableEmission(false);
-								actor.LeftThruster:EnableEmission(false);
-								actor.RotAngle = 0;
-							elseif IsACRocket(actor) then
-								actor.RotAngle = 0;
-							end
-
-							local actorIsSlowEnoughToUseAutomovers = self:slowDownFastActorToMovementSpeed(actorData);
-
-							if actorIsSlowEnoughToUseAutomovers then
-								if not self.actorUnstickingDisabled then
-									if actorData.direction == Directions.None or actorData.movementMode ~= self.movementModes.move or actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed - 1) then
-										actorData.unstickTimer:Reset();
-									elseif actorData.unstickTimer:IsPastSimTimeLimit() then
-										actorData.movementMode = self.movementModes.unstickActor;
-									end
-								end
-
-								local anyCenteringWasDone = false;
-								if actorData.movementMode == self.movementModes.move or actorData.movementMode == self.movementModes.unstickActor then
-									anyCenteringWasDone = self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData);
-								end
-								if actorData.movementMode == self.movementModes.freeze then
-									self:updateFrozenActor(actorData);
-								elseif actorData.movementMode == self.movementModes.move then
-									self:updateMovingActor(actorData, anyCenteringWasDone);
-								end
-							end
-						end
-					end
-				end
+				self:actorMovementUpdate();
 				self.actorMovementUpdateTimer:Reset();
 			end
 
@@ -295,6 +216,92 @@ function Destroy(self)
 	AutomoverData[self.Team].nodeDataCount = 0;
 	AutomoverData[self.Team].teleporterNodes = {};
 	AutomoverData[self.Team].teleporterNodesCount = 0;
+end
+
+automoverActorFunctions.actorMovementUpdate = function(self)
+	tracy.ZoneBegin();
+	for actorUniqueID, actorData in pairs(self.affectedActors) do
+		local actor = actorData.actor;
+		if not MovableMan:ValidMO(actor) or actor.Health <= 0 or not self.combinedAutomoverArea:IsInside(actor.Pos) then
+			self:removeActorFromAutomoverTable(actor, actorUniqueID);
+		else
+			if actor:NumberValueExists("Automover_LeaveAutomoverNetwork") then
+				self:setActorMovementModeToLeaveAutomovers(actorData);
+				actor:RemoveNumberValue("Automover_LeaveAutomoverNetwork");
+			end
+			if actor:IsPlayerControlled() and actor:NumberValueExists("Automover_ChooseTeleporter") then
+				self:setupManualTeleporterData(actorData);
+				actor:RemoveNumberValue("Automover_ChooseTeleporter");
+			end
+
+			if actorData.movementMode ~= self.movementModes.leaveAutomovers then
+				if actor:IsPlayerControlled() then
+					local closestNode = self:findClosestNode(actor.Pos, nil, false, false);
+					if closestNode ~= nil and AutomoverData[self.Team].teleporterNodes[closestNode] ~= nil and AutomoverData[self.Team].nodeData[closestNode].zoneBox:IsWithinBox(actor.Pos) then
+						actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.chooseTeleporterPieSlice, self);
+					else
+						actor.PieMenu:RemovePieSlicesByPresetName(self.chooseTeleporterPieSlice.PresetName);
+					end
+
+					if actorData.manualTeleporterData then
+						self:chooseTeleporterForPlayerControlledActor(actorData);
+						actorData.movementMode = self.movementModes.teleporting;
+					else
+						actorData.movementMode = self.movementModes.freeze;
+					end
+				elseif actorData.movementMode == self.movementModes.teleporting then
+					self:updateDirectionsFromWaypoints(actorData);
+				end
+
+				if actorData.movementMode ~= self.movementModes.teleporting then -- Note: Teleporting movement mode can be set manually or by waypoints. The point is that you can't move the Actor while it's currently teleporting.
+					self:updateDirectionsFromActorControllerInput(actorData);
+				end
+
+				local actorController = actor:GetController();
+				actorController:SetState(Controller.MOVE_LEFT, false);
+				actorController:SetState(Controller.MOVE_RIGHT, false);
+				actorController:SetState(Controller.MOVE_UP, false);
+				actorController:SetState(Controller.MOVE_DOWN, false);
+				actorController:SetState(Controller.BODY_JUMP, false);
+				actorController:SetState(Controller.BODY_JUMPSTART, false);
+
+				if IsACDropShip(actor) then
+					actor = ToACDropShip(actor);
+					actor.RightEngine:EnableEmission(false);
+					actor.LeftEngine:EnableEmission(false);
+					actor.RightThruster:EnableEmission(false);
+					actor.LeftThruster:EnableEmission(false);
+					actor.RotAngle = 0;
+				elseif IsACRocket(actor) then
+					actor.RotAngle = 0;
+				end
+
+				local actorIsSlowEnoughToUseAutomovers = self:slowDownFastActorToMovementSpeed(actorData);
+
+				if actorIsSlowEnoughToUseAutomovers then
+					if not self.actorUnstickingDisabled then
+						if actorData.direction == Directions.None or actorData.movementMode ~= self.movementModes.move or actor.Vel:MagnitudeIsGreaterThan(self.movementSpeed - 1) then
+							actorData.unstickTimer:Reset();
+						elseif actorData.unstickTimer:IsPastSimTimeLimit() then
+							actorData.movementMode = self.movementModes.unstickActor;
+						end
+					end
+
+					local anyCenteringWasDone = false;
+					if actorData.movementMode == self.movementModes.move or actorData.movementMode == self.movementModes.unstickActor then
+						anyCenteringWasDone = self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData);
+					end
+
+					if actorData.movementMode == self.movementModes.freeze then
+						self:updateFrozenActor(actorData);
+					elseif actorData.movementMode == self.movementModes.move then
+						self:updateMovingActor(actorData, anyCenteringWasDone);
+					end
+				end
+			end
+		end
+	end
+	tracy.ZoneEnd();
 end
 
 automoverUtilityFunctions.handlePieButtons = function(self)
@@ -439,6 +446,7 @@ automoverUtilityFunctions.updateActivityEditingMode = function(self)
 end
 
 automoverUtilityFunctions.checkForObstructions = function(self)
+	tracy.ZoneBegin();
 	local _, connectionChangesFound = coroutine.resume(self.obstructionCheckCoroutine, self);
 	local coroutineIsDead = coroutine.status(self.obstructionCheckCoroutine) == "dead";
 	if connectionChangesFound then
@@ -453,6 +461,7 @@ automoverUtilityFunctions.checkForObstructions = function(self)
 	else
 		self.obstructionCheckTimer:SetSimTimeLimitMS(100);
 	end
+	tracy.ZoneEnd();
 end
 
 automoverUtilityFunctions.checkAllObstructions = function(self)
@@ -499,6 +508,7 @@ automoverUtilityFunctions.checkAllObstructions = function(self)
 end
 
 automoverUtilityFunctions.addAllBoxesAndPaths = function(self)
+	tracy.ZoneBegin();
 	if not self.allBoxesAdded and coroutine.status(self.addAllBoxesCoroutine) == "dead" then
 		self.addAllBoxesCoroutine = coroutine.create(self.addAllBoxes);
 	end
@@ -511,6 +521,7 @@ automoverUtilityFunctions.addAllBoxesAndPaths = function(self)
 	coroutine.resume(self.addAllPathsCoroutine, self);
 
 	self.allPathsAdded = self.allPathsAdded or coroutine.status(self.addAllPathsCoroutine) == "dead";
+	tracy.ZoneEnd();
 end
 
 automoverUtilityFunctions.addAllBoxes = function(self)
@@ -640,6 +651,7 @@ automoverUtilityFunctions.addAllPaths = function(self)
 end
 
 automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkForLineOfSight, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas)
+	tracy.ZoneBegin();
 	local teamNodeTable = AutomoverData[self.Team].nodeData;
 	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
@@ -648,12 +660,12 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 	end
 
 	local closestNode;
-	local distanceToClosestNode;
+	local distanceToClosestNodeSqr;
 	local lengthOfScenePathToClosestNode;
 	for node, nodeData in pairs(teamNodeTable) do
 		if nodeToCheckForPathsFrom == nil or (self.pathTable[nodeToCheckForPathsFrom] ~= nil and self.pathTable[nodeToCheckForPathsFrom][node] ~= nil) then
 			local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
-			if distanceToClosestNode == nil or distanceToNode:MagnitudeIsLessThan(distanceToClosestNode) then
+			if distanceToClosestNodeSqr == nil or distanceToNode.SqrMagnitude < distanceToClosestNodeSqr then
 				local nodeSatisfiesConditions = true;
 				if checkForLineOfSight then
 					nodeSatisfiesConditions = not SceneMan:CastStrengthRay(node.Pos, distanceToNode, 15, Vector(), 4, 0, true);
@@ -678,11 +690,12 @@ automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosest
 				end
 				if nodeSatisfiesConditions then
 					closestNode = node;
-					distanceToClosestNode = distanceToNode.Magnitude;
+					distanceToClosestNodeSqr = distanceToNode.SqrMagnitude;
 				end
 			end
 		end
 	end
+	tracy.ZoneEnd();
 	return closestNode;
 end
 
@@ -737,7 +750,9 @@ automoverUtilityFunctions.changeScaleOfMOSRotatingAndAttachables = function(self
 end
 
 automoverVisualEffectsFunctions.updateVisualEffects = function(self)
+	tracy.ZoneBegin();
 	if self.visualEffectsSelectedType == "" then
+		tracy.ZoneEnd();
 		return;
 	end
 
@@ -754,6 +769,7 @@ automoverVisualEffectsFunctions.updateVisualEffects = function(self)
 	end
 
 	self:drawVisualEffects();
+	tracy.ZoneEnd();
 end
 
 automoverVisualEffectsFunctions.setupNodeVisualEffectsForDirectionIfAppropriate = function(self, node, nodeData, direction)
@@ -845,6 +861,7 @@ automoverVisualEffectsFunctions.drawVisualEffects = function(self)
 end
 
 automoverActorFunctions.checkForNewActors = function(self)
+	tracy.ZoneBegin();
 	for box in self.combinedAutomoverArea.Boxes do
 		for movableObject in MovableMan:GetMOsInBox(box, -1, true) do
 			if IsActor(movableObject) and self.affectedActors[movableObject.UniqueID] == nil and movableObject.PinStrength == 0 then
@@ -860,25 +877,34 @@ automoverActorFunctions.checkForNewActors = function(self)
 			end
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
+	print("ADDED!")
 	self.affectedActors[actor.UniqueID] = {
 		actor = actor,
 		movementMode = self.movementModes.freeze,
 		direction = Directions.None,
 		unstickTimer = Timer(2000),
+		currentClosestNode = self:findClosestNode(actor.Pos, nil, false, false),
 		waypointData = nil,
 	};
+
+	print(actor.Pos);
+	print(self.affectedActors[actor.UniqueID].currentClosestNode);
+	print(self.affectedActors[actor.UniqueID].currentClosestNode.Pos);
+
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
-	actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice:Clone(), self);
+	actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice, self);
 	if IsAHuman(actor) then
 		ToAHuman(actor).LimbPushForcesAndCollisionsDisabled = true;
 	end
 end
 
 automoverActorFunctions.removeActorFromAutomoverTable = function(self, actor, optionalActorUniqueID)
+	print("REMOVED!")
 	if actor.UniqueID ~= 0 and optionalActorUniqueID == nil then
 		optionalActorUniqueID = actor.UniqueID;
 	end
@@ -1044,6 +1070,7 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 end
 
 automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self, actorData)
+	tracy.ZoneBegin();
 	local actor = actorData.actor;
 	local actorController = actor:GetController();
 
@@ -1089,11 +1116,12 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 		if actorData.direction == Directions.None and actorData.movementMode ~= self.movementModes.leaveAutomovers then
 			actorData.movementMode = self.movementModes.freeze;
 		elseif actorData.direction ~= Directions.None then
-			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice:Clone(), self);
+			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.leaveAutomoverNetworkPieSlice, self);
 			actorData.movementMode = self.movementModes.move;
 			self:convertWaypointDataToActorWaypoints(actorData);
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverActorFunctions.updateDirectionsFromWaypoints = function(self, actorData)
@@ -1450,16 +1478,19 @@ automoverActorFunctions.slowDownFastActorToMovementSpeed = function(self, actorD
 end
 
 automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection = function(self, actorData, forceCentring)
+	tracy.ZoneBegin();
 	local teamNodeTable = AutomoverData[self.Team].nodeData;
 
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
-	local closestNode = self:findClosestNode(actor.Pos, nil, true, true);
+	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
+	actorData.currentClosestNode = closestNode;
 	if not closestNode then
 		actor:FlashWhite(100);
 		actor:MoveOutOfTerrain(0);
 		self:setActorMovementModeToLeaveAutomovers(actorData);
+		tracy.ZoneEnd();
 		return false;
 	end
 
@@ -1504,12 +1535,15 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 				actor.Pos[centeringAxis] = closestNode.Pos[centeringAxis] + actorSizeCenteringAdjustment[centeringAxis];
 			end
 		end
+		tracy.ZoneEnd();
 		return true;
 	end
+	tracy.ZoneEnd();
 	return false;
 end
 
 automoverActorFunctions.updateFrozenActor = function(self, actorData)
+	tracy.ZoneBegin();
 	local actor = actorData.actor;
 
 	local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
@@ -1525,9 +1559,11 @@ automoverActorFunctions.updateFrozenActor = function(self, actorData)
 			end
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteringWasDone)
+	tracy.ZoneBegin();
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
@@ -1577,6 +1613,7 @@ automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteri
 			end
 		end
 	end
+	tracy.ZoneEnd();
 end
 
 automoverUIFunctions.updateInfoUI = function(self)
