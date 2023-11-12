@@ -91,7 +91,7 @@ function DockingHandler:Initialize(activity, newGame)
 		["activeCraft"] =  nil, 
 		["dockingStage"] =  nil};
 		
-		if not self.mainTable.undersideScene then
+		if not self.undersideScene then
 		
 			-- Place dropship capturer docks if relevant
 		
@@ -179,7 +179,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 		if dockToDockAt then
 			craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 			
-			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
+			self.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -216,7 +216,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
 			craft.Vel = Vector(0, -30);
 			
-			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
+			self.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -235,7 +235,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 		MovableMan:AddActor(craft);
 		craft:UpdateMovePath();
 	else
-		print("failed")
+		--print("failed")
 		return false;
 	end
 	
@@ -256,13 +256,13 @@ function DockingHandler:UpdateUndersideDockingCraft()
 
 	-- Docking system initial tests
 	
-	self.mainTable.lastAddedCraftUniqueID = nil;
+	self.lastAddedCraftUniqueID = nil;
 	
 	-- Monitor for unknown crafts that might want to deliver stuff
 	
 	for actor in MovableMan.AddedActors do
-		if actor.UniqueID ~= self.mainTable.lastAddedCraftUniqueID then
-			if IsACDropShip(actor) then
+		if actor.UniqueID ~= self.lastAddedCraftUniqueID then
+			if IsACDropShip(actor) and not actor:NumberValueExists("Dock Number") then
 				local craft = ToACDropShip(actor);
 				
 				-- See if we have any docks available right now
@@ -271,6 +271,8 @@ function DockingHandler:UpdateUndersideDockingCraft()
 			
 				for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
 					if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
+						
+						print("found dock for unknown craft")
 						
 						craft.AIMode = Actor.AIMODE_GOTO;
 						--craft.Team = 0
@@ -515,7 +517,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 		if dockToDockAt then
 			craft.Pos = Vector(dockTable.dockPosition.X, 0);
 			
-			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
+			self.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -549,7 +551,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 			craft.Pos = Vector(dockTable.dockPosition.X, 0);
 			craft.Vel = Vector(0, 0);
 			
-			self.mainTable.lastAddedCraftUniqueID = craft.UniqueID;
+			self.lastAddedCraftUniqueID = craft.UniqueID;
 			
 			-- Mark this craft's dock number, not used except to see if there's any dock at all
 			craft:SetNumberValue("Dock Number", dockToDockAt);
@@ -577,13 +579,13 @@ end
 
 function DockingHandler:UpdateRegularDockingCraft()
 
-	self.mainTable.lastAddedCraftUniqueID = nil;
+	self.lastAddedCraftUniqueID = nil;
 	
 	-- Monitor for unknown crafts that might want to deliver stuff
 	
 	for actor in MovableMan.AddedActors do
-		if actor.UniqueID ~= self.mainTable.lastAddedCraftUniqueID then
-			if IsACDropShip(actor) and not actor:NumberValueExists("Dock Numbe") then
+		if actor.UniqueID ~= self.lastAddedCraftUniqueID then
+			if IsACDropShip(actor) and not actor:NumberValueExists("Dock Number") then
 				local craft = ToACDropShip(actor);
 				
 				-- See if we have any docks available right now

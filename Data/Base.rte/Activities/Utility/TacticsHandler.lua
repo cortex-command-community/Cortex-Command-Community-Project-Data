@@ -153,7 +153,7 @@ end
 
 function TacticsHandler:PickTask(team)
 
-	print("PickTask")
+	--print("PickTask")
 
 	if #self.teamList[team].taskList > 0 then
 		-- random weighted select
@@ -203,6 +203,7 @@ function TacticsHandler:RetaskSquad(squad, team)
 					else
 						actor:AddAISceneWaypoint(newTask.Position);
 					end
+					actor:UpdateMovePath();
 				else
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
@@ -300,7 +301,7 @@ end
 
 function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 
-	print("AddTaskSquad" .. team)
+	--print("AddTaskSquad" .. team)
 	
 	if team and squadTable and taskName then
 		local squadEntry = {};
