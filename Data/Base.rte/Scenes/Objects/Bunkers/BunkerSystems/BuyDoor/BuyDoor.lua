@@ -119,9 +119,18 @@ function Create(self)
 
 	end
 
-	self.Frame = 1;
+	if self.Frame == 0 then
+		self.Frame = 1;
+	end
+	
+	print("buydoor" .. self.Frame)
 
 	self.isStayingOpen = false;
+	if self:GetNumberValue("isStayingOpen") == 1 then
+		self.isStayingOpen = true;
+	else
+		self.isStayingOpen = false;
+	end
 	self.isClosing = false;
 
 	self.stayOpenTimer = Timer();
@@ -150,6 +159,10 @@ function Create(self)
 	if self:NumberValueExists("orderDelivering") and self:GetNumberValue("orderDelivering") == 1 then
 		self.orderDelivering = true;
 	end
+	if not self.orderDelivering and not self:IsInventoryEmpty() then
+		-- we must have been interrupted mid-actual delivery
+		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
+	end
 	if self:NumberValueExists("currentTeam") then
 		self.currentTeam = self:GetNumberValue("currentTeam");
 		self:RemoveNumberValue("currentTeam");
@@ -169,6 +182,9 @@ function Create(self)
 	self.detectRange = 200;
 	
 	self.orderPieSlice = CreatePieSlice("Buy Door Order", "Base.rte");
+	
+	print("hello buy door")
+	
 end
 
 function Update(self)
@@ -323,6 +339,7 @@ end
 function OnSave(self)
 
 	self.saveLoadHandler:SaveMOLocally(self, "savedConsoleMO", self.console);
+	self:SetNumberValue("isStayingOpen", self.isStayingOpen and 1 or 0);
 	self:SetNumberValue("cooldownTimer", self.cooldownTimer.ElapsedRealTimeMS);
 	self:SetNumberValue("orderTimer", self.orderTimer.ElapsedRealTimeMS);
 	self:SetNumberValue("orderDelivering", self.orderDelivering and 1 or 0);
