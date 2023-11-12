@@ -236,7 +236,7 @@ function Update(self)
 				if actor.Team ~= self.Team then
 					self.Unusable = true;
 				end
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.orderPieSlice:Clone(), self);
+				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.orderPieSlice, self);
 				self.closeActorTable[actor.UniqueID] = actor.UniqueID;
 			end
 		end
