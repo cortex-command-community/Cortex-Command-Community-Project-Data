@@ -271,6 +271,8 @@ function SaveLoadHandler:LoadLocallySavedMO(self, name)
 		return false;
 	end
 	
+	self:RemoveStringValue(name);
+	
 	return v;
 
 end
