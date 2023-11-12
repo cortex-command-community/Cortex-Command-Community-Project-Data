@@ -91,44 +91,17 @@ function TacticsHandler:InvalidateActor(infoTable)
 end
 
 function TacticsHandler:ReapplyAllTasks()
-
 	print("ReapplyAllTasks")
-
-	-- Includes general cleanup and task sanitizing work
 
 	for team = 0, #self.teamList do
 		for i = 1, #self.teamList[team].squadList do
-		
-			local taskName = self.teamList[team].squadList[i].taskName
+			local squad = self.teamList[team].squadList[i];
+			local taskName = squad.taskName
 			if not (taskName and self:GetTaskByName(taskName, team)) then
-	
-				self:RetaskSquad(self.teamList[team].squadList[i], team);
-				
+				self:RetaskSquad(squad, team);
 			else
-			
 				local task = self:GetTaskByName(taskName, team);
-				
-				for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
-					local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
-					if #self.teamList[team].squadList[i].Actors > 0 and actor then
-						print("Trying to reapply task to actor: " .. actor.PresetName .. " of team " .. team)
-						actor:ClearAIWaypoints();
-						if task.Position.PresetName then -- ghetto check if this is an MO
-							actor:AddAIMOWaypoint(task.Position);
-						else
-							actor:AddAISceneWaypoint(task.Position);
-						end
-						actor:UpdateMovePath();
-					else
-						print("actor invalid")
-						self.teamList[team].squadList[i].Actors[actorIndex] = nil; -- actor no longer actual
-						if #self.teamList[team].squadList[i].Actors == 0 then
-							print("removed wiped squad")
-							table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
-							break;
-						end
-					end
-				end
+				self:ApplyTaskToSquad(squad, task);
 			end
 		end
 	end
@@ -179,15 +152,10 @@ function TacticsHandler:PickTask(team)
 	
 end
 
-function TacticsHandler:RetaskSquad(squad, team)
-
-	print("retasking squad with task name: " .. squad.taskName)
-
-	local newTask = self:PickTask(team);
-	
-	if newTask then	
-		print("new task is:" .. newTask.Name)
-		squad.taskName = newTask.Name;
+function TacticsHandler:ApplyTaskToSquad(squad, task)
+	if task then	
+		print("Applying Task:" .. task.Name)
+		squad.taskName = task.Name;
 		for actorIndex = 1, #squad.Actors do
 			local actor = ToActor(squad.Actors[actorIndex]);
 			-- Todo, due to oddities with how this terrible game is programmed, actor can theoretically point to an actor that shouldn't belong to us anymore
@@ -196,12 +164,12 @@ function TacticsHandler:RetaskSquad(squad, team)
 			-- Anyways, we should probably store uniqueIds instead and look those up at point of usage
 			if actor then
 				actor:ClearAIWaypoints();
-				if newTask.Type == "Defend" or newTask.Type == "Attack" then
+				if task.Type == "Defend" or task.Type == "Attack" then
 					actor.AIMode = Actor.AIMODE_GOTO;
-					if newTask.Position.PresetName then -- ghetto check if this is an MO
-						actor:AddAIMOWaypoint(newTask.Position);
+					if task.Position.PresetName then -- ghetto check if this is an MO
+						actor:AddAIMOWaypoint(task.Position);
 					else
-						actor:AddAISceneWaypoint(newTask.Position);
+						actor:AddAISceneWaypoint(task.Position);
 					end
 					actor:UpdateMovePath();
 				else
@@ -216,9 +184,15 @@ function TacticsHandler:RetaskSquad(squad, team)
 		--print("couldnotfindttask")
 		return false;
 	end
-	
-	return true;
 
+	return true;
+end
+
+function TacticsHandler:RetaskSquad(squad, team)
+	print("retasking squad with task name: " .. squad.taskName)
+
+	local newTask = self:PickTask(team);
+	return self:ApplyTaskToSquad(squad, newTask);
 end
 
 function TacticsHandler:RemoveTask(name, team)

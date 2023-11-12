@@ -71,15 +71,11 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 end
 
 function SaveLoadHandler:ParseTableForVectors(tab)
-
-	print("Parsing for vectors...");
-
 	for k, v in pairs(tab) do
 		if type(v) == "string" and string.find(v, "Vector%(") then
 			local vector = loadstring("return " .. v)();
 			tab[k] = vector;	
 		elseif type(v) == "table" then
-			print("Vector parsing recursion!");
 			self:ParseTableForVectors(v);
 		end
 	end
@@ -98,30 +94,21 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 				if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 					--particle:removeNumberValue("saveLoadHandlerUniqueID");
 					mo = particle;
-					print(mo);
 					didNotFindAnMO = false;
 					break;
 				end
 			end
 			for act in MovableMan.AddedActors do
-				print(act)
 				if math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 					--act:removeNumberValue("saveLoadHandlerUniqueID");
 					mo = act;
-					print(mo);
 					didNotFindAnMO = false;
 					break;
-				else
-					print("This actor had ID:");
-					print(math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")))
-					print("We were trying for:");
-					print(id)
 				end
 				for item in act.Inventory do
 					if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 						--item:removeNumberValue("saveLoadHandlerUniqueID");
 						mo = item;
-						print(mo);
 						didNotFindAnMO = false;
 						break;
 					end
@@ -131,7 +118,6 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 				if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 					--item:removeNumberValue("saveLoadHandlerUniqueID");
 					mo = item;
-					print(mo);
 					didNotFindAnMO = false;
 					break;
 				end
@@ -145,17 +131,11 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 				end
 			end
 			for act in MovableMan.Actors do
-				print(act)
 				if math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 					--act:removeNumberValue("saveLoadHandlerUniqueID");
 					mo = act;
 					didNotFindAnMO = false;
 					break;
-				else
-					print("This actor had ID:");
-					print(math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")))
-					print("We were trying for:");
-					print(id)
 				end
 				for item in act.Inventory do
 					if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
@@ -177,12 +157,8 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 			if didNotFindAnMO then
 				print("WARNING: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken.");
 				print("Not found: " .. v)
-			else
-				print("Found MO!");
-				print(mo);
 			end
 		elseif type(v) == "table" then
-			print("MO parsing recursion!");
 			self:ParseTableForMOs(v);
 		end
 		if mo then
