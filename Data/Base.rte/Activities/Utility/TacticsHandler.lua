@@ -118,7 +118,7 @@ function TacticsHandler:ReapplyAllTasks()
 						else
 							actor:AddAISceneWaypoint(task.Position);
 						end
-
+						actor:UpdateMovePath();
 					else
 						print("actor invalid")
 						self.teamList[team].squadList[i].Actors[actorIndex] = nil; -- actor no longer actual
