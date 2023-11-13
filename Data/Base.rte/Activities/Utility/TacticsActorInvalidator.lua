@@ -1,6 +1,6 @@
 function Create(self)
 
-	if self:LoadString("tacticsActorInvalidatorSquadInfo") ~= "" then
+	if self:StringValueExists("tacticsActorInvalidatorSquadInfo") ~= "" then
 		--print("tried to create load serialized invalidator")
 		--print(self:LoadString("tacticsActorInvalidatorSquadInfo"))
 		self.tacticsHandlerSquadInfo = loadstring("return " .. self:GetStringValue("tacticsActorInvalidatorSquadInfo"))()
