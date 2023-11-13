@@ -110,7 +110,7 @@ end
 
 function TacticsHandler:GetTaskByName(taskName, team)
 	
-	print("GetTaskByName")
+	--print("GetTaskByName")
 	
 	if team then
 		for t = 1, #self.teamList[team].taskList do
@@ -156,6 +156,10 @@ function TacticsHandler:ApplyTaskToSquad(squad, task)
 	if task then	
 		--print("Applying Task:" .. task.Name)
 		squad.taskName = task.Name;
+		local randomPatrolPoint;
+		if task.Type == "PatrolArea" then
+			randomPatrolPoint = task.Position.RandomPoint;
+		end
 		for actorIndex = 1, #squad do
 			local actor = ToActor(squad[actorIndex]);
 			-- Todo, due to oddities with how this terrible game is programmed, actor can theoretically point to an actor that shouldn't belong to us anymore
@@ -165,12 +169,22 @@ function TacticsHandler:ApplyTaskToSquad(squad, task)
 			if actor then
 				actor:ClearAIWaypoints();
 				if task.Type == "Defend" or task.Type == "Attack" then
+
 					actor.AIMode = Actor.AIMODE_GOTO;
-					if task.Position.PresetName then -- ghetto check if this is an MO
+					if task.Position.PresetName then -- ghetto check if this is an MO, IsMOSRotating wigs out
 						actor:AddAIMOWaypoint(task.Position);
 					else
 						actor:AddAISceneWaypoint(task.Position);
+						if task.Type == "Defend" then
+							actor:SetNumberValue("tacticsHandlerRandomStopDistance", 20, 120);
+						end
 					end
+					actor:UpdateMovePath();
+				elseif task.Type == "PatrolArea" then
+					actor.AIMode = Actor.AIMODE_GOTO;
+					actor:AddAISceneWaypoint(randomPatrolPoint);
+					print("chosen patrol point:");
+					print(randomPatrolPoint)
 					actor:UpdateMovePath();
 				elseif task.Type == "Sentry" then
 					actor.AIMode = Actor.AIMODE_SENTRY;
@@ -262,6 +276,10 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 		task.Name = name;
 		task.Type = taskType;
 		task.Position = taskPos;
+		if task.Position.Name and not taskType == "PatrolArea" then -- ghetto isarea check	
+			-- non-patrol task types have no applicable behavior for areas, so just pick a point and stick with it.
+			task.Position = task.Position.RandomPoint;
+		end
 		task.Priority = priority;
 		
 		table.insert(self.teamList[team].taskList, task);
@@ -311,6 +329,73 @@ function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 	
 end
 
+function TacticsHandler:UpdateSquads(team)
+
+	for i = 1, #self.teamList[team].squadList do
+		local task = self:GetTaskByName(self.teamList[team].squadList[i].taskName, team);
+		if task then
+		
+			local task = self:GetTaskByName(self.teamList[team].squadList[i].taskName, team);
+			
+			local wholePatrolSquadIdle = true;
+			
+			for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
+				local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
+				if actor then
+				
+					actor:FlashWhite(1000);
+					
+
+					-- all is well, update task
+					if task.Type == "Attack" then
+					
+					elseif task.Type == "Defend" then
+						if actor:NumberValueExists("tacticsHandlerRandomStopDistance") then
+							local dist = SceneMan:ShortestDistance(actor.Pos, task.Position, SceneMan.SceneWrapsX);
+							if dist < actor:GetNumberValue("tacticsHandlerRandomStopDistance") then
+								actor:ClearAIWaypoints();
+								actor.AIMode = Actor.AIMODE_SENTRY;
+							end
+						end
+					elseif task.Type == "PatrolArea" then
+						local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint());
+						if Actor.AIMode == Actor.AIMODE_SENTRY or (dist.Magnitude < 40) then
+							if actorIndex == #self.teamList[team].squadList[i].Actors and wholePatrolSquadIdle then
+								-- if we're the last one and the whole squad is ready to go
+								self:ApplyTaskToSquad(self.teamList[team].squadList[i], task)
+							end
+						else
+							print("patrolsquadnotfullyidle")
+							wholePatrolSquadIdle = false;
+						end
+					end
+
+							
+
+				else
+					print("actor invalid")
+					self.teamList[team].squadList[i].Actors[actorIndex] = nil; -- actor no longer actual
+					if #self.teamList[team].squadList[i].Actors == 0 then
+						print("removed wiped squad")
+						table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
+						break;
+					end
+				end
+			end
+			
+			if #self.teamList[team].squadList[i].Actors == 0 then
+				-- how'd this even get here?
+				table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
+			end
+		else
+			--print("retasking not actual task")
+		
+			self:RetaskSquad(self.teamList[team].squadList[i], team);
+		end
+	end
+
+end
+
 function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 
 	if self.taskUpdateTimer:IsPastSimMS(self.taskUpdateDelay) then
@@ -333,45 +418,7 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 		
 		-- check and update all tasked squads
 		
-		for i = 1, #self.teamList[team].squadList do
-			local taskNotActual = true;
-			for t = 1, #self.teamList[team].taskList do
-				if self.teamList[team].squadList[i].taskName and self.teamList[team].taskList[t].Name == self.teamList[team].squadList[i].taskName then
-					--print("matchedttaskname: " .. self.teamList[team].taskList[t].Name)
-					taskNotActual = false;
-					break;
-				end
-			end
-			if self.teamList[team].squadList[i].Actors and taskNotActual then
-				--print("retasking not actual task")
-			
-				self:RetaskSquad(self.teamList[team].squadList[i], team);
-				
-			else
-				for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
-					local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
-					if #self.teamList[team].squadList[i].Actors > 0 and actor then
-						PrimitiveMan:DrawCirclePrimitive(actor.Pos,30, 50);
-						--print(actor.PresetName .. actor.Team)
-
-						-- all is well
-
-					else
-						print("actor invalid")
-						self.teamList[team].squadList[i].Actors[actorIndex] = nil; -- actor no longer actual
-						if #self.teamList[team].squadList[i].Actors == 0 then
-							print("removed wiped squad")
-							table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
-							break;
-						end
-					end
-				end
-				if #self.teamList[team].squadList[i].Actors == 0 then
-					-- how'd this even get here?
-					table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
-				end
-			end
-		end
+		self:UpdateSquads(team);
 		
 	end
 	
