@@ -5,8 +5,10 @@ function HumanBehaviors.GetTeamShootingSkill(team)
 	local skill = 80;
 	local Activ = ActivityMan:GetActivity();
 	if Activ then
-		skill = (1 - (1 - (Activ:GetTeamAISkill(team)/100)) * (1 - (Activ:GetTeamAISkill(team)/100))) * 100;
-		print(skill)
+		-- i am fancy mathematician, doing fancy mathematics
+		-- this will weigh skill upwards such that 50 resolves to 75, but still allow full 0-100 range
+		local num = (Activ:GetTeamAISkill(team)/100);
+		skill = (1 - math.pow(num, 2)) * 100;
 	end
 
 	local aimSpeed, aimSkill;
