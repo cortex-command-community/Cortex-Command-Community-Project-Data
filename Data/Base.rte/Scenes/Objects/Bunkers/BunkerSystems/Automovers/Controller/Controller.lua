@@ -1081,6 +1081,17 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 		end
 
 		analogMove = wptPos - actor.Pos;
+
+		-- the ai only removes points if it's not flying and moving, so let's remove the point if needed
+		if analogMove:MagnitudeIsLessThan(3) then
+			actor:RemoveMovePathBeginning();
+		end
+
+		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.01) then
+			-- choose a random direction to get unstuck
+			-- TODO, it'd be better if the AI logic can communicate this to us instead!
+			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
+		end
 	end
 
 	local deadZone = 0.1;
@@ -1476,6 +1487,7 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
+	local oldClosestNode = actorData.currentClosestNode;
 	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
 	actorData.currentClosestNode = closestNode;
 	if not closestNode then
@@ -1489,10 +1501,12 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local isStuck = actorData.movementMode == self.movementModes.unstickActor;
 	forceCentring = forceCentring or isStuck;
 	local directionToUseForCentering;
+	local directionConnectingArea;
 	if not forceCentring and not teamNodeTable[closestNode].zoneBox:IsWithinBox(actor.Pos) then
 		for direction, connectingArea in pairs(teamNodeTable[closestNode].connectingAreas) do
 			if connectingArea:IsInside(actor.Pos) then
 				directionToUseForCentering = direction;
+				directionConnectingArea = connectingArea;
 				break;
 			end
 		end
@@ -1514,6 +1528,29 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
 		for _, centeringAxis in pairs(centeringAxes) do
+			if actor.MovePathSize > 0 then
+				-- Collect all points ahead of us in the box to adjust to centre
+				local positionsToFixUp = {};
+				for pos in actor.MovePath do
+					if pos[centeringAxis] == closestNode.Pos[centeringAxis] or directionConnectingArea == nil or not directionConnectingArea:IsInside(pos) then
+						break;
+					end
+					local adjustedPos = pos;
+					adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
+					table.insert(positionsToFixUp, adjustedPos);
+				end
+
+				-- Clear these points from our move path
+				for i = 1, #positionsToFixUp do
+					actor:RemoveMovePathBeginning();
+				end
+
+				-- And add the adjusted point back in (in reverse order, as they're at the beginning of our movepath)
+				for i = #positionsToFixUp, 1, -1 do
+					actor:AddToMovePathBeginning(positionsToFixUp[i]);
+				end
+			end
+
 			if distanceToClosestNode[centeringAxis] > centeringSpeedAndDistance then
 				actor.Vel[centeringAxis] = -centeringSpeedAndDistance + gravityAdjustment[centeringAxis];
 			elseif distanceToClosestNode[centeringAxis] < -centeringSpeedAndDistance then
