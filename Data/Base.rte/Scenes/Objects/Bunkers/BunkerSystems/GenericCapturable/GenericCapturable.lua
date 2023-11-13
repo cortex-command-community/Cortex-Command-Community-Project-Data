@@ -48,9 +48,13 @@ function Create(self)
 		end
 	end
 	
-	self.captureProgress = 1;
-	self.capturingTeam = self.Team;
-	self.dominantTeam = self.Team;
+	self.captureProgress = self:NumberValueExists("captureProgress") and self:GetNumberValue("captureProgress") or 1;
+	self.capturingTeam = self:NumberValueExists("capturingTeam") and self:GetNumberValue("capturingTeam") or self.Team;
+	self.dominantTeam = self:NumberValueExists("dominantTeam") and self:GetNumberValue("dominantTeam") or self.Team;
+	
+	if self.dominantTeam ~= self.Team then -- if we are loaded after saving
+		self.actorCheckTimer.ElapsedRealTimeMS = self.actorCheckDelay * 10; -- just make sure we insta-check the actors asap to avoid funny stuff
+	end
 	
 	self.instantReset = self:GetNumberValue("InstantReset") == 1 and true or false;
 	self.neutralIfNotFullyCapped = self:GetNumberValue("NeutralIfNotFullyCapped") == 1 and true or false;
@@ -68,10 +72,6 @@ function Create(self)
 end
 
 function Update(self)
-
-	if UInputMan:KeyPressed(Key.Y) then
-		self:ReloadScripts();
-	end
 
 	if self.actorCheckTimer:IsPastSimMS(self.actorCheckDelay) then
 	
@@ -192,4 +192,12 @@ function Update(self)
 	if self.Deactivated then
 		PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -60), "DEACTIVATED"	, true, 1);	
 	end
+end
+
+function OnSave(self)
+
+	self:SetNumberValue("captureProgress", self.captureProgress);
+	self:SetNumberValue("dominantTeam", self.dominantTeam);
+	self:SetNumberValue("capturingTeam", self.capturingTeam);
+
 end
