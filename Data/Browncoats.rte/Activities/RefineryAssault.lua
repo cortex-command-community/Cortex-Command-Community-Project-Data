@@ -1,5 +1,7 @@
 package.loaded.Constants = nil; require("Constants");
 
+dofile("Browncoats.rte/Activities/RefineryAssaultFunctions.lua");
+
 function RefineryAssault:OnMessage(message, object)
 
 	self.tacticsHandler:OnMessage(message, object);
@@ -41,123 +43,6 @@ function RefineryAssault:OnMessage(message, object)
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 	end
 
-end
-
------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
--- Custom functions
------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
--- Create Delivery
------------------------------------------------------------------------------------------
-
-function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
-
-	local craft, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
-	
-	local squadTable = {};
-	for item in craft.Inventory do
-		if IsActor(item) then
-			item = ToActor(item);
-			table.insert(squadTable, item);
-			if task then
-				if task.Type == "Defend" or task.Type == "Attack" then
-					item.AIMode = Actor.AIMODE_GOTO;
-					if task.Position.PresetName then -- ghetto check if this is an MO
-						item:AddAIMOWaypoint(task.Position);
-					else
-						item:AddAISceneWaypoint(task.Position);
-					end
-				else
-					item.AIMode = Actor.AIMODE_BRAINHUNT;
-				end
-			end
-		end
-	end
-		
-	local success = self.dockingHandler:SpawnDockingCraft(craft)
-			
-	if success then
-		self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
-		return squadTable
-	end
-	
-	return false;
-	
-end
-
-function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificIndex)
-
-	local order, goldCost = self.deliveryCreationHandler:CreateSquad(team);
-	
-	--print("tried order for team: " .. team);
-	
-	if order then
-		for i = 1, #order do
-			if task then
-				if task.Type == "Defend" or task.Type == "Attack" then
-					order[i].AIMode = Actor.AIMODE_GOTO;
-					if task.Position.PresetName then -- ghetto check if this is an MO
-						order[i]:AddAIMOWaypoint(task.Position);
-					else
-						order[i]:AddAISceneWaypoint(task.Position);
-					end
-				else
-					order[i].AIMode = Actor.AIMODE_BRAINHUNT;
-				end
-			end
-				
-		end
-		
-		local taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
-		-- check if it's in an area this team owns
-		local areaThisIsIn
-		for i = 1, #self.buyDoorTables.teamAreas[team] do
-			local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][i]);
-			if area:IsInside(taskPos) then
-				areaThisIsIn = area;
-				break;
-			end
-		end
-		
-		if not areaThisIsIn or not self.buyDoorHandler:GetAvailableBuyDoorsInArea(areaThisIsIn, team) then
-			-- select any owned area if we don't own the task area
-			-- everyone should always own at least one buy door area after stage 2, so.....
-			if #self.buyDoorTables.teamAreas[team] > 0 then
-				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][math.random(1, #self.buyDoorTables.teamAreas[team])]);
-				--print(areaThisIsIn.Name)
-				--print("reverted to any buy door area pick")
-			else
-				--print("team " .. team .. " doesn't have a backup area");
-			end
-		end
-		
-		if areaThisIsIn then
-			--print(areaThisIsIn.Name)
-			
-			local randomSelection;
-			local usableBuyDoorTable = self.buyDoorHandler:GetAvailableBuyDoorsInArea(areaThisIsIn, team)
-			
-			if usableBuyDoorTable then
-				randomSelection = usableBuyDoorTable[math.random(1, #usableBuyDoorTable)]
-			end
-			
-			if randomSelection then
-				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
-				if success then
-					self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
-					return order;
-				end
-			end
-		end
-	end
-	
-	return false;
-	
 end
 
 function RefineryAssault:SetupBuyDoorAreaTable(self, area)
@@ -209,31 +94,6 @@ end
 
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
-
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			-- Check if we already have a brain assigned
-			if not self:GetPlayerBrain(player) then
-				local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
-				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
-				if not foundBrain then
-					self.ActivityState = Activity.EDITING;
-					-- Open all doors so we can do pathfinding through them with the brain placement
-					MovableMan:OpenAllDoors(true, Activity.NOTEAM);
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
-					self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
-				else
-					-- Set the found brain to be the selected actor at start
-					self:SetPlayerBrain(foundBrain, player);
-					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
-					self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
-					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
-					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
-				end
-			end
-		end
-	end
 	
 	self.humansAreControllingAlliedActors = false;
 	
@@ -241,6 +101,13 @@ function RefineryAssault:StartActivity(newGame)
 	self.aiTeam = Activity.TEAM_2;
 	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
+	
+	self.humanPlayers = {};
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) and self:GetTeamOfPlayer(player) == self.humanTeam then
+			self.humanPlayers[#self.humanPlayers + 1] = player;
+		end
+	end
 	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
@@ -262,6 +129,9 @@ function RefineryAssault:StartActivity(newGame)
 	self.deliveryCreationHandler:Initialize(self);
 	
 	if newGame then
+		
+		-- Always active base task for defenders
+		self.tacticsHandler:AddTask("Brainhunt", self.aiTeam, Vector(0, 0), "Brainhunt", 2);
 	
 		-- Set up buy door areas
 		-- it would be great to handle this generically, but we have specific
@@ -293,36 +163,60 @@ function RefineryAssault:StartActivity(newGame)
 			v.Team = self.aiTeam;
 		end
 		
+		-- Stages and stage function table
+		
+		self.Stage = 1;
+		
+		self:SetupFirstStage();
+		
+		self.stageFunctionTable = {};
+		table.insert(self.stageFunctionTable, self.MonitorStage1);
+		table.insert(self.stageFunctionTable, self.MonitorStage2);
 
 		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 		automoverController.Pos = Vector();
 		automoverController.Team = self.aiTeam;
 		MovableMan:AddActor(automoverController);
 
-		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
-		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
+		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
+		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
 		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
 		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 		
-		-- Grand Strategic WhateverTheFuck
+		-- Tell capturables to deactivate, we'll activate them as we go along
 		
-		-- Capturable setup
-		
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable1");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
-		
-		-- Test tasks
-		
-		self:SetTeamFunds(self.humanTeam, 200);
-		self:SetTeamFunds(self.aiTeam, 200);
-		
-		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
-		
-		self.tacticsHandler:AddTask("Attack Hack Console 1", 0, taskPos, "Attack", 10);
-		self.tacticsHandler:AddTask("Defend Hack Console 1", 1, taskPos, "Defend", 10);
 	
 	else
 		self:ResumeLoadedGame();
 	end
+	
+	-- for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		-- if self:PlayerActive(player) and self:PlayerHuman(player) then
+			-- -- Check if we already have a brain assigned
+			-- if not self:GetPlayerBrain(player) then
+				-- local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
+				-- -- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
+				-- if not foundBrain then
+					-- self.ActivityState = Activity.EDITING;
+					-- -- Open all doors so we can do pathfinding through them with the brain placement
+					-- MovableMan:OpenAllDoors(true, Activity.NOTEAM);
+					-- AudioMan:ClearMusicQueue();
+					-- AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					-- self:SetLandingZone(Vector(player*SceneMan.SceneWidth/4, 0), player);
+				-- else
+					-- -- Set the found brain to be the selected actor at start
+					-- self:SetPlayerBrain(foundBrain, player);
+					-- self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
+					-- self:SetLandingZone(self:GetPlayerBrain(player).Pos, player);
+					-- -- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
+					-- self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
+				-- end
+			-- end
+		-- end
+	-- end	
+	
 end
 
 function RefineryAssault:ResumeLoadedGame()
@@ -376,6 +270,11 @@ end
 -----------------------------------------------------------------------------------------
 
 function RefineryAssault:UpdateActivity()
+
+	-- Monitor stage objectives
+	
+	self.stageFunc = self.stageFunctionTable[self.Stage];
+	self:stageFunc();
 
 	-- Gold increasing for teams
 

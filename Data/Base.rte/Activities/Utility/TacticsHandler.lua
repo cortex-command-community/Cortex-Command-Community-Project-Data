@@ -156,8 +156,8 @@ function TacticsHandler:ApplyTaskToSquad(squad, task)
 	if task then	
 		print("Applying Task:" .. task.Name)
 		squad.taskName = task.Name;
-		for actorIndex = 1, #squad.Actors do
-			local actor = ToActor(squad.Actors[actorIndex]);
+		for actorIndex = 1, #squad do
+			local actor = ToActor(squad[actorIndex]);
 			-- Todo, due to oddities with how this terrible game is programmed, actor can theoretically point to an actor that shouldn't belong to us anymore
 			-- This is due to memory pooling and MOs being reused. In fact, this game somehow managed to survive with a in-built memory corruption any time everything was deleted, for *years*
 			-- And it only worked because of memory pooling hiding it. Terrible.
@@ -172,6 +172,8 @@ function TacticsHandler:ApplyTaskToSquad(squad, task)
 						actor:AddAISceneWaypoint(task.Position);
 					end
 					actor:UpdateMovePath();
+				elseif task.Type == "Sentry" then
+					actor.AIMode = Actor.AIMODE_SENTRY;
 				else
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
@@ -237,6 +239,8 @@ end
 function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 
 	print("AddTask")
+	
+	local task;
 
 	if name and team and taskPos then
 	
@@ -254,7 +258,7 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 			priority = 5;
 		end
 		
-		local task = {};
+		task = {};
 		task.Name = name;
 		task.Type = taskType;
 		task.Position = taskPos;
@@ -269,7 +273,7 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 		return false;
 	end
 	
-	return true;
+	return task;
 	
 end
 
@@ -280,6 +284,10 @@ function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 	if team and squadTable and taskName then
 		local squadEntry = {};
 		squadEntry.Actors = squadTable;
+		if #squadTable == 0 then
+			print("Tried to add a squad with no actors in it?!");
+			return false;
+		end
 		squadEntry.taskName = taskName;
 		table.insert(self.teamList[team].squadList, squadEntry); 
 		for k, act in ipairs(squadEntry.Actors) do
@@ -334,7 +342,7 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 					break;
 				end
 			end
-			if taskNotActual then
+			if self.teamList[team].squadList[i].Actors and taskNotActual then
 				--print("retasking not actual task")
 			
 				self:RetaskSquad(self.teamList[team].squadList[i], team);
@@ -357,6 +365,10 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 							break;
 						end
 					end
+				end
+				if #self.teamList[team].squadList[i].Actors == 0 then
+					-- how'd this even get here?
+					table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
 				end
 			end
 		end
