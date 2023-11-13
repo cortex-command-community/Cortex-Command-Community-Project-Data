@@ -2,23 +2,7 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 
 	local craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
 	
-	for item in craft.Inventory do
-		if IsActor(item) then
-			item = ToActor(item);
-			if task then
-				if task.Type == "Defend" or task.Type == "Attack" then
-					item.AIMode = Actor.AIMODE_GOTO;
-					if task.Position.PresetName then -- ghetto check if this is an MO
-						item:AddAIMOWaypoint(task.Position);
-					else
-						item:AddAISceneWaypoint(task.Position);
-					end
-				else
-					item.AIMode = Actor.AIMODE_BRAINHUNT;
-				end
-			end
-		end
-	end
+	self.tacticsHandler:ApplyTaskToSquad(squad, task);
 		
 	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
@@ -143,15 +127,12 @@ function RefineryAssault:SetupFirstStage()
 	
 	-- Set up the 2 dock squads
 	
-	local taskPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_1stStageAttackPos1").Center;
-	local task = self.tacticsHandler:AddTask("Search And Destroy 1", self.humanTeam, taskPos, "Attack", 10);
+	local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
 	local squad = self:SendDockDelivery(self.humanTeam, task);
 	
 	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
-	
-	local taskPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_1stStageAttackPos2").Center;
-	local task = self.tacticsHandler:AddTask("Search And Destroy 2", self.humanTeam, taskPos, "Attack", 10);
 	
 	squad = self:SendDockDelivery(self.humanTeam, task);
 	

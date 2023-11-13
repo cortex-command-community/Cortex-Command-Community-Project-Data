@@ -6,6 +6,8 @@ function Create(self)
 		self.tacticsHandlerSquadInfo = loadstring("return " .. self:GetStringValue("tacticsActorInvalidatorSquadInfo"))()
 	end
 	
+	self:SetMovePathToUpdate(); -- if we travel a lot before getting out of a dropship, our task movepath can get all sortsa messed up.
+	
 end
 
 function OnMessage(self, message, squadInfo)
