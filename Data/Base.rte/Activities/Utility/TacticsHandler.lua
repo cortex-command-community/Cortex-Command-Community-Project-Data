@@ -154,7 +154,7 @@ end
 
 function TacticsHandler:ApplyTaskToSquad(squad, task)
 	if task then	
-		print("Applying Task:" .. task.Name)
+		--print("Applying Task:" .. task.Name)
 		squad.taskName = task.Name;
 		for actorIndex = 1, #squad do
 			local actor = ToActor(squad[actorIndex]);

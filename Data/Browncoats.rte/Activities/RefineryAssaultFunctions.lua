@@ -40,7 +40,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 	if order then
 		if task then
 		
-			print("buydoor?")
+			--print("buydoor?")
 			self.tacticsHandler:ApplyTaskToSquad(order, task);
 			
 			local taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
@@ -194,7 +194,8 @@ function RefineryAssault:MonitorStage1()
 	for k, actor in ipairs(self.enemyActorTables.stage1) do
 		if not MovableMan:ValidMO(actor) then
 			table.remove(self.enemyActorTables.stage1, k);
-			-- don't care about table.remove safety here, we keep looping anyway
+			-- things get funky if we don't break here and re-loop
+			break;
 		end
 	end
 	
@@ -221,8 +222,6 @@ function RefineryAssault:MonitorStage1()
 		
 		-- Task setup
 		
-		self.tacticsHandler:RemoveTask("Sentry", self.aiTeam);
-		
 		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 1", self.humanTeam, taskPos, "Attack", 10);
@@ -232,6 +231,11 @@ function RefineryAssault:MonitorStage1()
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 2", self.humanTeam, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 2", self.aiTeam, taskPos, "Defend", 10);
+		
+		self.tacticsHandler:RemoveTask("Sentry", self.aiTeam);
+		self.tacticsHandler:RemoveTask("Search And Destroy 1", self.humanTeam);
+		self.tacticsHandler:RemoveTask("Search And Destroy 2", self.humanTeam);		
+		
 	end	
 	
 end
