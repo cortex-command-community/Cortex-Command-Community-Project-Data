@@ -653,45 +653,43 @@ end
 automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkForLineOfSight, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas)
 	tracy.ZoneBegin();
 	local teamNodeTable = AutomoverData[self.Team].nodeData;
-	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
-	if pathfinderTeam == nil then
-		pathfinderTeam = self.Team;
+	local nodesToCheck = teamNodeTable;
+	if nodeToCheckForPathsFrom ~= nil then
+		nodesToCheck = self.pathTable[nodeToCheckForPathsFrom];
 	end
 
 	local closestNode;
 	local distanceToClosestNodeSqr;
-	local lengthOfScenePathToClosestNode;
-	for node, nodeData in pairs(teamNodeTable) do
-		if nodeToCheckForPathsFrom == nil or (self.pathTable[nodeToCheckForPathsFrom] ~= nil and self.pathTable[nodeToCheckForPathsFrom][node] ~= nil) then
-			local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
-			if distanceToClosestNodeSqr == nil or distanceToNode.SqrMagnitude < distanceToClosestNodeSqr then
-				local nodeSatisfiesConditions = true;
-				if checkForLineOfSight then
-					nodeSatisfiesConditions = not SceneMan:CastStrengthRay(node.Pos, distanceToNode, 15, Vector(), 4, 0, true);
-				end
-				if nodeSatisfiesConditions and checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas then
-					nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
-					if not nodeSatisfiesConditions then
-						local connectingAreaDirectionToCheck = Directions.None;
-						if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
-							connectingAreaDirectionToCheck = Directions.Up;
-						elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
-							connectingAreaDirectionToCheck = Directions.Down;
-						elseif distanceToNode.X + (nodeData.size.X * 0.5) < 0 then
-							connectingAreaDirectionToCheck = Directions.Left;
-						elseif distanceToNode.X - (nodeData.size.X * 0.5) > 0 then
-							connectingAreaDirectionToCheck = Directions.Right;
-						end
-						if connectingAreaDirectionToCheck ~= Directions.None and nodeData.connectingAreas[connectingAreaDirectionToCheck] ~= nil then
-							nodeSatisfiesConditions = nodeData.connectingAreas[connectingAreaDirectionToCheck]:IsInside(positionToFindClosestNodeFor);
-						end
+	for node, _ in pairs(nodesToCheck) do
+		local nodeData = teamNodeTable[node];
+		local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
+		if distanceToClosestNodeSqr == nil or distanceToNode.SqrMagnitude < distanceToClosestNodeSqr then
+			local nodeSatisfiesConditions = true;
+			if checkForLineOfSight then
+				nodeSatisfiesConditions = not SceneMan:CastStrengthRay(node.Pos, distanceToNode, 15, Vector(), 4, 0, true);
+			end
+			if nodeSatisfiesConditions and checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas then
+				nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
+				if not nodeSatisfiesConditions then
+					local connectingAreaDirectionToCheck = Directions.None;
+					if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
+						connectingAreaDirectionToCheck = Directions.Up;
+					elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
+						connectingAreaDirectionToCheck = Directions.Down;
+					elseif distanceToNode.X + (nodeData.size.X * 0.5) < 0 then
+						connectingAreaDirectionToCheck = Directions.Left;
+					elseif distanceToNode.X - (nodeData.size.X * 0.5) > 0 then
+						connectingAreaDirectionToCheck = Directions.Right;
+					end
+					if connectingAreaDirectionToCheck ~= Directions.None and nodeData.connectingAreas[connectingAreaDirectionToCheck] ~= nil then
+						nodeSatisfiesConditions = nodeData.connectingAreas[connectingAreaDirectionToCheck]:IsInside(positionToFindClosestNodeFor);
 					end
 				end
-				if nodeSatisfiesConditions then
-					closestNode = node;
-					distanceToClosestNodeSqr = distanceToNode.SqrMagnitude;
-				end
+			end
+			if nodeSatisfiesConditions then
+				closestNode = node;
+				distanceToClosestNodeSqr = distanceToNode.SqrMagnitude;
 			end
 		end
 	end
@@ -881,7 +879,6 @@ automoverActorFunctions.checkForNewActors = function(self)
 end
 
 automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
-	print("ADDED!")
 	self.affectedActors[actor.UniqueID] = {
 		actor = actor,
 		movementMode = self.movementModes.freeze,
@@ -890,10 +887,6 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		currentClosestNode = self:findClosestNode(actor.Pos, nil, false, false),
 		waypointData = nil,
 	};
-
-	print(actor.Pos);
-	print(self.affectedActors[actor.UniqueID].currentClosestNode);
-	print(self.affectedActors[actor.UniqueID].currentClosestNode.Pos);
 
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
@@ -904,7 +897,6 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 end
 
 automoverActorFunctions.removeActorFromAutomoverTable = function(self, actor, optionalActorUniqueID)
-	print("REMOVED!")
 	if actor.UniqueID ~= 0 and optionalActorUniqueID == nil then
 		optionalActorUniqueID = actor.UniqueID;
 	end
