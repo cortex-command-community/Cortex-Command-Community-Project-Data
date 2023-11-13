@@ -1087,7 +1087,7 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 			actor:RemoveMovePathBeginning();
 		end
 
-		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.01) then
+		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
 			-- choose a random direction to get unstuck
 			-- TODO, it'd be better if the AI logic can communicate this to us instead!
 			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
