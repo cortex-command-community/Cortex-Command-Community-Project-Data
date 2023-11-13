@@ -180,6 +180,7 @@ function RefineryAssault:SetupFirstStage()
 		brain.AIMode = Actor.AIMODE_SENTRY;
 		self:SetPlayerBrain(brain, player);
 		self:SetObservationTarget(dropShip.Pos, player);
+		self:SwitchToActor(dropShip, player, self.humanTeam);
 		dropShip:AddInventoryItem(brain);
 	end
 		
