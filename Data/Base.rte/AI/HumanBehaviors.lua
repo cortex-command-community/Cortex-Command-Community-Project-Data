@@ -2,10 +2,11 @@
 HumanBehaviors = {};
 
 function HumanBehaviors.GetTeamShootingSkill(team)
-	local skill = 50;
+	local skill = 80;
 	local Activ = ActivityMan:GetActivity();
 	if Activ then
-		skill = Activ:GetTeamAISkill(team);
+		skill = (1 - (1 - (Activ:GetTeamAISkill(team)/100)) * (1 - (Activ:GetTeamAISkill(team)/100))) * 100;
+		print(skill)
 	end
 
 	local aimSpeed, aimSkill;
