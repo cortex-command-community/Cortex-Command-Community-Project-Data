@@ -254,7 +254,8 @@ function Update(self)
 end
 
 function SyncedUpdate(self)
-	print("isstayingopen: " .. self.isStayingOpen)
+	print("hello i am an error free print")
+	print("isstayingopen: " .. tostring(self.isStayingOpen))
 	print(self:IsInventoryEmpty());
 	print(self.spawnTimer:IsPastSimMS(self.spawnDelay))
 	if self.isStayingOpen and not self:IsInventoryEmpty() and self.spawnTimer:IsPastSimMS(self.spawnDelay) then

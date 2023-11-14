@@ -178,7 +178,7 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 					else
 						actor:AddAISceneWaypoint(task.Position);
 						if task.Type == "Defend" then
-							actor:SetNumberValue("tacticsHandlerRandomStopDistance", 20, 120);
+							actor:SetNumberValue("tacticsHandlerRandomStopDistance", math.random(20, 120));
 						end
 					end
 					actor:UpdateMovePath();
@@ -386,8 +386,8 @@ function TacticsHandler:UpdateSquads(team)
 						elseif task.Type == "PatrolArea" then
 							local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint(), SceneMan.SceneWrapsX);
 							print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
-							if Actor.AIMode == Actor.AIMODE_SENTRY or dist.Magnitude < 40 then
-								Actor.AIMode = Actor.AIMODE_SENTRY;
+							if actor.AIMode == Actor.AIMODE_SENTRY or dist.Magnitude < 40 then
+								actor.AIMode = Actor.AIMODE_SENTRY;
 								if actorIndex == #self.teamList[team].squadList[i].Actors and wholePatrolSquadIdle == true then
 									-- if we're the last one and the whole squad is ready to go
 									print("fullsquad")
