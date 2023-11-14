@@ -1,15 +1,14 @@
-function OnMessage(self, message, orderList)
+--[[MULTITHREAD]]--
 
+function OnMessage(self, message, orderList)
 	if self:IsInventoryEmpty() then
 		if message == "BuyDoor_CustomTableOrder" then
 			self.Unusable = true;
 			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
 			
 			if finalOrder then
-			
 				self.orderTimer:Reset();
 				self.orderDelivering = true;
-				
 			else
 				print("Buy Door was given a custom table order, but it had no items!");
 			end
@@ -19,7 +18,6 @@ function OnMessage(self, message, orderList)
 end
 
 function BuyDoorSetupOrder(self, orderList, isCustomOrder)
-
 	local preActorItemList = {};
 	local lastActor
 	local finalOrder = {};
@@ -91,7 +89,6 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 end
 
 function Create(self)
-
 	-- hoo boy... the things we do for draw order
 	local us = MovableMan:RemoveActor(self);
 	if us then -- fixed issue when reloading scripts
@@ -104,19 +101,15 @@ function Create(self)
 	self.saveLoadHandler:Initialize(self);
 	
 	if self:StringValueExists("savedConsoleMO") then
-	
 		self.console = self.saveLoadHandler:LoadLocallySavedMO(self, "savedConsoleMO");
-		
 	end
 	
 	if not console then -- just in case the above fails
-	
 		self.console = CreateMOSRotating("Buy Door Console", "Base.rte");
 		self.console.Pos = self.Pos + Vector(0, -26);
 		self.console.Team = self.Team;
 		
 		MovableMan:AddParticle(self.console);
-
 	end
 
 	if self.Frame == 0 then
@@ -182,17 +175,9 @@ function Create(self)
 	self.detectRange = 200;
 	
 	self.orderPieSlice = CreatePieSlice("Buy Door Order", "Base.rte");
-	
-	print("hello buy door")
-	
 end
 
 function Update(self)
-
-	if UInputMan:KeyPressed(Key.Y) then
-		self:ReloadScripts();
-	end
-
 	if self.Frame == self.FrameCount - 1 and not self.isStayingOpen and not self.isClosing then
 		self.isStayingOpen = true;
 		self.stayOpenTimer:Reset();
@@ -200,16 +185,7 @@ function Update(self)
 	elseif self.isStayingOpen and not self:IsInventoryEmpty() then
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
-			local item = self:RemoveInventoryItemAtIndex(0);
-			item.Pos = self.Pos;
-			item.Team = self.currentTeam;
-			MovableMan:AddMO(item);
-			self.spawnTimer:Reset();
-		end
-
-		-- Wait until we spawn the next guy
-		if self:IsInventoryEmpty() then
-			self.cooldownTimer:Reset();
+			self:RequestSyncedUpdate();
 		end
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -252,21 +228,58 @@ function Update(self)
 				if actor.Team ~= self.Team then
 					self.Unusable = true;
 				end
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.orderPieSlice, self);
 				self.closeActorTable[actor.UniqueID] = actor.UniqueID;
 			end
 		end
+		
+		self:RequestSyncedUpdate();
+	end
+	
+	if not self.messageTimer:IsPastSimMS(self.messageTime) then
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos, self.Message, true, 1);
+	end
+	
+	PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
+	
+	if self.Unusable then
+		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -20), "UNUSABLE", true, 1);
+		self:SetNumberValue("BuyDoor_Unusable", 1);
+	else
+		self:RemoveNumberValue("BuyDoor_Unusable");
+	end
+	
+end
+
+function SyncedUpdate(self)
+	if self.isStayingOpen and not self:IsInventoryEmpty() and self.spawnTimer:IsPastSimMS(self.spawnDelay) then
+		self.spawnTimer:Reset();
+
+		local item = self:RemoveInventoryItemAtIndex(0);
+		item.Pos = self.Pos;
+		item.Team = self.currentTeam;
+		MovableMan:AddMO(item);
+
+		-- Wait until we spawn the next guy
+		if self:IsInventoryEmpty() then
+			self.cooldownTimer:Reset();
+		end
+	end
+
+	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
+		-- TODO pawnis fix me!
+		--self.actorUpdateTimer:Reset();
 		
 		for k, v in pairs(self.closeActorTable) do
 			local actor = MovableMan:FindObjectByUniqueID(v);
 			if actor and MovableMan:ValidMO(actor) then
 				actor = ToActor(actor);
-				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, true).Magnitude;
-				if dist > self.detectRange then
+				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, true);
+				if dist:MagnitudeIsGreaterThan(self.detectRange) then
 					actor.PieMenu:RemovePieSlicesByPresetName(self.orderPieSlice.PresetName);
 					actor:RemoveNumberValue("BuyDoor_Order");
 					self.closeActorTable[k] = nil;
 				else
+					actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.orderPieSlice, self);
 					if actor:NumberValueExists("BuyDoor_Order") then
 						actor:RemoveNumberValue("BuyDoor_Order");
 						if self:IsInventoryEmpty() and not self.Unusable then
@@ -320,24 +333,9 @@ function Update(self)
 			end
 		end
 	end
-	
-	if not self.messageTimer:IsPastSimMS(self.messageTime) then
-		PrimitiveMan:DrawTextPrimitive(self.console.Pos, self.Message, true, 1);
-	end
-	
-	PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, 20), "Team: " .. self.Team, true, 1);
-	
-	if self.Unusable then
-		PrimitiveMan:DrawTextPrimitive(self.console.Pos + Vector(0, -20), "UNUSABLE", true, 1);
-		self:SetNumberValue("BuyDoor_Unusable", 1);
-	else
-		self:RemoveNumberValue("BuyDoor_Unusable");
-	end
-	
 end
 
 function OnSave(self)
-
 	self.saveLoadHandler:SaveMOLocally(self, "savedConsoleMO", self.console);
 	self:SetNumberValue("isStayingOpen", self.isStayingOpen and 1 or 0);
 	self:SetNumberValue("cooldownTimer", self.cooldownTimer.ElapsedRealTimeMS);
