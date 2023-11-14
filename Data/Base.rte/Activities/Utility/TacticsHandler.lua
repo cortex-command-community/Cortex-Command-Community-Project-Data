@@ -101,7 +101,7 @@ function TacticsHandler:ReapplyAllTasks()
 				self:RetaskSquad(squad, team);
 			else
 				local task = self:GetTaskByName(taskName, team);
-				self:ApplyTaskToSquad(squad, task);
+				self:ApplyTaskToSquadActors(squad.Actors, task);
 			end
 		end
 	end
@@ -152,7 +152,7 @@ function TacticsHandler:PickTask(team)
 	
 end
 
-function TacticsHandler:ApplyTaskToSquad(squad, task)
+function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 	if task then	
 		print("Applying Task:" .. task.Name)
 		squad.taskName = task.Name;
@@ -209,7 +209,8 @@ function TacticsHandler:RetaskSquad(squad, team)
 	print("retasking squad with task name: " .. squad.taskName)
 
 	local newTask = self:PickTask(team);
-	return self:ApplyTaskToSquad(squad, newTask);
+	squad.taskName = newTask.Name;
+	return self:ApplyTaskToSquadActors(squad.Actors, newTask);
 end
 
 function TacticsHandler:RemoveTask(name, team)
@@ -377,7 +378,7 @@ function TacticsHandler:UpdateSquads(team)
 						elseif task.Type == "Defend" then
 							if actor:NumberValueExists("tacticsHandlerRandomStopDistance") then
 								local dist = SceneMan:ShortestDistance(actor.Pos, task.Position, SceneMan.SceneWrapsX);
-								if dist < actor:GetNumberValue("tacticsHandlerRandomStopDistance") then
+								if dist.Magnitude < actor:GetNumberValue("tacticsHandlerRandomStopDistance") then
 									actor:ClearAIWaypoints();
 									actor.AIMode = Actor.AIMODE_SENTRY;
 								end
@@ -390,7 +391,7 @@ function TacticsHandler:UpdateSquads(team)
 								if actorIndex == #self.teamList[team].squadList[i].Actors and wholePatrolSquadIdle == true then
 									-- if we're the last one and the whole squad is ready to go
 									print("fullsquad")
-									self:ApplyTaskToSquad(self.teamList[team].squadList[i].Actors, task)
+									self:ApplyTaskToSquadActors(self.teamList[team].squadList[i].Actors, task)
 								end
 							else
 								print("squad: " .. i .. "patrolsquadnotfullyidle")
@@ -401,7 +402,7 @@ function TacticsHandler:UpdateSquads(team)
 						if actor:GetLastAIWaypoint().Magnitude == 0 then
 							-- our waypoint is 0, 0, so something's gone wrong
 							print("weirdwaypoint")
-							--self:ApplyTaskToSquad(self.teamList[team].squadList[i], task);
+							--self:ApplyTaskToSquadActors(self.teamList[team].squadList[i], task);
 						end
 					end
 				end

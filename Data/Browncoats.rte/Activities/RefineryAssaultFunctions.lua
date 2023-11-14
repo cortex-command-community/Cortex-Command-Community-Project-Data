@@ -5,7 +5,7 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
 	if success then
-		self.tacticsHandler:ApplyTaskToSquad(squad, task);
+		self.tacticsHandler:ApplyTaskToSquadActors(squad, task);
 		self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
 		return squad
 	end
@@ -60,7 +60,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			if randomSelection then
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
-					self.tacticsHandler:ApplyTaskToSquad(order, task);
+					self.tacticsHandler:ApplyTaskToSquadActors(order, task);
 					self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
 					return order;
 				end
@@ -79,7 +79,7 @@ function RefineryAssault:SetupStartingActors()
 	local AHumanTable = {};
 	-- brownies don't really have acrabs, do they?
 	local ACrabTable = {};
-	
+
 	for actor in MovableMan.AddedActors do
 		-- any actors that are just Actor are likely buy doors or
 		-- other misc objects. however, ahumans and acrabs are only actual units
@@ -92,16 +92,18 @@ function RefineryAssault:SetupStartingActors()
 	end
 	
 	self.enemyActorTables.stage1 = {};
+	local stage1Squad = {};
 	for k, actor in ipairs(AHumanTable) do
 		if SceneMan.Scene:WithinArea("Mission Stage Area 1", actor.Pos) then
 			table.insert(self.enemyActorTables.stage1, actor);
+			table.insert(stage1Squad, actor);
 			print("Found this actor in stage 1 area: " .. actor.PresetName);
 		end
 	end
 	
 	-- One big happy squad
 	
-	self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.enemyActorTables.stage1, "Sentry");
+	self.tacticsHandler:AddTaskedSquad(self.aiTeam, stage1Squad, "Sentry");
 	
 end
 
@@ -170,7 +172,7 @@ end
 function RefineryAssault:MonitorStage1()
 
 	for k, actor in pairs(self.enemyActorTables.stage1) do
-		if not actor or not MovableMan:ValidMO(actor) then
+		if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
 			table.remove(self.enemyActorTables.stage1, k);
 		end
 	end
@@ -209,8 +211,7 @@ function RefineryAssault:MonitorStage1()
 		self.tacticsHandler:AddTask("Defend Hack Console 2", self.aiTeam, taskPos, "Defend", 10);
 		
 		self.tacticsHandler:RemoveTask("Sentry", self.aiTeam);
-		self.tacticsHandler:RemoveTask("Search And Destroy 1", self.humanTeam);
-		self.tacticsHandler:RemoveTask("Search And Destroy 2", self.humanTeam);		
+		self.tacticsHandler:RemoveTask("Search And Destroy", self.humanTeam);
 		
 	end	
 	

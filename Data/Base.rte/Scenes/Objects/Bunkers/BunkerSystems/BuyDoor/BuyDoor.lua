@@ -186,6 +186,19 @@ function Update(self)
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 			self:RequestSyncedUpdate();
+			self.spawnTimer:Reset();
+			
+			print("trynaspawn")
+
+			local item = self:RemoveInventoryItemAtIndex(0);
+			item.Pos = self.Pos;
+			item.Team = self.currentTeam;
+			MovableMan:AddMO(item);
+
+			-- Wait until we spawn the next guy
+			if self:IsInventoryEmpty() then
+				self.cooldownTimer:Reset();
+			end
 		end
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -251,8 +264,10 @@ function Update(self)
 end
 
 function SyncedUpdate(self)
-	if self.isStayingOpen and not self:IsInventoryEmpty() and self.spawnTimer:IsPastSimMS(self.spawnDelay) then
+	if self.isStayingOpen and (not self:IsInventoryEmpty()) and self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 		self.spawnTimer:Reset();
+		
+		--print("trynaspawn")
 
 		local item = self:RemoveInventoryItemAtIndex(0);
 		item.Pos = self.Pos;
@@ -267,7 +282,7 @@ function SyncedUpdate(self)
 
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
 		-- TODO pawnis fix me!
-		--self.actorUpdateTimer:Reset();
+		self.actorUpdateTimer:Reset();
 		
 		for k, v in pairs(self.closeActorTable) do
 			local actor = MovableMan:FindObjectByUniqueID(v);

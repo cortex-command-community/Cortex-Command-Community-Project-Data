@@ -1,0 +1,1 @@
+for a in MovableMan.Actors do if a.Team == 1 and a.ClassName == "AHuman" then a.Health = 0 end end

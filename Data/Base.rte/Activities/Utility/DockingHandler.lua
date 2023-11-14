@@ -318,7 +318,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 		
 			local craft = self.mainTable.playerDSDockWaitList[i];
 			
-			if not craft then
+			if not craft or not MovableMan:ValidMO(craft) then
 				table.remove(self.mainTable.playerDSDockWaitList, i)
 				
 				-- this break will make everyone wait for 4 seconds again, but that's fine
