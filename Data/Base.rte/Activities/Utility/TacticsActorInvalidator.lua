@@ -34,6 +34,8 @@ function OnMessage(self, message, squadInfo)
 		self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 		self.saveLoadHandler:Initialize(self);
 		
+	elseif message == "TacticsHandler_UpdateSquadIndex" then
+		self.tacticsHandlerSquadInfo.squadIndex = squadInfo;
 	end
 	
 end
@@ -47,10 +49,10 @@ end
 
 function Destroy(self)
 
-	if self.PresetName then
-		print("On Destroy, we invalidated this actor of team " .. self.Team);
-		print(self.PresetName)
-	end
+--	if self.PresetName then
+--		print("On Destroy, we invalidated this actor of team " .. self.Team);
+---		print(self.PresetName)
+--	end
 	local activity = ActivityMan:GetActivity();
 	if activity then
 		activity:SendMessage("TacticsHandler_InvalidateActor", self.tacticsHandlerSquadInfo);

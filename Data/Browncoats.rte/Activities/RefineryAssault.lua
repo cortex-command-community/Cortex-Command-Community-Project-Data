@@ -298,7 +298,7 @@ function RefineryAssault:UpdateActivity()
 	
 	if task then
 		--print("gottask")
-		local squad = self:SendBuyDoorDelivery(team, task);
+		--local squad = self:SendBuyDoorDelivery(team, task);
 		if squad then
 			self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
 		elseif team == self.humanTeam then

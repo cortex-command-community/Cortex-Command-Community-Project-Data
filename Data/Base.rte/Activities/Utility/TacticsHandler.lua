@@ -85,16 +85,8 @@ end
 
 function TacticsHandler:InvalidateActor(infoTable)
 
-	print(infoTable.Team)
-	print(infoTable.squadIndex)
-	print(infoTable.actorIndex)
-
-	self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = nil;
+	self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = false;
 	--print("actor invalidated through function")
-	if #self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors == 0 then
-		print("removed wiped squad")
-		table.remove(self.teamList[infoTable.Team].squadList, infoTable.squadIndex) -- squad wiped, remove it
-	end
 	
 end
 
@@ -202,7 +194,7 @@ function TacticsHandler:ApplyTaskToSquad(squad, task)
 				end
 			else
 				print("during task application, actor was invalidated")
-				actor = nil; -- do some cleanup while we're at it
+				actor = false; -- do some cleanup while we're at it
 			end
 		end
 	else
@@ -338,22 +330,41 @@ function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 	
 end
 
+function TacticsHandler:CommunicateSquadIndexesToActors()
+
+	for team = 0, #self.teamList do
+		for squad = 1, #self.teamList[team].squadList do
+			for actorIndex = 1, #self.teamList[team].squadList[squad].Actors do
+				if actor then
+					actor:SendMessage("TacticsHandler_UpdateSquadIndex", squad);
+				end
+			end
+		end
+	end
+
+end
+
 function TacticsHandler:UpdateSquads(team)
 
 	--print("now checking team: " .. team);
+	
+	local squadRemoved = false;
 
-	for i = 1, #self.teamList[team].squadList do
+	-- backwards iterate to remove safely
+	for i = #self.teamList[team].squadList, 1, -1 do
 		local task = self:GetTaskByName(self.teamList[team].squadList[i].taskName, team);
 		if task then
 		
 			local task = self:GetTaskByName(self.teamList[team].squadList[i].taskName, team);
 			
 			local wholePatrolSquadIdle = true;
+			local noActors = true;
 			
 			for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
 				local actor = self.teamList[team].squadList[i].Actors[actorIndex];
 				--print(actor)
 				if actor then
+					noActors = false;
 					actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
 				
 					actor:FlashWhite(100);
@@ -392,29 +403,24 @@ function TacticsHandler:UpdateSquads(team)
 						print("weirdwaypoint")
 						--self:ApplyTaskToSquad(self.teamList[team].squadList[i], task);
 					end
-							
-
-				else
-					print("actor invalid")
-					self.teamList[team].squadList[i].Actors[actorIndex] = nil; -- actor no longer actual
-					if #self.teamList[team].squadList[i].Actors == 0 then
-						print("removed wiped squad")
-						table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
-						break;
-					end
 				end
 			end
 			
-			if #self.teamList[team].squadList[i].Actors == 0 then
-				-- how'd this even get here?
-				print("removed everything ahhh")
+			if noActors then
+				print("removed wiped squad")
 				table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
+				squadRemoved = true;
 			end
 		else
 			--print("retasking not actual task")
 		
 			self:RetaskSquad(self.teamList[team].squadList[i], team);
 		end
+	end
+	
+	-- squad indexes have shifted if we've removed any, so tell all the actors that
+	if squadRemoved then
+		self:CommunicateSquadIndexesToActors()
 	end
 
 end
