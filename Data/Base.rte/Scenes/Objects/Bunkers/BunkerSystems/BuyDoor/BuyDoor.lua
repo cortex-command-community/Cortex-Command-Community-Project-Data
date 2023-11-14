@@ -1,7 +1,8 @@
 --[[MULTITHREAD]]--
 
 function OnMessage(self, message, orderList)
-	if self:IsInventoryEmpty() then
+	print("message gotten?")
+	--if self:IsInventoryEmpty() then
 		if message == "BuyDoor_CustomTableOrder" then
 			self.Unusable = true;
 			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
@@ -15,7 +16,7 @@ function OnMessage(self, message, orderList)
 				print("Buy Door was given a custom table order, but it had no items!");
 			end
 		end
-	end
+	--end
 
 end
 
@@ -25,12 +26,17 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 	local finalOrder = {};
 
 	if isCustomOrder then
-		for i = 1, #orderList do
-			local item = orderList[i];
-			print(item)
-			table.insert(finalOrder, item);
-			self.currentTeam = item.Team;
-		end
+		-- hopefully added to inv for us...
+		
+		-- for i = 1, #orderList do
+			-- local item = orderList[i];
+			-- print(item)
+			-- table.insert(finalOrder, item);
+			-- self.currentTeam = item.Team;
+		-- end
+		
+		return finalOrder;
+		
 	else
 
 		for item in orderList do
@@ -254,16 +260,12 @@ function Update(self)
 end
 
 function SyncedUpdate(self)
-	print("hello i am an error free print")
-	print("isstayingopen: " .. tostring(self.isStayingOpen))
-	print(self:IsInventoryEmpty());
-	print(self.spawnTimer:IsPastSimMS(self.spawnDelay))
 	if self.isStayingOpen and not self:IsInventoryEmpty() and self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 		self.spawnTimer:Reset();
 
 		local item = self:RemoveInventoryItemAtIndex(0);
 		item.Pos = self.Pos;
-		item.Team = self.currentTeam;
+		--item.Team = self.currentTeam;
 		MovableMan:AddMO(item);
 
 		-- Wait until we spawn the next guy
@@ -274,7 +276,7 @@ function SyncedUpdate(self)
 
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
 		-- TODO pawnis fix me!
-		--self.actorUpdateTimer:Reset();
+		self.actorUpdateTimer:Reset();
 		
 		for k, v in pairs(self.closeActorTable) do
 			local actor = MovableMan:FindObjectByUniqueID(v);

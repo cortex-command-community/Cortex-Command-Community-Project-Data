@@ -97,8 +97,11 @@ function BuyDoorHandler:SendCustomOrder(order, team, specificIndex)
 	
 	if specificIndex then
 		--print("specificattempted")
-		if not self.buyDoorTable[specificIndex]:NumberValueExists("BuyDoor_Unusable") then
-			self.buyDoorTable[specificIndex]:SendMessage("BuyDoor_CustomTableOrder", order);
+		if (not self.buyDoorTable[specificIndex]:NumberValueExists("BuyDoor_Unusable")) and self.buyDoorTable[specificIndex]:IsInventoryEmpty() then
+			for k, item in pairs(order) do
+				self.buyDoorTable[specificIndex]:AddInventoryItem(item);
+			end
+			self.buyDoorTable[specificIndex]:SendMessage("BuyDoor_CustomTableOrder");
 		else
 			--print("Buy Door Handler was asked to send a custom order to a busy specific index!");
 			return false;
@@ -108,7 +111,7 @@ function BuyDoorHandler:SendCustomOrder(order, team, specificIndex)
 		-- it's either busy or has enemies nearby if it can't
 		local usableIndexesTable = {};
 		for i = 1, #self.buyDoorTable do
-			if not self.buyDoorTable[i]:NumberValueExists("BuyDoor_Unusable") and (team and self.buyDoorTable[i].Team == team) or (not team) then
+			if self.buyDoorTable[specificIndex]:IsInventoryEmpty() and not self.buyDoorTable[i]:NumberValueExists("BuyDoor_Unusable") and (team and self.buyDoorTable[i].Team == team) or (not team) then
 				table.insert(usableIndexesTable, i);
 			end
 		end
