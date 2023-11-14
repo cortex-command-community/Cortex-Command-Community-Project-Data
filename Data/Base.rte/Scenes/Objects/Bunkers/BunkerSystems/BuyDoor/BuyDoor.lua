@@ -266,7 +266,8 @@ function SyncedUpdate(self)
 	end
 
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
-		self.actorUpdateTimer:Reset();
+		-- TODO pawnis fix me!
+		--self.actorUpdateTimer:Reset();
 		
 		for k, v in pairs(self.closeActorTable) do
 			local actor = MovableMan:FindObjectByUniqueID(v);
