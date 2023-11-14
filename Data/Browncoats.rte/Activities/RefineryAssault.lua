@@ -20,15 +20,7 @@ function RefineryAssault:OnMessage(message, object)
 		end
 		
 		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
-		
-		self.tacticsHandler:AddTask("Attack Hack Console 2", 0, taskPos, "Attack", 10);
-		self.tacticsHandler:AddTask("Defend Hack Console 2", 1, taskPos, "Defend", 10);		
 	
-		self.tacticsHandler:RemoveTask("Attack Hack Console 1", 0)
-		self.tacticsHandler:RemoveTask("Defend Hack Console 1", 1)
-	
-		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable1");
-		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryTestCapturable2");
 		print("triedtoswitchcapturables")
 	elseif message == "Captured_RefineryTestCapturable2" then
 	
@@ -39,7 +31,6 @@ function RefineryAssault:OnMessage(message, object)
 			v.Team = self.humanTeam;
 		end
 	
-		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 	end
 
