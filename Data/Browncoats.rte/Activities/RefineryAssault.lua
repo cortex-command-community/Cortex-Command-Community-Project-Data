@@ -111,7 +111,7 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
-	self.goldIncreaseAmount = 500;
+	self.goldIncreaseAmount = 250;
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self);

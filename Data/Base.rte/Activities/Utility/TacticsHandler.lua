@@ -85,8 +85,16 @@ end
 
 function TacticsHandler:InvalidateActor(infoTable)
 
+	print(infoTable.Team)
+	print(infoTable.squadIndex)
+	print(infoTable.actorIndex)
+
 	self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = nil;
 	--print("actor invalidated through function")
+	if #self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors == 0 then
+		print("removed wiped squad")
+		table.remove(self.teamList[infoTable.Team].squadList, infoTable.squadIndex) -- squad wiped, remove it
+	end
 	
 end
 
@@ -154,19 +162,21 @@ end
 
 function TacticsHandler:ApplyTaskToSquad(squad, task)
 	if task then	
-		--print("Applying Task:" .. task.Name)
+		print("Applying Task:" .. task.Name)
 		squad.taskName = task.Name;
 		local randomPatrolPoint;
 		if task.Type == "PatrolArea" then
 			randomPatrolPoint = task.Position.RandomPoint;
 		end
 		for actorIndex = 1, #squad do
-			local actor = ToActor(squad[actorIndex]);
+			local actor = squad[actorIndex];
 			-- Todo, due to oddities with how this terrible game is programmed, actor can theoretically point to an actor that shouldn't belong to us anymore
 			-- This is due to memory pooling and MOs being reused. In fact, this game somehow managed to survive with a in-built memory corruption any time everything was deleted, for *years*
 			-- And it only worked because of memory pooling hiding it. Terrible.
 			-- Anyways, we should probably store uniqueIds instead and look those up at point of usage
 			if actor then
+				actor = ToActor(squad[actorIndex]);
+				actor:FlashWhite(1000);
 				actor:ClearAIWaypoints();
 				if task.Type == "Defend" or task.Type == "Attack" then
 
@@ -183,8 +193,7 @@ function TacticsHandler:ApplyTaskToSquad(squad, task)
 				elseif task.Type == "PatrolArea" then
 					actor.AIMode = Actor.AIMODE_GOTO;
 					actor:AddAISceneWaypoint(randomPatrolPoint);
-					print("chosen patrol point:");
-					print(randomPatrolPoint)
+					print("officially changed ai mode")
 					actor:UpdateMovePath();
 				elseif task.Type == "Sentry" then
 					actor.AIMode = Actor.AIMODE_SENTRY;
@@ -342,10 +351,12 @@ function TacticsHandler:UpdateSquads(team)
 			local wholePatrolSquadIdle = true;
 			
 			for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
-				local actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
+				local actor = self.teamList[team].squadList[i].Actors[actorIndex];
+				--print(actor)
 				if actor then
+					actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
 				
-					actor:FlashWhite(1000);
+					actor:FlashWhite(100);
 					--print("detected actor! " .. actor.PresetName .. " of team " .. actor.Team);
 
 					-- all is well, update task
@@ -363,12 +374,12 @@ function TacticsHandler:UpdateSquads(team)
 						local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint());
 						print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
 						if dist.Magnitude < 40 then
-							Actor.AIMode = Actor.AIMODE_SENTRY;
+							--Actor.AIMode = Actor.AIMODE_SENTRY;
 							print("ready to go!")
 							if actorIndex == #self.teamList[team].squadList[i].Actors and wholePatrolSquadIdle == true then
 								-- if we're the last one and the whole squad is ready to go
 								print("fullsquad")
-								self:ApplyTaskToSquad(self.teamList[team].squadList[i], task)
+								self:ApplyTaskToSquad(self.teamList[team].squadList[i].Actors, task)
 							end
 						else
 							print("squad: " .. i .. "patrolsquadnotfullyidle")
@@ -379,7 +390,7 @@ function TacticsHandler:UpdateSquads(team)
 					if actor:GetLastAIWaypoint().Magnitude == 0 then
 						-- our waypoint is 0, 0, so something's gone wrong
 						print("weirdwaypoint")
-						self:ApplyTaskToSquad(self.teamList[team].squadList[i], task);
+						--self:ApplyTaskToSquad(self.teamList[team].squadList[i], task);
 					end
 							
 
