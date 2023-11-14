@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 function Create(self)
 	self.ageRatio = 1;
 	--A separate delay for lifetime control is used to preserve animation speed
@@ -17,7 +19,9 @@ function Create(self)
 	
 	-- i am not sure why this grass interaction occurs, but i'm not going to remove it, Chesterton's Fence and all
 	self.grassInteraction = self:NumberValueExists("DisableGrassInteraction") and false or true;
-	
+
+	self.extraPar = nil;
+	self.damage = 0;
 end
 
 function Update(self)
@@ -25,16 +29,18 @@ function Update(self)
 	self:NotResting();
 	--TODO: Use Throttle to combine multiple flames into one
 	self.Throttle = self.Throttle - TimerMan.DeltaTimeMS/self.Lifetime;
+	self.damage = 0;
 
-	if self.target and IsMOSRotating(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete and (self.teamAware == false or self.target.Team ~= self.Team) then
+	if self.target and IsMOSRotating(self.target) and self.target.ID ~= rte.NoMOID and not self.target.ToDelete and (self.teamAware == false or self.target.Team ~= self.Team) and MovableMan:ValidMO(self.target) then
 		self.Vel = Vector();
 		self.Pos = self.target.Pos + Vector(self.stickOffset.X, self.stickOffset.Y):RadRotate(self.target.RotAngle - self.targetStickAngle);
 		local actor = self.target:GetRootParent();
-		if MovableMan:IsActor(actor) then
+		if IsActor(actor) then
 			actor = ToActor(actor);
-			actor.Health = actor.Health - math.max(self.target.DamageMultiplier * (self.Throttle + 1), 0.1)/((actor.Mass - actor.InventoryMass) * 0.5 + self.target.Material.StructuralIntegrity);
+			self.damage = math.max(self.target.DamageMultiplier * (self.Throttle + 1), 0.1)/((actor.Mass - actor.InventoryMass) * 0.5 + self.target.Material.StructuralIntegrity);
 			--Stop, drop and roll!
 			self.deleteDelay = self.deleteDelay - math.abs(actor.AngularVel);
+			self:RequestSyncedUpdate();
 		end
 	else
 		self.target = nil;
@@ -44,11 +50,21 @@ function Update(self)
 			extraPar.Team = self.Team;
 			extraPar.IgnoresTeamHits = true;
 			extraPar.Vel = self.Vel + Vector(RangeRand(-20, 20), -math.random(-10, 30));
-			MovableMan:AddParticle(extraPar);
+			self.extraPar = extraPar;
+			self:RequestSyncedUpdate();
 		end
 	end
 	if self.Age > self.deleteDelay then
 		self.ToDelete = true;
+	end
+end
+
+function SyncedUpdate(self)
+	if self.target and self.damage ~= 0 then
+		local actor = ToActor(self.target);
+		actor.Health = actor.Health - self.damage;
+	elseif self.extraPar then
+		MovableMan:AddParticle(extraPar);
 	end
 end
 

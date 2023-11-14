@@ -19,14 +19,24 @@ function Update(self)
 					local mo = MovableMan:GetMOFromID(lowerCheck):GetRootParent();
 					if mo and mo.Team == self.Team and IsActor(mo) then
 						self.grabbedMO = ToActor(mo);
+						self:RequestSyncedUpdate();
 						break;
 					end
 				end
 			end
 		end
 
-		if self.grabbedMO == nil and SceneMan:CastStrengthRay(self.Pos, Vector(self.width * self.FlipFactor, 0), 10, Vector(), 1, rte.airID, SceneMan.SceneWrapsX) then
+		local controller = self:GetController();
+		local dir = 0;
+		if controller:IsState(Controller.MOVE_RIGHT) then
+			dir = 1;
+		elseif controller:IsState(Controller.MOVE_LEFT) then
+			dir = -1
+		end
+
+		if self.grabbedMO == nil and dir ~= 0 and SceneMan:CastStrengthRay(self.Pos, Vector(self.width * self.FlipFactor, 0), 10, Vector(), 1, rte.airID, SceneMan.SceneWrapsX) then
 			self.climbingWall = true;
+			self:RequestSyncedUpdate();
 		end
 	end
 end

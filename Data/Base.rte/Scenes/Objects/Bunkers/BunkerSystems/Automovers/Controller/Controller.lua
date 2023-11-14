@@ -653,45 +653,43 @@ end
 automoverUtilityFunctions.findClosestNode = function(self, positionToFindClosestNodeFor, nodeToCheckForPathsFrom, checkForLineOfSight, checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas)
 	tracy.ZoneBegin();
 	local teamNodeTable = AutomoverData[self.Team].nodeData;
-	local teamTeleporterTable = AutomoverData[self.Team].teleporterNodes;
 
-	if pathfinderTeam == nil then
-		pathfinderTeam = self.Team;
+	local nodesToCheck = teamNodeTable;
+	if nodeToCheckForPathsFrom ~= nil then
+		nodesToCheck = self.pathTable[nodeToCheckForPathsFrom];
 	end
 
 	local closestNode;
 	local distanceToClosestNodeSqr;
-	local lengthOfScenePathToClosestNode;
-	for node, nodeData in pairs(teamNodeTable) do
-		if nodeToCheckForPathsFrom == nil or (self.pathTable[nodeToCheckForPathsFrom] ~= nil and self.pathTable[nodeToCheckForPathsFrom][node] ~= nil) then
-			local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
-			if distanceToClosestNodeSqr == nil or distanceToNode.SqrMagnitude < distanceToClosestNodeSqr then
-				local nodeSatisfiesConditions = true;
-				if checkForLineOfSight then
-					nodeSatisfiesConditions = not SceneMan:CastStrengthRay(node.Pos, distanceToNode, 15, Vector(), 4, 0, true);
-				end
-				if nodeSatisfiesConditions and checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas then
-					nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
-					if not nodeSatisfiesConditions then
-						local connectingAreaDirectionToCheck = Directions.None;
-						if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
-							connectingAreaDirectionToCheck = Directions.Up;
-						elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
-							connectingAreaDirectionToCheck = Directions.Down;
-						elseif distanceToNode.X + (nodeData.size.X * 0.5) < 0 then
-							connectingAreaDirectionToCheck = Directions.Left;
-						elseif distanceToNode.X - (nodeData.size.X * 0.5) > 0 then
-							connectingAreaDirectionToCheck = Directions.Right;
-						end
-						if connectingAreaDirectionToCheck ~= Directions.None and nodeData.connectingAreas[connectingAreaDirectionToCheck] ~= nil then
-							nodeSatisfiesConditions = nodeData.connectingAreas[connectingAreaDirectionToCheck]:IsInside(positionToFindClosestNodeFor);
-						end
+	for node, _ in pairs(nodesToCheck) do
+		local nodeData = teamNodeTable[node];
+		local distanceToNode = SceneMan:ShortestDistance(node.Pos, positionToFindClosestNodeFor, self.checkWrapping);
+		if distanceToClosestNodeSqr == nil or distanceToNode.SqrMagnitude < distanceToClosestNodeSqr then
+			local nodeSatisfiesConditions = true;
+			if checkForLineOfSight then
+				nodeSatisfiesConditions = not SceneMan:CastStrengthRay(node.Pos, distanceToNode, 15, Vector(), 4, 0, true);
+			end
+			if nodeSatisfiesConditions and checkThatPositionIsInsideNodeZoneBoxOrConnectingAreas then
+				nodeSatisfiesConditions = nodeData.zoneBox:IsWithinBox(positionToFindClosestNodeFor);
+				if not nodeSatisfiesConditions then
+					local connectingAreaDirectionToCheck = Directions.None;
+					if distanceToNode.Y + (nodeData.size.Y * 0.5) < 0 then
+						connectingAreaDirectionToCheck = Directions.Up;
+					elseif distanceToNode.Y - (nodeData.size.Y * 0.5) > 0 then
+						connectingAreaDirectionToCheck = Directions.Down;
+					elseif distanceToNode.X + (nodeData.size.X * 0.5) < 0 then
+						connectingAreaDirectionToCheck = Directions.Left;
+					elseif distanceToNode.X - (nodeData.size.X * 0.5) > 0 then
+						connectingAreaDirectionToCheck = Directions.Right;
+					end
+					if connectingAreaDirectionToCheck ~= Directions.None and nodeData.connectingAreas[connectingAreaDirectionToCheck] ~= nil then
+						nodeSatisfiesConditions = nodeData.connectingAreas[connectingAreaDirectionToCheck]:IsInside(positionToFindClosestNodeFor);
 					end
 				end
-				if nodeSatisfiesConditions then
-					closestNode = node;
-					distanceToClosestNodeSqr = distanceToNode.SqrMagnitude;
-				end
+			end
+			if nodeSatisfiesConditions then
+				closestNode = node;
+				distanceToClosestNodeSqr = distanceToNode.SqrMagnitude;
 			end
 		end
 	end
@@ -881,7 +879,6 @@ automoverActorFunctions.checkForNewActors = function(self)
 end
 
 automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
-	print("ADDED!")
 	self.affectedActors[actor.UniqueID] = {
 		actor = actor,
 		movementMode = self.movementModes.freeze,
@@ -890,10 +887,6 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		currentClosestNode = self:findClosestNode(actor.Pos, nil, false, false),
 		waypointData = nil,
 	};
-
-	print(actor.Pos);
-	print(self.affectedActors[actor.UniqueID].currentClosestNode);
-	print(self.affectedActors[actor.UniqueID].currentClosestNode.Pos);
 
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
@@ -904,7 +897,6 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 end
 
 automoverActorFunctions.removeActorFromAutomoverTable = function(self, actor, optionalActorUniqueID)
-	print("REMOVED!")
 	if actor.UniqueID ~= 0 and optionalActorUniqueID == nil then
 		optionalActorUniqueID = actor.UniqueID;
 	end
@@ -1089,6 +1081,17 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 		end
 
 		analogMove = wptPos - actor.Pos;
+
+		-- the ai only removes points if it's not flying and moving, so let's remove the point if needed
+		if analogMove:MagnitudeIsLessThan(3) then
+			actor:RemoveMovePathBeginning();
+		end
+
+		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
+			-- choose a random direction to get unstuck
+			-- TODO, it'd be better if the AI logic can communicate this to us instead!
+			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
+		end
 	end
 
 	local deadZone = 0.1;
@@ -1484,6 +1487,7 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
+	local oldClosestNode = actorData.currentClosestNode;
 	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
 	actorData.currentClosestNode = closestNode;
 	if not closestNode then
@@ -1497,10 +1501,12 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local isStuck = actorData.movementMode == self.movementModes.unstickActor;
 	forceCentring = forceCentring or isStuck;
 	local directionToUseForCentering;
+	local directionConnectingArea;
 	if not forceCentring and not teamNodeTable[closestNode].zoneBox:IsWithinBox(actor.Pos) then
 		for direction, connectingArea in pairs(teamNodeTable[closestNode].connectingAreas) do
 			if connectingArea:IsInside(actor.Pos) then
 				directionToUseForCentering = direction;
+				directionConnectingArea = connectingArea;
 				break;
 			end
 		end
@@ -1522,6 +1528,29 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
 		for _, centeringAxis in pairs(centeringAxes) do
+			if actor.MovePathSize > 0 then
+				-- Collect all points ahead of us in the box to adjust to centre
+				local positionsToFixUp = {};
+				for pos in actor.MovePath do
+					if pos[centeringAxis] == closestNode.Pos[centeringAxis] or directionConnectingArea == nil or not directionConnectingArea:IsInside(pos) then
+						break;
+					end
+					local adjustedPos = pos;
+					adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
+					table.insert(positionsToFixUp, adjustedPos);
+				end
+
+				-- Clear these points from our move path
+				for i = 1, #positionsToFixUp do
+					actor:RemoveMovePathBeginning();
+				end
+
+				-- And add the adjusted point back in (in reverse order, as they're at the beginning of our movepath)
+				for i = #positionsToFixUp, 1, -1 do
+					actor:AddToMovePathBeginning(positionsToFixUp[i]);
+				end
+			end
+
 			if distanceToClosestNode[centeringAxis] > centeringSpeedAndDistance then
 				actor.Vel[centeringAxis] = -centeringSpeedAndDistance + gravityAdjustment[centeringAxis];
 			elseif distanceToClosestNode[centeringAxis] < -centeringSpeedAndDistance then

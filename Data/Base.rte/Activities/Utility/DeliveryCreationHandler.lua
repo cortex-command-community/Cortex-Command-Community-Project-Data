@@ -241,7 +241,7 @@ function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, sq
 	
 	local goldCost = ToSceneObject(craft):GetTotalValue(self.teamTechIDTable[team], 1);
 	
-	return craft, goldCost
+	return craft, squad, goldCost
 end
 
 return DeliveryCreationHandler:Create();

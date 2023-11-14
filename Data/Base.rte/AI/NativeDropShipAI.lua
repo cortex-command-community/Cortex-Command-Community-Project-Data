@@ -75,7 +75,15 @@ function NativeDropShipAI:Update(Owner)
 
 		if Owner.AIMode == Actor.AIMODE_RETURN then
 			self.DeliveryState = ACraft.LAUNCH;
-			self.Waypoint = Vector(Owner.Pos.X, -500); -- Go to orbit
+			if SceneMan.SceneOrbitDirection == 0 then -- Go to orbit, whichever way it is
+				self.Waypoint = Vector(Owner.Pos.X, -5000);
+			elseif SceneMan.SceneOrbitDirection == 1 then
+				self.Waypoint = Vector(Owner.Pos.X, SceneMan.SceneHeight + 5000);
+			elseif SceneMan.SceneOrbitDirection == 2 then
+				self.Waypoint = Vector(-5000, Owner.Pos.Y);
+			elseif SceneMan.SceneOrbitDirection == 3 then
+				self.Waypoint = Vector(SceneMan.SceneWidth + 5000, Owner.Pos.Y);
+			end
 		elseif Owner.AIMode == Actor.AIMODE_GOTO then
 			self.Waypoint = nil;
 		elseif Owner.AIMode == Actor.AIMODE_SENTRY then
@@ -231,7 +239,15 @@ function NativeDropShipAI:Update(Owner)
 				if Owner.AIMode ~= Actor.AIMODE_STAY then
 					self.DeliveryState = ACraft.LAUNCH;
 					self.HatchTimer:Reset();
-					self.Waypoint.Y = -500; -- Go to orbit
+					if SceneMan.SceneOrbitDirection == 0 then -- Go to orbit, whichever way it is
+						self.Waypoint = Vector(Owner.Pos.X, -5000);
+					elseif SceneMan.SceneOrbitDirection == 1 then
+						self.Waypoint = Vector(Owner.Pos.X, SceneMan.SceneHeight + 5000);
+					elseif SceneMan.SceneOrbitDirection == 2 then
+						self.Waypoint = Vector(-5000, Owner.Pos.Y);
+					elseif SceneMan.SceneOrbitDirection == 3 then
+						self.Waypoint = Vector(SceneMan.SceneWidth + 5000, Owner.Pos.Y);
+					end
 				end
 			else
 				local dist = SceneMan:ShortestDistance(Owner.Pos, self.Waypoint, false);

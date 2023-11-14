@@ -1,10 +1,12 @@
 function Create(self)
 
-	if self:LoadString("tacticsActorInvalidatorSquadInfo") ~= "" then
+	if self:StringValueExists("tacticsActorInvalidatorSquadInfo") ~= "" then
 		--print("tried to create load serialized invalidator")
 		--print(self:LoadString("tacticsActorInvalidatorSquadInfo"))
-		self.tacticsHandlerSquadInfo = loadstring("return " .. self:LoadString("tacticsActorInvalidatorSquadInfo"))()
+		self.tacticsHandlerSquadInfo = loadstring("return " .. self:GetStringValue("tacticsActorInvalidatorSquadInfo"))()
 	end
+	
+	self:SetMovePathToUpdate(); -- if we travel a lot before getting out of a dropship, our task movepath can get all sortsa messed up.
 	
 end
 
@@ -28,7 +30,7 @@ end
 function OnSave(self)
 
 	--print("tried to save...?")
-	self:SaveString("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))		
+	self:SetStringValue("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))		
 
 end
 

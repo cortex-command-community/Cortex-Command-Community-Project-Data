@@ -375,6 +375,8 @@ function DockingHandler:UpdateUndersideDockingCraft()
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						dockTable.dockingStage = 5;
+						craft:ClearAIWaypoints();
+						craft.AIMode = Actor.AIMODE_RETURN;
 						craft:CloseHatch();
 						
 					end	
@@ -391,9 +393,8 @@ function DockingHandler:UpdateUndersideDockingCraft()
 						if craft:IsInventoryEmpty() then
 							craft:ClearAIWaypoints();
 							craft:AddAISceneWaypoint(dockTable.dockPosition);
-							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, SceneMan.Scene.Height + 2000));
 							craft.AIMode = Actor.AIMODE_GOTO;
-							dockTable.dockingStage = 5;
+							dockTable.dockingStage = 4;
 							craft:CloseHatch();
 						end
 					end	

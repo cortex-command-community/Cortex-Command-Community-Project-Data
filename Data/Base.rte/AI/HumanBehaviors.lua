@@ -2,10 +2,13 @@
 HumanBehaviors = {};
 
 function HumanBehaviors.GetTeamShootingSkill(team)
-	local skill = 50;
+	local skill = 80;
 	local Activ = ActivityMan:GetActivity();
 	if Activ then
-		skill = Activ:GetTeamAISkill(team);
+		-- i am fancy mathematician, doing fancy mathematics
+		-- this weigh actor skill heavily towards 100
+		local num = (Activ:GetTeamAISkill(team)/100);
+		skill = (1 - math.pow(1 - num, 3)) * 100;
 	end
 
 	local aimSpeed, aimSkill;
@@ -1267,7 +1270,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 				AI.jump = false;
 				AI.lateralMoveState = Actor.LAT_STILL;
 			end
-		elseif not AI.flying and UpdatePathTimer:IsPastSimTimeLimit() then
+		elseif UpdatePathTimer:IsPastSimTimeLimit() then
 			UpdatePathTimer:Reset();
 
 			AI.deviceState = AHuman.STILL;
@@ -1687,7 +1690,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								if _abrt then return true end
 							end
 
-							if CurrDist:MagnitudeIsGreaterThan(Owner.Height * 0.4) then	-- not close enough to the waypoint
+							if CurrDist:MagnitudeIsGreaterThan(Owner.MoveProximityLimit) then	-- not close enough to the waypoint
 								ArrivedTimer:Reset();
 
 								-- check if we have LOS to the waypoint
