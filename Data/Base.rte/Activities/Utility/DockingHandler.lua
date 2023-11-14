@@ -236,10 +236,10 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 		craft:UpdateMovePath();
 	else
 		--print("failed")
-		return false;
 	end
 	
-	return true;
+	return dockingSuccess;
+
 end
 
 function DockingHandler:UpdateUndersideDockingCraft()

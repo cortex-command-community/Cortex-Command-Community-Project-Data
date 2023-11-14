@@ -1,12 +1,11 @@
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
 	local craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
-	
-	self.tacticsHandler:ApplyTaskToSquad(squad, task);
 		
 	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
 	if success then
+		self.tacticsHandler:ApplyTaskToSquad(squad, task);
 		self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
 		return squad
 	end
@@ -23,9 +22,6 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 	
 	if order then
 		if task then
-		
-			--print("buydoor?")
-			self.tacticsHandler:ApplyTaskToSquad(order, task);
 			
 			local taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
 			-- check if it's in an area this team owns
@@ -64,6 +60,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			if randomSelection then
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
+					self.tacticsHandler:ApplyTaskToSquad(order, task);
 					self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
 					return order;
 				end
@@ -172,11 +169,9 @@ end
 
 function RefineryAssault:MonitorStage1()
 
-	for k, actor in ipairs(self.enemyActorTables.stage1) do
-		if not MovableMan:ValidMO(actor) then
+	for k, actor in pairs(self.enemyActorTables.stage1) do
+		if not actor or not MovableMan:ValidMO(actor) then
 			table.remove(self.enemyActorTables.stage1, k);
-			-- things get funky if we don't break here and re-loop
-			break;
 		end
 	end
 	
