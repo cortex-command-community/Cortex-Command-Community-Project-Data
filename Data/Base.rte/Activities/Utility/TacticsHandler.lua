@@ -192,7 +192,7 @@ function TacticsHandler:ApplyTaskToSquad(squad, task)
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
 			else
-				print("during retasking, actor was invalidated")
+				print("during task application, actor was invalidated")
 				actor = nil; -- do some cleanup while we're at it
 			end
 		end
@@ -331,6 +331,8 @@ end
 
 function TacticsHandler:UpdateSquads(team)
 
+	--print("now checking team: " .. team);
+
 	for i = 1, #self.teamList[team].squadList do
 		local task = self:GetTaskByName(self.teamList[team].squadList[i].taskName, team);
 		if task then
@@ -344,7 +346,7 @@ function TacticsHandler:UpdateSquads(team)
 				if actor then
 				
 					actor:FlashWhite(1000);
-					
+					--print("detected actor! " .. actor.PresetName .. " of team " .. actor.Team);
 
 					-- all is well, update task
 					if task.Type == "Attack" then
@@ -359,17 +361,26 @@ function TacticsHandler:UpdateSquads(team)
 						end
 					elseif task.Type == "PatrolArea" then
 						local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint());
-						if Actor.AIMode == Actor.AIMODE_SENTRY or (dist.Magnitude < 40) then
-							if actorIndex == #self.teamList[team].squadList[i].Actors and wholePatrolSquadIdle then
+						print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
+						if dist.Magnitude < 40 then
+							Actor.AIMode = Actor.AIMODE_SENTRY;
+							print("ready to go!")
+							if actorIndex == #self.teamList[team].squadList[i].Actors and wholePatrolSquadIdle == true then
 								-- if we're the last one and the whole squad is ready to go
+								print("fullsquad")
 								self:ApplyTaskToSquad(self.teamList[team].squadList[i], task)
 							end
 						else
-							print("patrolsquadnotfullyidle")
+							print("squad: " .. i .. "patrolsquadnotfullyidle")
 							wholePatrolSquadIdle = false;
 						end
 					end
 
+					if actor:GetLastAIWaypoint().Magnitude == 0 then
+						-- our waypoint is 0, 0, so something's gone wrong
+						print("weirdwaypoint")
+						self:ApplyTaskToSquad(self.teamList[team].squadList[i], task);
+					end
 							
 
 				else
@@ -385,6 +396,7 @@ function TacticsHandler:UpdateSquads(team)
 			
 			if #self.teamList[team].squadList[i].Actors == 0 then
 				-- how'd this even get here?
+				print("removed everything ahhh")
 				table.remove(self.teamList[team].squadList, i) -- squad wiped, remove it
 			end
 		else
@@ -405,7 +417,13 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 
 		-- check if we can afford a new tasked squad, tell the activity to send it in
 		local team = self.teamToCheckNext;
+		
 		self.teamToCheckNext = (self.teamToCheckNext + 1) % self.Activity.TeamCount;
+		
+		-- check and update all tasked squads
+		
+		self:UpdateSquads(team);
+		
 		if goldAmountsTable[team] > 0 then
 			--print("team " .. team .. " " .. goldAmountsTable[team]);
 			local task = self:PickTask(team);
@@ -415,10 +433,6 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 				print("found no tasks")
 			end
 		end
-		
-		-- check and update all tasked squads
-		
-		self:UpdateSquads(team);
 		
 	end
 	
