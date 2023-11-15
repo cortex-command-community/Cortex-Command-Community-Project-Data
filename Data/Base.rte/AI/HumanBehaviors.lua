@@ -1369,9 +1369,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								CornerPos = (NextWptPos + Free) / 2; -- compensate for obstacles
 							end
 
-							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-							if _abrt then return true end
-
 							-- check if we have LOS
 							Dist = SceneMan:ShortestDistance(Owner.Pos, CornerPos, false);
 							if 0 <= SceneMan:CastObstacleRay(Owner.Pos, Dist, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 2) then
@@ -1379,9 +1376,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								CornerPos.X = Owner.Pos.X; -- move CornerPos straight above us
 								cornerType = "air";
 							end
-
-							local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-							if _abrt then return true end
 
 							Waypoint = {Pos=CornerPos, Type=cornerType};
 							if WptList[2] and not WptList[1].Type then	-- remove the waypoint after the corner if possible
@@ -1463,7 +1457,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 						elseif Waypoint.Type == "last" then
 							ArrivedTimer:SetSimTimeLimitMS(600);
 						else	-- air or corner wpt
-							ArrivedTimer:SetSimTimeLimitMS(25);
+							ArrivedTimer:SetSimTimeLimitMS(0);
 						end
 					end
 				elseif WptList[2] then	-- check if some other waypoint is closer
@@ -1487,11 +1481,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 										Owner:RemoveMovePathBeginning();
 									end
 								end
-							end
-
-							if not AI.jump and not AI.flying then
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
 							end
 						end
 					end
@@ -1523,9 +1512,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 												WptList = nil; -- update the path
 												break;
 											end
-
-											local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-											if _abrt then return true end
 										else -- MOMoveTarget gone
 											return true;
 										end
@@ -1640,9 +1626,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 														Waypoint = nil;
 													end
 												end
-
-												local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-												if _abrt then return true end
 											elseif Owner.AIMode == Actor.AIMODE_GOLDDIG then
 												Waypoint.Pos = SceneMan:MovePointToGround(Waypoint.Pos, Owner.Height*0.2, 4);
 											end
@@ -1662,7 +1645,7 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 							end
 
 							-- Scan for obstacles
-							local Trace = Vector(Owner.Diameter*0.85, 0):RadRotate(scanAng);
+							local Trace = Vector(Owner.Radius*0.75, 0):RadRotate(scanAng);
 							local Free = Vector();
 							local index = math.floor(scanAng*2.5+2.01);
 							if SceneMan:CastObstacleRay(Owner.Pos, Trace, Vector(), Free, Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3) > -1 then
@@ -1685,12 +1668,12 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 							end
 
-							if not AI.jump and not AI.flying then
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
+							local tolerance = Owner.MoveProximityLimit;
+							if AI.jump then
+								tolerance = tolerance * 2;
 							end
 
-							if CurrDist:MagnitudeIsGreaterThan(Owner.MoveProximityLimit) then	-- not close enough to the waypoint
+							if CurrDist:MagnitudeIsGreaterThan(tolerance) then	-- not close enough to the waypoint
 								ArrivedTimer:Reset();
 
 								-- check if we have LOS to the waypoint
@@ -1704,11 +1687,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									if Owner.AIMode == Actor.AIMODE_GOLDDIG and digState == AHuman.NOTDIGGING and math.random() < 0.5 then
 										return true; -- end this behavior and look for gold again
 									end
-								end
-
-								if not AI.jump and not AI.flying then
-									local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-									if _abrt then return true end
 								end
 							elseif ArrivedTimer:IsPastSimTimeLimit() then	-- only remove a waypoint if we have been close to it for a while
 								if Waypoint.Type == "last" then
