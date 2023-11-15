@@ -57,7 +57,7 @@ function TacticsHandler:OnMessage(message, object)
 
 	--print("tacticshandlergotmessage")
 
-	if message == "TacticsHandler_InvalidateActor" then
+	if message == "TacticsHandler_InvalidateActor" and object then
 		self:InvalidateActor(object);
 		--print("was told to invalidate actor!")
 		--for k, v in pairs(object) do
@@ -199,7 +199,7 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
 			else
-				print("during task application, actor was invalidated")
+				--print("during task application, actor was invalidated")
 				actor = false; -- do some cleanup while we're at it
 			end
 		end

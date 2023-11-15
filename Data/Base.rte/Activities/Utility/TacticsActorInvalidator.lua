@@ -8,17 +8,6 @@ function Create(self)
 	
 end
 
-function Update(self)
-
-	if not self.pathUpdated then
-	
-		self.pathUpdated = true;
-		self:UpdateMovePath(); -- if we travel a lot before getting out of a dropship, our task movepath can get all sortsa messed up.
-	
-	end
-	
-end
-
 function OnMessage(self, message, squadInfo)
 
 	if message == "TacticsHandler_InitSquadInfo" then

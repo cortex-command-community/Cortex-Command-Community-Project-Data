@@ -19,6 +19,8 @@ function RefineryAssault:OnMessage(message, object)
 	
 		if object == self.humanTeam then
 		
+			print("HUMAN CAPTURED 1")
+		
 			-- if we have the other one, we have both, initiate win condition timer
 			if self.buyDoorTables.teamAreas[self.humanTeam].LC2 then
 				self.stage2HoldingBothConsoles = true;
@@ -50,6 +52,8 @@ function RefineryAssault:OnMessage(message, object)
 		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 	
 		if object == self.humanTeam then
+		
+			print("HUMAN CAPTURED 2")
 		
 			-- if we have the other one, we have both, initiate win condition timer
 			if self.buyDoorTables.teamAreas[self.humanTeam].LC1 then

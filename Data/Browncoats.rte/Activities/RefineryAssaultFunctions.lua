@@ -253,7 +253,7 @@ function RefineryAssault:MonitorStage1()
 		
 		for k, actor in pairs(self.enemyActorTables.stage1CounterAttActors) do
 			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
-				table.remove(stage1CounterAttActors, k);
+				table.remove(self.enemyActorTables.stage1CounterAttActors, k);
 			end
 		end
 		
