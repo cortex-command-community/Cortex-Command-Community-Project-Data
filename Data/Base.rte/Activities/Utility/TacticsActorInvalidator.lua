@@ -13,8 +13,6 @@ function Update(self)
 	if not self.pathUpdated then
 	
 		self.pathUpdated = true;
-		print("updated")
-		print(self:GetLastAIWaypoint())
 		self:UpdateMovePath(); -- if we travel a lot before getting out of a dropship, our task movepath can get all sortsa messed up.
 	
 	end

@@ -1,10 +1,13 @@
 --[[MULTITHREAD]]--
 
 function OnMessage(self, message, orderList)
-	if self:IsInventoryEmpty() then
+	print("message gotten?")
+	--if self:IsInventoryEmpty() then
 		if message == "BuyDoor_CustomTableOrder" then
 			self.Unusable = true;
 			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
+			
+			print("WE HAVE GOTTEN AN ORDER")
 			
 			if finalOrder then
 				self.orderTimer:Reset();
@@ -13,7 +16,7 @@ function OnMessage(self, message, orderList)
 				print("Buy Door was given a custom table order, but it had no items!");
 			end
 		end
-	end
+	--end
 
 end
 
@@ -23,12 +26,17 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 	local finalOrder = {};
 
 	if isCustomOrder then
-		for i = 1, #orderList do
-			local item = orderList[i];
-			--print(item)
-			table.insert(finalOrder, item);
-			self.currentTeam = item.Team;
-		end
+		-- hopefully added to inv for us...
+		
+		-- for i = 1, #orderList do
+			-- local item = orderList[i];
+			-- print(item)
+			-- table.insert(finalOrder, item);
+			-- self.currentTeam = item.Team;
+		-- end
+		
+		return finalOrder;
+		
 	else
 
 		for item in orderList do
@@ -186,6 +194,7 @@ function Update(self)
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 			self:RequestSyncedUpdate();
+			print("GIVE ME SYNCED UPDATE NOW")
 		end
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
@@ -256,7 +265,7 @@ function SyncedUpdate(self)
 
 		local item = self:RemoveInventoryItemAtIndex(0);
 		item.Pos = self.Pos;
-		item.Team = self.currentTeam;
+		--item.Team = self.currentTeam;
 		MovableMan:AddMO(item);
 
 		-- Wait until we spawn the next guy
@@ -267,7 +276,7 @@ function SyncedUpdate(self)
 
 	if self.actorUpdateTimer:IsPastSimMS(self.actorUpdateDelay) then
 		-- TODO pawnis fix me!
-		--self.actorUpdateTimer:Reset();
+		self.actorUpdateTimer:Reset();
 		
 		for k, v in pairs(self.closeActorTable) do
 			local actor = MovableMan:FindObjectByUniqueID(v);
