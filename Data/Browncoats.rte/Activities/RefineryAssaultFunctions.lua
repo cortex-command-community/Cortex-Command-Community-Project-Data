@@ -1,7 +1,17 @@
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
-	local craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
-		
+	local squadCount = math.random(3, 4);
+
+	local craft;
+	local order;
+	local goldCost;
+
+	if squadType == "Elite" then
+		craft, squad, goldCost = self.deliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount);
+	else
+		craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType);
+	end
+	
 	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
 	if success then
@@ -16,7 +26,16 @@ end
 
 function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificIndex)
 
-	local order, goldCost = self.deliveryCreationHandler:CreateSquad(team);
+	local squadCount = math.random(1, 2);
+
+	local order;
+	local goldCost;
+
+	if squadType == "Elite" then
+		order, goldCost = self.deliveryCreationHandler:CreateEliteSquad(team, squadCount);
+	else
+		order, goldCost = self.deliveryCreationHandler:CreateSquad(team, squadCount, squadType);
+	end
 	
 	--print("tried order for team: " .. team);
 	
@@ -144,17 +163,17 @@ function RefineryAssault:SetupFirstStage()
 	local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
-	local squad = self:SendDockDelivery(self.humanTeam, task);
+	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
 	
-	squad = self:SendDockDelivery(self.humanTeam, task);
+	squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
 	
 	-- Set up player squad and dropship
 	
-	local dropShip = self.deliveryCreationHandler:CreateSquadWithCraft(self.humanTeam, false, 3);
+	local dropShip = self.deliveryCreationHandler:CreateEliteSquadWithCraft(self.humanTeam, false, 5);
 	local dropShipPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
 	dropShip.Team = self.humanTeam;
 	dropShip.Pos = dropShipPos;
