@@ -108,6 +108,71 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 
 end
 
+
+function RefineryAssault:GetAIFunds(team)
+
+	if team == self.humanTeam then
+		return self.humanAIFunds;
+	elseif team == self.aiTeam then
+		return self:GetTeamFunds(self.aiTeam);
+	end
+
+end
+
+function RefineryAssault:ChangeAIFunds(team, changeAmount)
+
+	if team == self.humanTeam then
+		self.humanAIFunds = self.humanAIFunds + changeAmount;
+	elseif team == self.aiTeam then
+		self:ChangeTeamFunds(changeAmount, self.aiTeam);
+	end
+
+end
+
+function RefineryAssault:UpdateFunds()
+
+	-- Gold increasing for teams
+	
+	local playerFunds = self:GetTeamFunds(self.humanTeam);
+	local aiTeamFunds = self:GetTeamFunds(self.aiTeam);
+
+	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
+	
+		self.goldTimer:Reset();
+		
+		self:SetTeamFunds(playerFunds + self.playerGoldIncreaseAmount, self.humanTeam);
+		self.humanAIFunds = self.humanAIFunds + self.humanAIGoldIncreaseAmount;
+		
+		self:SetTeamFunds(aiTeamFunds + self.aiTeamGoldIncreaseAmount, self.aiTeam);
+	
+	end
+
+	-- Debug view
+	
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
+		
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+		
+			local pos = CameraMan:GetOffset(player);
+			pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
+			--print(pos)
+			local yOffset = FrameMan.PlayerScreenHeight * 0.87;
+			local xOffset = Vector(FrameMan.PlayerScreenWidth * 0.33, 0);
+			pos.Y = pos.Y + yOffset
+			
+			local textPos = Vector(pos.X, pos.Y - 20);
+			PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
+			
+			local textPos = Vector(pos.X - 100, pos.Y - 20);
+			PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
+
+			
+		end
+		
+	end	
+
+end
+
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
@@ -140,9 +205,17 @@ function RefineryAssault:StartActivity(newGame)
 		end
 	end
 	
+	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
-	self.goldIncreaseAmount = 250;
+	
+	self.playerGoldIncreaseAmount = 5;	
+	self.humanAIGoldIncreaseAmount = 25;
+	
+	self.aiTeamGoldIncreaseAmount = 0;
+	
+	self.humanAIFunds = 1;
+	
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self);
@@ -319,27 +392,16 @@ function RefineryAssault:UpdateActivity()
 	self.stageFunc = self.stageFunctionTable[self.Stage];
 	self:stageFunc();
 
-	-- Gold increasing for teams
 
-	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
+	self:UpdateFunds();
 	
-		self.goldTimer:Reset();
-		
-		self:ChangeTeamFunds(self.goldIncreaseAmount, self.humanTeam);
-		self:ChangeTeamFunds(self.goldIncreaseAmount, self.aiTeam);
-	
-	end
 	
 	-- Seek tasks to create squads for
 	-- Only human team uses docks
 	
-	local goldAmountsTable = {};
-	goldAmountsTable[0] = self:GetTeamFunds(self.humanTeam);
-	goldAmountsTable[1] = self:GetTeamFunds(self.aiTeam);
+	local team, task = self.tacticsHandler:UpdateTacticsHandler();
 	
-	local team, task = self.tacticsHandler:UpdateTacticsHandler(goldAmountsTable);
-	
-	if task then
+	if task and self:GetAIFunds(team) > 0 then
 		--print("gottask")
 		local squad = self:SendBuyDoorDelivery(team, task);
 		if squad then

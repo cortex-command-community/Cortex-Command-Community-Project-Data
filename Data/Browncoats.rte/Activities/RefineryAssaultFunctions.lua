@@ -6,7 +6,7 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 			
 	if success then
 		self.tacticsHandler:ApplyTaskToSquadActors(squad, task);
-		self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
+		self:ChangeAIFunds(team, -goldCost);
 		return squad
 	end
 	
@@ -64,7 +64,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
 					self.tacticsHandler:ApplyTaskToSquadActors(order, task);
-					self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
+					self:ChangeAIFunds(team, -goldCost);
 					return order;
 				end
 			end
@@ -246,6 +246,13 @@ function RefineryAssault:MonitorStage1()
 			self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.enemyActorTables.stage1CounterAttActors, task.Name);
 			
 		end
+		
+		--Monies
+		
+		self.humanAIFunds = math.max(self.humanAIFunds, 0);
+		
+		self.aiTeamGoldIncreaseAmount = self.aiTeamGoldIncreaseAmount + 50;
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;
 		
 	end	
 	
