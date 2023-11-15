@@ -1,13 +1,13 @@
 --[[MULTITHREAD]]--
 
 function OnMessage(self, message, orderList)
-	print("message gotten?")
+	--print("message gotten?")
 	--if self:IsInventoryEmpty() then
 		if message == "BuyDoor_CustomTableOrder" then
 			self.Unusable = true;
 			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
 			
-			print("WE HAVE GOTTEN AN ORDER")
+			--print("WE HAVE GOTTEN AN ORDER")
 			
 			if finalOrder then
 				self.orderTimer:Reset();
@@ -194,7 +194,7 @@ function Update(self)
 		-- Spawn the next object
 		if self.spawnTimer:IsPastSimMS(self.spawnDelay) then
 			self:RequestSyncedUpdate();
-			print("GIVE ME SYNCED UPDATE NOW")
+			--print("GIVE ME SYNCED UPDATE NOW")
 		end
 	elseif self.isStayingOpen and not self.isClosing and self.stayOpenTimer:IsPastSimTimeLimit() then
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;

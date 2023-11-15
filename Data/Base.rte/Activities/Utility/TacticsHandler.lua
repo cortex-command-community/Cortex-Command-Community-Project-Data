@@ -59,10 +59,10 @@ function TacticsHandler:OnMessage(message, object)
 
 	if message == "TacticsHandler_InvalidateActor" then
 		self:InvalidateActor(object);
-		print("was told to invalidate actor!")
-		for k, v in pairs(object) do
-			print(k .. v);
-		end
+		--print("was told to invalidate actor!")
+		--for k, v in pairs(object) do
+		--	print(k .. v);
+		--end
 	end
 	
 end
@@ -84,6 +84,12 @@ function TacticsHandler:OnSave(saveLoadHandler)
 end
 
 function TacticsHandler:InvalidateActor(infoTable)
+
+	print("tried to invalidate, table values:")
+	for k, v in pairs(infoTable) do
+		print(k)
+		print(v)
+	end
 
 	self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = false;
 	--print("actor invalidated through function")
@@ -401,7 +407,7 @@ function TacticsHandler:UpdateSquads(team)
 
 						if actor:GetLastAIWaypoint().Magnitude == 0 then
 							-- our waypoint is 0, 0, so something's gone wrong
-							print("weirdwaypoint")
+							--print("weirdwaypoint")
 							--self:ApplyTaskToSquadActors(self.teamList[team].squadList[i], task);
 						end
 					end

@@ -91,14 +91,26 @@ function RefineryAssault:SetupStartingActors()
 		end
 	end
 	
+	-- i think sending a local table to tacticshandler avoids some issue, but as i write this comment
+	-- i can't remember what they are...
+	
 	self.enemyActorTables.stage1 = {};
+	self.enemyActorTables.stage1CounterAttActors = {};
+	
 	local stage1Squad = {};
+	
 	for k, actor in ipairs(AHumanTable) do
+	
 		if SceneMan.Scene:WithinArea("Mission Stage Area 1", actor.Pos) then
 			table.insert(self.enemyActorTables.stage1, actor);
 			table.insert(stage1Squad, actor);
-			print("Found this actor in stage 1 area: " .. actor.PresetName);
 		end
+		
+		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) then
+			table.insert(self.enemyActorTables.stage1CounterAttActors, actor);
+			actor.HFlipped = true; -- look the right way numbnuts
+		end		
+		
 	end
 	
 	-- One big happy squad
@@ -212,6 +224,25 @@ function RefineryAssault:MonitorStage1()
 		
 		self.tacticsHandler:RemoveTask("Sentry", self.aiTeam);
 		self.tacticsHandler:RemoveTask("Search And Destroy", self.humanTeam);
+		
+		-- Send the counterattack by setting up squad
+		
+		-- First check they still exist, could be dealing with a wise guy
+		
+		for k, actor in pairs(self.enemyActorTables.stage1CounterAttActors) do
+			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
+				table.remove(stage1CounterAttActors, k);
+			end
+		end
+		
+		if #self.enemyActorTables.stage1CounterAttActors > 0 then
+		
+			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
+			
+			self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.enemyActorTables.stage1CounterAttActors, task.Name);
+			
+		end
 		
 	end	
 	
