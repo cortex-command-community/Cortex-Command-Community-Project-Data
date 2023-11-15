@@ -12,26 +12,66 @@ function RefineryAssault:OnMessage(message, object)
 
 	if message == "Captured_RefineryTestCapturable1" then
 	
-		table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
-		self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
-		
-		for k, v in pairs(self.buyDoorTables.LC1) do
-			v.Team = self.humanTeam;
-		end
-		
-		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
+		self.stage2HoldTimer:Reset();
 	
-		print("triedtoswitchcapturables")
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
+	
+		if object == self.humanTeam then
+		
+			-- if we have the other one, we have both, initiate win condition timer
+			if self.buyDoorTables.teamAreas[self.humanTeam].LC2 then
+				self.stage2HoldingBothConsoles = true;
+			end
+	
+			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
+			self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC1) do
+				v.Team = self.humanTeam;
+			end
+		else
+			self.stage2HoldingBothConsoles = false;
+		
+			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC1");
+			self.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC1) do
+				v.Team = self.aiTeam;
+			end		
+		end
+	
+
 	elseif message == "Captured_RefineryTestCapturable2" then
 	
-		table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
-		self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
-
-		for k, v in pairs(self.buyDoorTables.LC2) do
-			v.Team = self.humanTeam;
-		end
+		self.stage2HoldTimer:Reset();
 	
-		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
+	
+		if object == self.humanTeam then
+		
+			-- if we have the other one, we have both, initiate win condition timer
+			if self.buyDoorTables.teamAreas[self.humanTeam].LC1 then
+				self.stage2HoldingBothConsoles = true;
+			end
+	
+			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
+			self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC2) do
+				v.Team = self.humanTeam;
+			end
+		else
+			self.stage2HoldingBothConsoles = false;
+			
+			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC2");
+			self.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC2) do
+				v.Team = self.aiTeam;
+			end		
+		end
 	end
 
 end
@@ -118,6 +158,12 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self);
+	
+	
+	-- Stage stuff
+	
+	self.stage2HoldTimer = Timer();
+	self.stage2TimeToHoldConsoles = 5000;
 	
 	if newGame then
 		
@@ -218,6 +264,9 @@ function RefineryAssault:ResumeLoadedGame()
 	
 	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
 	
+	self.stage2HoldingBothConsoles = self:LoadNumber("stage2HoldingBothConsoles") == 1 and true or false;
+	self.stage2HoldTimer.ElapsedRealTimeMS = self:LoadNumber("stage2HoldTimer");
+	
 	-- Handlers
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
 	self.dockingHandler:OnLoad(self.saveLoadHandler);
@@ -232,6 +281,9 @@ function RefineryAssault:OnSave()
 	self.saveLoadHandler:SaveTableAsString("buyDoorTables", self.buyDoorTables);
 	
 	self:SaveNumber("goldTimer", self.goldTimer.ElapsedRealTimeMS);
+	
+	self:SaveNumber("stage2HoldingBothConsoles", self.stage2HoldingBothConsoles and 1 or 0);
+	self:SaveNumber("stage2HoldTimer", self.stage2HoldTimer.ElapsedRealTimeMS);
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);

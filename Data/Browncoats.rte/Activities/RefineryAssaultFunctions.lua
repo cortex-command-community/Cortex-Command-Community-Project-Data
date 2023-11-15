@@ -24,6 +24,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 		if task then
 			
 			local taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
+			if taskPos.Name then -- ghetto-er Area check
+				taskPos = taskPos.RandomPoint;
+			end
 			-- check if it's in an area this team owns
 			local areaThisIsIn
 			for i = 1, #self.buyDoorTables.teamAreas[team] do
@@ -249,5 +252,9 @@ function RefineryAssault:MonitorStage1()
 end
 
 function RefineryAssault:MonitorStage2()
+
+	if self.stage2HoldingBothConsoles == true and self.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
+		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+	end
 	
 end
