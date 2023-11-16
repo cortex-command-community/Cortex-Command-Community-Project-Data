@@ -279,8 +279,8 @@ end
 
 function RefineryAssault:MonitorStage2()
 
-	print("stage 2 timer: " .. self.stage2HoldTimer.ElapsedSimTimeMS);
-	print(self.stage2HoldingBothConsoles)
+	--print("stage 2 timer: " .. self.stage2HoldTimer.ElapsedSimTimeMS);
+	--print(self.stage2HoldingBothConsoles)
 
 	if self.stage2HoldingBothConsoles == true and self.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
