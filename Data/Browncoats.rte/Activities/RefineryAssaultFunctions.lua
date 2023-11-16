@@ -139,6 +139,19 @@ function RefineryAssault:SetupStartingActors()
 	
 	self.tacticsHandler:AddTaskedSquad(self.aiTeam, stage1Squad, "Sentry");
 	
+	self.enemyActorTables.stage3FacilityOperator = {};
+	
+	-- note index access, we get a table back
+	local facilityOperator = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
+	local area = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3FacilityOperator");
+	local pos = SceneMan:MovePointToGround(area.Center, 50, 3);
+	
+	facilityOperator.Pos = pos;
+	MovableMan:AddActor(facilityOperator);
+	facilityOperator.AIMode = Actor.AIMODE_SENTRY;
+	
+	table.insert(self.enemyActorTables.stage3FacilityOperator, facilityOperator);
+	
 end
 
 function RefineryAssault:SetupFirstStage()
@@ -286,6 +299,11 @@ function RefineryAssault:MonitorStage2()
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 		self.Stage = 3;
 		
+		-- Capturable setup
+		
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable1");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
+		
 		-- Setup stage 3 consoles
 		
 		self.stage3Consoles = {};
@@ -314,8 +332,20 @@ end
 function RefineryAssault:MonitorStage3()
 
 	if self.stage3ConsolesBroken == 3 then
-		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
-		self.Stage = 4;
+	
+		for k, actor in pairs(self.enemyActorTables.stage1) do
+			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
+				table.remove(self.enemyActorTables.stage3FacilityOperator, k);
+			end
+		end
+		
+		if #self.enemyActorTables.stage3FacilityOperator == 0 then	
+	
+			self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+			self.Stage = 4;
+		
+		end
+		
 	end
 	
 end

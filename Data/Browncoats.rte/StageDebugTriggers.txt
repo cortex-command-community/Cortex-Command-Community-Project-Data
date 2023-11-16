@@ -1,1 +1,4 @@
-for a in MovableMan.Actors do if a.Team == 1 and a.ClassName == "AHuman" then a.Health = 0 end end
+
+Skip Stage 1
+
+for a in MovableMan.Actors do if a.Team == 1 and a.ClassName == "AHuman" and SceneMan.Scene:WithinArea("Mission Stage Area 1", a.Pos) then a.Health = 0 end end
