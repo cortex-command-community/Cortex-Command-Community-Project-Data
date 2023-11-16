@@ -34,6 +34,14 @@ function DeliveryCreationHandler:Initialize(activity)
 		self.teamTechIDTable[i] = PresetMan:GetModuleID(self.teamTechTable[i]);
 	end
 	
+	self.infantryTypeFunctionTable = {};
+	self.infantryTypeFunctionTable.Light = self.CreateLightInfantry;
+	self.infantryTypeFunctionTable.Medium = self.CreateMediumInfantry;
+	self.infantryTypeFunctionTable.Heavy = self.CreateHeavyInfantry;
+	self.infantryTypeFunctionTable.CQB = self.CreateCQBInfantry;
+	self.infantryTypeFunctionTable.Scout = self.CreateScoutInfantry;
+	self.infantryTypeFunctionTable.Grenadier = self.CreateGrenadierInfantry;
+	
 end
 
 function DeliveryCreationHandler:CreateCrab(team)
@@ -167,6 +175,31 @@ function DeliveryCreationHandler:CreateMediumInfantry(team)
 	end
 end
 
+function DeliveryCreationHandler:CreateCQBInfantry(team)
+	local actor = RandomAHuman("Actors - Light", self.teamTechTable[team]);
+	if actor.ModuleID ~= self.teamTechIDTable[team] then
+		actor = RandomAHuman("Actors", self.teamTechIDTable[team]);
+	end
+
+	if actor then
+		if math.random() < 0.15 then
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - CQB", self.teamTechTable[team]));
+		end
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.teamTechTable[team]));
+
+		if math.random() < 0.3 then
+			actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.teamTechTable[team]));
+		else
+			actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.teamTechTable[team]));
+			actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+
+		actor.AIMode = Actor.AIMODE_BRAINHUNT;
+		actor.Team = team;
+		return actor;
+	end
+end
+
 function DeliveryCreationHandler:CreateScoutInfantry(team)
 	local actor = RandomAHuman("Actors - Light", self.teamTechTable[team]);
 	if actor.ModuleID ~= self.teamTechIDTable[team] then
@@ -192,6 +225,35 @@ function DeliveryCreationHandler:CreateScoutInfantry(team)
 	end
 end
 
+function DeliveryCreationHandler:CreateGrenadierInfantry(team)
+	local actor = RandomAHuman("Actors - Heavy", self.teamTechTable[team]);
+	if actor.ModuleID ~= self.teamTechIDTable[team] then
+		actor = RandomAHuman("Actors", self.teamTechIDTable[team]);
+	end
+
+	if actor then
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Explosive", self.teamTechTable[team]));
+		actor:AddInventoryItem(RandomHDFirearm("Weapons - Secondary", self.teamTechTable[team]));
+
+		actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.teamTechTable[team]));
+		
+		if math.random() < 0.5 then
+			actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
+		end
+		if math.random() < 0.5 then
+			if math.random() < 0.75 then
+				actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.teamTechTable[team]));
+			else
+				actor:AddInventoryItem(RandomTDExplosive("Tools - Breaching", self.teamTechTable[team]));
+			end
+		end
+
+		actor.AIMode = Actor.AIMODE_BRAINHUNT;
+		actor.Team = team;
+		return actor;
+	end
+end
+
 function DeliveryCreationHandler:CreateSquad(team, squadCount, squadType)
 
 	local squadTable = {};
@@ -205,8 +267,9 @@ function DeliveryCreationHandler:CreateSquad(team, squadCount, squadType)
 
 	for i = 1, squadCount do
 		local actor;
-		if infantryType then
-			actor = self:CreateInfantry(team, infantryType);
+		if squadType then
+			self.infantryFunc = self.infantryTypeFunctionTable[squadType];
+			actor = self:infantryFunc(team);
 		elseif math.random() < crabToHumanSpawnRatio then
 			actor = self:CreateCrab(team);
 		else
@@ -221,6 +284,22 @@ function DeliveryCreationHandler:CreateSquad(team, squadCount, squadType)
 	--print("buydoor goldcost: " .. goldCost);
 	return squadTable, goldCost
 
+end
+
+function DeliveryCreationHandler:CreateEliteSquad(team, squadCount, squadType)
+
+	local squadTable, goldCost = self:CreateSquad(team, squadCount, squadType)
+	
+	for k, actor in pairs(squadTable) do
+		actor:SetNumberValue("AIAimSpeed", 0.04);
+		actor:SetNumberValue("AIAimSkill", 0.04);
+		actor:SetNumberValue("AISkill", 100);
+		actor.MaxHealth = actor.MaxHealth * 1.25;
+		actor.Health = actor.MaxHealth;
+	end
+	
+	return squadTable, goldCost
+	
 end
 
 function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType)
@@ -240,6 +319,21 @@ function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, sq
 	end
 	
 	local goldCost = ToSceneObject(craft):GetTotalValue(self.teamTechIDTable[team], 1);
+	
+	return craft, squad, goldCost
+end
+
+function DeliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount, squadType)
+
+	local craft, squad, goldCost = self:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType)
+	
+	for k, actor in pairs(squad) do
+		actor:SetNumberValue("AIAimSpeed", 0.04);
+		actor:SetNumberValue("AIAimSkill", 0.04);
+		actor:SetNumberValue("AISkill", 100);
+		actor.MaxHealth = actor.MaxHealth * 1.25;
+		actor.Health = actor.MaxHealth;
+	end
 	
 	return craft, squad, goldCost
 end

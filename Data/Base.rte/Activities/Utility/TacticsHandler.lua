@@ -57,12 +57,12 @@ function TacticsHandler:OnMessage(message, object)
 
 	--print("tacticshandlergotmessage")
 
-	if message == "TacticsHandler_InvalidateActor" then
+	if message == "TacticsHandler_InvalidateActor" and object then
 		self:InvalidateActor(object);
-		print("was told to invalidate actor!")
-		for k, v in pairs(object) do
-			print(k .. v);
-		end
+		--print("was told to invalidate actor!")
+		--for k, v in pairs(object) do
+		--	print(k .. v);
+		--end
 	end
 	
 end
@@ -84,6 +84,12 @@ function TacticsHandler:OnSave(saveLoadHandler)
 end
 
 function TacticsHandler:InvalidateActor(infoTable)
+
+	print("tried to invalidate, table values:")
+	for k, v in pairs(infoTable) do
+		print(k)
+		print(v)
+	end
 
 	self.teamList[infoTable.Team].squadList[infoTable.squadIndex].Actors[infoTable.actorIndex] = false;
 	--print("actor invalidated through function")
@@ -193,7 +199,7 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
 			else
-				print("during task application, actor was invalidated")
+				--print("during task application, actor was invalidated")
 				actor = false; -- do some cleanup while we're at it
 			end
 		end
@@ -401,7 +407,7 @@ function TacticsHandler:UpdateSquads(team)
 
 						if actor:GetLastAIWaypoint().Magnitude == 0 then
 							-- our waypoint is 0, 0, so something's gone wrong
-							print("weirdwaypoint")
+							--print("weirdwaypoint")
 							--self:ApplyTaskToSquadActors(self.teamList[team].squadList[i], task);
 						end
 					end
@@ -427,14 +433,11 @@ function TacticsHandler:UpdateSquads(team)
 
 end
 
-function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
+function TacticsHandler:UpdateTacticsHandler()
 
 	if self.taskUpdateTimer:IsPastSimMS(self.taskUpdateDelay) then
 		self.taskUpdateTimer:Reset();
-		----print("tactics updated")
-		----print(self.teamToCheckNext)
 
-		-- check if we can afford a new tasked squad, tell the activity to send it in
 		local team = self.teamToCheckNext;
 		
 		self.teamToCheckNext = (self.teamToCheckNext + 1) % self.Activity.TeamCount;
@@ -443,14 +446,11 @@ function TacticsHandler:UpdateTacticsHandler(goldAmountsTable)
 		
 		self:UpdateSquads(team);
 		
-		if goldAmountsTable[team] > 0 then
-			--print("team " .. team .. " " .. goldAmountsTable[team]);
-			local task = self:PickTask(team);
-			if task then
-				return team, task;
-			else
-				print("found no tasks")
-			end
+		local task = self:PickTask(team);
+		if task then
+			return team, task;
+		else
+			print("found no tasks")
 		end
 		
 	end

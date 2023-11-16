@@ -1,12 +1,22 @@
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
-	local craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage);
-		
+	local squadCount = math.random(3, 4);
+
+	local craft;
+	local order;
+	local goldCost;
+
+	if squadType == "Elite" then
+		craft, squad, goldCost = self.deliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount);
+	else
+		craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType);
+	end
+	
 	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
 	if success then
 		self.tacticsHandler:ApplyTaskToSquadActors(squad, task);
-		self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
+		self:ChangeAIFunds(team, -goldCost);
 		return squad
 	end
 	
@@ -16,7 +26,16 @@ end
 
 function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificIndex)
 
-	local order, goldCost = self.deliveryCreationHandler:CreateSquad(team);
+	local squadCount = math.random(1, 2);
+
+	local order;
+	local goldCost;
+
+	if squadType == "Elite" then
+		order, goldCost = self.deliveryCreationHandler:CreateEliteSquad(team, squadCount);
+	else
+		order, goldCost = self.deliveryCreationHandler:CreateSquad(team, squadCount, squadType);
+	end
 	
 	--print("tried order for team: " .. team);
 	
@@ -24,6 +43,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 		if task then
 			
 			local taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
+			if taskPos.Name then -- ghetto-er Area check
+				taskPos = taskPos.RandomPoint;
+			end
 			-- check if it's in an area this team owns
 			local areaThisIsIn
 			for i = 1, #self.buyDoorTables.teamAreas[team] do
@@ -61,7 +83,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
 					self.tacticsHandler:ApplyTaskToSquadActors(order, task);
-					self:SetTeamFunds(self:GetTeamFunds(team) - goldCost, team);
+					self:ChangeAIFunds(team, -goldCost);
 					return order;
 				end
 			end
@@ -91,14 +113,26 @@ function RefineryAssault:SetupStartingActors()
 		end
 	end
 	
+	-- i think sending a local table to tacticshandler avoids some issue, but as i write this comment
+	-- i can't remember what they are...
+	
 	self.enemyActorTables.stage1 = {};
+	self.enemyActorTables.stage1CounterAttActors = {};
+	
 	local stage1Squad = {};
+	
 	for k, actor in ipairs(AHumanTable) do
+	
 		if SceneMan.Scene:WithinArea("Mission Stage Area 1", actor.Pos) then
 			table.insert(self.enemyActorTables.stage1, actor);
 			table.insert(stage1Squad, actor);
-			print("Found this actor in stage 1 area: " .. actor.PresetName);
 		end
+		
+		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) then
+			table.insert(self.enemyActorTables.stage1CounterAttActors, actor);
+			actor.HFlipped = true; -- look the right way numbnuts
+		end		
+		
 	end
 	
 	-- One big happy squad
@@ -129,17 +163,17 @@ function RefineryAssault:SetupFirstStage()
 	local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
-	local squad = self:SendDockDelivery(self.humanTeam, task);
+	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
 	
-	squad = self:SendDockDelivery(self.humanTeam, task);
+	squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
 	
 	-- Set up player squad and dropship
 	
-	local dropShip = self.deliveryCreationHandler:CreateSquadWithCraft(self.humanTeam, false, 3);
+	local dropShip = self.deliveryCreationHandler:CreateEliteSquadWithCraft(self.humanTeam, false, 5);
 	local dropShipPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
 	dropShip.Team = self.humanTeam;
 	dropShip.Pos = dropShipPos;
@@ -213,10 +247,50 @@ function RefineryAssault:MonitorStage1()
 		self.tacticsHandler:RemoveTask("Sentry", self.aiTeam);
 		self.tacticsHandler:RemoveTask("Search And Destroy", self.humanTeam);
 		
+		-- Send the counterattack by setting up squad
+		
+		-- First check they still exist, could be dealing with a wise guy
+		
+		for k, actor in pairs(self.enemyActorTables.stage1CounterAttActors) do
+			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
+				table.remove(self.enemyActorTables.stage1CounterAttActors, k);
+			end
+		end
+		
+		if #self.enemyActorTables.stage1CounterAttActors > 0 then
+		
+			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
+			
+			self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.enemyActorTables.stage1CounterAttActors, task.Name);
+			
+		end
+		
+		--Monies
+		
+		self.humanAIFunds = math.max(self.humanAIFunds, 0);
+		
+		self.aiTeamGoldIncreaseAmount = self.aiTeamGoldIncreaseAmount + 50;
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;
+		
 	end	
 	
 end
 
 function RefineryAssault:MonitorStage2()
+
+	--print("stage 2 timer: " .. self.stage2HoldTimer.ElapsedSimTimeMS);
+	--print(self.stage2HoldingBothConsoles)
+
+	if self.stage2HoldingBothConsoles == true and self.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
+		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+		self.Stage = 3
+	end
+	
+end
+
+function RefineryAssault:MonitorStage3()
+
+
 	
 end

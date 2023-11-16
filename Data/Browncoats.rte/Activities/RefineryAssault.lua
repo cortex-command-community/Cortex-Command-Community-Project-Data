@@ -6,32 +6,88 @@ function RefineryAssault:OnMessage(message, object)
 
 	self.tacticsHandler:OnMessage(message, object);
 
-	--print("activitygotmessage")
+	print("activitygotmessage")
 	
-	--print(message)
+	print(message)
+	print(object)
 
 	if message == "Captured_RefineryTestCapturable1" then
 	
-		table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
-		self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+		self.stage2HoldTimer:Reset();
+
+		print(self.humanTeam .. " team vs object: " .. object);
 		
-		for k, v in pairs(self.buyDoorTables.LC1) do
-			v.Team = self.humanTeam;
+		if object == self.humanTeam then
+		
+			print("HUMAN CAPTURED 1")
+			
+			self.stage2HoldingLC1 = true;
+		
+			-- if we have the other one, we have both, initiate win condition timer
+			if self.stage2HoldingLC2 then
+				self.stage2HoldingBothConsoles = true;
+			end
+	
+			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
+			self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC1) do
+				v.Team = self.humanTeam;
+			end
+		else
+			print("NOTHUMAN CAPPED 1");
+			print(self.humanTeam .. " team vs object: " .. object);
+			self.stage2HoldingLC1 = false;
+			self.stage2HoldingBothConsoles = false;
+		
+			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC1");
+			self.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC1) do
+				v.Team = self.aiTeam;
+			end		
 		end
 		
-		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 	
-		print("triedtoswitchcapturables")
+
 	elseif message == "Captured_RefineryTestCapturable2" then
 	
-		table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
-		self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
-
-		for k, v in pairs(self.buyDoorTables.LC2) do
-			v.Team = self.humanTeam;
-		end
+		self.stage2HoldTimer:Reset();
 	
-		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+		if object == self.humanTeam then
+		
+			print("HUMAN CAPTURED 2")
+			
+			self.stage2HoldingLC2 = true;
+		
+			-- if we have the other one, we have both, initiate win condition timer
+			if self.stage2HoldingLC1 then
+				self.stage2HoldingBothConsoles = true;
+			end
+	
+			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
+			self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC2) do
+				v.Team = self.humanTeam;
+			end
+		else
+			self.stage2HoldingLC2 = false;
+			self.stage2HoldingBothConsoles = false;
+			
+			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC2");
+			self.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC2) do
+				v.Team = self.aiTeam;
+			end		
+		end
+		
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
+		
 	end
 
 end
@@ -68,6 +124,71 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 
 end
 
+
+function RefineryAssault:GetAIFunds(team)
+
+	if team == self.humanTeam then
+		return self.humanAIFunds;
+	elseif team == self.aiTeam then
+		return self:GetTeamFunds(self.aiTeam);
+	end
+
+end
+
+function RefineryAssault:ChangeAIFunds(team, changeAmount)
+
+	if team == self.humanTeam then
+		self.humanAIFunds = self.humanAIFunds + changeAmount;
+	elseif team == self.aiTeam then
+		self:ChangeTeamFunds(changeAmount, self.aiTeam);
+	end
+
+end
+
+function RefineryAssault:UpdateFunds()
+
+	-- Gold increasing for teams
+	
+	local playerFunds = self:GetTeamFunds(self.humanTeam);
+	local aiTeamFunds = self:GetTeamFunds(self.aiTeam);
+
+	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
+	
+		self.goldTimer:Reset();
+		
+		self:SetTeamFunds(playerFunds + self.playerGoldIncreaseAmount, self.humanTeam);
+		self.humanAIFunds = self.humanAIFunds + self.humanAIGoldIncreaseAmount;
+		
+		self:SetTeamFunds(aiTeamFunds + self.aiTeamGoldIncreaseAmount, self.aiTeam);
+	
+	end
+
+	-- Debug view
+	
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
+		
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+		
+			local pos = CameraMan:GetOffset(player);
+			pos.X = pos.X + FrameMan.PlayerScreenWidth * 0.5;
+			--print(pos)
+			local yOffset = FrameMan.PlayerScreenHeight * 0.87;
+			local xOffset = Vector(FrameMan.PlayerScreenWidth * 0.33, 0);
+			pos.Y = pos.Y + yOffset
+			
+			local textPos = Vector(pos.X, pos.Y - 20);
+			PrimitiveMan:DrawTextPrimitive(textPos, "aiteam: " .. tostring(aiTeamFunds), false, 1)
+			
+			local textPos = Vector(pos.X - 100, pos.Y - 20);
+			PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
+
+			
+		end
+		
+	end	
+
+end
+
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
@@ -100,9 +221,17 @@ function RefineryAssault:StartActivity(newGame)
 		end
 	end
 	
+	
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
-	self.goldIncreaseAmount = 250;
+	
+	self.playerGoldIncreaseAmount = 5;	
+	self.humanAIGoldIncreaseAmount = 25;
+	
+	self.aiTeamGoldIncreaseAmount = 0;
+	
+	self.humanAIFunds = 1;
+	
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self);
@@ -118,6 +247,12 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self);
+	
+	
+	-- Stage stuff
+	
+	self.stage2HoldTimer = Timer();
+	self.stage2TimeToHoldConsoles = 5000;
 	
 	if newGame then
 		
@@ -163,6 +298,7 @@ function RefineryAssault:StartActivity(newGame)
 		self.stageFunctionTable = {};
 		table.insert(self.stageFunctionTable, self.MonitorStage1);
 		table.insert(self.stageFunctionTable, self.MonitorStage2);
+		table.insert(self.stageFunctionTable, self.MonitorStage3);
 
 		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 		automoverController.Pos = Vector();
@@ -218,6 +354,9 @@ function RefineryAssault:ResumeLoadedGame()
 	
 	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
 	
+	self.stage2HoldingBothConsoles = self:LoadNumber("stage2HoldingBothConsoles") == 1 and true or false;
+	self.stage2HoldTimer.ElapsedRealTimeMS = self:LoadNumber("stage2HoldTimer");
+	
 	-- Handlers
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
 	self.dockingHandler:OnLoad(self.saveLoadHandler);
@@ -232,6 +371,9 @@ function RefineryAssault:OnSave()
 	self.saveLoadHandler:SaveTableAsString("buyDoorTables", self.buyDoorTables);
 	
 	self:SaveNumber("goldTimer", self.goldTimer.ElapsedRealTimeMS);
+	
+	self:SaveNumber("stage2HoldingBothConsoles", self.stage2HoldingBothConsoles and 1 or 0);
+	self:SaveNumber("stage2HoldTimer", self.stage2HoldTimer.ElapsedRealTimeMS);
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);
@@ -262,32 +404,25 @@ end
 
 function RefineryAssault:UpdateActivity()
 
+	if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
+		self.ActivityState = Activity.EDITING;
+	end
+
 	-- Monitor stage objectives
 	
 	self.stageFunc = self.stageFunctionTable[self.Stage];
 	self:stageFunc();
 
-	-- Gold increasing for teams
 
-	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
+	self:UpdateFunds();
 	
-		self.goldTimer:Reset();
-		
-		self:ChangeTeamFunds(self.goldIncreaseAmount, self.humanTeam);
-		self:ChangeTeamFunds(self.goldIncreaseAmount, self.aiTeam);
-	
-	end
 	
 	-- Seek tasks to create squads for
 	-- Only human team uses docks
 	
-	local goldAmountsTable = {};
-	goldAmountsTable[0] = self:GetTeamFunds(self.humanTeam);
-	goldAmountsTable[1] = self:GetTeamFunds(self.aiTeam);
+	local team, task = self.tacticsHandler:UpdateTacticsHandler();
 	
-	local team, task = self.tacticsHandler:UpdateTacticsHandler(goldAmountsTable);
-	
-	if task then
+	if task and self:GetAIFunds(team) > 0 then
 		--print("gottask")
 		local squad = self:SendBuyDoorDelivery(team, task);
 		if squad then
