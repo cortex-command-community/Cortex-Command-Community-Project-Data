@@ -168,11 +168,9 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 		end
 		for actorIndex = 1, #squad do
 			local actor = squad[actorIndex];
-			-- Todo, due to oddities with how this terrible game is programmed, actor can theoretically point to an actor that shouldn't belong to us anymore
-			-- This is due to memory pooling and MOs being reused. In fact, this game somehow managed to survive with a in-built memory corruption any time everything was deleted, for *years*
-			-- And it only worked because of memory pooling hiding it. Terrible.
-			-- Anyways, we should probably store uniqueIds instead and look those up at point of usage
-			if actor then
+			-- this is really strange. actors can get turned into blank Entity s without us knowing about it.
+			-- no clue why it happens, but sanity check it here.
+			if actor and actor.PresetName ~= "" then
 				actor = ToActor(squad[actorIndex]);
 				actor:FlashWhite(1000);
 				actor:ClearAIWaypoints();
@@ -370,7 +368,9 @@ function TacticsHandler:UpdateSquads(team)
 			for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
 				local actor = self.teamList[team].squadList[i].Actors[actorIndex];
 				--print(actor)
-				if actor then
+				-- this is really strange. actors can get turned into blank Entity s without us knowing about it.
+				-- no clue why it happens, but sanity check it here.
+				if actor and actor.PresetName ~= "" then
 					noActors = false;
 					if actor.HasEverBeenAddedToMovableMan then
 						actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
@@ -411,6 +411,8 @@ function TacticsHandler:UpdateSquads(team)
 							--self:ApplyTaskToSquadActors(self.teamList[team].squadList[i], task);
 						end
 					end
+				else
+					actor = false;
 				end
 			end
 			
