@@ -20,7 +20,7 @@ function OnMessage(self, message, orderList)
 
 end
 
-function BuyDoorSetupOrder(self, orderList, isCustomOrder)
+function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 	local preActorItemList = {};
 	local lastActor
 	local finalOrder = {};
@@ -44,6 +44,10 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 			local typeCast = "To" .. class
 			
 			local clonedItem = _G[typeCast](item):Clone();
+			if IsActor(clonedItem) and team then
+				clonedItem.Team = team;
+				print(clonedItem)
+			end
 			if IsAHuman(item) then
 				lastActor = clonedItem;
 				if preActorItemList and #preActorItemList > 0 then
@@ -89,6 +93,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder)
 	-- Finally, add the order to our inventory
 	
 	for k, item in pairs(finalOrder) do
+		print(item)
 		self:AddInventoryItem(item);
 	end
 	
@@ -324,7 +329,7 @@ function SyncedUpdate(self)
 							
 							local orderList = buyGUI:GetOrderList();
 							
-							local finalOrder = BuyDoorSetupOrder(self, orderList);
+							local finalOrder = BuyDoorSetupOrder(self, orderList, false, team);
 							
 							if finalOrder then
 							

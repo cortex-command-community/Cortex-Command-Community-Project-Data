@@ -284,13 +284,42 @@ function RefineryAssault:MonitorStage2()
 
 	if self.stage2HoldingBothConsoles == true and self.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
-		self.Stage = 3
+		self.Stage = 3;
+		
+		-- Setup stage 3 consoles
+		
+		self.stage3Consoles = {};
+		
+		local i = 1;
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
+				table.insert(self.stage3Consoles, particle)
+				self.tacticsHandler:AddTask("Defend Refinery Console " .. i, self.aiTeam, particle, "Defend", 10);
+				self.tacticsHandler:AddTask("Attack Refinery Console " .. i, self.humanTeam, particle, "Attack", 10);
+				i = i + 1;
+			end
+		end
+		
+		self.tacticsHandler:RemoveTask("Attack Hack Console 1", self.humanTeam);
+		self.tacticsHandler:RemoveTask("Defend Hack Console 1", self.aiTeam);
+		
+		self.tacticsHandler:RemoveTask("Attack Hack Console 2", self.humanTeam);
+		self.tacticsHandler:RemoveTask("Defend Hack Console 2", self.aiTeam);
+		
 	end
 	
 end
 
 function RefineryAssault:MonitorStage3()
 
-
+	if self.stage3ConsolesBroken == 3 then
+		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+		self.Stage = 4;
+	end
 	
+end
+
+function RefineryAssault:MonitorStage4()
+
 end

@@ -88,6 +88,10 @@ function RefineryAssault:OnMessage(message, object)
 		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
 		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 		
+	elseif message == "RefineryAssault_RefineryConsoleBroken" then
+		
+		self.stage3ConsolesBroken = self.stage3ConsolesBroken + 1;
+		
 	end
 
 end
@@ -254,6 +258,8 @@ function RefineryAssault:StartActivity(newGame)
 	self.stage2HoldTimer = Timer();
 	self.stage2TimeToHoldConsoles = 5000;
 	
+	self.stage3ConsolesBroken = 0;
+	
 	if newGame then
 		
 		-- Always active base task for defenders
@@ -299,6 +305,7 @@ function RefineryAssault:StartActivity(newGame)
 		table.insert(self.stageFunctionTable, self.MonitorStage1);
 		table.insert(self.stageFunctionTable, self.MonitorStage2);
 		table.insert(self.stageFunctionTable, self.MonitorStage3);
+		table.insert(self.stageFunctionTable, self.MonitorStage4);
 
 		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 		automoverController.Pos = Vector();
@@ -307,7 +314,7 @@ function RefineryAssault:StartActivity(newGame)
 
 		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
 		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
-		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
+		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
 		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 		
 		-- Tell capturables to deactivate, we'll activate them as we go along
@@ -357,6 +364,8 @@ function RefineryAssault:ResumeLoadedGame()
 	self.stage2HoldingBothConsoles = self:LoadNumber("stage2HoldingBothConsoles") == 1 and true or false;
 	self.stage2HoldTimer.ElapsedRealTimeMS = self:LoadNumber("stage2HoldTimer");
 	
+	self.stage3ConsolesBroken = self:LoadNumber("stage3ConsolesBroken");
+	
 	-- Handlers
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
 	self.dockingHandler:OnLoad(self.saveLoadHandler);
@@ -374,6 +383,8 @@ function RefineryAssault:OnSave()
 	
 	self:SaveNumber("stage2HoldingBothConsoles", self.stage2HoldingBothConsoles and 1 or 0);
 	self:SaveNumber("stage2HoldTimer", self.stage2HoldTimer.ElapsedRealTimeMS);
+	
+	self:SaveNumber("stage3ConsolesBroken", self.stage2ConsolesBroken);
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);

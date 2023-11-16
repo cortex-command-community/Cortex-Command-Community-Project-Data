@@ -213,8 +213,12 @@ function TacticsHandler:RetaskSquad(squad, team)
 	print("retasking squad with task name: " .. squad.taskName)
 
 	local newTask = self:PickTask(team);
-	squad.taskName = newTask.Name;
-	return self:ApplyTaskToSquadActors(squad.Actors, newTask);
+	if newTask then
+		squad.taskName = newTask.Name;
+		return self:ApplyTaskToSquadActors(squad.Actors, newTask);
+	else
+		return false;
+	end
 end
 
 function TacticsHandler:RemoveTask(name, team)
@@ -379,11 +383,14 @@ function TacticsHandler:UpdateSquads(team)
 						--print("detected actor! " .. actor.PresetName .. " of team " .. actor.Team);
 
 						-- all is well, update task
+						
+						local pos = not task.Position.PresetName and task.Position or task.Position.Pos; -- severely ghetto MO check
+						
 						if task.Type == "Attack" then
 						
 						elseif task.Type == "Defend" then
 							if actor:NumberValueExists("tacticsHandlerRandomStopDistance") then
-								local dist = SceneMan:ShortestDistance(actor.Pos, task.Position, SceneMan.SceneWrapsX);
+								local dist = SceneMan:ShortestDistance(actor.Pos, pos, SceneMan.SceneWrapsX);
 								if dist.Magnitude < actor:GetNumberValue("tacticsHandlerRandomStopDistance") then
 									actor:ClearAIWaypoints();
 									actor.AIMode = Actor.AIMODE_SENTRY;
