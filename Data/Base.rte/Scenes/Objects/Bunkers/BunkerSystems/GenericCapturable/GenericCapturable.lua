@@ -171,7 +171,7 @@ function Update(self)
 					self.Team = self.dominantTeam;
 					self.FXcaptureSuccess = true;
 					print("shouldhavesentmessage: " .. self.messageOnCapture)
-					self.Activity:SendMessage(self.messageOnCapture, self.Team);
+					self.Activity:SendMessage(self.messageOnCapture, self.dominantTeam);
 				end
 			end
 

@@ -6,23 +6,25 @@ function RefineryAssault:OnMessage(message, object)
 
 	self.tacticsHandler:OnMessage(message, object);
 
-	--print("activitygotmessage")
+	print("activitygotmessage")
 	
-	--print(message)
+	print(message)
+	print(object)
 
 	if message == "Captured_RefineryTestCapturable1" then
 	
 		self.stage2HoldTimer:Reset();
-	
-		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
-		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
-	
+
+		print(self.humanTeam .. " team vs object: " .. object);
+		
 		if object == self.humanTeam then
 		
 			print("HUMAN CAPTURED 1")
+			
+			self.stage2HoldingLC1 = true;
 		
 			-- if we have the other one, we have both, initiate win condition timer
-			if self.buyDoorTables.teamAreas[self.humanTeam].LC2 then
+			if self.stage2HoldingLC2 then
 				self.stage2HoldingBothConsoles = true;
 			end
 	
@@ -33,6 +35,9 @@ function RefineryAssault:OnMessage(message, object)
 				v.Team = self.humanTeam;
 			end
 		else
+			print("NOTHUMAN CAPPED 1");
+			print(self.humanTeam .. " team vs object: " .. object);
+			self.stage2HoldingLC1 = false;
 			self.stage2HoldingBothConsoles = false;
 		
 			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC1");
@@ -42,21 +47,23 @@ function RefineryAssault:OnMessage(message, object)
 				v.Team = self.aiTeam;
 			end		
 		end
+		
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 	
 
 	elseif message == "Captured_RefineryTestCapturable2" then
 	
 		self.stage2HoldTimer:Reset();
 	
-		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
-		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
-	
 		if object == self.humanTeam then
 		
 			print("HUMAN CAPTURED 2")
+			
+			self.stage2HoldingLC2 = true;
 		
 			-- if we have the other one, we have both, initiate win condition timer
-			if self.buyDoorTables.teamAreas[self.humanTeam].LC1 then
+			if self.stage2HoldingLC1 then
 				self.stage2HoldingBothConsoles = true;
 			end
 	
@@ -67,6 +74,7 @@ function RefineryAssault:OnMessage(message, object)
 				v.Team = self.humanTeam;
 			end
 		else
+			self.stage2HoldingLC2 = false;
 			self.stage2HoldingBothConsoles = false;
 			
 			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC2");
@@ -76,6 +84,10 @@ function RefineryAssault:OnMessage(message, object)
 				v.Team = self.aiTeam;
 			end		
 		end
+		
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
+		
 	end
 
 end
@@ -286,6 +298,7 @@ function RefineryAssault:StartActivity(newGame)
 		self.stageFunctionTable = {};
 		table.insert(self.stageFunctionTable, self.MonitorStage1);
 		table.insert(self.stageFunctionTable, self.MonitorStage2);
+		table.insert(self.stageFunctionTable, self.MonitorStage3);
 
 		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 		automoverController.Pos = Vector();
@@ -390,6 +403,10 @@ end
 -----------------------------------------------------------------------------------------
 
 function RefineryAssault:UpdateActivity()
+
+	if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
+		self.ActivityState = Activity.EDITING;
+	end
 
 	-- Monitor stage objectives
 	
