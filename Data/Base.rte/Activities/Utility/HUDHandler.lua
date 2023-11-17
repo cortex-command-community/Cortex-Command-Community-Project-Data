@@ -127,7 +127,7 @@ function HUDHandler:RemoveObjective(objTeam, objInternalName)
 
 	for i, objTable in ipairs(self.mainTable.teamTables[objTeam].Objectives) do
 		if objTable.internalName == objInternalName then
-			table.remove(self.mainTable.teamTables[objTeam].Objectives, objTable);
+			table.remove(self.mainTable.teamTables[objTeam].Objectives, i);
 			break;
 		end
 	end

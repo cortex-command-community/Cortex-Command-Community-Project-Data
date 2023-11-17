@@ -243,13 +243,18 @@ end
 
 function RefineryAssault:MonitorStage1()
 
-	for k, actor in pairs(self.enemyActorTables.stage1) do
+	local noActors = true;
+
+	for i, actor in ipairs(self.enemyActorTables.stage1) do
 		if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
-			table.remove(self.enemyActorTables.stage1, k);
+			self.enemyActorTables.stage1[i] = false;
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S1KillEnemies" .. i);
+		else
+			noActors = false;
 		end
 	end
 	
-	if #self.enemyActorTables.stage1 == 0 then
+	if noActors then
 		-- stage completion!
 		self.Stage = 2;
 		
