@@ -6,7 +6,7 @@ function Create(self)
 	self.climbingWall = false;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.grabbedMO = nil;
 	self.climbingWall = false;
 

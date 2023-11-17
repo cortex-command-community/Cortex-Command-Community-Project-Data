@@ -12,7 +12,7 @@ function Create(self)
 	self.laserPar = nil;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if not self:IsReloading() and self.laserTimer:IsPastSimMS(self.laserCheckDelay) then
 		self.laserTimer:Reset();
 		local actor = self:GetRootParent();

@@ -190,7 +190,7 @@ function Create(self)
 	self.orderPieSlice = CreatePieSlice("Buy Door Order", "Base.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.Frame == self.FrameCount - 1 and not self.isStayingOpen and not self.isClosing then
 		self.isStayingOpen = true;
 		self.stayOpenTimer:Reset();

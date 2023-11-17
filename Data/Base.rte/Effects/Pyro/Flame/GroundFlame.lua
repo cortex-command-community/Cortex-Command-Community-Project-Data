@@ -12,7 +12,7 @@ function Create(self)
 	self.flameToAdd = nil;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.ageRatio = 1 - self.Age/self.Lifetime;
 	self:NotResting();
 	--TODO: Use Throttle to combine multiple flames into one

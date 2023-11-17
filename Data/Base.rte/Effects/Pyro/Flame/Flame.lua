@@ -24,7 +24,7 @@ function Create(self)
 	self.damage = 0;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.ageRatio = 1 - self.Age/self.deleteDelay;
 	self:NotResting();
 	--TODO: Use Throttle to combine multiple flames into one
