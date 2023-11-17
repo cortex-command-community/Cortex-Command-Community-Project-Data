@@ -121,11 +121,24 @@ function RefineryAssault:SetupStartingActors()
 	
 	local stage1Squad = {};
 	
-	for k, actor in ipairs(AHumanTable) do
+	for i, actor in ipairs(AHumanTable) do
 	
 		if SceneMan.Scene:WithinArea("Mission Stage Area 1", actor.Pos) then
 			table.insert(self.enemyActorTables.stage1, actor);
 			table.insert(stage1Squad, actor);
+			
+			-- Set up HUD handler objectives
+			
+			self.HUDHandler:AddObjective(self.humanTeam,
+			"S1KillEnemies" .. i,
+			"Kill",
+			"Attack",
+			"Clear the first hanging building of enemies",
+			"Secure an FOB for us to stage further attacks from.",
+			actor,
+			true,
+			true);
+			
 		end
 		
 		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) then
@@ -213,6 +226,18 @@ function RefineryAssault:SetupFirstStage()
 		
 	MovableMan:AddActor(dropShip)
 	dropShip:OpenHatch();
+	
+	-- HUD handler listed objective
+	
+	self.HUDHandler:AddObjective(self.humanTeam,
+	"S1KillEnemies",
+	"Kill",
+	"Attack",
+	"Clear the first hanging building of enemies",
+	"Secure an FOB for us to stage further attacks from.",
+	actor,
+	false,
+	true);
 
 end
 
@@ -286,6 +311,44 @@ function RefineryAssault:MonitorStage1()
 		self.aiTeamGoldIncreaseAmount = self.aiTeamGoldIncreaseAmount + 50;
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;
 		
+		-- HUD handler
+		
+		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S2HackConsoles",
+		"Hack and hold",
+		"Attack",
+		"Hack and hold the logistics center control consoles",
+		"Gain control of the facility's logistics computers and hold them until we finish downloading crucial intelligence.",
+		nil,
+		false,
+		true);
+		
+		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S2HackConsole1",
+		"Hack and hold",
+		"Attack",
+		"",
+		"",
+		objPos,
+		true,
+		true);
+		
+		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S2HackConsole2",
+		"Hack and hold",
+		"Attack",
+		"",
+		"",
+		objPos,
+		true,
+		true);
+	
 	end	
 	
 end
@@ -324,6 +387,10 @@ function RefineryAssault:MonitorStage2()
 		
 		self.tacticsHandler:RemoveTask("Attack Hack Console 2", self.humanTeam);
 		self.tacticsHandler:RemoveTask("Defend Hack Console 2", self.aiTeam);
+		
+		-- HUD handler
+		
+		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 		
 	end
 	

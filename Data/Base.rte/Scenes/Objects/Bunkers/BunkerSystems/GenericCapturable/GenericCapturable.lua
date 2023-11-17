@@ -30,6 +30,7 @@ function Create(self)
 	
 	self.Team = self:NumberValueExists("StartTeam") and self:GetNumberValue("StartTeam") or 0;
 
+	self.useGlobalMessaging = self:GetNumberValue("SendCaptureMessageGlobally") == 1 and true or false;
 	self.messageOnCapture = self:GetStringValue("CaptureMessage");
 	
 	self.deactivationMessage = self:GetStringValue("DeactivationMessage");
@@ -56,7 +57,6 @@ function Create(self)
 		self.actorCheckTimer.ElapsedRealTimeMS = self.actorCheckDelay * 10; -- just make sure we insta-check the actors asap to avoid funny stuff
 	end
 	
-	self.useGlobalMessaging = self:GetNumberValue("SendCaptureMessageGlobally") == 1 and true or false;
 	self.instantReset = self:GetNumberValue("InstantReset") == 1 and true or false;
 	self.neutralIfNotFullyCapped = self:GetNumberValue("NeutralIfNotFullyCapped") == 1 and true or false;
 	self.needFullControlToCap = self:GetNumberValue("NeedFullControlToCap") == 1 and true or false;

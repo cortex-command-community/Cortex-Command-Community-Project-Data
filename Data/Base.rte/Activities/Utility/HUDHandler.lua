@@ -55,8 +55,8 @@ function HUDHandler:Initialize(activity, newGame)
 	
 	-- DEBUG TEST OBJECTIVES
 	
-	self:AddObjective(0, "TestObj1", "TestOne", "Attack", "Test the objective One", "This is a test One objective! Testing.", nil, true);
-	self:AddObjective(0, "TestObj2", "TestTwo", "Attack", "Test the objective Two", "This is a test Two objective! Testing.", nil, true);
+	--self:AddObjective(0, "TestObj1", "TestOne", "Attack", "Test the objective One", "This is a test One objective! Testing.", nil, true, true);
+	--self:AddObjective(0, "TestObj2", "TestTwo", "Attack", "Test the objective Two", "This is a test Two objective! Testing.", nil, true, true);
 	
 end
 
@@ -86,7 +86,7 @@ function HUDHandler:MakeRelativeToScreenPos(player, vector)
 	
 end
 
-function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos, showArrowOnlyOnSpectatorView)
+function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos, doNotShowInList, showArrowOnlyOnSpectatorView)
 
 	local objTable;
 	
@@ -102,6 +102,7 @@ function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortNa
 		objTable.longName = objLongName or objShortName;
 		objTable.Description = objDescription or ""
 		objTable.Position = objPos;
+		objTable.doNotShowInList = doNotShowInList or false;
 		objTable.showArrowOnlyOnSpectatorView = showArrowOnlyOnSpectatorView or false;
 		
 	else
@@ -133,6 +134,12 @@ function HUDHandler:RemoveObjective(objTeam, objInternalName)
 	
 end
 
+function HUDHandler:RemoveAllObjectives(team)
+
+	self.mainTable.teamTables[team].Objectives = {};
+	
+end
+
 function HUDHandler:MakeObjectivePrimary(objTeam, objInternalName)
 
 	for i, objTable in ipairs(self.mainTable.teamTables[objTeam].Objectives) do
@@ -146,23 +153,48 @@ end
 
 function HUDHandler:UpdateHUDHandler()
 
+	self.Activity:ClearObjectivePoints();
+
 	for team = 0, #self.mainTable.teamTables do
+		local skippedListings = 0;
 		for i, objTable in pairs(self.mainTable.teamTables[team].Objectives) do
+			local showArrows = false;
 			for k, player in pairs(self.mainTable.playersInTeamTables[team]) do
-				if i == 1 then
-					-- First objective special treatment
-					local vec = Vector(self.objListStartXOffset, self.objListStartYOffset);
-					local pos = self:MakeRelativeToScreenPos(player, vec)
-					PrimitiveMan:DrawTextPrimitive(pos, objTable.longName, false, 0, 0);
-					-- Description
-					PrimitiveMan:DrawTextPrimitive(pos + Vector(10, self.descriptionSpacing), objTable.Description, true, 0, 0);
+
+				if objTable.showArrowOnlyOnSpectatorView == false or (self.Activity:GetViewState(player) == Activity.ACTORSELECT) then
+					showArrows = true;
+				end
+				
+				if objTable.doNotShowInList then
+				
+					skippedListings = skippedListings + 1;
+						
 				else
-					local spacing = (self.objListSpacing*i);
-					local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing);
-					local pos = self:MakeRelativeToScreenPos(player, vec)
-					PrimitiveMan:DrawTextPrimitive(pos, objTable.shortName, false, 0, 0);		
+					
+					if i - skippedListings == 1 then
+						-- First objective special treatment
+						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset);
+						local pos = self:MakeRelativeToScreenPos(player, vec)
+						PrimitiveMan:DrawTextPrimitive(pos, objTable.longName, false, 0, 0);
+						-- Description
+						PrimitiveMan:DrawTextPrimitive(pos + Vector(10, self.descriptionSpacing), objTable.Description, true, 0, 0);
+					else
+						local spacing = (self.objListSpacing*(i-skippedListings));
+						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing);
+						local pos = self:MakeRelativeToScreenPos(player, vec)
+						PrimitiveMan:DrawTextPrimitive(pos, objTable.shortName, false, 0, 0);		
+					end					
+					
 				end
 			end
+			
+			-- c++ objectives are per team, not per player, so we can't do it per player yet...
+			
+			if objTable.Position and showArrows then
+				local pos = not objTable.Position.PresetName and objTable.Position or objTable.Position.Pos; -- severely ghetto mo check
+				self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
+			end
+			
 		end
 	end
 
