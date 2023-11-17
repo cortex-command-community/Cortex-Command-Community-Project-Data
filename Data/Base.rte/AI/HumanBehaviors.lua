@@ -55,14 +55,14 @@ end
 function HumanBehaviors.CheckEnemyLOS(AI, Owner, Skill)
 	if not AI.Enemies then	-- add all enemy actors on our screen to a table and check LOS to them, one per frame
 		AI.Enemies = {};
-		local box = Box();
-		local skillFactor = (0.4 + Skill * 0.005);
-		box.Corner = Vector(Owner.ViewPoint.X - (FrameMan.PlayerScreenWidth/2) * skillFactor, Owner.ViewPoint.Y - (FrameMan.PlayerScreenHeight/2) * skillFactor);
-		box.Width = FrameMan.PlayerScreenWidth * skillFactor;
-		box.Height = FrameMan.PlayerScreenHeight * skillFactor;
-		for Act in MovableMan:GetMOsInBox(box, Owner.Team) do
-			if not AI.isPlayerOwned or not SceneMan:IsUnseen(Act.Pos.X, Act.Pos.Y, Owner.Team) then	-- AI-teams ignore the fog
-				table.insert(AI.Enemies, Act);
+		for Act in MovableMan.Actors do
+			if Act.Team ~= Owner.Team then
+				if not AI.isPlayerOwned or not SceneMan:IsUnseen(Act.Pos.X, Act.Pos.Y, Owner.Team) then	-- AI-teams ignore the fog
+					local Dist = SceneMan:ShortestDistance(Owner.ViewPoint, Act.Pos, false);
+					if (math.abs(Dist.X) - Act.Diameter < FrameMan.PlayerScreenWidth * (0.4 + Skill * 0.005)) and (math.abs(Dist.Y) - Act.Diameter < FrameMan.PlayerScreenHeight * (0.4 + Skill * 0.005)) then
+						table.insert(AI.Enemies, Act);
+					end
+				end
 			end
 		end
 
