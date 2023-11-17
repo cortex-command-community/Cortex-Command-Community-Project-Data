@@ -252,6 +252,9 @@ function RefineryAssault:StartActivity(newGame)
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self);
 	
+	self.HUDHandler = require("Activities/Utility/HUDHandler");
+	self.HUDHandler:Initialize(self, newGame);
+	
 	
 	-- Stage stuff
 	
@@ -449,6 +452,10 @@ function RefineryAssault:UpdateActivity()
 	-- Update docking craft
 	
 	self.dockingHandler:UpdateDockingCraft();
+	
+	-- Update HUD handler
+	
+	self.HUDHandler:UpdateHUDHandler();
 	
 	
 	
