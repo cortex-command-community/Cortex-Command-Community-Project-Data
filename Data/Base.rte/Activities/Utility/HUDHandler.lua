@@ -32,9 +32,15 @@ function HUDHandler:Initialize(activity, newGame)
 	
 	self.descriptionSpacing = 15;
 	
-	if newGame then
+	-- reinit camera timers always
 	
-		self.teamCameraTimers = {};
+	self.teamCameraTimers = {};
+	
+	for team = 0, self.Activity.TeamCount do
+		self.teamCameraTimers[team] = Timer();
+	end
+	
+	if newGame then
 		
 		self.mainTable = {};
 		
@@ -47,8 +53,6 @@ function HUDHandler:Initialize(activity, newGame)
 			self.mainTable.teamTables[team].Objectives = {};
 			
 			self.mainTable.teamTables[team].cameraQueue = {};
-			
-			self.teamCameraTimers[team] = Timer();
 		end
 		
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -79,6 +83,8 @@ function HUDHandler:OnSave(saveLoadHandler)
 	print("saving HUD handler")
 	saveLoadHandler:SaveTableAsString("HUDHandlerMainTable", self.mainTable);	
 	print("saved HUDHandler!");
+	
+	-- camera timers deliberately not saved, might as well reset them all
 	
 end
 

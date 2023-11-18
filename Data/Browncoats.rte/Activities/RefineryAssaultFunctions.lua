@@ -96,6 +96,10 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.stage3ConsolesBroken = self.stage3ConsolesBroken + 1;
 		
+		if self.stage3ConsolesBroken == 3 then
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
+		end
+		
 	end
 
 end
@@ -508,27 +512,64 @@ function RefineryAssault:MonitorStage2()
 		
 		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S3OpenDoors",
+		"Open blast doors",
+		"Attack",
+		"Open the blast doors blocking our path",
+		"The path forwards is blocked by three blast doors. Open them by triggering the facility failsafes.",
+		nil,
+		false,
+		true);
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S3DestroyConsoles",
+		"Destroy control centers",
+		"Attack",
+		"Destroy the refinery control centers",
+		"Destroying the facility's control centers should contribute to triggering its failsafes.",
+		nil,
+		false,
+		true);
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S3DefeatOperator",
+		"Defeat facility operator",
+		"Attack",
+		"Defeat the refinery operator",
+		"Defeat the operator monitoring the refinery. It can't hurt.",
+		nil,
+		false,
+		true);
+		
 	end
 	
 end
 
 function RefineryAssault:MonitorStage3()
 
-	if self.stage3ConsolesBroken == 3 then
-	
-		for k, actor in pairs(self.enemyActorTables.stage1) do
+	if not self.stage3FacilityOperatorKilled then
+
+		for k, actor in pairs(self.enemyActorTables.stage3FacilityOperator) do
 			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
 				table.remove(self.enemyActorTables.stage3FacilityOperator, k);
 			end
 		end
 		
-		if #self.enemyActorTables.stage3FacilityOperator == 0 then	
-	
-			self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
-			self.Stage = 4;
-		
+		if #self.enemyActorTables.stage3FacilityOperator == 0 and not self.stage3FacilityOperatorKilled then
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DefeatOperator");
+			self.stage3FacilityOperatorKilled = true;
 		end
 		
+	end
+
+	if self.stage3ConsolesBroken == 3 and self.stage3FacilityOperatorKilled then
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
+	
+		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+		self.Stage = 4;
+
 	end
 	
 end
