@@ -33,6 +33,8 @@ function HUDHandler:Initialize(activity, newGame)
 	self.descriptionSpacing = 15;
 	
 	if newGame then
+	
+		self.teamCameraTimers = {};
 		
 		self.mainTable = {};
 		
@@ -43,6 +45,10 @@ function HUDHandler:Initialize(activity, newGame)
 			self.mainTable.playersInTeamTables[team] = {};
 			self.mainTable.teamTables[team] = {};
 			self.mainTable.teamTables[team].Objectives = {};
+			
+			self.mainTable.teamTables[team].cameraQueue = {};
+			
+			self.teamCameraTimers[team] = Timer();
 		end
 		
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -83,6 +89,59 @@ function HUDHandler:MakeRelativeToScreenPos(player, vector)
 		CameraMan:GetOffset(player).Y + vector.Y
 	)
 	return vector;
+	
+end
+
+function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable)
+
+	local cameraTable = {};
+	
+	if team and name and pos then
+		
+		cameraTable = {};
+		
+		cameraTable.Name = name;
+		cameraTable.Position = pos;
+		cameraTable.Speed = speed or 0.05;
+		cameraTable.holdTime = holdTime or 5000;
+		cameraTable.notCancellable = notCancellable or false;
+		
+	else
+		print("HUD Handler tried to add a camera pan event with no team, no name, or no position!");
+		return false;
+	end
+	
+	for i, cameraTable in ipairs(self.mainTable.teamTables[team].cameraQueue) do
+		if cameraTable.Name == name then
+			print("HUD Handler tried to add a camera pan event with a name already in use!");
+			return false;
+		end
+	end
+	
+	if #self.mainTable.teamTables[team].cameraQueue == 0 then
+		self.teamCameraTimers[team]:Reset();
+	end
+	
+	table.insert(self.mainTable.teamTables[team].cameraQueue, cameraTable);
+	
+	return self.mainTable.teamTables[team].cameraQueue[#self.mainTable.teamTables[team].cameraQueue];
+	
+end
+
+function HUDHandler:RemoveCameraPanEvent(team, name)
+
+	for i, cameraTable in ipairs(self.mainTable.teamTables[team].cameraQueue) do
+		if cameraTable.Name == name then
+			table.remove(self.mainTable.teamTables[team].cameraQueue, i);
+			break;
+		end
+	end
+	
+end
+
+function HUDHandler:RemoveAllCameraPanEvents(team)
+
+	self.mainTable.teamTables[team].cameraQueue = {};
 	
 end
 
@@ -156,6 +215,29 @@ function HUDHandler:UpdateHUDHandler()
 	self.Activity:ClearObjectivePoints();
 
 	for team = 0, #self.mainTable.teamTables do
+	
+		-- Camera pan events
+		
+		local cameraTable = self.mainTable.teamTables[team].cameraQueue[1];
+		
+		if cameraTable then
+		
+			local pos = not cameraTable.Position.PresetName and cameraTable.Position or cameraTable.Position.Pos; -- severely ghetto mo check
+		
+			for k, player in pairs(self.mainTable.playersInTeamTables[team]) do
+				CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
+			end
+			
+			-- not ideal: anyone pressing any key can skip the panning event... but the alternatives are much more roundabout
+			if self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
+				table.remove(self.mainTable.teamTables[team].cameraQueue, 1);
+				self.teamCameraTimers[team]:Reset();
+			end
+			
+		end
+			
+		-- Objectives
+	
 		local skippedListings = 0;
 		for i, objTable in pairs(self.mainTable.teamTables[team].Objectives) do
 			local showArrows = false;

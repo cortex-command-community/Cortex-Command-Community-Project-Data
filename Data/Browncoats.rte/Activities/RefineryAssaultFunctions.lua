@@ -139,6 +139,10 @@ function RefineryAssault:SetupStartingActors()
 			true,
 			true);
 			
+			-- Test
+			
+			self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1KillEnemies" .. i, actor, 0.1, 2500, false);
+			
 		end
 		
 		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) then
