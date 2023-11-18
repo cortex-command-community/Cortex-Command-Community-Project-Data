@@ -57,6 +57,7 @@ function Create(self)
 		self.actorCheckTimer.ElapsedRealTimeMS = self.actorCheckDelay * 10; -- just make sure we insta-check the actors asap to avoid funny stuff
 	end
 	
+	self.deactivateOnCapture = self:GetNumberValue("DeactivateOnCapture") == 1 and true or false;
 	self.instantReset = self:GetNumberValue("InstantReset") == 1 and true or false;
 	self.neutralIfNotFullyCapped = self:GetNumberValue("NeutralIfNotFullyCapped") == 1 and true or false;
 	self.needFullControlToCap = self:GetNumberValue("NeedFullControlToCap") == 1 and true or false;
@@ -176,6 +177,9 @@ function Update(self)
 						MovableMan:SendGlobalMessage(self.messageOnCapture, self.dominantTeam);
 					else
 						self.Activity:SendMessage(self.messageOnCapture, self.dominantTeam);
+					end
+					if self.deactivateOnCapture then
+						self.Deactivated = true;
 					end
 				end
 			end

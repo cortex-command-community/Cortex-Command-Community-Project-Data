@@ -2,97 +2,15 @@ package.loaded.Constants = nil; require("Constants");
 
 dofile("Browncoats.rte/Activities/RefineryAssaultFunctions.lua");
 
+function RefineryAssault:OnGlobalMessage(message, object)
+
+	self:HandleMessage(message, object);
+
+end
+
 function RefineryAssault:OnMessage(message, object)
 
-	self.tacticsHandler:OnMessage(message, object);
-
-	print("activitygotmessage")
-	
-	print(message)
-	print(object)
-
-	if message == "Captured_RefineryTestCapturable1" then
-	
-		self.stage2HoldTimer:Reset();
-
-		print(self.humanTeam .. " team vs object: " .. object);
-		
-		if object == self.humanTeam then
-		
-			print("HUMAN CAPTURED 1")
-			
-			self.stage2HoldingLC1 = true;
-		
-			-- if we have the other one, we have both, initiate win condition timer
-			if self.stage2HoldingLC2 then
-				self.stage2HoldingBothConsoles = true;
-			end
-	
-			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
-			self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
-			
-			for k, v in pairs(self.buyDoorTables.LC1) do
-				v.Team = self.humanTeam;
-			end
-		else
-			print("NOTHUMAN CAPPED 1");
-			print(self.humanTeam .. " team vs object: " .. object);
-			self.stage2HoldingLC1 = false;
-			self.stage2HoldingBothConsoles = false;
-		
-			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC1");
-			self.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
-			
-			for k, v in pairs(self.buyDoorTables.LC1) do
-				v.Team = self.aiTeam;
-			end		
-		end
-		
-		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
-		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
-	
-
-	elseif message == "Captured_RefineryTestCapturable2" then
-	
-		self.stage2HoldTimer:Reset();
-	
-		if object == self.humanTeam then
-		
-			print("HUMAN CAPTURED 2")
-			
-			self.stage2HoldingLC2 = true;
-		
-			-- if we have the other one, we have both, initiate win condition timer
-			if self.stage2HoldingLC1 then
-				self.stage2HoldingBothConsoles = true;
-			end
-	
-			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
-			self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
-			
-			for k, v in pairs(self.buyDoorTables.LC2) do
-				v.Team = self.humanTeam;
-			end
-		else
-			self.stage2HoldingLC2 = false;
-			self.stage2HoldingBothConsoles = false;
-			
-			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC2");
-			self.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
-			
-			for k, v in pairs(self.buyDoorTables.LC2) do
-				v.Team = self.aiTeam;
-			end		
-		end
-		
-		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
-		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
-		
-	elseif message == "RefineryAssault_RefineryConsoleBroken" then
-		
-		self.stage3ConsolesBroken = self.stage3ConsolesBroken + 1;
-		
-	end
+	self:HandleMessage(message, object);
 
 end
 
@@ -230,7 +148,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.goldIncreaseDelay = 4000;
 	
 	self.playerGoldIncreaseAmount = 5;	
-	self.humanAIGoldIncreaseAmount = 25;
+	self.humanAIGoldIncreaseAmount = 50;
 	
 	self.aiTeamGoldIncreaseAmount = 0;
 	
@@ -322,8 +240,9 @@ function RefineryAssault:StartActivity(newGame)
 		
 		-- Tell capturables to deactivate, we'll activate them as we go along
 		
-		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable1");
-		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole1");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole2");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3OilCapturable");
 	
 	else
 		self:ResumeLoadedGame();

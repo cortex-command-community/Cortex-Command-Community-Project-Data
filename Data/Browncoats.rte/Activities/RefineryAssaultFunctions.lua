@@ -1,3 +1,104 @@
+function RefineryAssault:HandleMessage(message, object)
+
+	self.tacticsHandler:OnMessage(message, object);
+
+	print("activitygotmessage")
+	
+	print(message)
+	print(object)
+
+	if message == "Captured_RefineryLCHackConsole1" then
+	
+		self.stage2HoldTimer:Reset();
+
+		print(self.humanTeam .. " team vs object: " .. object);
+		
+		if object == self.humanTeam then
+		
+			print("HUMAN CAPTURED 1")
+			
+			self.stage2HoldingLC1 = true;
+		
+			-- if we have the other one, we have both, initiate win condition timer
+			if self.stage2HoldingLC2 then
+				self.stage2HoldingBothConsoles = true;
+			end
+	
+			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
+			self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC1) do
+				v.Team = self.humanTeam;
+			end
+		else
+			print("NOTHUMAN CAPPED 1");
+			print(self.humanTeam .. " team vs object: " .. object);
+			self.stage2HoldingLC1 = false;
+			self.stage2HoldingBothConsoles = false;
+		
+			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC1");
+			self.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC1) do
+				v.Team = self.aiTeam;
+			end		
+		end
+		
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
+	
+
+	elseif message == "Captured_RefineryLCHackConsole2" then
+	
+		self.stage2HoldTimer:Reset();
+	
+		if object == self.humanTeam then
+		
+			print("HUMAN CAPTURED 2")
+			
+			self.stage2HoldingLC2 = true;
+		
+			-- if we have the other one, we have both, initiate win condition timer
+			if self.stage2HoldingLC1 then
+				self.stage2HoldingBothConsoles = true;
+			end
+	
+			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
+			self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC2) do
+				v.Team = self.humanTeam;
+			end
+		else
+			self.stage2HoldingLC2 = false;
+			self.stage2HoldingBothConsoles = false;
+			
+			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC2");
+			self.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
+			
+			for k, v in pairs(self.buyDoorTables.LC2) do
+				v.Team = self.aiTeam;
+			end		
+		end
+		
+		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
+		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
+		
+	elseif message == "Captured_RefineryS3OilCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;
+		
+	elseif message == "RefineryAssault_RefineryConsoleBroken" then
+		
+		self.stage3ConsolesBroken = self.stage3ConsolesBroken + 1;
+		
+	end
+
+end
+
+
+
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
 	local squadCount = math.random(3, 4);
@@ -276,17 +377,17 @@ function RefineryAssault:MonitorStage1()
 		
 		-- Capturable setup
 		
-		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryTestCapturable1");
-		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryTestCapturable2");
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryLCHackConsole1");
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryLCHackConsole2");
 		
 		-- Task setup
 		
-		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
+		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole1").Center;
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 1", self.humanTeam, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 1", self.aiTeam, taskPos, "Defend", 10);
 		
-		taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
+		taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole2").Center;
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 2", self.humanTeam, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 2", self.aiTeam, taskPos, "Defend", 10);
@@ -317,8 +418,8 @@ function RefineryAssault:MonitorStage1()
 		
 		self.humanAIFunds = math.max(self.humanAIFunds, 0);
 		
-		self.aiTeamGoldIncreaseAmount = self.aiTeamGoldIncreaseAmount + 50;
-		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;
+		self.aiTeamGoldIncreaseAmount = self.aiTeamGoldIncreaseAmount + 100;
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 30;
 		
 		-- HUD handler
 		
@@ -334,7 +435,7 @@ function RefineryAssault:MonitorStage1()
 		false,
 		true);
 		
-		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable1").Center;
+		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole1").Center;
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
 		"S2HackConsole1",
@@ -346,7 +447,7 @@ function RefineryAssault:MonitorStage1()
 		true,
 		true);
 		
-		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryTestCapturable2").Center;
+		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole2").Center;
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
 		"S2HackConsole2",
@@ -368,13 +469,15 @@ function RefineryAssault:MonitorStage2()
 	--print(self.stage2HoldingBothConsoles)
 
 	if self.stage2HoldingBothConsoles == true and self.stage2HoldTimer:IsPastSimMS(self.stage2TimeToHoldConsoles) then
-		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
+		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("YOU'RE S2 WINNER!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 		self.Stage = 3;
 		
 		-- Capturable setup
 		
-		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable1");
-		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryTestCapturable2");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole1");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole2");
+		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3OilCapturable");
 		
 		-- Setup stage 3 consoles
 		
@@ -388,6 +491,7 @@ function RefineryAssault:MonitorStage2()
 				self.tacticsHandler:AddTask("Defend Refinery Console " .. i, self.aiTeam, particle, "Defend", 10);
 				self.tacticsHandler:AddTask("Attack Refinery Console " .. i, self.humanTeam, particle, "Attack", 10);
 				i = i + 1;
+				print("found refinery breakable console and added task")
 			end
 		end
 		
