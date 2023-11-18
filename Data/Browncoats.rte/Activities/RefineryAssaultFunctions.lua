@@ -89,6 +89,9 @@ function RefineryAssault:HandleMessage(message, object)
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
 		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;
 		
+		local soundContainer = CreateSoundContainer("Yskely Refinery Oil Spout Engage", "Browncoats.rte");
+		soundContainer:Play(Vector(0, 0));
+		
 	elseif message == "RefineryAssault_RefineryConsoleBroken" then
 		
 		self.stage3ConsolesBroken = self.stage3ConsolesBroken + 1;
