@@ -1,16 +1,15 @@
+--[[MULTITHREAD]]--
+
 -- This script incorporates Filipawn Industries code
 -- There are likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
 
--- Last worked on 23/10/2023
+-- Last worked on 19/11/2023
 
 function OnFire(self)
-	
 	self.mechSound:Play(self.Pos);
-	
 end
 
 function Create(self)
-
 	self.preSound = CreateSoundContainer("Pre Browncoat SG-10", "Browncoat.rte");
 	self.mechSound = CreateSoundContainer("Mech Browncoat A", "Browncoat.rte");
 	
@@ -21,11 +20,9 @@ function Create(self)
 	self.fireDelayTimer = Timer();
 	self.activated = false;
 	self.delayedFirstShot = true;
-
 end
 
-function Update(self)
-
+function ThreadedUpdate(self)
 	self.preSound.Pos = self.Pos;
 	
 	if self:DoneReloading() then
@@ -72,7 +69,5 @@ function Update(self)
 	elseif fire == false then
 		self.firstShot = true;
 		self.delayedFirstShot = true;
-		
 	end
-	
 end

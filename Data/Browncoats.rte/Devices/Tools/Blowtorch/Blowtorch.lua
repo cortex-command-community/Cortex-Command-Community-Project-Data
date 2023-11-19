@@ -1,9 +1,11 @@
+--[[MULTITHREAD]]--
+
 function Create(self)
 	self.startSound = CreateSoundContainer("Ignite DG-1000", "Browncoats.rte");
 	self.endSound = CreateSoundContainer("Loop End DG-1000", "Browncoats.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self:IsActivated() and self.RoundInMagCount ~= 0 then
 		if not self.triggerPulled then
 			self.startSound:Play(self.MuzzlePos);

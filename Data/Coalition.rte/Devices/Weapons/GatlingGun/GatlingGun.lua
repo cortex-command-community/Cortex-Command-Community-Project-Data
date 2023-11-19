@@ -1,10 +1,12 @@
+--[[MULTITHREAD]]--
+
 function Create(self)
 	self.origActivationDelay = self.ActivationDelay;
 	self.spinDownTimer = Timer();
 	self.currentlySpinningDown = false;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if not self.currentlySpinningDown and not self:IsActivated() and not self:IsReloading() and self.ActiveSound:IsBeingPlayed() then
 		self.spinDownTimer:Reset();
 		self.currentlySpinningDown = true;

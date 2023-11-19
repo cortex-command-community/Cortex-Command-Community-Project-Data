@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 function Create(self)
 
 	self.igniteSound = CreateSoundContainer("Ignite FT-200", "Browncoat.rte");
@@ -23,7 +25,7 @@ function Create(self)
 	
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.Magazine then
 		local parent = self:GetRootParent();
 		if parent and IsActor(parent) then

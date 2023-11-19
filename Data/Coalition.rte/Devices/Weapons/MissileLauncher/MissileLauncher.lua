@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 function Create(self)
 	self.fireVel = 50;
 	self.checkTimer = Timer();
@@ -20,7 +22,7 @@ function Create(self)
 	self.missile = CreateAEmitter("Particle Coalition Missile Launcher", "Coalition.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local parent = self:GetRootParent();
 	local sharpAimProgress = 0;
 	if parent and IsActor(parent) then

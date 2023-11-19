@@ -1,14 +1,13 @@
+--[[MULTITHREAD]]--
+
 function Create(self)
 	--Suffer from fire rate loss when firing rapidly
 	self.fireRatePenaltyPerShot = 75;
 	self.fireRateRevertIncrement = 1;
 	self.fireRateRevertTimer = Timer();
-
-	self.origStanceOffset = Vector(12, 0);
-	self.origSharpStanceOffset = Vector(13, -2);
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if not self.origRateOfFire then	--Check original stats on Update() to include global script changes
 		self.origRateOfFire = self.RateOfFire;
 	end
