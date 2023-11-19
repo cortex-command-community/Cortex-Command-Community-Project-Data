@@ -534,6 +534,7 @@ function RefineryAssault:MonitorStage2()
 		
 		for particle in MovableMan.Particles do
 			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
+				particle.MissionCritical = false;
 				table.insert(self.stage3Consoles, particle)
 				self.tacticsHandler:AddTask("Defend Refinery Console " .. i, self.aiTeam, particle, "Defend", 10);
 				self.tacticsHandler:AddTask("Attack Refinery Console " .. i, self.humanTeam, particle, "Attack", 10);

@@ -176,10 +176,10 @@ function RefineryAssault:StartActivity(newGame)
 	
 	-- Stage stuff
 	
+	--2
 	self.stage2HoldTimer = Timer();
 	self.stage2TimeToHoldConsoles = 5000;
 	
-	self.stage3ConsolesBroken = 0;
 	
 	if newGame then
 		
@@ -228,7 +228,7 @@ function RefineryAssault:StartActivity(newGame)
 			v.Team = self.aiTeam;
 		end
 		
-		-- Stages and stage function table
+		-- Stage function table
 		
 		self.Stage = 1;
 		
@@ -255,6 +255,17 @@ function RefineryAssault:StartActivity(newGame)
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole1");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole2");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3OilCapturable");
+
+		-- Stage stuff
+
+		--3
+		self.stage3ConsolesBroken = 0;
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
+				particle.MissionCritical = true;
+			end
+		end
 	
 	else
 		self:ResumeLoadedGame();
