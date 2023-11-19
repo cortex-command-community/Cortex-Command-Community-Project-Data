@@ -548,6 +548,24 @@ function RefineryAssault:MonitorStage2()
 		self.tacticsHandler:RemoveTask("Attack Hack Console 2", self.humanTeam);
 		self.tacticsHandler:RemoveTask("Defend Hack Console 2", self.aiTeam);
 		
+		-- Start using buy doors
+		
+		for k, v in pairs(self.buyDoorTables.S3_1) do
+			v.Team = self.aiTeam;
+		end
+		
+		for k, v in pairs(self.buyDoorTables.S3_2) do
+			v.Team = self.aiTeam;
+		end
+
+		for k, v in pairs(self.buyDoorTables.S3_3) do
+			v.Team = self.aiTeam;
+		end
+		
+		for k, v in pairs(self.buyDoorTables.S3_4) do
+			v.Team = self.aiTeam;
+		end
+		
 		-- HUD handler
 		
 		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
