@@ -26,6 +26,16 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 	local finalOrder = {};
 
 	if isCustomOrder then
+	
+		for item in self.Inventory do
+			if IsActor(item) then
+				self.currentTeam = item.Team;
+				break;
+			else
+				self.currentTeam = -1;
+			end
+		end
+		
 		-- hopefully added to inv for us...
 		
 		-- for i = 1, #orderList do
@@ -96,6 +106,8 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 		print(item)
 		self:AddInventoryItem(item);
 	end
+	
+	self.currentTeam = team;
 	
 	return finalOrder;
 
@@ -270,7 +282,7 @@ function SyncedUpdate(self)
 
 		local item = self:RemoveInventoryItemAtIndex(0);
 		item.Pos = self.Pos;
-		--item.Team = self.currentTeam;
+		item.Team = self.currentTeam;
 		MovableMan:AddMO(item);
 
 		-- Wait until we spawn the next guy
@@ -334,7 +346,6 @@ function SyncedUpdate(self)
 							if finalOrder then
 							
 								self.orderTimer:Reset();
-								self.currentTeam = actor.Team;
 								self.orderDelivering = true;
 								
 							end
