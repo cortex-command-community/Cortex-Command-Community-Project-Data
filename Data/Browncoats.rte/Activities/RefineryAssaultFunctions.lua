@@ -86,42 +86,42 @@ function RefineryAssault:HandleMessage(message, object)
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole1" then
 		
-		table.insert(self.buyDoorTables.teamAreas[team], "S3_1");
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_1");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(team + 1) % 2].S3_1 = nil;
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_1 = nil;
 		
 		for k, v in pairs(self.buyDoorTables.S3_1) do
-			v.Team = team;
+			v.Team = object;
 		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole2" then
 		
-		table.insert(self.buyDoorTables.teamAreas[team], "S3_2");
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_2");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(team + 1) % 2].S3_2 = nil;
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_2 = nil;
 		
 		for k, v in pairs(self.buyDoorTables.S3_2) do
-			v.Team = team;
+			v.Team = object;
 		end		
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole3" then
 		
-		table.insert(self.buyDoorTables.teamAreas[team], "S3_3");
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_3");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(team + 1) % 2].S3_3 = nil;
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_3 = nil;
 		
 		for k, v in pairs(self.buyDoorTables.S3_3) do
-			v.Team = team;
+			v.Team = object;
 		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole4" then
 		
-		table.insert(self.buyDoorTables.teamAreas[team], "S3_4");
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_4");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(team + 1) % 2].S3_4 = nil;
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_4 = nil;
 		
 		for k, v in pairs(self.buyDoorTables.S3_4) do
-			v.Team = team;
+			v.Team = object;
 		end		
 		
 	elseif message == "Captured_RefineryS3OilCapturable" then
