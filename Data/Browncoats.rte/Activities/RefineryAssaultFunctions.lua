@@ -84,6 +84,46 @@ function RefineryAssault:HandleMessage(message, object)
 		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
 		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 		
+	elseif message == "Captured_RefineryS3BuyDoorConsole1" then
+		
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_1");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_1 = nil;
+		
+		for k, v in pairs(self.buyDoorTables.S3_1) do
+			v.Team = object;
+		end
+		
+	elseif message == "Captured_RefineryS3BuyDoorConsole2" then
+		
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_2");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_2 = nil;
+		
+		for k, v in pairs(self.buyDoorTables.S3_2) do
+			v.Team = object;
+		end		
+		
+	elseif message == "Captured_RefineryS3BuyDoorConsole3" then
+		
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_3");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_3 = nil;
+		
+		for k, v in pairs(self.buyDoorTables.S3_3) do
+			v.Team = object;
+		end
+		
+	elseif message == "Captured_RefineryS3BuyDoorConsole4" then
+		
+		table.insert(self.buyDoorTables.teamAreas[object], "S3_4");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_4 = nil;
+		
+		for k, v in pairs(self.buyDoorTables.S3_4) do
+			v.Team = object;
+		end		
+		
 	elseif message == "Captured_RefineryS3OilCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
@@ -507,6 +547,24 @@ function RefineryAssault:MonitorStage2()
 		
 		self.tacticsHandler:RemoveTask("Attack Hack Console 2", self.humanTeam);
 		self.tacticsHandler:RemoveTask("Defend Hack Console 2", self.aiTeam);
+		
+		-- Start using buy doors
+		
+		for k, v in pairs(self.buyDoorTables.S3_1) do
+			v.Team = self.aiTeam;
+		end
+		
+		for k, v in pairs(self.buyDoorTables.S3_2) do
+			v.Team = self.aiTeam;
+		end
+
+		for k, v in pairs(self.buyDoorTables.S3_3) do
+			v.Team = self.aiTeam;
+		end
+		
+		for k, v in pairs(self.buyDoorTables.S3_4) do
+			v.Team = self.aiTeam;
+		end
 		
 		-- HUD handler
 		
