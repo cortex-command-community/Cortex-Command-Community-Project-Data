@@ -32,7 +32,7 @@ function ThreadedUpdate(self)
 
 	for player, indoorness in pairs(self.playerIndoornesses) do
 	
-		local cursorPos = CameraMan:GetScrollTarget(Activity.PLAYER_1)
+		local cursorPos = CameraMan:GetScrollTarget(player)
 		
 		if SceneMan.Scene:WithinArea("Indoor Area", cursorPos) then		
 			self.playerIndoornesses[player] = math.min(1, indoorness + TimerMan.DeltaTimeSecs * 0.5);			
