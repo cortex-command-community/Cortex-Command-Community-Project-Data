@@ -331,7 +331,7 @@ function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 		--print("addedtaskedsquad: " .. #self.teamList[team].squadList)
 		--print("newtaskname: " .. self.teamList[team].squadList[#self.teamList[team].squadList].taskName)
 	else
-		--print("Tried to add a tasked squad without all required arguments!");
+		print("Tried to add a tasked squad without all required arguments!");
 		return false;
 	end
 	
@@ -341,7 +341,7 @@ end
 
 function TacticsHandler:CommunicateSquadIndexesToActors()
 
-	for team = 0, #self.teamList do
+	for team, v in pairs(self.teamList) do
 		for squad = 1, #self.teamList[team].squadList do
 			for actorIndex = 1, #self.teamList[team].squadList[squad].Actors do
 				if actor then
@@ -398,16 +398,16 @@ function TacticsHandler:UpdateSquads(team)
 							end
 						elseif task.Type == "PatrolArea" then
 							local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint(), SceneMan.SceneWrapsX);
-							print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
+							--print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
 							if actor.AIMode == Actor.AIMODE_SENTRY or dist.Magnitude < 40 then
 								actor.AIMode = Actor.AIMODE_SENTRY;
 								if actorIndex == #self.teamList[team].squadList[i].Actors and wholePatrolSquadIdle == true then
 									-- if we're the last one and the whole squad is ready to go
-									print("fullsquad")
+									print("squad repatrolled")
 									self:ApplyTaskToSquadActors(self.teamList[team].squadList[i].Actors, task)
 								end
 							else
-								print("squad: " .. i .. "patrolsquadnotfullyidle")
+								--print("squad: " .. i .. "patrolsquadnotfullyidle")
 								wholePatrolSquadIdle = false;
 							end
 						end

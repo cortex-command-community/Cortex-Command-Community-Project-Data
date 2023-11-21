@@ -23,6 +23,7 @@ function OnMessage(self, message, squadInfo)
 		
 	elseif message == "TacticsHandler_UpdateSquadIndex" then
 		self.tacticsHandlerSquadInfo.squadIndex = squadInfo;
+		--print("Actor updated squad index");
 	end
 	
 end

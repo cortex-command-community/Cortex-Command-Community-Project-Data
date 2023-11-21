@@ -188,9 +188,10 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 	--print("tried order for team: " .. team);
 	
 	if order then
+		local taskPos;
 		if task then
 			
-			local taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
+			taskPos = task.Position.PresetName and task.Position.Pos or task.Position; -- ghetto MO check
 			if taskPos.Name then -- ghetto-er Area check
 				taskPos = taskPos.RandomPoint;
 			end
@@ -203,15 +204,34 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 					break;
 				end
 			end
+		else
+			return false;
 		end
 		
 		if not areaThisIsIn or not self.buyDoorHandler:GetAvailableBuyDoorsInArea(areaThisIsIn, team) then
-			-- select any owned area if we don't own the task area
-			-- everyone should always own at least one buy door area after stage 2, so.....
+
+			-- loop through all owned buy doors, continually selecting the area with the closest buy door.
+			-- the one we're left with is in the closest area.
+			-- might be ineffective, but who cares.
+			
+			local closestDist = false;
 			if #self.buyDoorTables.teamAreas[team] > 0 then
-				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][math.random(1, #self.buyDoorTables.teamAreas[team])]);
-				--print(areaThisIsIn.Name)
-				--print("reverted to any buy door area pick")
+				for k, area in pairs(self.buyDoorTables.teamAreas[team]) do
+					for k, buyDoor in pairs(self.buyDoorTables[area]) do
+						local dist = SceneMan:ShortestDistance(taskPos, buyDoor.Pos, SceneMan.SceneWrapsX).Magnitude;
+						if not closestDist then
+							closestDist = dist;
+							areaThisIsIn = area;
+						elseif dist < closestDist then
+							closestDist = dist;
+							areaThisIsIn = area;
+						end
+					end
+				end
+				print("found closest area to task:");
+				print(area);
+				-- actually get the Area
+				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. areaThisIsIn);
 			else
 				--print("team " .. team .. " doesn't have a backup area");
 			end
@@ -261,19 +281,23 @@ function RefineryAssault:SetupStartingActors()
 		end
 	end
 	
-	-- i think sending a local table to tacticshandler avoids some issue, but as i write this comment
-	-- i can't remember what they are...
-	
 	self.enemyActorTables.stage1 = {};
 	self.enemyActorTables.stage1CounterAttActors = {};
 	
-	local stage1Squad = {};
+	-- locals used just to set up tasks
+	local stage1SquadsTable = {};
+	stage1SquadsTable[0] = {};
+	stage1SquadsTable[1] = {};
+	stage1SquadsTable[2] = {};
 	
 	for i, actor in ipairs(AHumanTable) do
 	
-		if SceneMan.Scene:WithinArea("Mission Stage Area 1", actor.Pos) then
+		
+		if SceneMan.Scene:WithinArea("Mission Stage Area 1", actor.Pos) and actor.Team == self.aiTeam then
 			table.insert(self.enemyActorTables.stage1, actor);
-			table.insert(stage1Squad, actor);
+			-- divvy up into squads of 3
+			-- bonus: it ends up 0-indexed!!!
+			table.insert(stage1SquadsTable[i % 3], actor);
 			
 			-- Set up HUD handler objectives
 			
@@ -289,20 +313,21 @@ function RefineryAssault:SetupStartingActors()
 			
 			-- Test
 			
-			self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1KillEnemies" .. i, actor, 0.1, 2500, false);
+			--self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1KillEnemies" .. i, actor, 0.1, 2500, false);
 			
 		end
 		
-		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) then
+		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) and actor.Team == self.aiTeam then
 			table.insert(self.enemyActorTables.stage1CounterAttActors, actor);
 			actor.HFlipped = true; -- look the right way numbnuts
 		end		
 		
 	end
-	
-	-- One big happy squad
-	
-	self.tacticsHandler:AddTaskedSquad(self.aiTeam, stage1Squad, "Sentry");
+
+	for k, v in pairs(stage1SquadsTable) do
+		local task = self.tacticsHandler:PickTask(self.aiTeam);
+		self.tacticsHandler:AddTaskedSquad(self.aiTeam, stage1SquadsTable[k], task.Name);
+	end
 	
 	self.enemyActorTables.stage3FacilityOperator = {};
 	
@@ -333,12 +358,14 @@ function RefineryAssault:SetupFirstStage()
 	-- Set up stage 1 enemy actors
 	
 	self.tacticsHandler:AddTask("Sentry", self.aiTeam, Vector(0, 0), "Sentry", 10);
+	local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+	self.tacticsHandler:AddTask("Patrol Stage 1", self.aiTeam, taskArea, "PatrolArea", 5);
 	
 	self:SetupStartingActors();
 	
 	-- Set up the 2 dock squads
 	
-	local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+	taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
 	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
@@ -387,7 +414,7 @@ function RefineryAssault:SetupFirstStage()
 	"Attack",
 	"Clear the first hanging building of enemies",
 	"Secure an FOB for us to stage further attacks from.",
-	actor,
+	nil,
 	false,
 	true);
 
@@ -439,7 +466,12 @@ function RefineryAssault:MonitorStage1()
 		self.tacticsHandler:AddTask("Attack Hack Console 2", self.humanTeam, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 2", self.aiTeam, taskPos, "Defend", 10);
 		
+		local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage2");
+		local task = self.tacticsHandler:AddTask("Patrol Stage 2", self.humanTeam, taskArea, "PatrolArea", 2);
+		local task = self.tacticsHandler:AddTask("Patrol Stage 2", self.aiTeam, taskArea, "PatrolArea", 4);
+		
 		self.tacticsHandler:RemoveTask("Sentry", self.aiTeam);
+		self.tacticsHandler:RemoveTask("Patrol Stage 1", self.aiTeam);
 		self.tacticsHandler:RemoveTask("Search And Destroy", self.humanTeam);
 		
 		-- Send the counterattack by setting up squad
@@ -530,7 +562,7 @@ function RefineryAssault:MonitorStage2()
 		
 		self.stage3Consoles = {};
 		
-		-- i don't know if these fucking things are actors or particles at this point. i don't know why they don't work.
+		-- i don't know if these fucking things are actors or particles at this point. i don't know why they don't work properly.
 		
 		local i = 1;
 		
@@ -557,6 +589,22 @@ function RefineryAssault:MonitorStage2()
 				print("found refinery breakable console and added task")
 			end
 		end
+		
+		--Monies
+		
+		self.humanAIFunds = math.max(self.humanAIFunds, 0);
+		
+		self.aiTeamGoldIncreaseAmount = self.aiTeamGoldIncreaseAmount + 200;
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 100;
+		
+		-- Task stuff
+		
+		local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage3");
+		local task = self.tacticsHandler:AddTask("Patrol Stage 3", self.humanTeam, taskArea, "PatrolArea", 10);
+		local task = self.tacticsHandler:AddTask("Patrol Stage 3", self.aiTeam, taskArea, "PatrolArea", 10);
+		
+		self.tacticsHandler:RemoveTask("Patrol Stage 2", self.humanTeam);
+		self.tacticsHandler:RemoveTask("Patrol Stage 2", self.aiTeam);
 		
 		self.tacticsHandler:RemoveTask("Attack Hack Console 1", self.humanTeam);
 		self.tacticsHandler:RemoveTask("Defend Hack Console 1", self.aiTeam);
@@ -598,9 +646,9 @@ function RefineryAssault:MonitorStage2()
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
 		"S3DestroyConsoles",
-		"Destroy control centers",
+		"Find and destroy control centers",
 		"Attack",
-		"Destroy the refinery control centers",
+		"Find and destroy the refinery control centers",
 		"Destroying the facility's control centers should contribute to triggering its failsafes.",
 		nil,
 		false,
