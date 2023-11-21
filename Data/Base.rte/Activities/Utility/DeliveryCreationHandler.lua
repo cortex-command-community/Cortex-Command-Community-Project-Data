@@ -1,9 +1,9 @@
 --------------------------------------- Instructions ---------------------------------------
 
-------- Require this in your activity script like so: 
+------- Require this in your script like so: 
 
 -- self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
--- self.deliveryCreationHandler:Initialize(activity;
+-- self.deliveryCreationHandler:Initialize(Activity);
 
 -- This is a utility for creating actors, squads, and crafts with actors in them.
 -- The actors will be equipped according to their type and team tech automatically.
@@ -224,13 +224,13 @@ function DeliveryCreationHandler:OnLoad(saveLoadHandler)
 	
 	for team, presetsTable in pairs(self.saveTable.teamRemovedPresets) do
 		for i, presetName in pairs(self.saveTable.teamRemovedPresets[team]) do
-			self:RemoveAvailablePreset(team, presetName);
+			self:RemoveAvailablePreset(team, presetName, true);
 		end
 	end
 	
 	for team, presetsTable in pairs(self.saveTable.teamAddedPresets) do
 		for i, presetTable in pairs(self.saveTable.teamAddedPresets[team]) do
-			self:AddAvailablePreset(team, presetTable.PresetName, presetTable.ClassName, presetTable.TechName);
+			self:AddAvailablePreset(team, presetTable.PresetName, presetTable.ClassName, presetTable.TechName, true);
 		end
 	end
 	
@@ -247,7 +247,7 @@ function DeliveryCreationHandler:ReplaceInfantryTypeWeightsTable(team, newWeight
 
 	-- keeps old weights if none are given for a particular type
 
-	if newWeights and type(newWeights) == "table" then
+	if team and newWeights and type(newWeights) == "table" then
 	
 		local weightTable = self.saveTable.teamInfantryTypeWeights[team];
 	
@@ -264,13 +264,13 @@ function DeliveryCreationHandler:ReplaceInfantryTypeWeightsTable(team, newWeight
 		
 		return true;
 	else
-		print("DeliveryCreationHandler tried to replace infantry type weights, but wasn't given a table!");
+		print("DeliveryCreationHandler tried to replace infantry type weights, but wasn't given both a team and a table!");
 		return false;
 	end
 	
 end
 
-function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className, techName)
+function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className, techName, doNotSaveNewEntry)
 
 	-- it'd be great to just need a PresetName here, but the game's way of resolving that to actual
 	-- usable entities kinda sucks/is non-existent, so..
@@ -307,7 +307,10 @@ function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className,
 		presetTable.ClassName = preset.ClassName;
 		presetTable.TechName = preset.ModuleName; -- needed for saveloading re-adding
 		
-		table.insert(self.teamAddedPresets[team], presetTable);
+		-- this is true when redoing this stuff from OnLoad, so avoid duplicates entries
+		if not doNotSaveNewEntry then
+			table.insert(self.teamAddedPresets[team], presetTable);
+		end
 		return true;
 
 	else
@@ -317,7 +320,7 @@ function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className,
 	
 end
 
-function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName)
+function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName, doNotSaveNewEntry)
 
 	-- check through every group and delete the preset with the given presetname from every one
 
@@ -335,7 +338,10 @@ function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName)
 	
 	-- we just need to save the presetname here for saving/loading removed stuff
 	if found then
-		table.insert(self.teamRemovedPresets[team], presetName);
+		-- this is true when redoing this stuff from OnLoad, so avoid duplicates entries
+		if not doNotSaveNewEntry then
+			table.insert(self.teamRemovedPresets[team], presetName);
+		then
 		return true;
 	else
 		return false;
@@ -813,6 +819,7 @@ function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, sq
 	
 	local craft = _G[createFunc](presetName, techName);
 	craft.Team = team;
+	print(craft)
 	
 	local squad = self:CreateSquad(team, squadCountOrTypeTable, squadType);
 	for i = 1, #squad do

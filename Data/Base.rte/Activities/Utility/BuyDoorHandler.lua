@@ -1,9 +1,9 @@
 --------------------------------------- Instructions ---------------------------------------
 
-------- Require this in your activity script like so: 
+------- Require this in your script like so: 
 
 -- self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
--- self.buyDoorHandler:Initialize(activity, bool newGame);
+-- self.buyDoorHandler:Initialize(Activity, bool newGame);
 
 -- This is a simple utility for activities to send orders to buy doors.
 -- Create your items/actors beforehand and put them in a table.

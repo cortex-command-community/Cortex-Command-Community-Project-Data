@@ -162,7 +162,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.tacticsHandler:Initialize(self, newGame);
 	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
-	self.dockingHandler:Initialize(self, newGame);
+	self.dockingHandler:Initialize(self, true, newGame);
 	
 	self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
 	self.buyDoorHandler:Initialize(self, newGame);

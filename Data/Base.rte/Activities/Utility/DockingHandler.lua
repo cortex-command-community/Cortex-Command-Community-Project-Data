@@ -1,8 +1,13 @@
 --------------------------------------- Instructions ---------------------------------------
 
+------- Require this in your script like so: 
+
+-- self.dockingHandler = require("Activities/Utility/DockingHandler");
+-- self.dockingHandler:Initialize(Activity, bool autoAssignUnknownDropships, bool newGame);
+
 -- Place your Rocket Dock areas, numbered 1-2-3 etc.
 -- A rocket dock object will be placed at their Center, so make sure to line it up.
---
+
 -- Place your Dropship Dock areas numbered 1-2-3 etc.
 -- If your map has a regular Up Orbit Direction, a dropship dock object will be placed at their center.
 --
@@ -10,20 +15,31 @@
 -- your dropshio would have to take to enter your dock. The system will automatically create waypoints
 -- below and to the side of this area. Make sure this is as close as possible to the drop position,
 -- as the side waypoint will only go roughly the dropship's width.
---
+
 -- Odd-numbered Down Orbit Direction dropship docks will assume the drop position is to the left of your area.
 -- Even-numbered docks will assume it is to the right.
---
+
 -- No dropshio dock objects are placed for Down Orbit Direction maps.
---
+
+-- When ready, use SpawnDockingCraft(craft, int specificDockNumber) with a craft reference not currently in sim to send it a dock.
+-- specificDockNumber is optional, and in fact should be used carefully as there is no safety checking to see if the dock is already in use.
+-- It will readily override another docking craft at that number and stop updating the old one, resulting in undesirable behavior.
+
+-- The handler will also automatically grab dropships that enter sim without its knowledge, put them on a wait list, and assign them a dock
+-- when one is available if it is initialized to do so.
+
+------- Saving/Loading
+
+-- Saving and loading requires you to also have the SaveLoadHandler ready.
+-- Simply run OnSave(instancedSaveLoadHandler) and OnLoad(instancedSaveLoadHandler) when appropriate.
 
 --------------------------------------- Misc. Information ---------------------------------------
 
 -- It is your responsibility to avoid collisions with any doors on the way.
---
+
 -- Rockets will be helped along their path via velocity nudging. If they are knocked off-course they will abort the sequence
 -- and try to leave the way they came.
---
+
 -- This system will never dock a rocket and a dropship together at the same dock number, even if they are physically separate.
 -- If you want all rocket and dropship docks usable simultaneously, make sure there is no number overlap.
 
@@ -40,12 +56,14 @@ function DockingHandler:Create()
 	return Members;
 end
 
-function DockingHandler:Initialize(activity, newGame)
+function DockingHandler:Initialize(activity, autoAssignUnknownDropships, newGame)
 	
 	print("dockhandler inited")
 	print(SceneMan.SceneOrbitDirection)
 	
 	self.Activity = activity;
+	
+	self.autoAssignUnknownDropships = autoAssignUnknownDropships or false;
 	
 	-- Set up player dropship dock wait list
 	
@@ -258,21 +276,81 @@ function DockingHandler:UpdateUndersideDockingCraft()
 	
 	self.lastAddedCraftUniqueID = nil;
 	
-	-- Monitor for unknown crafts that might want to deliver stuff
+	if self.autoAssignUnknownDropships then
 	
-	for actor in MovableMan.AddedActors do
-		if actor.UniqueID ~= self.lastAddedCraftUniqueID then
-			if IsACDropShip(actor) and not actor:NumberValueExists("Dock Number") then
-				local craft = ToACDropShip(actor);
+		-- Monitor for unknown crafts that might want to deliver stuff
+		
+		for actor in MovableMan.AddedActors do
+			if actor.UniqueID ~= self.lastAddedCraftUniqueID then
+				if IsACDropShip(actor) and not actor:NumberValueExists("Dock Number") then
+					local craft = ToACDropShip(actor);
+					
+					-- See if we have any docks available right now
+					
+					local noDockFound = true;
 				
-				-- See if we have any docks available right now
-				
-				local noDockFound = true;
-			
-				for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
-					if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
+					for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+						if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
+							
+							print("found dock for unknown craft")
+							
+							craft.AIMode = Actor.AIMODE_GOTO;
+							--craft.Team = 0
+							--craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+							--craft.DeliveryState = ACraft.STANDBY;
+							
+							-- Mark this craft's dock number, not used except to see if there's any dock at all
+							craft:SetNumberValue("Dock Number", i);
+							
+							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
+							craft:AddAISceneWaypoint(dockTable.dockPosition);
+							local direction = i % 2 == 0 and -1 or 1;	
+							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
+							
+							dockTable.activeCraft = craft;
+							dockTable.dockingStage = 1;
+							
+							noDockFound = false;
+							
+							break;
+						end
+					end
+					
+					if noDockFound then
+					
+						-- Put the craft in the wait table
 						
-						print("found dock for unknown craft")
+						table.insert(self.mainTable.playerDSDockWaitList, craft);
+						
+					end		
+					
+				end
+			end
+		end
+		
+		if self.playerDSDockCheckTimer:IsPastSimMS(self.playerDSDockCheckDelay) then
+			
+			self.playerDSDockCheckTimer:Reset();
+			
+			-- Iterate back to front so we can remove things safely
+			
+			for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
+			
+				local craft = self.mainTable.playerDSDockWaitList[i];
+				
+				if not craft or not MovableMan:ValidMO(craft) then
+					table.remove(self.mainTable.playerDSDockWaitList, i)
+					
+					-- this break will make everyone wait for 4 seconds again, but that's fine
+					break;
+				end
+				
+				craft = ToACDropShip(craft);
+			
+				-- See if we have any docks available
+		
+				for i2, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+					if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i2].activeCraft then
 						
 						craft.AIMode = Actor.AIMODE_GOTO;
 						--craft.Team = 0
@@ -280,74 +358,17 @@ function DockingHandler:UpdateUndersideDockingCraft()
 						--craft.DeliveryState = ACraft.STANDBY;
 						
 						-- Mark this craft's dock number, not used except to see if there's any dock at all
-						craft:SetNumberValue("Dock Number", i);
+						craft:SetNumberValue("Dock Number", i2);
 						
 						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
-						craft:AddAISceneWaypoint(dockTable.dockPosition);
-						local direction = i % 2 == 0 and -1 or 1;	
-						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
 						
 						dockTable.activeCraft = craft;
 						dockTable.dockingStage = 1;
 						
-						noDockFound = false;
+						table.remove(self.mainTable.playerDSDockWaitList, i)
 						
 						break;
 					end
-				end
-				
-				if noDockFound then
-				
-					-- Put the craft in the wait table
-					
-					table.insert(self.mainTable.playerDSDockWaitList, craft);
-					
-				end		
-				
-			end
-		end
-	end
-	
-	if self.playerDSDockCheckTimer:IsPastSimMS(self.playerDSDockCheckDelay) then
-		
-		self.playerDSDockCheckTimer:Reset();
-		
-		-- Iterate back to front so we can remove things safely
-		
-		for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
-		
-			local craft = self.mainTable.playerDSDockWaitList[i];
-			
-			if not craft or not MovableMan:ValidMO(craft) then
-				table.remove(self.mainTable.playerDSDockWaitList, i)
-				
-				-- this break will make everyone wait for 4 seconds again, but that's fine
-				break;
-			end
-			
-			craft = ToACDropShip(craft);
-		
-			-- See if we have any docks available
-	
-			for i2, dockTable in ipairs(self.mainTable.activeDSDockTable) do
-				if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i2].activeCraft then
-					
-					craft.AIMode = Actor.AIMODE_GOTO;
-					--craft.Team = 0
-					--craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
-					--craft.DeliveryState = ACraft.STANDBY;
-					
-					-- Mark this craft's dock number, not used except to see if there's any dock at all
-					craft:SetNumberValue("Dock Number", i2);
-					
-					craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, 500));
-					
-					dockTable.activeCraft = craft;
-					dockTable.dockingStage = 1;
-					
-					table.remove(self.mainTable.playerDSDockWaitList, i)
-					
-					break;
 				end
 			end
 		end
@@ -582,19 +603,77 @@ function DockingHandler:UpdateRegularDockingCraft()
 
 	self.lastAddedCraftUniqueID = nil;
 	
-	-- Monitor for unknown crafts that might want to deliver stuff
+	if self.autoAssignUnknownDropships then
 	
-	for actor in MovableMan.AddedActors do
-		if actor.UniqueID ~= self.lastAddedCraftUniqueID then
-			if IsACDropShip(actor) and not actor:NumberValueExists("Dock Number") then
-				local craft = ToACDropShip(actor);
+		-- Monitor for unknown crafts that might want to deliver stuff
+		
+		for actor in MovableMan.AddedActors do
+			if actor.UniqueID ~= self.lastAddedCraftUniqueID then
+				if IsACDropShip(actor) and not actor:NumberValueExists("Dock Number") then
+					local craft = ToACDropShip(actor);
+					
+					-- See if we have any docks available right now
+					
+					local noDockFound = true;
 				
-				-- See if we have any docks available right now
-				
-				local noDockFound = true;
+					for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+						if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
+							
+							craft.AIMode = Actor.AIMODE_GOTO;
+							--craft.Team = 0
+							--craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
+							--craft.DeliveryState = ACraft.STANDBY;
+							
+							-- Mark this craft's dock number, not used except to see if there's any dock at all
+							craft:SetNumberValue("Dock Number", i);
+							
+							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -500));
+							craft:AddAISceneWaypoint(dockTable.dockPosition);
+							
+							dockTable.activeCraft = craft;
+							dockTable.dockingStage = 1;
+							
+							noDockFound = false;
+							
+							break;
+						end
+					end
+					
+					if noDockFound then
+					
+						-- Put the craft in the wait table
+						
+						table.insert(self.mainTable.playerDSDockWaitList, craft);
+						
+					end		
+					
+				end
+			end
+		end
+		
+		if self.playerDSDockCheckTimer:IsPastSimMS(self.playerDSDockCheckDelay) then
 			
-				for i, dockTable in ipairs(self.mainTable.activeDSDockTable) do
-					if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i].activeCraft then
+			self.playerDSDockCheckTimer:Reset();
+			
+			-- Iterate back to front so we can remove things safely
+			
+			for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
+			
+				local craft = self.mainTable.playerDSDockWaitList[i];
+				
+				if not craft or not MovableMan:ValidMO(craft) then
+					table.remove(self.mainTable.playerDSDockWaitList, i)
+					
+					-- this break will make everyone wait for 4 seconds again, but that's fine
+					break;
+				end
+				
+				craft = ToACDropShip(craft);
+			
+				-- See if we have any docks available
+		
+				for i2, dockTable in ipairs(self.mainTable.activeDSDockTable) do
+					if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i2].activeCraft then
 						
 						craft.AIMode = Actor.AIMODE_GOTO;
 						--craft.Team = 0
@@ -602,7 +681,7 @@ function DockingHandler:UpdateRegularDockingCraft()
 						--craft.DeliveryState = ACraft.STANDBY;
 						
 						-- Mark this craft's dock number, not used except to see if there's any dock at all
-						craft:SetNumberValue("Dock Number", i);
+						craft:SetNumberValue("Dock Number", i2);
 						
 						craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -500));
 						craft:AddAISceneWaypoint(dockTable.dockPosition);
@@ -610,65 +689,10 @@ function DockingHandler:UpdateRegularDockingCraft()
 						dockTable.activeCraft = craft;
 						dockTable.dockingStage = 1;
 						
-						noDockFound = false;
+						table.remove(self.mainTable.playerDSDockWaitList, i)
 						
 						break;
 					end
-				end
-				
-				if noDockFound then
-				
-					-- Put the craft in the wait table
-					
-					table.insert(self.mainTable.playerDSDockWaitList, craft);
-					
-				end		
-				
-			end
-		end
-	end
-	
-	if self.playerDSDockCheckTimer:IsPastSimMS(self.playerDSDockCheckDelay) then
-		
-		self.playerDSDockCheckTimer:Reset();
-		
-		-- Iterate back to front so we can remove things safely
-		
-		for i=#self.mainTable.playerDSDockWaitList, 1, -1 do
-		
-			local craft = self.mainTable.playerDSDockWaitList[i];
-			
-			if not craft or not MovableMan:ValidMO(craft) then
-				table.remove(self.mainTable.playerDSDockWaitList, i)
-				
-				-- this break will make everyone wait for 4 seconds again, but that's fine
-				break;
-			end
-			
-			craft = ToACDropShip(craft);
-		
-			-- See if we have any docks available
-	
-			for i2, dockTable in ipairs(self.mainTable.activeDSDockTable) do
-				if not dockTable.activeCraft and not self.mainTable.activeRocketDockTable[i2].activeCraft then
-					
-					craft.AIMode = Actor.AIMODE_GOTO;
-					--craft.Team = 0
-					--craft.Pos = Vector(dockTable.dockPosition.X, SceneMan.Scene.Height - 100);
-					--craft.DeliveryState = ACraft.STANDBY;
-					
-					-- Mark this craft's dock number, not used except to see if there's any dock at all
-					craft:SetNumberValue("Dock Number", i2);
-					
-					craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(0, -500));
-					craft:AddAISceneWaypoint(dockTable.dockPosition);
-					
-					dockTable.activeCraft = craft;
-					dockTable.dockingStage = 1;
-					
-					table.remove(self.mainTable.playerDSDockWaitList, i)
-					
-					break;
 				end
 			end
 		end
