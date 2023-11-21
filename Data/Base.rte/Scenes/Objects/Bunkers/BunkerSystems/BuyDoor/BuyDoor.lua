@@ -56,7 +56,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 			local clonedItem = _G[typeCast](item):Clone();
 			if IsActor(clonedItem) and team then
 				clonedItem.Team = team;
-				print(clonedItem)
+				--print(clonedItem)
 			end
 			if IsAHuman(item) then
 				lastActor = clonedItem;
@@ -103,7 +103,7 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 	-- Finally, add the order to our inventory
 	
 	for k, item in pairs(finalOrder) do
-		print(item)
+		--print(item)
 		self:AddInventoryItem(item);
 	end
 	
@@ -141,7 +141,7 @@ function Create(self)
 		self.Frame = 1;
 	end
 	
-	print("buydoor" .. self.Frame)
+	--print("buydoor" .. self.Frame)
 
 	self.isStayingOpen = false;
 	if self:GetNumberValue("isStayingOpen") == 1 then

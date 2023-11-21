@@ -315,6 +315,7 @@ function RefineryAssault:ResumeLoadedGame()
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
 	self.dockingHandler:OnLoad(self.saveLoadHandler);
 	self.buyDoorHandler:OnLoad(self.saveLoadHandler);
+	self.deliveryCreationHandler:OnLoad(self.saveLoadHandler);
 	
 	self.buyDoorHandler:ReplaceBuyDoorTable(self.buyDoorTables.All);
 		
@@ -335,6 +336,7 @@ function RefineryAssault:OnSave()
 	self.tacticsHandler:OnSave(self.saveLoadHandler);
 	self.dockingHandler:OnSave(self.saveLoadHandler);
 	self.buyDoorHandler:OnSave(self.saveLoadHandler);
+	self.deliveryCreationHandler:OnSave(self.saveLoadHandler);
 	
 end
 

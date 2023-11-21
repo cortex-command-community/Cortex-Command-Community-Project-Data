@@ -45,18 +45,42 @@ function DeliveryCreationHandler:Initialize(activity)
 	self.teamTechTable = {};
 	self.teamTechIDTable = {};
 	
-	self.teamExtraItemChances = {};
+	-- stuff we wanna save - the rest can be re-initialized each time, it's fine/even desirable
+	self.saveTable = {};
+	
+	self.saveTable.teamRemovedPresets = {};
+	self.saveTable.teamAddedPresets = {};
+	
+	self.saveTable.teamInfantryTypeWeights = {};
+	
+	self.saveTable.teamExtraItemChances = {};
 	
 	for i = 0, self.Activity.TeamCount - 1 do
 		local moduleID = PresetMan:GetModuleID(self.Activity:GetTeamTech(i));
 		self.teamTechTable[i] = PresetMan:GetDataModule(moduleID);
 		self.teamTechIDTable[i] = moduleID;
 		
-		self.teamExtraItemChances[i] = {};
-		self.teamExtraItemChances[i].Medikit = 0.5;
-		self.teamExtraItemChances[i].BreachingTool = 0.25;
-		self.teamExtraItemChances[i].Grenade = 0.25;
-		self.teamExtraItemChances[i].Digger = 0.15;
+		self.saveTable.teamRemovedPresets[i] = {};
+		self.saveTable.teamAddedPresets[i] = {};
+		
+		self.saveTable.teamInfantryTypeWeights[i] = {};
+		
+		-- 10 is standard weighting
+		
+		self.saveTable.teamInfantryTypeWeights[i].Light = 10;
+		self.saveTable.teamInfantryTypeWeights[i].Medium = 10;
+		self.saveTable.teamInfantryTypeWeights[i].Heavy = 8;
+		self.saveTable.teamInfantryTypeWeights[i].CQB = 7;
+		self.saveTable.teamInfantryTypeWeights[i].Scout = 0; -- has to be explicitly enabled
+		self.saveTable.teamInfantryTypeWeights[i].Sniper = 5;
+		self.saveTable.teamInfantryTypeWeights[i].Grenadier = 5;
+		self.saveTable.teamInfantryTypeWeights[i].Engineer = 3;
+		
+		self.saveTable.teamExtraItemChances[i] = {};
+		self.saveTable.teamExtraItemChances[i].Medikit = 0.5;
+		self.saveTable.teamExtraItemChances[i].BreachingTool = 0.25;
+		self.saveTable.teamExtraItemChances[i].Grenade = 0.25;
+		self.saveTable.teamExtraItemChances[i].Digger = 0.15;
 			
 	end
 	
@@ -147,6 +171,136 @@ function DeliveryCreationHandler:Initialize(activity)
 	
 end
 
+function DeliveryCreationHandler:OnLoad(saveLoadHandler)
+	
+	print("loading deliverycreationhandler...");
+	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("deliveryCreationHandlerSaveTable");
+	print("loaded deliverycreationhandler!");
+	
+	-- redo adding and removing presets
+	
+	for team, presetsTable in pairs(self.saveTable.teamRemovedPresets) do
+		for i, presetName in pairs(self.saveTable.teamRemovedPresets[team]) do
+			self:RemoveAvailablePreset(team, presetName);
+		end
+	end
+	
+	for team, presetsTable in pairs(self.saveTable.teamAddedPresets) do
+		for i, presetTable in pairs(self.saveTable.teamAddedPresets[team]) do
+			self:AddAvailablePreset(team, presetTable.PresetName, presetTable.ClassName, presetTable.TechName);
+		end
+	end
+	
+end
+
+function DeliveryCreationHandler:OnSave(saveLoadHandler)
+	
+	print("saving deliverycreationhandler")
+	saveLoadHandler:SaveTableAsString("deliveryCreationHandlerSaveTable", self.saveTable);
+	
+end
+
+function DeliveryCreationHandler:ReplaceInfantryTypeWeightsTable(team, newWeights)
+
+	-- keeps old weights if none are given for a particular type
+
+	if newWeights and type(newWeights) == "table" then
+	
+		local weightTable = self.saveTable.teamInfantryTypeWeights[team];
+	
+		weightTable.Light = newWeights.Light or weightTable.Light;
+		weightTable.Medium = newWeights.Medium or weightTable.Medium;
+		weightTable.Heavy = newWeights.Heavy or weightTable.Heavy;
+		weightTable.CQB = newWeights.CQB or weightTable.CQB;
+		weightTable.Scout = newWeights.Scout or weightTable.Scout;
+		weightTable.Sniper = newWeights.Sniper or weightTable.Sniper;
+		weightTable.Grenadier = newWeights.Grenadier or weightTable.Grenadier;
+		weightTable.Engineer = newWeights.Engineer or weightTable.Engineer;	
+
+		self.saveTable.teamInfantryTypeWeights[team] = weightTable; -- not sure if this is required...
+		
+		return true;
+	else
+		print("DeliveryCreationHandler tried to replace infantry type weights, but wasn't given a table!");
+		return false;
+	end
+	
+end
+
+function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className, techName)
+
+	-- it'd be great to just need a PresetName here, but the game's way of resolving that to actual
+	-- usable entities kinda sucks/is non-existent, so..
+	if team and presetName and className and techName then
+	
+		-- make sure we don't already have it
+
+		for i, groupTable in pairs(self.teamPresetTables[team]) do
+			for presetIndex, presetTable in pairs(groupTable) do
+				if presetTable.PresetName == presetName then
+					print("DeliveryCreationHandler tried to add an available preset that was already there!");
+					return false;
+				end
+			end
+		end
+	
+		-- we need to create the preset to know its groups.
+	
+		local createFunc = "Create" .. className;	
+		local preset = _G[createFunc](presetName, techName);
+
+		local presetInfoTable = {};
+
+		for group in preset.Groups do
+			if self.teamPresetTables[team][group] then
+				presetInfoTable.PresetName = preset.PresetName;
+				presetInfoTable.ClassName = preset.ClassName;
+				table.insert(self.teamPresetTables[team][group], presetInfoTable);
+			end
+		end
+
+		local presetTable = {};
+		presetTable.PresetName = preset.PresetName;
+		presetTable.ClassName = preset.ClassName;
+		presetTable.TechName = preset.ModuleName; -- needed for saveloading re-adding
+		
+		table.insert(self.teamAddedPresets[team], presetTable);
+		return true;
+
+	else
+		print("DeliveryCreationHandler tried to add an available preset but was not given all of a team, presetName, className, and techName!");
+		return false;
+	end
+	
+end
+
+function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName)
+
+	-- check through every group and delete the preset with the given presetname from every one
+
+	local found = false;
+
+	for i, groupTable in pairs(self.teamPresetTables[team]) do
+		for presetIndex, presetTable in pairs(groupTable) do
+			if presetTable.PresetName == presetName then
+				table.remove(presetTable, presetIndex);
+				found = true;
+				break; -- continue to next group
+			end
+		end
+	end
+	
+	-- we just need to save the presetname here for saving/loading removed stuff
+	if found then
+		table.insert(self.teamRemovedPresets[team], presetName);
+		return true;
+	else
+		return false;
+	end
+	
+end
+	
+
 function DeliveryCreationHandler:CheckTwoGroupIntersections(team, group1, group2, returnRandomSelection)
 
 	local groupTable1 = self.teamPresetTables[team][group1];
@@ -180,17 +334,17 @@ function DeliveryCreationHandler:GiveActorRandomAdditions(team, actor, multiplie
 	-- Given chances low enough, an infantry type can have an addition disabled
 
 	local rand = math.random();
-	if rand < self.teamExtraItemChances[team].Grenade * multiplier then
+	if rand < self.saveTable.teamExtraItemChances[team].Grenade * multiplier then
 		actor:AddInventoryItem(RandomTDExplosive("Bombs - Grenades", self.teamTechTable[team].FileName))
 		return;
 	end
 	
-	if rand < self.teamExtraItemChances[team].Medikit * multiplier then
+	if rand < self.saveTable.teamExtraItemChances[team].Medikit * multiplier then
 		actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"));
 		return;
 	end
 	
-	if rand < self.teamExtraItemChances[team].Digger * multiplier then
+	if rand < self.saveTable.teamExtraItemChances[team].Digger * multiplier then
 		presetName, createFunc, techName = self:SelectPresetByGroupPair(team, "Tools - Diggers", "Tools - Diggers", "Tools - Diggers", "Tools - Diggers");
 		
 		local weapon = _G[createFunc](presetName, techName);
@@ -198,7 +352,7 @@ function DeliveryCreationHandler:GiveActorRandomAdditions(team, actor, multiplie
 		return;
 	end
 	
-	if rand < self.teamExtraItemChances[team].BreachingTool * multiplier then
+	if rand < self.saveTable.teamExtraItemChances[team].BreachingTool * multiplier then
 		if math.random() < 0.75 then
 			actor:AddInventoryItem(RandomHDFirearm("Tools - Breaching", self.teamTechTable[team].FileName));
 		else
@@ -245,10 +399,10 @@ function DeliveryCreationHandler:SelectPresetByGroupPair(team, primaryGroup, sec
 	local techName = actingTech.FileName;
 	
 	
-	print(presetName)
-	print(createFunc)
-	print(techName)
-	print("FALLBACK GROUP: " .. baseFallbackGroup); 
+	--print(presetName)
+	--print(createFunc)
+	--print(techName)
+	--print("FALLBACK GROUP: " .. baseFallbackGroup); 
 	
 	return presetName, createFunc, techName;
 
@@ -265,12 +419,29 @@ end
 
 function DeliveryCreationHandler:CreateRandomInfantry(team)
 
-	-- just pick one lol
+	-- random weighted select
+	local totalPriority = 0;
+	for infantryType, weight in pairs(self.saveTable.teamInfantryTypeWeights[team]) do
+		totalPriority = totalPriority + weight;
+	end
 	
-	self.infantryFunc = self.indexedInfantryTypeFunctionTable[math.random(1, #self.indexedInfantryTypeFunctionTable)];
-	actor = self:infantryFunc(team);
+	local randomSelect = math.random(1, totalPriority);
+	for infantryType, func in pairs(self.infantryTypeFunctionTable) do
+		randomSelect = randomSelect - self.saveTable.teamInfantryTypeWeights[team][infantryType];
+		if randomSelect <= 0 then
+			self.infantryFunc = func;
+			--print("selected random inf: " .. infantryType);
+			break;
+		end
+	end
 	
-	return actor;
+	if self.infantryFunc then
+		actor = self:infantryFunc(team);
+		return actor;
+	else
+		print("Something when wrong when DeliveryCreationHandler was picking a random infantry type to create!");
+		return false;
+	end
 	
 end
 
