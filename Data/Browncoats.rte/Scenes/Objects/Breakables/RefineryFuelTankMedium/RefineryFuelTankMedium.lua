@@ -10,7 +10,7 @@ function Update(self)
 		self.PinStrength = 0;
 		
 		self.AngularVel = math.random(-1, 1);
-		self.Vel = self.Vel + Vector(math.random(-1, 1), 0);
+		self.Vel = self.Vel + Vector(math.random(-2, 2), 0);
 		
 	end
 	
