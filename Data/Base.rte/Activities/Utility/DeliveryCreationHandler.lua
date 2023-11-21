@@ -1,10 +1,57 @@
 --------------------------------------- Instructions ---------------------------------------
 
---
+------- Require this in your activity script like so: 
+
+-- self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
+-- self.deliveryCreationHandler:Initialize(activity;
+
+-- This is a utility for creating actors, squads, and crafts with actors in them.
+-- The actors will be equipped according to their type and team tech automatically.
+-- To use at a basic level, simply do:
+
+-- actorTable, goldCost = CreateSquad(int desiredTeam, int actorCount, string actorType)
+-- actorTable will be a table with directly usable, Created actors in it. Funds are not automatically deducted.
+
+-- craft, actorTable, goldCost = CreateSquadWithCraft(int desiredTeam, bool useRocket, int actorCount, string actorType)
+-- The above function returns a fully Created squad inside the inventory of a fully Created dropship/rocket.
+
+-- Elite versions of those two functions (CreateEliteSquad(WithCraft)) will multiply actor MaxHealth by 1.25 and set their AI to maximum skill.
+
+-- Only int desiredTeam is required. Actor count and type will both be randomized otherwise.
+-- If there is no type, the resulting actorTable will have several random types of actor in it, rather than all of only one type.
+-- They are selected according to their weights, which are set at reasonable defaults but can be replaced with 
+-- ReplaceInfantryTypeWeightsTable(int teamToSetWeightsFor, table newWeightsTable).
+
+-- You can also specify a squad makeup yourself by passing a table of type strings instead of squadCount:
+-- squadTable = {1 = "Light", 2 = "Light", 3 = "CQB"} etcetera.
+
+-- Each team's available actors and items are calculated on initialization according to their team tech.
+-- You can AddAvailablePreset(int team, string presetName, string className, string techName)
+-- or RemoveAvailablePreset(int team, string presetName) to add or remove presets from the list.
+-- This persists when save/loading.
+
+-- You can also use the infantry creation functions directly but note that they will not return the gold cost for you.
+
+
+------- Saving/Loading
+
+-- Saving and loading requires you to also have the SaveLoadHandler ready.
+-- Simply run OnSave(instancedSaveLoadHandler) and OnLoad(instancedSaveLoadHandler) when appropriate.
+
+
+-- Valid infantry types:
+--	Light - Light trooper with light weaponry.
+--	Medium - Heavy trooper with light weaponry.
+--	Heavy - Heavy trooper with heavy weaponry.
+--	CQB - CQB weaponry.
+--	Scout - Light trooper with only a secondary, with extra support items like medikits.
+--	Sniper - Sniper weaponry.
+--	Grenadier - Explosive weaponry.
+--	Engineer - Digging and breaching.
 
 --------------------------------------- Misc. Information ---------------------------------------
 
---
+-- Team -1 is always Base.rte. If you want to change this you will have to remove each Base.rte preset and add your new presets manually.
 
 
 
@@ -155,11 +202,7 @@ function DeliveryCreationHandler:Initialize(activity)
 					entityInfoTable.PresetName = entity.PresetName;
 					entityInfoTable.ClassName = entity.ClassName;
 					table.insert(self.teamPresetTables[team]["Craft - Dropships"], entityInfoTable);
-					print("found dropship:")
-					print(entity)
 				elseif IsACRocket(entity) then
-					print("found acrocket:")
-					print(entity)
 					entityInfoTable.PresetName = entity.PresetName;
 					entityInfoTable.ClassName = entity.ClassName;
 					table.insert(self.teamPresetTables[team]["Craft - Rockets"], entityInfoTable);	
@@ -408,6 +451,7 @@ function DeliveryCreationHandler:SelectPresetByGroupPair(team, primaryGroup, sec
 
 end
 
+-- TODO: Use this when crabs don't suck
 function DeliveryCreationHandler:CreateCrab(team)
 	local actor = RandomACrab("Actors - Mecha", self.teamTechTable[team].FileName);
 	if actor then
@@ -683,32 +727,61 @@ function DeliveryCreationHandler:CreateEngineerInfantry(team)
 	return actor;
 end
 
-function DeliveryCreationHandler:CreateSquad(team, squadCount, squadType)
+function DeliveryCreationHandler:CreateSquad(team, squadCountOrTypeTable, squadType)
 
 	local squadTable = {};
 	local goldCost = 0;
 	
 	local crabToHumanSpawnRatio = self.Activity:GetCrabToHumanSpawnRatio(self.teamTechIDTable[team]);
 	
-	if squadCount == nil then
-		squadCount = math.random(2, 3);
-	end
-
-	for i = 1, squadCount do
-		local actor;
-		if squadType then
-			self.infantryFunc = self.infantryTypeFunctionTable[squadType];
+	if type(squadCountOrTypeTable) == "table" then
+	
+		for k, infantryType in pairs(squadCountOrTypeTable) do
+			local actor;
+			
+			self.infantryFunc = self.infantryTypeFunctionTable[infantryType];
+			
+			if not self.infantryFunc then
+				print("DeliveryCreationHandler tried to create infantry of an invalid type!");
+				return false;
+			end
+			
 			actor = self:infantryFunc(team);
-		elseif math.random() < crabToHumanSpawnRatio then
-			-- TODO make crabs not suck
-			--actor = self:CreateCrab(team);
-			actor = self:CreateRandomInfantry(team);
-		else
-			actor = self:CreateRandomInfantry(team);
+			
+			if actor then
+				table.insert(squadTable, actor)
+				goldCost = goldCost + ToSceneObject(actor):GetTotalValue(self.teamTechIDTable[team], 1);
+			end
 		end
-		if actor then
-			table.insert(squadTable, actor)
-			goldCost = goldCost + ToSceneObject(actor):GetTotalValue(self.teamTechIDTable[team], 1);
+	
+	else
+	
+		if squadCountOrTypeTable == nil then
+			squadCountOrTypeTable = math.random(2, 3);
+		end
+
+		for i = 1, squadCountOrTypeTable do
+			local actor;
+			if squadType then
+				self.infantryFunc = self.infantryTypeFunctionTable[squadType];
+				
+				if not self.infantryFunc then
+					print("DeliveryCreationHandler tried to create infantry of an invalid type!");
+					return false;
+				end				
+					
+				actor = self:infantryFunc(team);
+			elseif math.random() < crabToHumanSpawnRatio then
+				-- TODO make crabs not suck
+				--actor = self:CreateCrab(team);
+				actor = self:CreateRandomInfantry(team);
+			else
+				actor = self:CreateRandomInfantry(team);
+			end
+			if actor then
+				table.insert(squadTable, actor)
+				goldCost = goldCost + ToSceneObject(actor):GetTotalValue(self.teamTechIDTable[team], 1);
+			end
 		end
 	end
 	
@@ -717,9 +790,9 @@ function DeliveryCreationHandler:CreateSquad(team, squadCount, squadType)
 
 end
 
-function DeliveryCreationHandler:CreateEliteSquad(team, squadCount, squadType)
+function DeliveryCreationHandler:CreateEliteSquad(team, squadCountOrTypeTable, squadType)
 
-	local squadTable, goldCost = self:CreateSquad(team, squadCount, squadType)
+	local squadTable, goldCost = self:CreateSquad(team, squadCountOrTypeTable, squadType)
 	
 	for k, actor in pairs(squadTable) do
 		actor:SetNumberValue("AIAimSpeed", 0.04);
@@ -733,16 +806,15 @@ function DeliveryCreationHandler:CreateEliteSquad(team, squadCount, squadType)
 	
 end
 
-function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType)
+function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCountOrTypeTable, squadType)
 
 	local craftGroup = "Craft - Dropships";
 	presetName, createFunc, techName = self:SelectPresetByGroupPair(team, craftGroup, craftGroup, craftGroup, craftGroup);
 	
 	local craft = _G[createFunc](presetName, techName);
-	print(craft)
 	craft.Team = team;
 	
-	local squad = self:CreateSquad(team, squadCount, squadType);
+	local squad = self:CreateSquad(team, squadCountOrTypeTable, squadType);
 	for i = 1, #squad do
 		craft:AddInventoryItem(squad[i]);
 		if craft.InventoryMass > craft.MaxInventoryMass then
@@ -755,9 +827,9 @@ function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, sq
 	return craft, squad, goldCost
 end
 
-function DeliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCount, squadType)
+function DeliveryCreationHandler:CreateEliteSquadWithCraft(team, forceRocketUsage, squadCountOrTypeTable, squadType)
 
-	local craft, squad, goldCost = self:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType)
+	local craft, squad, goldCost = self:CreateSquadWithCraft(team, forceRocketUsage, squadCountOrTypeTable, squadType)
 	
 	for k, actor in pairs(squad) do
 		actor:SetNumberValue("AIAimSpeed", 0.04);

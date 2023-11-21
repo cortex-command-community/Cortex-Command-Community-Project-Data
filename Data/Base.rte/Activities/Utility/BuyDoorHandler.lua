@@ -1,6 +1,27 @@
 --------------------------------------- Instructions ---------------------------------------
 
---
+------- Require this in your activity script like so: 
+
+-- self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
+-- self.buyDoorHandler:Initialize(activity, bool newGame);
+
+-- This is a simple utility for activities to send orders to buy doors.
+-- Create your items/actors beforehand and put them in a table.
+
+-- SendCustomOrder(table order, int team) will pick a random buy door on the map of the same team
+-- and send that order to it if any are available.
+
+-- You can use GetAvailableBuyDoorsInArea(Area area, int team) to get a table of indexes that point to non-busy buy doors in that area,
+-- then use SendCustomOrder(table order, int team, int index) to send to one of them (pick them randomly yourself beforehand).
+-- Note that it will only give you non-busy indexes and as such may not give you all of the buy doors in that area.
+
+-- If you manually set up your table of buy doors and want the indices to be the same in BuyDoorHandler,
+-- use ReplaceBuyDoorTable(newTable). newTable should be an integer-indexed table of references to real buy doors.
+
+------- Saving/Loading
+
+-- Saving and loading requires you to also have the SaveLoadHandler ready.
+-- Simply run OnSave(instancedSaveLoadHandler) and OnLoad(instancedSaveLoadHandler) when appropriate.
 
 --------------------------------------- Misc. Information ---------------------------------------
 
@@ -68,7 +89,7 @@ function BuyDoorHandler:ReplaceBuyDoorTable(newTable)
 
 end
 
-function BuyDoorHandler:IsBusyDoorBusy(specificIndex)
+function BuyDoorHandler:IsBuyDoorBusy(specificIndex)
 
 	return self.buyDoorTable[specificIndex]:NumberValueExists("BuyDoor_Unusable");
 	
