@@ -9,7 +9,7 @@
 -- The actors will be equipped according to their type and team tech automatically.
 -- To use at a basic level, simply do:
 
--- actorTable, goldCost = CreateSquad(int desiredTeam, int actorCount, string actorType)
+-- actorTable, goldCost = CreateSquad(int desiredTeam, optional int actorCount, optional string actorType)
 -- actorTable will be a table with directly usable, Created actors in it. Funds are not automatically deducted.
 
 -- craft, actorTable, goldCost = CreateSquadWithCraft(int desiredTeam, bool useRocket, int actorCount, string actorType)
@@ -52,6 +52,8 @@
 --------------------------------------- Misc. Information ---------------------------------------
 
 -- Team -1 is always Base.rte. If you want to change this you will have to remove each Base.rte preset and add your new presets manually.
+-- If you do, make sure no team involved lacks any crucial group preset (like Weapons - Primary, Weapons - Secondary, an AHuman) etc.
+-- or things will get ugly.
 
 
 

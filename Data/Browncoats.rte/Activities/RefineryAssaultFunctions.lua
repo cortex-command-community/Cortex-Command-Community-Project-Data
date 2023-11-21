@@ -562,21 +562,6 @@ function RefineryAssault:MonitorStage2()
 		
 		self.stage3Consoles = {};
 		
-		-- i don't know if these fucking things are actors or particles at this point. i don't know why they don't work properly.
-		
-		local i = 1;
-		
-		for particle in MovableMan.Actors do
-			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
-				particle.MissionCritical = false;
-				table.insert(self.stage3Consoles, particle)
-				self.tacticsHandler:AddTask("Defend Refinery Console " .. i, self.aiTeam, particle, "Defend", 10);
-				self.tacticsHandler:AddTask("Attack Refinery Console " .. i, self.humanTeam, particle, "Attack", 10);
-				i = i + 1;
-				print("found refinery breakable console and added task")
-			end
-		end
-		
 		local i = 1;
 		
 		for particle in MovableMan.Particles do
