@@ -341,7 +341,7 @@ function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName, doNotSa
 		-- this is true when redoing this stuff from OnLoad, so avoid duplicates entries
 		if not doNotSaveNewEntry then
 			table.insert(self.teamRemovedPresets[team], presetName);
-		then
+		end
 		return true;
 	else
 		return false;
