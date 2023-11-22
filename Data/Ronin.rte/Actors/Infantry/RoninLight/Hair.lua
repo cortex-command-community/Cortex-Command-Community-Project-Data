@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function ThreadedUpdate(self)
 	local gravity = (self.Vel + self.PrevVel)/2 - SceneMan.GlobalAcc * rte.PxTravelledPerFrame;
 	self.RotAngle = gravity.AbsRadAngle;

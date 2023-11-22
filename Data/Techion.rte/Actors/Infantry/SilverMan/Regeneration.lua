@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.healAmount = 1;
 	self.regenDelay = 750;

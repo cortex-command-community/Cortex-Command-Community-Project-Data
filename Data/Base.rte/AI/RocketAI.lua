@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 require("AI/PID");
 
 function Create(self)
@@ -59,7 +57,7 @@ function Create(self)
 	---------------- AI variables end ----------------
 end
 
-function UpdateAI(self)
+function ThreadedUpdateAI(self)
 	self.Ctrl = self:GetController();
 
 	if self.PlayerInterferedTimer:IsPastSimTimeLimit() then

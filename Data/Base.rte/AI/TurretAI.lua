@@ -1,12 +1,10 @@
---[[MULTITHREAD]]--
-
 require("AI/NativeTurretAI");
 
 function Create(self)
 	self.AI = NativeTurretAI:Create(self);
 end
 
-function UpdateAI(self)
+function ThreadedUpdateAI(self)
 	self.AI:Update(self);
 end
 

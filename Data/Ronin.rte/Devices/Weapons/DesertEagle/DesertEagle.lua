@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	--Suffer from fire rate loss when firing rapidly
 	self.fireRatePenaltyPerShot = 75;

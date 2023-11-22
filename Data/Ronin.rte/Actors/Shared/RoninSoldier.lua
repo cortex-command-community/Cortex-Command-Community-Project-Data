@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 require("Loadouts");
 
 function Create(self)

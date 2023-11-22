@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.ageRatio = 1;
 	--A separate delay for lifetime control is used to preserve animation speed

@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.chargeTimer = Timer();
 	self.chargeCounter = 10;

@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.muzzleTable = {self.MuzzleOffset + Vector(0, -1), self.MuzzleOffset + Vector(0, 2)};
 	self.muzzleSelect = 0;

@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 require("Actors/Infantry/BrowncoatBoss/BrowncoatBossFunctions");
 dofile("Base.rte/Constants.lua")
 

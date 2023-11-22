@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.shortFlame = CreatePEmitter("Flame Hurt Short Float", "Base.rte");
 	

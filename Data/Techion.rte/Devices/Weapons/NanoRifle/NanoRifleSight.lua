@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.laserTimer = Timer();
 	self.laserCheckDelay = 30;

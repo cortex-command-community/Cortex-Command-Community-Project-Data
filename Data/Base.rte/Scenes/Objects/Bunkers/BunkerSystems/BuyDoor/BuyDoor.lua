@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function OnMessage(self, message, orderList)
 	--print("message gotten?")
 	--if self:IsInventoryEmpty() then

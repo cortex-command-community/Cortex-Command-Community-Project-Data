@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 
 	self.Activity = ActivityMan:GetActivity();
