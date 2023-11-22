@@ -173,6 +173,10 @@ function SaveLoadHandler:ReadSavedStringAsTable(name)
 	print(ActivityMan:GetActivity())
 	print(ActivityMan:GetActivity():LoadString(name))
 	local savedString = ActivityMan:GetActivity():LoadString(name)
+	if savedString == "" then
+		savedString = "{}";
+	end
+
 	local tab = loadstring("return " .. savedString)()
 	-- Parse for saved MOSRotatings
 	-- Very mildly inefficient in terms of looping even after resolving a value, but it happens once on startup
