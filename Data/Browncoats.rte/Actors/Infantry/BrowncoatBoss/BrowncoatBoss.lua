@@ -1,3 +1,5 @@
+--[[MULTITHREAD]]--
+
 require("Actors/Infantry/BrowncoatBoss/BrowncoatBossFunctions");
 dofile("Base.rte/Constants.lua")
 
@@ -159,6 +161,7 @@ function Update(self)
 			end
 		end
 	else
+		-- This is really bad, we should be communicating with messages or something
 		if self.AI.flying == true and self.isInAir == false then
 			self.isInAir = true;
 		elseif self.AI.flying == false and self.isInAir == true then
