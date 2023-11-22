@@ -307,6 +307,8 @@ function RefineryAssault:ResumeLoadedGame()
 	self.buyDoorTables = self.saveLoadHandler:ReadSavedStringAsTable("buyDoorTables");
 	print("loaded local refineryassault buy door table!");
 	
+	self.Stage = self:LoadNumber("stage");
+
 	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
 	
 	self.stage2HoldingBothConsoles = self:LoadNumber("stage2HoldingBothConsoles") == 1 and true or false;
@@ -328,6 +330,8 @@ function RefineryAssault:OnSave()
 	
 	self.saveLoadHandler:SaveTableAsString("buyDoorTables", self.buyDoorTables);
 	
+	self:SaveNumber("stage", self.Stage);
+
 	self:SaveNumber("goldTimer", self.goldTimer.ElapsedRealTimeMS);
 	
 	self:SaveNumber("stage2HoldingBothConsoles", self.stage2HoldingBothConsoles and 1 or 0);
