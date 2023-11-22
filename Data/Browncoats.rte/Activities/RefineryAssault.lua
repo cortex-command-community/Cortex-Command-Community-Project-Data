@@ -180,6 +180,11 @@ function RefineryAssault:StartActivity(newGame)
 	self.stage2HoldTimer = Timer();
 	self.stage2TimeToHoldConsoles = 5000;
 	
+	self.stageFunctionTable = {};
+	table.insert(self.stageFunctionTable, self.MonitorStage1);
+	table.insert(self.stageFunctionTable, self.MonitorStage2);
+	table.insert(self.stageFunctionTable, self.MonitorStage3);
+	table.insert(self.stageFunctionTable, self.MonitorStage4);
 	
 	if newGame then
 		
@@ -233,12 +238,6 @@ function RefineryAssault:StartActivity(newGame)
 		self.Stage = 1;
 		
 		self:SetupFirstStage();
-		
-		self.stageFunctionTable = {};
-		table.insert(self.stageFunctionTable, self.MonitorStage1);
-		table.insert(self.stageFunctionTable, self.MonitorStage2);
-		table.insert(self.stageFunctionTable, self.MonitorStage3);
-		table.insert(self.stageFunctionTable, self.MonitorStage4);
 
 		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 		automoverController.Pos = Vector();
