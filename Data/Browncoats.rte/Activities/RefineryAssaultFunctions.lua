@@ -6,6 +6,8 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	print(message)
 	print(object)
+	
+	-- this is ugly, but there's no way to avoid this stuff except hiding it away even harder than in this separate script...
 
 	if message == "Captured_RefineryLCHackConsole1" then
 	
@@ -139,8 +141,32 @@ function RefineryAssault:HandleMessage(message, object)
 		if self.stage3ConsolesBroken == 3 then
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
 		end
+	
+	elseif message == "Captured_RefineryS3FireWeaponryConsole" then	
+		
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "FL-200 Heatlance", "HDFirearm", "Browncoats.rte");
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "IN-02 Backblast", "HDFirearm", "Browncoats.rte");
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
+		-- don't remove the IN-02, castrates the brownies too much this early on.
 		
 	end
+	
+	
+	-- DEBUG STAGE SKIPS
+	
+	if message == "Stage1Skip" then
+		for a in MovableMan.Actors do if a.Team == 1 and a.ClassName == "AHuman" and SceneMan.Scene:WithinArea("Mission Stage Area 1", a.Pos) then a.Health = 0 end end
+	elseif message == "Stage2Skip" then
+		self.stage2HoldingBothConsoles = true;
+		self.stage2TimeToHoldConsoles = 0;
+	elseif message == "Stage3Skip" then
+		self.stage3ConsolesBroken = 3
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
+		self.enemyActorTables.stage3FacilityOperator = {};
+	end
+	
+	
 
 end
 
@@ -556,6 +582,10 @@ function RefineryAssault:MonitorStage2()
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole1");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole2");
 		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole1");
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole2");
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole3");
+		
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3OilCapturable");
 		
 		-- Setup stage 3 consoles
@@ -676,6 +706,10 @@ function RefineryAssault:MonitorStage3()
 	
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 		self.Stage = 4;
+
+		-- Capturables
+		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole4");
 
 	end
 	

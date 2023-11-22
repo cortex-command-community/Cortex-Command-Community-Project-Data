@@ -2,12 +2,12 @@ function OnGlobalMessage(self, message, object)
 
 	--print("capturablegotglobalmessage")
 
-	if message == self.deactivationMessage then
+	if message == self.deactivationMessage or message == "DEACTIVATEALLCAPTURABLES" then
 		self.Deactivated = true;
 		self.dominantTeam = self.Team;
 		self.capturingTeam = self.Team;
 		self.captureProgress = 1;
-	elseif message == self.activationMessage then
+	elseif message == self.activationMessage or message == "ACTIVATEALLCAPTURABLES" then
 		self.Deactivated = false;
 	end
 
@@ -15,12 +15,12 @@ end
 
 function OnMessage(self, message, object)
 
-	if message == self.deactivationMessage then
+	if message == self.deactivationMessage or message == "DEACTIVATEALLCAPTURABLES" then
 		self.Deactivated = true;
 		self.dominantTeam = self.Team;
 		self.capturingTeam = self.Team;
 		self.captureProgress = 1;
-	elseif message == self.activationMessage then
+	elseif message == self.activationMessage or message == "ACTIVATEALLCAPTURABLES" then
 		self.Deactivated = false;
 	end
 
