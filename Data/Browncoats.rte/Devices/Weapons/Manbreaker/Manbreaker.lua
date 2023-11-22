@@ -444,6 +444,8 @@ function Update(self)
 		self.InheritedRotAngleOffset = self.InheritedRotAngleOffset - (self.rotationSpeed * (self.InheritedRotAngleOffset - self.InheritedRotAngleTarget))
 	end
 	
+	self.InheritedRotAngleTarget = 0;
+	
 end
 
 function OnDetach(self)

@@ -64,7 +64,7 @@ function SyncedUpdate(self)
 		local actor = ToActor(self.target);
 		actor.Health = actor.Health - self.damage;
 	elseif self.extraPar then
-		MovableMan:AddParticle(extraPar);
+		MovableMan:AddParticle(self.extraPar);
 	end
 end
 
