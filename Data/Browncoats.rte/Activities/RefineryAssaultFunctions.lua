@@ -154,7 +154,10 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	
 	-- DEBUG STAGE SKIPS
-	
+	-- ActivityMan:GetActivity():SendMessage("Stage1Skip");
+	-- ActivityMan:GetActivity():SendMessage("Stage2Skip");
+	-- ActivityMan:GetActivity():SendMessage("Stage3Skip");
+
 	if message == "Stage1Skip" then
 		for a in MovableMan.Actors do if a.Team == 1 and a.ClassName == "AHuman" and SceneMan.Scene:WithinArea("Mission Stage Area 1", a.Pos) then a.Health = 0 end end
 	elseif message == "Stage2Skip" then
