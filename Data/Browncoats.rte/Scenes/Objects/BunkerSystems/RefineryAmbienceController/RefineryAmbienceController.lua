@@ -1,13 +1,13 @@
 function Create(self)
 
-	self.Activity = ActivityMan:GetActivity();
+	local activity = ActivityMan:GetActivity();
 	
 	self.playerIndoornesses = {};
 	self.playerExtContainers = {};
 	self.playerIntContainers = {};
 	
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self.Activity:PlayerActive(player) and self.Activity:PlayerHuman(player) then
+		if activity:PlayerActive(player) and activity:PlayerHuman(player) then
 			self.playerIndoornesses[player] = 0;
 			self.playerExtContainers[player] = CreateSoundContainer("Yskely Refinery Ambience Ext", "Browncoats.rte");
 			self.playerIntContainers[player] = CreateSoundContainer("Yskely Refinery Ambience Int", "Browncoats.rte");
