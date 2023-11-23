@@ -23,8 +23,8 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 	skipnewlines = skipnewlines or false
 	depth = depth or 0
 	
-	print("looking at val: ");
-	print(val)
+	--print("looking at val: ");
+	--print(val)
 	print("with name: ")
 	print(name)
 

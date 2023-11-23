@@ -26,10 +26,10 @@ function RefineryAssault:HandleMessage(message, object)
 				self.stage2HoldingBothConsoles = true;
 			end
 	
-			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC1");
-			self.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC1");
+			self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
 			
-			for k, v in pairs(self.buyDoorTables.LC1) do
+			for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 				v.Team = self.humanTeam;
 			end
 		else
@@ -38,10 +38,10 @@ function RefineryAssault:HandleMessage(message, object)
 			self.stage2HoldingLC1 = false;
 			self.stage2HoldingBothConsoles = false;
 		
-			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC1");
-			self.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
+			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC1");
+			self.saveTable.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
 			
-			for k, v in pairs(self.buyDoorTables.LC1) do
+			for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 				v.Team = self.aiTeam;
 			end		
 		end
@@ -65,20 +65,20 @@ function RefineryAssault:HandleMessage(message, object)
 				self.stage2HoldingBothConsoles = true;
 			end
 	
-			table.insert(self.buyDoorTables.teamAreas[self.humanTeam], "LC2");
-			self.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
+			self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
 			
-			for k, v in pairs(self.buyDoorTables.LC2) do
+			for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 				v.Team = self.humanTeam;
 			end
 		else
 			self.stage2HoldingLC2 = false;
 			self.stage2HoldingBothConsoles = false;
 			
-			table.insert(self.buyDoorTables.teamAreas[self.aiTeam], "LC2");
-			self.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
+			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC2");
+			self.saveTable.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
 			
-			for k, v in pairs(self.buyDoorTables.LC2) do
+			for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 				v.Team = self.aiTeam;
 			end		
 		end
@@ -88,41 +88,41 @@ function RefineryAssault:HandleMessage(message, object)
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole1" then
 		
-		table.insert(self.buyDoorTables.teamAreas[object], "S3_1");
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_1");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_1 = nil;
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_1 = nil;
 		
-		for k, v in pairs(self.buyDoorTables.S3_1) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
 			v.Team = object;
 		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole2" then
 		
-		table.insert(self.buyDoorTables.teamAreas[object], "S3_2");
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_2");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_2 = nil;
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_2 = nil;
 		
-		for k, v in pairs(self.buyDoorTables.S3_2) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_2) do
 			v.Team = object;
 		end		
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole3" then
 		
-		table.insert(self.buyDoorTables.teamAreas[object], "S3_3");
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_3");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_3 = nil;
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_3 = nil;
 		
-		for k, v in pairs(self.buyDoorTables.S3_3) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_3) do
 			v.Team = object;
 		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole4" then
 		
-		table.insert(self.buyDoorTables.teamAreas[object], "S3_4");
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_4");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.buyDoorTables.teamAreas[(object + 1) % 2].S3_4 = nil;
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_4 = nil;
 		
-		for k, v in pairs(self.buyDoorTables.S3_4) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
 			v.Team = object;
 		end		
 		
@@ -171,7 +171,7 @@ function RefineryAssault:HandleMessage(message, object)
 	elseif message == "SkipStage3" then
 		self.stage3ConsolesBroken = 3
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
-		self.enemyActorTables.stage3FacilityOperator = {};
+		self.saveTable.enemyActorTables.stage3FacilityOperator = {};
 	end
 	
 	
@@ -231,8 +231,8 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			end
 			-- check if it's in an area this team owns
 			local areaThisIsIn
-			for i = 1, #self.buyDoorTables.teamAreas[team] do
-				local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.buyDoorTables.teamAreas[team][i]);
+			for i = 1, #self.saveTable.buyDoorTables.teamAreas[team] do
+				local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.saveTable.buyDoorTables.teamAreas[team][i]);
 				if area:IsInside(taskPos) then
 					areaThisIsIn = area;
 					break;
@@ -249,9 +249,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			-- might be ineffective, but who cares.
 			
 			local closestDist = false;
-			if #self.buyDoorTables.teamAreas[team] > 0 then
-				for k, area in pairs(self.buyDoorTables.teamAreas[team]) do
-					for k, buyDoor in pairs(self.buyDoorTables[area]) do
+			if #self.saveTable.buyDoorTables.teamAreas[team] > 0 then
+				for k, area in pairs(self.saveTable.buyDoorTables.teamAreas[team]) do
+					for k, buyDoor in pairs(self.saveTable.buyDoorTables[area]) do
 						local dist = SceneMan:ShortestDistance(taskPos, buyDoor.Pos, SceneMan.SceneWrapsX).Magnitude;
 						if not closestDist then
 							closestDist = dist;
@@ -298,7 +298,7 @@ end
 
 function RefineryAssault:SetupStartingActors()
 
-	self.enemyActorTables = {};
+	self.saveTable.enemyActorTables = {};
 	
 	local AHumanTable = {};
 	-- brownies don't really have acrabs, do they?
@@ -315,8 +315,8 @@ function RefineryAssault:SetupStartingActors()
 		end
 	end
 	
-	self.enemyActorTables.stage1 = {};
-	self.enemyActorTables.stage1CounterAttActors = {};
+	self.saveTable.enemyActorTables.stage1 = {};
+	self.saveTable.enemyActorTables.stage1CounterAttActors = {};
 	
 	-- locals used just to set up tasks
 	local stage1SquadsTable = {};
@@ -328,7 +328,7 @@ function RefineryAssault:SetupStartingActors()
 	
 		
 		if SceneMan.Scene:WithinArea("Mission Stage Area 1", actor.Pos) and actor.Team == self.aiTeam then
-			table.insert(self.enemyActorTables.stage1, actor);
+			table.insert(self.saveTable.enemyActorTables.stage1, actor);
 			-- divvy up into squads of 3
 			-- bonus: it ends up 0-indexed!!!
 			table.insert(stage1SquadsTable[i % 3], actor);
@@ -352,7 +352,7 @@ function RefineryAssault:SetupStartingActors()
 		end
 		
 		if SceneMan.Scene:WithinArea("RefineryAssault_S1CounterAttActors", actor.Pos) and actor.Team == self.aiTeam then
-			table.insert(self.enemyActorTables.stage1CounterAttActors, actor);
+			table.insert(self.saveTable.enemyActorTables.stage1CounterAttActors, actor);
 			actor.HFlipped = true; -- look the right way numbnuts
 		end		
 		
@@ -363,7 +363,7 @@ function RefineryAssault:SetupStartingActors()
 		self.tacticsHandler:AddTaskedSquad(self.aiTeam, stage1SquadsTable[k], task.Name);
 	end
 	
-	self.enemyActorTables.stage3FacilityOperator = {};
+	self.saveTable.enemyActorTables.stage3FacilityOperator = {};
 	
 	-- note index access, we get a table back
 	local facilityOperator = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
@@ -374,7 +374,7 @@ function RefineryAssault:SetupStartingActors()
 	MovableMan:AddActor(facilityOperator);
 	facilityOperator.AIMode = Actor.AIMODE_SENTRY;
 	
-	table.insert(self.enemyActorTables.stage3FacilityOperator, facilityOperator);
+	table.insert(self.saveTable.enemyActorTables.stage3FacilityOperator, facilityOperator);
 	
 end
 
@@ -385,7 +385,7 @@ function RefineryAssault:SetupFirstStage()
 	
 	-- Disable all buy doors, not using them quite yet
 	
-	for k, v in pairs(self.buyDoorTables.All) do
+	for k, v in pairs(self.saveTable.buyDoorTables.All) do
 		v.Team = -1
 	end
 	
@@ -458,9 +458,9 @@ function RefineryAssault:MonitorStage1()
 
 	local noActors = true;
 
-	for i, actor in ipairs(self.enemyActorTables.stage1) do
+	for i, actor in ipairs(self.saveTable.enemyActorTables.stage1) do
 		if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
-			self.enemyActorTables.stage1[i] = false;
+			self.saveTable.enemyActorTables.stage1[i] = false;
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S1KillEnemies" .. i);
 		else
 			noActors = false;
@@ -475,11 +475,11 @@ function RefineryAssault:MonitorStage1()
 		
 		-- Start using buydoors
 		
-		for k, v in pairs(self.buyDoorTables.LC1) do
+		for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 			v.Team = self.aiTeam;
 		end
 		
-		for k, v in pairs(self.buyDoorTables.LC2) do
+		for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 			v.Team = self.aiTeam;
 		end
 		
@@ -512,18 +512,18 @@ function RefineryAssault:MonitorStage1()
 		
 		-- First check they still exist, could be dealing with a wise guy
 		
-		for k, actor in pairs(self.enemyActorTables.stage1CounterAttActors) do
+		for k, actor in pairs(self.saveTable.enemyActorTables.stage1CounterAttActors) do
 			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
-				table.remove(self.enemyActorTables.stage1CounterAttActors, k);
+				table.remove(self.saveTable.enemyActorTables.stage1CounterAttActors, k);
 			end
 		end
 		
-		if #self.enemyActorTables.stage1CounterAttActors > 0 then
+		if #self.saveTable.enemyActorTables.stage1CounterAttActors > 0 then
 		
 			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
 			
-			self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.enemyActorTables.stage1CounterAttActors, task.Name);
+			self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.saveTable.enemyActorTables.stage1CounterAttActors, task.Name);
 			
 		end
 		
@@ -637,19 +637,19 @@ function RefineryAssault:MonitorStage2()
 		
 		-- Start using buy doors
 		
-		for k, v in pairs(self.buyDoorTables.S3_1) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
 			v.Team = self.aiTeam;
 		end
 		
-		for k, v in pairs(self.buyDoorTables.S3_2) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_2) do
 			v.Team = self.aiTeam;
 		end
 
-		for k, v in pairs(self.buyDoorTables.S3_3) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_3) do
 			v.Team = self.aiTeam;
 		end
 		
-		for k, v in pairs(self.buyDoorTables.S3_4) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
 			v.Team = self.aiTeam;
 		end
 		
@@ -695,13 +695,13 @@ function RefineryAssault:MonitorStage3()
 
 	if not self.stage3FacilityOperatorKilled then
 
-		for k, actor in pairs(self.enemyActorTables.stage3FacilityOperator) do
+		for k, actor in pairs(self.saveTable.enemyActorTables.stage3FacilityOperator) do
 			if not actor or not MovableMan:ValidMO(actor) or actor:IsDead() then
-				table.remove(self.enemyActorTables.stage3FacilityOperator, k);
+				table.remove(self.saveTable.enemyActorTables.stage3FacilityOperator, k);
 			end
 		end
 		
-		if #self.enemyActorTables.stage3FacilityOperator == 0 and not self.stage3FacilityOperatorKilled then
+		if #self.saveTable.enemyActorTables.stage3FacilityOperator == 0 and not self.stage3FacilityOperatorKilled then
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DefeatOperator");
 			self.stage3FacilityOperatorKilled = true;
 		end
