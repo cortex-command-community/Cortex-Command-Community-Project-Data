@@ -259,6 +259,7 @@ function RefineryAssault:StartActivity(newGame)
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole2");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole3");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole4");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3DrillOverloadConsole");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3OilCapturable");
 
 		-- Stage stuff
@@ -317,6 +318,7 @@ function RefineryAssault:ResumeLoadedGame()
 	self.stage2HoldTimer.ElapsedRealTimeMS = self:LoadNumber("stage2HoldTimer");
 	
 	self.stage3ConsolesBroken = self:LoadNumber("stage3ConsolesBroken");
+	self.stage3DrillOverloaded = self:LoadNumber("stage3DrillOverloaded") == 1 and true or false;
 	
 	-- Handlers
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
@@ -341,6 +343,7 @@ function RefineryAssault:OnSave()
 	self:SaveNumber("stage2HoldTimer", self.stage2HoldTimer.ElapsedRealTimeMS);
 	
 	self:SaveNumber("stage3ConsolesBroken", self.stage2ConsolesBroken or 0);
+	self:SaveNumber("stage3DrillOverloaded", self.stage2DrillOverloaded and 1 or 0);
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);

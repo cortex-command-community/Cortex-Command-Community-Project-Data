@@ -150,6 +150,11 @@ function RefineryAssault:HandleMessage(message, object)
 		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
 		-- don't remove the IN-02, castrates the brownies too much this early on.
 		
+	elseif message == "Captured_RefineryS3DrillOverloadConsole" then	
+		
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
+		self.stage3DrillOverloaded = true;
+		
 	end
 	
 	
@@ -419,7 +424,7 @@ function RefineryAssault:SetupFirstStage()
 	dropShip.AIMode = Actor.AIMODE_SENTRY;
 	dropShip.PlayerControllable = true;
 	
-	for _, player in pairs(self.humanPlayers) do
+	for i, player in pairs(self.humanPlayers) do
 		local brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
 		if brain then
 			brain:RemoveInventoryItem("Constructor");
@@ -432,9 +437,11 @@ function RefineryAssault:SetupFirstStage()
 		brain.Team = self.humanTeam;
 		brain.AIMode = Actor.AIMODE_SENTRY;
 		self:SetPlayerBrain(brain, player);
-		self:SetObservationTarget(dropShip.Pos, player);
-		self:SwitchToActor(dropShip, player, self.humanTeam);
-		dropShip:AddInventoryItem(brain);
+		self:SetObservationTarget(brain.Pos, player);
+		self:SwitchToActor(brain, player, self.humanTeam);
+		brain.Pos = dropShip.Pos + Vector(0 + (10 * i), 180);
+		MovableMan:AddActor(brain);
+		--dropShip:AddInventoryItem(brain);
 	end
 		
 	MovableMan:AddActor(dropShip)
@@ -594,6 +601,8 @@ function RefineryAssault:MonitorStage2()
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole2");
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole3");
 		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3DrillOverloadConsole");
+		
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3OilCapturable");
 		
 		-- Setup stage 3 consoles
@@ -665,6 +674,20 @@ function RefineryAssault:MonitorStage2()
 		"The path forwards is blocked by three blast doors. Open them by triggering the facility failsafes.",
 		nil,
 		false,
+		true,
+		true);
+		
+		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryS3DrillOverloadConsole").Center;
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S3OverloadDrill",
+		"Sabotage the main drill",
+		"Attack",
+		"Sabotage the main drill",
+		"Overload the drill and destroy it. You'll need to get your commander to do it.",
+		objPos,
+		false,
+		true,
 		true);
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
@@ -672,9 +695,10 @@ function RefineryAssault:MonitorStage2()
 		"Find and destroy control centers",
 		"Attack",
 		"Find and destroy the refinery control centers",
-		"Destroying the facility's control centers should contribute to triggering its failsafes.",
+		"Destroying the facility's control centers should contribute to triggering its failsafes. Find them.",
 		nil,
 		false,
+		true,
 		true);
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
@@ -685,6 +709,7 @@ function RefineryAssault:MonitorStage2()
 		"Defeat the operator monitoring the refinery. It can't hurt.",
 		nil,
 		false,
+		true,
 		true);
 		
 	end
@@ -708,7 +733,7 @@ function RefineryAssault:MonitorStage3()
 		
 	end
 
-	if self.stage3ConsolesBroken == 3 and self.stage3FacilityOperatorKilled then
+	if self.stage3ConsolesBroken == 3 and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded then
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
 	

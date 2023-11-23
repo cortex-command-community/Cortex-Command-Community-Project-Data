@@ -342,7 +342,7 @@ function TacticsHandler:CommunicateSquadIndexesToActors()
 	for team, v in pairs(self.teamList) do
 		for squad = 1, #self.teamList[team].squadList do
 			for actorIndex = 1, #self.teamList[team].squadList[squad].Actors do
-				if actor and ValidMO(actor) then
+				if actor and MovableMan:ValidMO(actor) then
 					actor:SendMessage("TacticsHandler_UpdateSquadIndex", squad);
 				end
 			end

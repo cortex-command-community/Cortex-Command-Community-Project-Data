@@ -61,6 +61,9 @@ function Create(self)
 	self.instantReset = self:GetNumberValue("InstantReset") == 1 and true or false;
 	self.neutralIfNotFullyCapped = self:GetNumberValue("NeutralIfNotFullyCapped") == 1 and true or false;
 	self.needFullControlToCap = self:GetNumberValue("NeedFullControlToCap") == 1 and true or false;
+	self.onlyBrainCanCapture = self:GetNumberValue("OnlyBrainCanCapture") == 1 and true or false;
+	
+	self.capturingTeamHasBrain = false;
 	
 	self.secondsToCapture = self:NumberValueExists("SecondsToCapture") and self:GetNumberValue("SecondsToCapture") or 10;
 	self.captureRate = 1/(self.secondsToCapture / 2);
@@ -70,6 +73,8 @@ function Create(self)
 								[1] = 0, 
 								[2] = 0,
 								[3] = 0};
+								
+	self.teamHasBrainTable = {};
 	
 end
 
@@ -85,6 +90,8 @@ function Update(self)
 									[2] = 0,
 									[3] = 0};
 									
+		self.teamHasBrainTable = {};
+									
 		
 		if self.captureArea then
 			
@@ -92,6 +99,9 @@ function Update(self)
 				for actor in MovableMan:GetMOsInBox(box, -1, true) do
 					if IsActor(actor) then
 						self.actorTeamNumTable[actor.Team] = self.actorTeamNumTable[actor.Team] + 1
+						if actor:IsInGroup("Brains") then
+							self.teamHasBrainTable[actor.Team] = true;
+						end
 					end
 				end
 			end
@@ -102,6 +112,9 @@ function Update(self)
 			for actor in actorList do
 				if IsActor(actor) then
 					self.actorTeamNumTable[actor.Team] = self.actorTeamNumTable[actor.Team] + 1
+				end
+				if actor:IsInGroup("Brains") then
+					self.teamHasBrainTable[actor.Team] = true;
 				end
 			end
 			
@@ -134,7 +147,9 @@ function Update(self)
 		
 	end
 	
-	if self.dominantTeam ~= self.Team then
+	local brainOnlyRestrictionCheck = self.dominantTeam == self.Team or (self.dominantTeam ~= self.Team and not (self.onlyBrainCanCapture and not self.teamHasBrainTable[self.dominantTeam]));
+	
+	if self.dominantTeam ~= self.Team and not (self.onlyBrainCanCapture and not self.teamHasBrainTable[self.dominantTeam]) then
 		if not self.FXcapturing then
 			self.FXstartCapture = not self.Deactivated and true or false;
 			self.FXcapturing = not self.Deactivated and true or false;
@@ -146,7 +161,7 @@ function Update(self)
 		self.FXcapturing = false;
 	end
 	
-	if not self.Contested and not self.Deactivated then
+	if not self.Contested and not self.Deactivated and brainOnlyRestrictionCheck then
 	
 		if self.dominantTeam ~= self.capturingTeam then	
 		
