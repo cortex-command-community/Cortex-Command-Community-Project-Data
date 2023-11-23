@@ -710,28 +710,6 @@ function RefineryAssault:MonitorStage2()
 		true,
 		true);
 		
-		self.HUDHandler:AddObjective(self.humanTeam,
-		"T1",
-		"Defeat facility operator",
-		"Attack",
-		"Defeat the refinery operator",
-		"Defeat the operator monitoring the refinery. It can't hurt.",
-		nil,
-		false,
-		true,
-		false);
-		
-		self.HUDHandler:AddObjective(self.humanTeam,
-		"T2",
-		"Defeat facility operator",
-		"Attack",
-		"Defeat the refinery operator",
-		"Defeat the operator monitoring the refinery. It can't hurt.",
-		nil,
-		false,
-		true,
-		false);
-		
 	end
 	
 end
