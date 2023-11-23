@@ -26,8 +26,8 @@ function HUDHandler:Initialize(activity, newGame)
 	
 	self.Activity = activity;
 	
-	self.objListStartXOffset = 50;
-	self.objListStartYOffset = 50;
+	self.objListStartXOffset = 25;
+	self.objListStartYOffset = 25;
 	self.objListSpacing = 15;
 	
 	self.descriptionSpacing = 15;
@@ -151,7 +151,7 @@ function HUDHandler:RemoveAllCameraPanEvents(team)
 	
 end
 
-function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos, doNotShowInList, showArrowOnlyOnSpectatorView)
+function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos, doNotShowInList, showArrowOnlyOnSpectatorView, alwaysShowDescription)
 
 	local objTable;
 	
@@ -169,6 +169,7 @@ function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortNa
 		objTable.Position = objPos;
 		objTable.doNotShowInList = doNotShowInList or false;
 		objTable.showArrowOnlyOnSpectatorView = showArrowOnlyOnSpectatorView or false;
+		objTable.alwaysShowDescription = alwaysShowDescription or false;
 		
 	else
 		print("HUD Handler tried to add an objective with no team or no internal name!");
@@ -245,6 +246,7 @@ function HUDHandler:UpdateHUDHandler()
 		-- Objectives
 	
 		local skippedListings = 0;
+		local extraDescSpacing = 0;
 		for i, objTable in pairs(self.mainTable.teamTables[team].Objectives) do
 			local showArrows = false;
 			for k, player in pairs(self.mainTable.playersInTeamTables[team]) do
@@ -258,19 +260,22 @@ function HUDHandler:UpdateHUDHandler()
 					skippedListings = skippedListings + 1;
 						
 				else
+				
+					local spacing = (self.objListSpacing*(i-skippedListings));
 					
-					if i - skippedListings == 1 then
-						-- First objective special treatment
-						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset);
+					if (i - skippedListings == 1) or objTable.alwaysShowDescription then
+						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
 						local pos = self:MakeRelativeToScreenPos(player, vec)
 						PrimitiveMan:DrawTextPrimitive(pos, objTable.longName, false, 0, 0);
 						-- Description
 						PrimitiveMan:DrawTextPrimitive(pos + Vector(10, self.descriptionSpacing), objTable.Description, true, 0, 0);
+						
+						extraDescSpacing = 10*(i-skippedListings);
+						
 					else
-						local spacing = (self.objListSpacing*(i-skippedListings));
-						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing);
+						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
 						local pos = self:MakeRelativeToScreenPos(player, vec)
-						PrimitiveMan:DrawTextPrimitive(pos, objTable.shortName, false, 0, 0);		
+						PrimitiveMan:DrawTextPrimitive(pos, objTable.shortName, false, 0, 0);
 					end					
 					
 				end
