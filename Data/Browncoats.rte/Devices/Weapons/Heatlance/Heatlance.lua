@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 
 	self.igniteSound = CreateSoundContainer("Ignite FT-200", "Browncoat.rte");

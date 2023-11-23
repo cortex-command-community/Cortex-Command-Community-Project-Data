@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function OnMessage(self, message)
 
 	if message == self.deactivationMessage or message == "DEACTIVATEALLITEMDISPENSERS" then

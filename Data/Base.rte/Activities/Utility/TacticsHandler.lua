@@ -78,9 +78,7 @@ function TacticsHandler:OnLoad(saveLoadHandler)
 end
 
 function TacticsHandler:OnSave(saveLoadHandler)
-	
 	saveLoadHandler:SaveTableAsString("tacticsHandlerTeamList", self.teamList);
-	
 end
 
 function TacticsHandler:InvalidateActor(infoTable)

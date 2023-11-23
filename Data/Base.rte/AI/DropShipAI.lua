@@ -1,11 +1,9 @@
---[[MULTITHREAD]]--
-
 require("AI/NativeDropShipAI");
 
 function Create(self)
 	self.AI = NativeDropShipAI:Create(self);
 end
 
-function UpdateAI(self)
+function ThreadedUpdateAI(self)
 	self.AI:Update(self);
 end

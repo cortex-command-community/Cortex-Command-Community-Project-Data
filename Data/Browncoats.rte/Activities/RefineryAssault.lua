@@ -21,7 +21,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	
 	print("area key: " .. areaKey);
 
-	self.buyDoorTables[areaKey] = {};
+	self.saveTable.buyDoorTables[areaKey] = {};
 	
 	-- does not work, actors are not added properly yet at this stage
 	
@@ -30,16 +30,16 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 		-- for mo in MovableMan:GetMOsInBox(box, -1, false) do
 			-- print(mo)
 			-- if mo.PresetName == "Reinforcement Door" then
-				-- table.insert(self.buyDoorTables.All, mo)
-				-- self.buyDoorTables[areaKey][tostring(#self.buyDoorTables.All)] = mo;
+				-- table.insert(self.saveTable.buyDoorTables.All, mo)
+				-- self.saveTable.buyDoorTables[areaKey][tostring(#self.saveTable.buyDoorTables.All)] = mo;
 			-- end
 		-- end
 	-- end
 	
 	for mo in MovableMan.AddedActors do
 		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) then
-			table.insert(self.buyDoorTables.All, mo)
-			self.buyDoorTables[areaKey][tonumber(#self.buyDoorTables.All)] = mo;
+			table.insert(self.saveTable.buyDoorTables.All, mo)
+			self.saveTable.buyDoorTables[areaKey][tonumber(#self.saveTable.buyDoorTables.All)] = mo;
 		end
 	end
 		
@@ -156,7 +156,7 @@ function RefineryAssault:StartActivity(newGame)
 	
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
-	self.saveLoadHandler:Initialize(self);
+	self.saveLoadHandler:Initialize(self, newGame);
 	
 	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
 	self.tacticsHandler:Initialize(self, newGame);
@@ -180,8 +180,15 @@ function RefineryAssault:StartActivity(newGame)
 	self.stage2HoldTimer = Timer();
 	self.stage2TimeToHoldConsoles = 5000;
 	
+	self.stageFunctionTable = {};
+	table.insert(self.stageFunctionTable, self.MonitorStage1);
+	table.insert(self.stageFunctionTable, self.MonitorStage2);
+	table.insert(self.stageFunctionTable, self.MonitorStage3);
+	table.insert(self.stageFunctionTable, self.MonitorStage4);
 	
 	if newGame then
+	
+		self.saveTable = {};
 		
 		-- Always active base task for defenders
 		self.tacticsHandler:AddTask("Brainhunt", self.aiTeam, Vector(0, 0), "Brainhunt", 2);
@@ -196,8 +203,8 @@ function RefineryAssault:StartActivity(newGame)
 		-- so each area-specific table will be made up of the actual indexes
 		-- in the All table which we can SendCustomOrder with.
 		
-		self.buyDoorTables = {};
-		self.buyDoorTables.All = {};
+		self.saveTable.buyDoorTables = {};
+		self.saveTable.buyDoorTables.All = {};
 		
 		local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC1");
 		self:SetupBuyDoorAreaTable(self, area);
@@ -217,13 +224,13 @@ function RefineryAssault:StartActivity(newGame)
 		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_4");
 		self:SetupBuyDoorAreaTable(self, area);
 
-		self.buyDoorHandler:ReplaceBuyDoorTable(self.buyDoorTables.All);
+		self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
 		
-		self.buyDoorTables.teamAreas = {};
-		self.buyDoorTables.teamAreas[self.humanTeam] = {};
-		self.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2", "S3_1", "S3_2", "S3_3", "S3_4"};
+		self.saveTable.buyDoorTables.teamAreas = {};
+		self.saveTable.buyDoorTables.teamAreas[self.humanTeam] = {};
+		self.saveTable.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2", "S3_1", "S3_2", "S3_3", "S3_4"};
 		
-		for k, v in pairs(self.buyDoorTables.All) do
+		for k, v in pairs(self.saveTable.buyDoorTables.All) do
 			print(v)
 			v.Team = self.aiTeam;
 		end
@@ -233,12 +240,6 @@ function RefineryAssault:StartActivity(newGame)
 		self.Stage = 1;
 		
 		self:SetupFirstStage();
-		
-		self.stageFunctionTable = {};
-		table.insert(self.stageFunctionTable, self.MonitorStage1);
-		table.insert(self.stageFunctionTable, self.MonitorStage2);
-		table.insert(self.stageFunctionTable, self.MonitorStage3);
-		table.insert(self.stageFunctionTable, self.MonitorStage4);
 
 		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 		automoverController.Pos = Vector();
@@ -304,10 +305,12 @@ end
 
 function RefineryAssault:ResumeLoadedGame()
 
-	print("loading local refineryassault buy door table...");
-	self.buyDoorTables = self.saveLoadHandler:ReadSavedStringAsTable("buyDoorTables");
-	print("loaded local refineryassault buy door table!");
+	print("loading local refineryassault save table...");
+	self.saveTable = self.saveLoadHandler:ReadSavedStringAsTable("saveTable");
+	print("loaded local refineryassault save table!");
 	
+	self.Stage = self:LoadNumber("stage");
+
 	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
 	
 	self.stage2HoldingBothConsoles = self:LoadNumber("stage2HoldingBothConsoles") == 1 and true or false;
@@ -321,20 +324,23 @@ function RefineryAssault:ResumeLoadedGame()
 	self.buyDoorHandler:OnLoad(self.saveLoadHandler);
 	self.deliveryCreationHandler:OnLoad(self.saveLoadHandler);
 	
-	self.buyDoorHandler:ReplaceBuyDoorTable(self.buyDoorTables.All);
+	self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
 		
 end
 
 function RefineryAssault:OnSave()
 	
-	self.saveLoadHandler:SaveTableAsString("buyDoorTables", self.buyDoorTables);
+	self.saveLoadHandler:SaveTableAsString("saveTable", self.saveTable);
 	
+	
+	self:SaveNumber("stage", self.Stage);
+
 	self:SaveNumber("goldTimer", self.goldTimer.ElapsedRealTimeMS);
 	
 	self:SaveNumber("stage2HoldingBothConsoles", self.stage2HoldingBothConsoles and 1 or 0);
 	self:SaveNumber("stage2HoldTimer", self.stage2HoldTimer.ElapsedRealTimeMS);
 	
-	self:SaveNumber("stage3ConsolesBroken", self.stage2ConsolesBroken);
+	self:SaveNumber("stage3ConsolesBroken", self.stage2ConsolesBroken or 0);
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);

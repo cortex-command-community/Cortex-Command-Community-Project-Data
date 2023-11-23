@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function OnMessage(self, message, orderList)
 	--print("message gotten?")
 	--if self:IsInventoryEmpty() then
@@ -27,12 +25,11 @@ function BuyDoorSetupOrder(self, orderList, isCustomOrder, team)
 
 	if isCustomOrder then
 	
+		self.currentTeam = -1;
 		for item in self.Inventory do
 			if IsActor(item) then
 				self.currentTeam = item.Team;
 				break;
-			else
-				self.currentTeam = -1;
 			end
 		end
 		
@@ -181,6 +178,8 @@ function Create(self)
 		-- we must have been interrupted mid-actual delivery
 		self.SpriteAnimMode = MOSprite.ALWAYSPINGPONG;
 	end
+
+	self.currentTeam = -1;
 	if self:NumberValueExists("currentTeam") then
 		self.currentTeam = self:GetNumberValue("currentTeam");
 		self:RemoveNumberValue("currentTeam");

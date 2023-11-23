@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.reloadTimer = Timer();
 	self.loadedShell = false;

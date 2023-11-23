@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 -- This script incorporates Filipawn Industries code
 -- There are likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
 

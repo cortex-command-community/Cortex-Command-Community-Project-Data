@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.InheritedRotAngleOffset = 0;
 	self.recoilAngleSize = self:NumberValueExists("RecoilAngleSize") and math.rad(self:GetNumberValue("RecoilAngleSize")) or 0.5/math.sqrt(self.Radius);

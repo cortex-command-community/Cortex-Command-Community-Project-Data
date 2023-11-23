@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.fireVel = 50;
 	self.checkTimer = Timer();

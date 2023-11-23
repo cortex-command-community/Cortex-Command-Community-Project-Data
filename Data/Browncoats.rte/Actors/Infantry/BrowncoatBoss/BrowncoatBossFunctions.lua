@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 dofile("Base.rte/Constants.lua")
 
 BrowncoatBossFunctions = {};

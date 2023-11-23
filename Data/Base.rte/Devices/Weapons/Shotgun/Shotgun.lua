@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.pullTimer = Timer();
 	self.loaded = false;

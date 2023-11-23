@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.walkSpeed = self:GetLimbPathSpeed(1);
 end

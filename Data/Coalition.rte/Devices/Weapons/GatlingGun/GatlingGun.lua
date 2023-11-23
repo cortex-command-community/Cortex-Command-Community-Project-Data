@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.origActivationDelay = self.ActivationDelay;
 	self.spinDownTimer = Timer();

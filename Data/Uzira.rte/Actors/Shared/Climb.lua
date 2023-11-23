@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.width = self:GetSpriteWidth();
 	self.grabbedMO = nil;

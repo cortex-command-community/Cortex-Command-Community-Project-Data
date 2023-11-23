@@ -23,8 +23,8 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 	skipnewlines = skipnewlines or false
 	depth = depth or 0
 	
-	print("looking at val: ");
-	print(val)
+	--print("looking at val: ");
+	--print(val)
 	print("with name: ")
 	print(name)
 
@@ -57,9 +57,11 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 		tmp = tmp .. (val and "true" or "false")
 	elseif val.Magnitude then -- ghetto vector check
 		tmp = tmp .. string.format("%q", "Vector(" .. val.X .. "," .. val.Y .. ")")
-	elseif val.PresetName and IsMOSRotating(val) then
+	elseif val.PresetName and IsMOSRotating(val) then -- IsMOSRotating freaks out if we give it something that isn't a preset at all... ghetto here too
 		val:SetNumberValue("saveLoadHandlerUniqueID", val.UniqueID);
 		tmp = tmp .. string.format("%q", "SAVELOADHANDLERUNIQUEID_" .. tostring(val.UniqueID))
+	elseif val.FirstBox then -- ghetto area check
+		tmp = tmp .. string.format("%q", "SAVELOADHANDLERAREA_" .. tostring(val.Name))
 	else
 		tmp = tmp .. '"[inserializeable datatype:' .. type(val) .. ']"'
 	end
@@ -68,18 +70,6 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 	print(tmp)
 
 	return tmp
-end
-
-function SaveLoadHandler:ParseTableForVectors(tab)
-	for k, v in pairs(tab) do
-		if type(v) == "string" and string.find(v, "Vector%(") then
-			local vector = loadstring("return " .. v)();
-			tab[k] = vector;	
-		elseif type(v) == "table" then
-			self:ParseTableForVectors(v);
-		end
-	end
-		
 end
 
 function SaveLoadHandler:ParseTableForMOs(tab)
@@ -169,16 +159,46 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 	end
 end
 
+function SaveLoadHandler:ParseTableForVectors(tab)
+	for k, v in pairs(tab) do
+		if type(v) == "string" and string.find(v, "Vector%(") then
+			local vector = loadstring("return " .. v)();
+			tab[k] = vector;	
+		elseif type(v) == "table" then
+			self:ParseTableForVectors(v);
+		end
+	end
+		
+end
+
+function SaveLoadHandler:ParseTableForAreas(tab)
+	for k, v in pairs(tab) do
+		if type(v) == "string" and string.find(v, "SAVELOADHANDLERAREA_") then
+			local areaName = string.sub(v, 21, -1);
+			local area = SceneMan.Scene:GetOptionalArea(areaName);
+			tab[k] = area;	
+		elseif type(v) == "table" then
+			self:ParseTableForAreas(v);
+		end
+	end
+		
+end
+
 function SaveLoadHandler:ReadSavedStringAsTable(name)
 	print(ActivityMan:GetActivity())
 	print(ActivityMan:GetActivity():LoadString(name))
 	local savedString = ActivityMan:GetActivity():LoadString(name)
+	if savedString == "" then
+		savedString = "{}";
+	end
+
 	local tab = loadstring("return " .. savedString)()
 	-- Parse for saved MOSRotatings
 	-- Very mildly inefficient in terms of looping even after resolving a value, but it happens once on startup
 	print("Parsing table for MOs: " .. name);
 	self:ParseTableForMOs(tab);
 	self:ParseTableForVectors(tab);
+	self:ParseTableForAreas(tab);
 	
 	return tab;
 

@@ -1,5 +1,3 @@
---[[MULTITHREAD]]--
-
 function Create(self)
 	self.startSound = CreateSoundContainer("Ignite DG-1000", "Browncoats.rte");
 	self.endSound = CreateSoundContainer("Loop End DG-1000", "Browncoats.rte");

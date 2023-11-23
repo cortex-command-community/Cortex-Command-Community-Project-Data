@@ -1,9 +1,9 @@
 function Create(self)
 
-	if self:StringValueExists("tacticsActorInvalidatorSquadInfo") ~= "" then
+	if self:StringValueExists("tacticsActorInvalidatorSquadInfo") then
 		--print("tried to create load serialized invalidator")
 		--print(self:LoadString("tacticsActorInvalidatorSquadInfo"))
-		self.tacticsHandlerSquadInfo = loadstring("return " .. self:GetStringValue("tacticsActorInvalidatorSquadInfo"))()
+		self.tacticsHandlerSquadInfo = loadstring("return " .. self:GetEncodedStringValue("tacticsActorInvalidatorSquadInfo"))()
 	end
 	
 end
@@ -31,7 +31,7 @@ end
 function OnSave(self)
 
 	--print("tried to save...?")
-	self:SetStringValue("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))		
+	self:SetEncodedStringValue("tacticsActorInvalidatorSquadInfo", self.saveLoadHandler:SerializeTable(self.tacticsHandlerSquadInfo))		
 
 end
 
