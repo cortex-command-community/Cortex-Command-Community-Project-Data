@@ -180,7 +180,7 @@ function DeliveryCreationHandler:Initialize(activity)
 		self.teamPresetTables[team]["Actors - Turrets"] = {};
 		
 		for entity in module.Presets do
-			if IsMOSRotating(entity) and ToMOSRotating(entity).IsBuyable then
+			if IsMOSRotating(entity) and ToMOSRotating(entity).IsBuyable and ToMOSRotating(entity).BuyableMode ~= 2 then
 			
 				local entityInfoTable = {};
 			
