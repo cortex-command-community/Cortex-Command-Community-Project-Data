@@ -424,7 +424,7 @@ function RefineryAssault:SetupFirstStage()
 	dropShip.AIMode = Actor.AIMODE_SENTRY;
 	dropShip.PlayerControllable = true;
 	
-	for _, player in pairs(self.humanPlayers) do
+	for i, player in pairs(self.humanPlayers) do
 		local brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
 		if brain then
 			brain:RemoveInventoryItem("Constructor");
@@ -437,9 +437,11 @@ function RefineryAssault:SetupFirstStage()
 		brain.Team = self.humanTeam;
 		brain.AIMode = Actor.AIMODE_SENTRY;
 		self:SetPlayerBrain(brain, player);
-		self:SetObservationTarget(dropShip.Pos, player);
-		self:SwitchToActor(dropShip, player, self.humanTeam);
-		dropShip:AddInventoryItem(brain);
+		self:SetObservationTarget(brain.Pos, player);
+		self:SwitchToActor(brain, player, self.humanTeam);
+		brain.Pos = dropShip.Pos + Vector(0 + (10 * i), 180);
+		MovableMan:AddActor(brain);
+		--dropShip:AddInventoryItem(brain);
 	end
 		
 	MovableMan:AddActor(dropShip)
