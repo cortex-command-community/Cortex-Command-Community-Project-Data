@@ -1723,13 +1723,6 @@ function HumanBehaviors.GoToWpt(AI, Owner, Abort)
 									else
 										nextLatMove = Actor.LAT_STILL;
 									end
-									if not (Owner.FGLeg and Owner.BGLeg) then
-										if CurrDist.X * Owner.FlipFactor > 5 and -CurrDist.Y > math.abs(CurrDist.X) then
-											AI.flying = true;
-										elseif not AI.jump then
-											AI.proneState = AHuman.GOPRONE;
-										end
-									end
 								end
 
 								if Waypoint.Type == "right" then

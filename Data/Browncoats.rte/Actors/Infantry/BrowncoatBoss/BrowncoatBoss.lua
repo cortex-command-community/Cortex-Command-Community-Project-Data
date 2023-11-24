@@ -99,6 +99,18 @@ function OnStride(self)
 	
 end
 
+function OnMessage(self, message, context)
+	if message == "AI_IsFlying" then
+		if not self:IsPlayerControlled() then
+			if context == true and self.isInAir == false then
+				self.isInAir = true;
+			elseif context == false and self.isInAir == true then
+				self.isInAir = false;
+			end
+		end
+	end
+end
+
 function Update(self)
 
 	self.voiceSound.Pos = self.Pos;
@@ -158,24 +170,17 @@ function Update(self)
 				end
 			end
 		end
-	else
-		-- This is really bad, we should be communicating with messages or something
-		if self.AI.flying == true and self.isInAir == false then
-			self.isInAir = true;
-		elseif self.AI.flying == false and self.isInAir == true then
-			self.isInAir = false;
-		end
 	end
 	
 	-- Jumppack custom fx, for extra control actor-side
 	
-	local jumpPackTrigger = self.Jetpack:IsEmitting() and not self.jetpackEmitting;
+	local jumpPackTrigger = self.Jetpack and self.Jetpack:IsEmitting() and not self.jetpackEmitting;
 	
 	if jumpPackTrigger then
 		BrowncoatBossFunctions.JumpPack(self)
 	end
 	
-	if not self.Jetpack:IsEmitting() then
+	if not self.Jetpack or not self.Jetpack:IsEmitting() then
 		self.jetpackEmitting = false;
 	end
 

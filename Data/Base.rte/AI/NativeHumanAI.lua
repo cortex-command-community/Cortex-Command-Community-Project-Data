@@ -15,6 +15,7 @@ function NativeHumanAI:Create(Owner)
 	Members.SentryFacing = Owner.HFlipped;
 	Members.fire = false;
 	Members.groundContact = 5;
+	Members.flying = false;
 
 	Members.squadShoot = false;
 	Members.useMedikit = false;
@@ -247,9 +248,19 @@ function NativeHumanAI:Update(Owner)
 				self.groundContact = self.groundContact - 1;
 			end
 		end
-		self.flying = false;
+
+		local newFlying = false;
+		if not (Owner.FGLeg and Owner.BGLeg) then
+			newFlying = true;
+		end
+
 		if self.groundContact < 0 then
-			self.flying = true;
+			newFlying = true;
+		end
+
+		if self.flying ~= newFlying then
+			Owner:SendMessage("AI_IsFlying", newFlying);
+			self.flying = newFlying;
 		end
 
 		Owner:EquipShieldInBGArm(); -- try to equip a shield
