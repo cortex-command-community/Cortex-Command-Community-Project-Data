@@ -1,7 +1,4 @@
 function OnGlobalMessage(self, message, object)
-
-	--print("capturablegotglobalmessage")
-
 	if message == self.deactivationMessage or message == "DEACTIVATEALLCAPTURABLES" then
 		self.Deactivated = true;
 		self.dominantTeam = self.Team;
@@ -10,11 +7,9 @@ function OnGlobalMessage(self, message, object)
 	elseif message == self.activationMessage or message == "ACTIVATEALLCAPTURABLES" then
 		self.Deactivated = false;
 	end
-
 end
 
 function OnMessage(self, message, object)
-
 	if message == self.deactivationMessage or message == "DEACTIVATEALLCAPTURABLES" then
 		self.Deactivated = true;
 		self.dominantTeam = self.Team;
@@ -23,11 +18,9 @@ function OnMessage(self, message, object)
 	elseif message == self.activationMessage or message == "ACTIVATEALLCAPTURABLES" then
 		self.Deactivated = false;
 	end
-
 end
 
 function Create(self)
-	
 	self.Team = self:NumberValueExists("StartTeam") and self:GetNumberValue("StartTeam") or 0;
 
 	self.useGlobalMessaging = self:GetNumberValue("SendCaptureMessageGlobally") == 1 and true or false;
@@ -76,14 +69,13 @@ function Create(self)
 								
 	self.teamHasBrainTable = {};
 	
+	self.shouldSendCaptureMessage = false;
 end
 
-function Update(self)
-
+function ThreadedUpdate(self)
 	if self.actorCheckTimer:IsPastSimMS(self.actorCheckDelay) then
-	
 		self.actorCheckTimer:Reset();
-		
+
 		self.actorTeamNumTable = {  [-1] = 0,
 									[0] = 0,
 									[1] = 0, 
@@ -91,10 +83,8 @@ function Update(self)
 									[3] = 0};
 									
 		self.teamHasBrainTable = {};
-									
-		
+
 		if self.captureArea then
-			
 			for box in self.captureArea.Boxes do
 				for actor in MovableMan:GetMOsInBox(box, -1, true) do
 					if IsActor(actor) then
@@ -105,9 +95,7 @@ function Update(self)
 					end
 				end
 			end
-			
 		else -- fallback
-		
 			local actorList = MovableMan:GetMOsInRadius(self.Pos, self.Diameter * 2, -1, true);
 			for actor in actorList do
 				if IsActor(actor) then
@@ -117,7 +105,6 @@ function Update(self)
 					self.teamHasBrainTable[actor.Team] = true;
 				end
 			end
-			
 		end
 		
 		local largestNum = 0;
@@ -148,7 +135,6 @@ function Update(self)
 	end
 	
 	local brainOnlyRestrictionCheck = self.dominantTeam == self.Team or (self.dominantTeam ~= self.Team and not (self.onlyBrainCanCapture and not self.teamHasBrainTable[self.dominantTeam]));
-	
 	if self.dominantTeam ~= self.Team and not (self.onlyBrainCanCapture and not self.teamHasBrainTable[self.dominantTeam]) then
 		if not self.FXcapturing then
 			self.FXstartCapture = not self.Deactivated and true or false;
@@ -162,9 +148,7 @@ function Update(self)
 	end
 	
 	if not self.Contested and not self.Deactivated and brainOnlyRestrictionCheck then
-	
 		if self.dominantTeam ~= self.capturingTeam then	
-		
 			if self.captureProgress > 0 then
 				self.captureProgress = math.max(0, self.captureProgress - TimerMan.DeltaTimeSecs * self.captureRate);
 			else
@@ -174,9 +158,7 @@ function Update(self)
 					self.Team = -1;
 				end
 			end
-			
 		else
-		
 			if self.captureProgress < 1 then
 				self.captureProgress = math.min(1, self.captureProgress + TimerMan.DeltaTimeSecs * self.captureRate);
 				if self.Team == -1 and self.dominantTeam == self.Team then
@@ -187,25 +169,19 @@ function Update(self)
 				if self.dominantTeam ~= self.Team then
 					self.Team = self.dominantTeam;
 					self.FXcaptureSuccess = true;
-					print("shouldhavesentmessage: " .. self.messageOnCapture)
-					if self.useGlobalMessaging then
-						MovableMan:SendGlobalMessage(self.messageOnCapture, self.dominantTeam);
-					else
-						self.Activity:SendMessage(self.messageOnCapture, self.dominantTeam);
-					end
+					self:RequestSyncedUpdate();
+					self.shouldSendCaptureMessage = true;
 					if self.deactivateOnCapture then
 						self.Deactivated = true;
 					end
 				end
 			end
-
 		end
 		
 		if self.instantReset and self.dominantTeam == self.Team then
 			self.captureProgress = self.Team ~= -1 and 1 or 0;
 			self.capturingTeam = self.Team;
 		end
-		
 	end
 	
 	PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring("Team: " .. self.Team), true, 1);
@@ -219,10 +195,20 @@ function Update(self)
 	end
 end
 
-function OnSave(self)
+function SyncedUpdate(self)
+	if self.shouldSendCaptureMessage then
+		print("shouldhavesentmessage: " .. self.messageOnCapture)
+		if self.useGlobalMessaging then
+			MovableMan:SendGlobalMessage(self.messageOnCapture, self.dominantTeam);
+		else
+			self.Activity:SendMessage(self.messageOnCapture, self.dominantTeam);
+		end
+		self.shouldSendCaptureMessage = false;
+	end
+end
 
+function OnSave(self)
 	self:SetNumberValue("captureProgress", self.captureProgress);
 	self:SetNumberValue("dominantTeam", self.dominantTeam);
 	self:SetNumberValue("capturingTeam", self.capturingTeam);
-
 end
