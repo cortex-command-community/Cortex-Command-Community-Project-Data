@@ -106,7 +106,11 @@ function DeliveryCreationHandler:Initialize(activity)
 	
 	for i = 0, self.Activity.TeamCount - 1 do
 		local moduleID = PresetMan:GetModuleID(self.Activity:GetTeamTech(i));
-		self.teamTechTable[i] = PresetMan:GetDataModule(moduleID);
+		if moduleID ~= -1 then
+			self.teamTechTable[i] = PresetMan:GetDataModule(moduleID);
+		else
+			self.teamTechTable[i] = {["FileName"] = "All"}; -- master of ghetto
+		end
 		self.teamTechIDTable[i] = moduleID;
 		
 		self.saveTable.teamRemovedPresets[i] = {};
@@ -149,6 +153,12 @@ function DeliveryCreationHandler:Initialize(activity)
 	end
 	
 	for team, module in pairs(self.teamTechTable) do
+		
+		local iterator = module.Presets;
+		-- handle -All-
+		if not iterator then
+			iterator = PresetMan:GetAllEntities();
+		end
 	
 		self.teamPresetTables[team] = {};
 		
@@ -179,7 +189,7 @@ function DeliveryCreationHandler:Initialize(activity)
 		self.teamPresetTables[team]["Actors - Mecha"] = {};
 		self.teamPresetTables[team]["Actors - Turrets"] = {};
 		
-		for entity in module.Presets do
+		for entity in iterator do
 			if IsMOSRotating(entity) and ToMOSRotating(entity).IsBuyable and ToMOSRotating(entity).BuyableMode ~= 2 then
 			
 				local entityInfoTable = {};
@@ -447,7 +457,7 @@ function DeliveryCreationHandler:SelectPresetByGroupPair(team, primaryGroup, sec
 	local presetName = presetTable.PresetName;
 	local className = presetTable.ClassName;
 	local createFunc = "Create" .. className;	
-	local techName = actingTech.FileName;
+	local techName = actingTech.FileName or "All";
 	
 	
 	--print(presetName)

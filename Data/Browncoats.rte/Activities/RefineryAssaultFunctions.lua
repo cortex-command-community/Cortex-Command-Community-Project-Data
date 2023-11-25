@@ -177,6 +177,7 @@ function RefineryAssault:HandleMessage(message, object)
 		self.stage3ConsolesBroken = 3
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
 		self.saveTable.enemyActorTables.stage3FacilityOperator = {};
+		self.stage3DrillOverloaded = true;
 	end
 	
 	
@@ -380,6 +381,19 @@ function RefineryAssault:SetupStartingActors()
 	facilityOperator.AIMode = Actor.AIMODE_SENTRY;
 	
 	table.insert(self.saveTable.enemyActorTables.stage3FacilityOperator, facilityOperator);
+	
+	-- Stage 3 and 4 door stuff, might as well save it
+	
+	self.saveTable.stage3Doors = {};
+	self.saveTable.stage4Door = {};
+	
+	for actor in MovableMan.AddedActors do
+		if actor:NumberValueExists("BlastDoorOpening") then
+			table.insert(self.saveTable.stage3Doors, actor);
+		elseif actor:NumberValueExists("BlastDoorStuck") then
+			table.insert(self.saveTable.stage4Door, actor);
+		end
+	end
 	
 end
 
@@ -733,21 +747,53 @@ function RefineryAssault:MonitorStage3()
 		
 	end
 
-	if self.stage3ConsolesBroken == 3 and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded then
+	if self.stage3ConsolesBroken == 3 and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
+	
+		-- initiate scripted sequence
+	
+		self.stage3DoorSequenceTimer = Timer();
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
+		
+		local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+		
+		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
+		soundContainer:Play(pos);
+		
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 10000, true);
+
+	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(7000) then
 	
+		-- Find doors
+		
+		for k, door in pairs(self.saveTable.stage3Doors) do
+			print("hellotard")
+			if MovableMan:ValidMO(door) then
+				ToADoor(door):OpenDoor();
+			end
+		end
+		
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 		self.Stage = 4;
 
 		-- Capturables
 		
-		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole4");
-
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole4");		
+		
 	end
 	
 end
 
 function RefineryAssault:MonitorStage4()
+
+	for k, door in pairs(self.saveTable.stage4Door) do
+		if not door or not MovableMan:ValidMO(door) then
+			-- stage 5 crap
+		end
+	end
+
+end
+
+function RefineryAssault:MonitorStage5()
 
 end
