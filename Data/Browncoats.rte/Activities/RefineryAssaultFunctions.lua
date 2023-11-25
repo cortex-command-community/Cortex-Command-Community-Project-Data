@@ -761,9 +761,15 @@ function RefineryAssault:MonitorStage3()
 		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
 		soundContainer:Play(pos);
 		
-		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 10000, true);
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 10500, true);
 
-	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(6000) then
+	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(6250) then
+	
+		if not self.stage3ScreenShake then
+			self.stage3ScreenShake = true;
+			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+			CameraMan:AddScreenShake(10, pos);
+		end
 	
 		for k, door in pairs(self.saveTable.stage3Doors) do
 			if MovableMan:ValidMO(door) then
@@ -777,13 +783,14 @@ function RefineryAssault:MonitorStage3()
 			end
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(7000) then
+		if self.stage3DoorSequenceTimer:IsPastSimMS(7250) then
 			for k, door in pairs(self.saveTable.stage4Door) do
 				if MovableMan:ValidMO(door) then
 					ToADoor(door):StopDoor();
 					self.Stage = 4;
 					local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
 					soundContainer:Play(door.Pos);
+					CameraMan:AddScreenShake(20, door.Pos);
 				end
 			end
 		end
