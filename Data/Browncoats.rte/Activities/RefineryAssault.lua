@@ -185,6 +185,7 @@ function RefineryAssault:StartActivity(newGame)
 	table.insert(self.stageFunctionTable, self.MonitorStage2);
 	table.insert(self.stageFunctionTable, self.MonitorStage3);
 	table.insert(self.stageFunctionTable, self.MonitorStage4);
+	table.insert(self.stageFunctionTable, self.MonitorStage5);
 	
 	if newGame then
 	
