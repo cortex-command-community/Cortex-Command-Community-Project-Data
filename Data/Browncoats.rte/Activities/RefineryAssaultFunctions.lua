@@ -179,6 +179,10 @@ function RefineryAssault:HandleMessage(message, object)
 		self.saveTable.enemyActorTables.stage3FacilityOperator = {};
 		self.stage3DrillOverloaded = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
+	elseif message == "SkipStage4" then
+		for k, door in pairs(self.saveTable.stage4Door) do
+			door:GibThis();
+		end
 	end
 	
 	
@@ -269,8 +273,8 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 						end
 					end
 				end
-				print("found closest area to task:");
-				print(area);
+				--print("found closest area to task:");
+				--print(area);
 				-- actually get the Area
 				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. areaThisIsIn);
 			else
@@ -770,14 +774,14 @@ function RefineryAssault:MonitorStage3()
 			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
 			CameraMan:AddScreenShake(10, pos);
 		end
-	
-		for k, door in pairs(self.saveTable.stage3Doors) do
+		
+		for k, door in pairs(self.saveTable.stage4Door) do
 			if MovableMan:ValidMO(door) then
 				ToADoor(door):OpenDoor();
 			end
 		end
 		
-		for k, door in pairs(self.saveTable.stage4Door) do
+		for k, door in pairs(self.saveTable.stage3Doors) do
 			if MovableMan:ValidMO(door) then
 				ToADoor(door):OpenDoor();
 			end
@@ -791,6 +795,19 @@ function RefineryAssault:MonitorStage3()
 					local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
 					soundContainer:Play(door.Pos);
 					CameraMan:AddScreenShake(20, door.Pos);
+					
+					self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+					
+					self.HUDHandler:AddObjective(self.humanTeam,
+					"S4DestroyDoor",
+					"Find a way to open the door",
+					"Attack",
+					"Find a way to open the door",
+					"They've jammed the last door! Find a way around and let our main force through.",
+					nil,
+					false,
+					true);
+					
 				end
 			end
 		end
@@ -810,6 +827,15 @@ function RefineryAssault:MonitorStage4()
 	for k, door in pairs(self.saveTable.stage4Door) do
 		if not door or not MovableMan:ValidMO(door) then
 			-- stage 5 crap
+			self.Stage = 5;
+			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+		else
+			ToADoor(door):ResetSensorTimer();
+		end
+	end
+	
+	for k, door in pairs(self.saveTable.stage3Doors) do
+		if not door or not MovableMan:ValidMO(door) then
 		else
 			ToADoor(door):ResetSensorTimer();
 		end

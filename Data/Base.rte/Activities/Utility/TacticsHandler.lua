@@ -158,7 +158,7 @@ end
 
 function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 	if task then	
-		print("Applying Task:" .. task.Name)
+		--print("Applying Task:" .. task.Name)
 		squad.taskName = task.Name;
 		local randomPatrolPoint;
 		if task.Type == "PatrolArea" then
@@ -187,7 +187,7 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 				elseif task.Type == "PatrolArea" then
 					actor.AIMode = Actor.AIMODE_GOTO;
 					actor:AddAISceneWaypoint(randomPatrolPoint);
-					print("officially changed ai mode")
+					--print("officially changed ai mode")
 					actor:UpdateMovePath();
 				elseif task.Type == "Sentry" then
 					actor.AIMode = Actor.AIMODE_SENTRY;
