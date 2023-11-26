@@ -20,7 +20,7 @@ end
 function Update(self)
 
 	if self.blowUpTimer then
-		if self.blowUpTimer:IsPastSimMS(2000) then
+		if self.blowUpTimer:IsPastSimMS(1000) then
 		
 			self.MissionCritical = false;
 			self:GibThis();
@@ -42,7 +42,8 @@ function Update(self)
 		end
 	elseif self.WoundCount > 100 then
 		self.blowUpTimer = Timer();
-		-- do fx here
+		local soundContainer = CreateSoundContainer("Yskely Refinery S4 Tank Burst");
+		soundContainer:Play(self.Pos);
 	end
 	
 end

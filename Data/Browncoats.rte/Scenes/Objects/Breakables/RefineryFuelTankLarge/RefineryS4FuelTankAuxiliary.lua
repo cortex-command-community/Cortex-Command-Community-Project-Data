@@ -2,12 +2,14 @@ function OnMessage(self, message)
 
 	if message == "RefineryAssault_S4TankBlownUp" then
 		self.blowUpTimer = Timer();
-		self.randTime = math.random(200, 400);
+		self.randTime = math.random(600, 750);
 	end
 	
 end
 
 function Create(self)
+
+	self.GibSound = nil;
 	
 	self.doorsTable = {};
 	for actor in MovableMan.Actors do
@@ -23,6 +25,8 @@ function Update(self)
 	if self.blowUpTimer and self.blowUpTimer:IsPastSimMS(self.randTime) then
 		self.MissionCritical = false;
 		self:GibThis();
+		local activity = ActivityMan:GetActivity();
+		activity:SendMessage("RefineryAssault_S4DoorsBlownUp");
 		for k, door in pairs(self.doorsTable) do
 			-- one of these 2 extra tanks will blow up earlier, we expect a validmo check to fail on one of em
 			if MovableMan:ValidMO(door) then

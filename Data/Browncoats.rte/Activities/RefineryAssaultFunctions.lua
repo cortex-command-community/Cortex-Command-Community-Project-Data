@@ -155,6 +155,22 @@ function RefineryAssault:HandleMessage(message, object)
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
 		self.stage3DrillOverloaded = true;
 		
+	elseif message == "RefineryAssault_S4DoorsBlownUp" then	
+		
+		if self.Stage ~= 5 then
+		
+			self.Stage = 5;
+			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+			
+			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+			self.stage4DoorExploSoundContainer = CreateSoundContainer("Yskely Refinery S4 Doors Explo");
+			self.stage4DoorExploSoundContainer:Play(pos);
+			self.stage4DoorExploDistSoundContainer = CreateSoundContainer("Yskely Refinery S4 Doors Explo Distant");
+			self.stage4DoorExploDistSoundContainer:Play(pos);		
+			
+			print("hi?");
+		end
+		
 	end
 	
 	
@@ -826,9 +842,6 @@ function RefineryAssault:MonitorStage4()
 
 	for k, door in pairs(self.saveTable.stage4Door) do
 		if not door or not MovableMan:ValidMO(door) then
-			-- stage 5 crap
-			self.Stage = 5;
-			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 		else
 			ToADoor(door):ResetSensorTimer();
 		end
