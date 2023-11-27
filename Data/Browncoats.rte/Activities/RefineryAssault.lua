@@ -186,6 +186,7 @@ function RefineryAssault:StartActivity(newGame)
 	table.insert(self.stageFunctionTable, self.MonitorStage3);
 	table.insert(self.stageFunctionTable, self.MonitorStage4);
 	table.insert(self.stageFunctionTable, self.MonitorStage5);
+	table.insert(self.stageFunctionTable, self.MonitorStage6);
 	
 	if newGame then
 	
@@ -270,6 +271,12 @@ function RefineryAssault:StartActivity(newGame)
 		
 		for particle in MovableMan.Particles do
 			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
+				particle.MissionCritical = true;
+			end
+		end
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Browncoat Refinery Generator Breakable Objective" then
 				particle.MissionCritical = true;
 			end
 		end

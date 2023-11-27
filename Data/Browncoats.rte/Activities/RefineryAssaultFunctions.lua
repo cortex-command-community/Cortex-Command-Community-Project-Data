@@ -168,7 +168,42 @@ function RefineryAssault:HandleMessage(message, object)
 			self.stage4DoorExploDistSoundContainer = CreateSoundContainer("Yskely Refinery S4 Doors Explo Distant");
 			self.stage4DoorExploDistSoundContainer:Play(pos);		
 			
-			print("hi?");
+			-- Stage 5 generator stuff
+				
+			self.saveTable.stage5Generators = {};
+			
+			local i = 1;
+			
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Browncoat Refinery Generator Breakable Objective" then
+					particle.MissionCritical = false;
+					table.insert(self.saveTable.stage5Generators, particle)
+					
+					self.HUDHandler:AddObjective(self.humanTeam,
+					"S5DestroyGenerators" .. i,
+					"Destroy",
+					"Attack",
+					"Destroy backup generators",
+					"We need a keycard from one of the sub-commanders. Draw him to you by destroying some generators.",
+					particle,
+					true,
+					true);
+					
+					i = i + 1;
+				end
+			end
+
+			self.HUDHandler:AddObjective(self.humanTeam,
+			"S5DestroyGenerators",
+			"Destroy backup generators",
+			"Attack",
+			"Destroy backup generators",
+			"We need a keycard from one of the sub-commanders. Draw him to you by destroying some generators.",
+			nil,
+			false,
+			true,
+			true);
+
 		end
 		
 	end
@@ -199,6 +234,12 @@ function RefineryAssault:HandleMessage(message, object)
 		for k, door in pairs(self.saveTable.stage4Door) do
 			door:GibThis();
 		end
+		for k, door in pairs(self.saveTable.stage3Doors) do
+			door:GibThis();
+		end
+		self:SendMessage("RefineryAssault_S4DoorsBlownUp");
+	elseif message == "SkipStage5" then
+		
 	end
 	
 	
@@ -857,5 +898,25 @@ function RefineryAssault:MonitorStage4()
 end
 
 function RefineryAssault:MonitorStage5()
+
+	local noGenerators = true;
+
+	for i, generator in ipairs(self.saveTable.stage5Generators) do
+		if not generator or not MovableMan:ValidMO(generator) then
+			self.saveTable.stage5Generators[i] = false;
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S1KillEnemies" .. i);
+		else
+			noGenerators = false;
+		end
+	end
+	
+	if noGenerators then
+		self.Stage = 6;
+		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+	end
+
+end
+
+function RefineryAssault:MonitorStage6()
 
 end
