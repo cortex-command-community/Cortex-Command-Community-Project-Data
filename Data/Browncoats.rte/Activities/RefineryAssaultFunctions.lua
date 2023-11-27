@@ -94,6 +94,20 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
 			v.Team = object;
+		end	
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 1" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 1", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 1", self.aiTeam);		
 		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole2" then
@@ -104,7 +118,21 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_2) do
 			v.Team = object;
-		end		
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 2" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 2", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 2", self.aiTeam);		
+		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole3" then
 		
@@ -116,6 +144,20 @@ function RefineryAssault:HandleMessage(message, object)
 			v.Team = object;
 		end
 		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 3" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 3", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);		
+		end
+		
 	elseif message == "Captured_RefineryS3BuyDoorConsole4" then
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_4");
@@ -124,7 +166,21 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
 			v.Team = object;
-		end		
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 4" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 4", self.aiTeam);		
+		end
 		
 	elseif message == "Captured_RefineryS3OilCapturable" then
 	
@@ -204,6 +260,20 @@ function RefineryAssault:HandleMessage(message, object)
 			
 			self.tacticsHandler:RemoveTask("Patrol Stage 3", self.humanTeam);
 			self.tacticsHandler:RemoveTask("Patrol Stage 3", self.aiTeam);
+			
+			-- Straighten up the buy door situation
+			
+			self:SendMessage("Captured_RefineryS3BuyDoorConsole1", self.humanTeam);
+			self:SendMessage("Captured_RefineryS3BuyDoorConsole2", self.humanTeam);
+			self:SendMessage("Captured_RefineryS3BuyDoorConsole3", self.humanTeam);
+			
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 1", self.aiTeam);
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 2", self.aiTeam);
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);
+			
+			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole1");
+			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole2");
+			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole3");
 
 		end
 		
@@ -812,13 +882,16 @@ function RefineryAssault:MonitorStage3()
 	
 	if not self.stage3AllConsolesBroken then
 
-		for i, console in ipairs(self.saveTable.stage3Consoles) do
+		for k, console in pairs(self.saveTable.stage3Consoles) do
 			if not console or not MovableMan:ValidMO(console) then
-				self.saveTable.stage3Consoles[i] = false;
+				self.saveTable.stage3Consoles[k] = nil;
 				
-				self.tacticsHandler:RemoveTask("Defend Refinery Console " .. i, self.aiTeam);
-				self.tacticsHandler:RemoveTask("Attack Refinery Console " .. i, self.humanTeam);
+				self.tacticsHandler:RemoveTask("Defend Refinery Console " .. k, self.aiTeam);
+				self.tacticsHandler:RemoveTask("Attack Refinery Console " .. k, self.humanTeam);
 
+			else
+				print(console)
+				print(k)
 			end
 		end
 		
@@ -924,7 +997,7 @@ function RefineryAssault:MonitorStage5()
 	for i, generator in ipairs(self.saveTable.stage5Generators) do
 		if not generator or not MovableMan:ValidMO(generator) then
 			self.saveTable.stage5Generators[i] = false;
-			self.HUDHandler:RemoveObjective(self.humanTeam, "S1KillEnemies" .. i);
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S5DestroyGenerators" .. i);
 		else
 			noGenerators = false;
 		end
