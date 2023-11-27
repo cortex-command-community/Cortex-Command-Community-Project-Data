@@ -524,7 +524,7 @@ function MetaFight:StartActivity()
 	if #CPUTeams > 0 then
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
 		self.AI = {};
-		self.AI.LZmap = require("Activities/LandingZoneMap"); -- self.AI.LZmap = dofile("Base.rte/Activities/LandingZoneMap.lua")
+		self.AI.LZmap = require("Activities/Utility/LandingZoneMap");
 		self.AI.LZmap:Initialize(CPUTeams);
 		self.AI.SpawnTimer = Timer();
 		self.AI.SpawnTimer:SetSimTimeLimitMS(16000);

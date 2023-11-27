@@ -32,7 +32,7 @@ function Create(self)
 	self.includeMOHits = self:NumberValueExists("TrajectoryGuideIncludeMOHits");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local actor = self:GetRootParent();
 	if IsActor(actor) and MovableMan:ValidMO(actor) and ToActor(actor):IsPlayerControlled() and not self:IsReloading() then
 		local actor = ToActor(actor);

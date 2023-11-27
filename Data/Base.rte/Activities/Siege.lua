@@ -21,8 +21,6 @@ Add defender units by placing areas named:
 --]]
 
 function Siege:StartActivity()
-	collectgarbage("collect");
-
 	self.PlayerTeam = Activity.TEAM_2;
 
 	-- Select a tech for the CPU player
@@ -223,7 +221,7 @@ function Siege:StartActivity()
 	end
 
 	-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-	self.LZMap = require("Activities/LandingZoneMap");
+	self.LZMap = require("Activities/Utility/LandingZoneMap");
 	self.LZMap:Initialize({self.CPUTeam}); -- a list of AI teams
 
 	-- Switch all doors team to player's

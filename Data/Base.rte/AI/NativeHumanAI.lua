@@ -1,3 +1,4 @@
+require("Constants")
 require("AI/HumanBehaviors");
 
 NativeHumanAI = {};
@@ -14,6 +15,7 @@ function NativeHumanAI:Create(Owner)
 	Members.SentryFacing = Owner.HFlipped;
 	Members.fire = false;
 	Members.groundContact = 5;
+	Members.flying = false;
 
 	Members.squadShoot = false;
 	Members.useMedikit = false;
@@ -34,8 +36,13 @@ function NativeHumanAI:Create(Owner)
 
 	-- set shooting skill
 	Members.aimSpeed, Members.aimSkill, Members.skill = HumanBehaviors.GetTeamShootingSkill(Owner.Team);
+	
+	Members.aimSpeed = Owner:NumberValueExists("AIAimSpeed") and Owner:GetNumberValue("AIAimSpeed") or Members.aimSpeed;
+	Members.aimSkill = Owner:NumberValueExists("AIAimSkill") and Owner:GetNumberValue("AIAimSkill") or Members.aimSkill;
+	Members.skill = Owner:NumberValueExists("AISkill") and Owner:GetNumberValue("AISkill") or Members.skill;
+	
 	-- default to enhanced AI if AI skill has been set high enough
-	if Members.skill >= GameActivity.NUTSDIFFICULTY or Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Actors - Snipers") then
+	if Members.skill >= GameActivity.NUTSDIFFICULTY or Owner:HasObjectInGroup("Brains") or Owner:HasObjectInGroup("Actors - Snipers") or Owner:HasObjectInGroup("Actors - Boss") then
 		Members.SpotTargets = HumanBehaviors.CheckEnemyLOS;
 	else
 		Members.SpotTargets = HumanBehaviors.LookForTargets;
@@ -241,9 +248,19 @@ function NativeHumanAI:Update(Owner)
 				self.groundContact = self.groundContact - 1;
 			end
 		end
-		self.flying = false;
+
+		local newFlying = false;
+		if not (Owner.FGLeg and Owner.BGLeg) then
+			newFlying = true;
+		end
+
 		if self.groundContact < 0 then
-			self.flying = true;
+			newFlying = true;
+		end
+
+		if self.flying ~= newFlying then
+			Owner:SendMessage("AI_IsFlying", newFlying);
+			self.flying = newFlying;
 		end
 
 		Owner:EquipShieldInBGArm(); -- try to equip a shield
@@ -632,6 +649,17 @@ function NativeHumanAI:Destroy(Owner)
 end
 
 -- functions that create behaviors. the default behaviors are stored in the HumanBehaviors table. store your custom behaviors in a table to avoid name conflicts between mods.
+function NativeHumanAI:CreateQuickthrowBehavior(Owner)
+	if self.Target and MovableMan:ValidMO(self.Target) then
+		if Owner:EquipThrowable(true) and Owner.ThrowableIsReady then
+			self.NextBehavior = coroutine.create(HumanBehaviors.ThrowTarget);
+			self.NextBehaviorName = "ThrowTarget";
+			return true;
+		end
+	end
+	return false;
+end
+
 function NativeHumanAI:CreateSentryBehavior(Owner)
 	if self.Target then
 		self:CreateAttackBehavior(Owner);

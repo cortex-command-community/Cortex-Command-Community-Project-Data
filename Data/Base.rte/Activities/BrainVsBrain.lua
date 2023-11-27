@@ -23,8 +23,7 @@ function BrainvsBrain:StartActivity(isNewGame)
 		self.hunterTimer = Timer();
 
 		-- Store data about terrain and enemy actors in the LZ map, use it to pick safe landing zones
-		self.LZMap = require("Activities/LandingZoneMap");
-		--self.LZMap = dofile("Base.rte/Activities/LandingZoneMap.lua");
+		self.LZMap = require("Activities/Utility/LandingZoneMap");
 		self.LZMap:Initialize({self.CPUTeam});	-- a list of AI teams
 
 		-- Store data about player teams: OnPlayerTeam[A.Team] is true if "A" is an enemy to the AI

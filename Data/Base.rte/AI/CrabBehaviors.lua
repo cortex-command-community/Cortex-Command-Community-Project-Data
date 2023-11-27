@@ -358,7 +358,7 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 					Waypoint = table.remove(WptList, 1);
 					if WptList[1] then
 						Owner:RemoveMovePathBeginning();
-					elseif not Owner.MOMoveTarget and SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).X < 10 then	-- the last waypoint
+					elseif not Owner.MOMoveTarget and SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):MagnitudeIsLessThan(Owner.MoveProximityLimit) then	-- the last waypoint
 						Owner:ClearMovePath();
 						WptList = nil;
 						Waypoint = nil;
@@ -371,7 +371,9 @@ function CrabBehaviors.GoToWpt(AI, Owner, Abort)
 						AI.lateralMoveState = Actor.LAT_LEFT;
 					elseif CurrDist.X > 3 then
 						AI.lateralMoveState = Actor.LAT_RIGHT;
-					else
+					end
+
+					if CurrDist:MagnitudeIsLessThan(Owner.MoveProximityLimit) then
 						Waypoint = nil;
 					end
 				end
