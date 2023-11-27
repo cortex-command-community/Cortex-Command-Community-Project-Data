@@ -37,7 +37,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	-- end
 	
 	for mo in MovableMan.AddedActors do
-		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) then
+		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) and not mo:NumberValueExists("SubcommanderDoor") then
 			table.insert(self.saveTable.buyDoorTables.All, mo)
 			self.saveTable.buyDoorTables[areaKey][tonumber(#self.saveTable.buyDoorTables.All)] = mo;
 		end

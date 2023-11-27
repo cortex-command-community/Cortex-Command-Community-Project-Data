@@ -24,6 +24,7 @@ function Update(self)
 		
 			self.MissionCritical = false;
 			self:GibThis();
+			CameraMan:AddScreenShake(30, self.Pos);
 			
 			for k, door in pairs(self.doorsTable) do
 				if MovableMan:ValidMO(door) then
