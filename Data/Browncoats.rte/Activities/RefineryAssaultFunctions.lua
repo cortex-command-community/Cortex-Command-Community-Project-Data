@@ -419,6 +419,21 @@ function RefineryAssault:HandleMessage(message, object)
 	elseif message == "SkipStage2" then
 		self.stage2HoldingBothConsoles = true;
 		self.stage2TimeToHoldConsoles = 0;
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
+		self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
+			v.Team = self.humanTeam;
+		end
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC1");
+		self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
+			v.Team = self.humanTeam;
+		end		
+
 	elseif message == "SkipStage3" then
 		self.stage3AllConsolesBroken = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
@@ -533,6 +548,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				--print("team " .. team .. " doesn't have a backup area");
 			end
 		end
+		
+		print(team)
+		print(areaThisIsIn.Name)
 		
 		if areaThisIsIn then
 			--print(areaThisIsIn.Name)
@@ -1014,8 +1032,8 @@ function RefineryAssault:MonitorStage3()
 				self.tacticsHandler:RemoveTask("Attack Refinery Console " .. k, self.humanTeam);
 
 			else
-				print(console)
-				print(k)
+				--print(console)
+				--print(k)
 			end
 		end
 		
