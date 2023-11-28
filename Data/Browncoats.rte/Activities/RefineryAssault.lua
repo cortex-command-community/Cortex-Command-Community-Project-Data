@@ -223,14 +223,29 @@ function RefineryAssault:StartActivity(newGame)
 		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_3");
 		self:SetupBuyDoorAreaTable(self, area);	
 
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_4");
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_1");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_2");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_3");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_4");
+		self:SetupBuyDoorAreaTable(self, area);
+		
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_5");
+		self:SetupBuyDoorAreaTable(self, area);
+
+		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_6");
 		self:SetupBuyDoorAreaTable(self, area);
 
 		self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
 		
 		self.saveTable.buyDoorTables.teamAreas = {};
 		self.saveTable.buyDoorTables.teamAreas[self.humanTeam] = {};
-		self.saveTable.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2", "S3_1", "S3_2", "S3_3", "S3_4"};
+		self.saveTable.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2", "S3_1", "S3_2", "S3_3", "S4_1", "S4_2", "S4_3", "S4_4", "S4_5", "S4_6"};
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.All) do
 			print(v)
