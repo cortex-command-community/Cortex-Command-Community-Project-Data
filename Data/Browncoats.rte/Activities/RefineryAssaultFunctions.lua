@@ -479,6 +479,7 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	
 	craft.PlayerControllable = self.humansAreControllingAlliedActors;
 	craft.HUDVisible = self.humansAreControllingAlliedActors;
+	craft:SetGoldValue(0);
 	
 	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
