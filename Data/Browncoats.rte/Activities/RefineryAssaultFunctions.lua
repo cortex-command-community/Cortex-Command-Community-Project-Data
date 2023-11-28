@@ -158,30 +158,6 @@ function RefineryAssault:HandleMessage(message, object)
 			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);		
 		end
 		
-	elseif message == "Captured_RefineryS3BuyDoorConsole4" then
-		
-		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_4");
-		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_4 = nil;
-		
-		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
-			v.Team = object;
-		end
-		
-		-- dupe code woo
-		if object == self.humanTeam then		
-			local pos;
-			for particle in MovableMan.Particles do
-				if particle.PresetName == "Refinery S3 Buy Door Console 4" then
-					pos = particle.Pos;
-					break;
-				end
-			end		
-			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
-		else
-			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 4", self.aiTeam);		
-		end
-		
 	elseif message == "Captured_RefineryS3OilCapturable" then
 	
 		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
@@ -274,8 +250,156 @@ function RefineryAssault:HandleMessage(message, object)
 			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole1");
 			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole2");
 			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole3");
+			
+			-- 1 is already activated when the door first jams
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole2");	
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole3");	
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole4");	
+			MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole5");	
+			
+			-- Start using buy doors
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_2) do
+				v.Team = self.aiTeam;
+			end
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_3) do
+				v.Team = self.aiTeam;
+			end
 
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_4) do
+				v.Team = self.aiTeam;
+			end
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_5) do
+				v.Team = self.aiTeam;
+			end
+			
+			for k, v in pairs(self.saveTable.buyDoorTables.S4_6) do
+				v.Team = self.aiTeam;
+			end
+
+			end
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole1" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_1");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_1 = nil;
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_1) do
+			v.Team = object;
 		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 1" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 1", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 1", self.aiTeam);		
+		end
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole2" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_2");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_2 = nil;
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_2) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 2" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 2", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 2", self.aiTeam);		
+		end
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole3" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_3");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_3 = nil;
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_3) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 3" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 3", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);		
+		end		
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole4" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_4");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_4 = nil;
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_4) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 4" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 4", self.aiTeam);		
+		end
+		
+	elseif message == "Captured_RefineryS4BuyDoorConsole5" then
+		
+		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_1");
+		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
+		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_5 = nil;
+		
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_5) do
+			v.Team = object;
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S4 Buy Door Console 5" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 5", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 5", self.aiTeam);		
+		end		
 		
 	end
 	
@@ -805,7 +929,7 @@ function RefineryAssault:MonitorStage2()
 			v.Team = self.aiTeam;
 		end
 		
-		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
+		for k, v in pairs(self.saveTable.buyDoorTables.S4_1) do
 			v.Team = self.aiTeam;
 		end
 		
@@ -966,7 +1090,7 @@ function RefineryAssault:MonitorStage3()
 
 		-- Capturables
 		
-		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS3BuyDoorConsole4");		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS4BuyDoorConsole1");		
 		
 	end
 	
