@@ -94,6 +94,20 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
 			v.Team = object;
+		end	
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 1" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 1", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 1", self.aiTeam);		
 		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole2" then
@@ -104,7 +118,21 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_2) do
 			v.Team = object;
-		end		
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 2" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 2", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 2", self.aiTeam);		
+		end
 		
 	elseif message == "Captured_RefineryS3BuyDoorConsole3" then
 		
@@ -116,6 +144,20 @@ function RefineryAssault:HandleMessage(message, object)
 			v.Team = object;
 		end
 		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 3" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 3", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);		
+		end
+		
 	elseif message == "Captured_RefineryS3BuyDoorConsole4" then
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_4");
@@ -124,7 +166,21 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_4) do
 			v.Team = object;
-		end		
+		end
+		
+		-- dupe code woo
+		if object == self.humanTeam then		
+			local pos;
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Refinery S3 Buy Door Console 4" then
+					pos = particle.Pos;
+					break;
+				end
+			end		
+			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
+		else
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 4", self.aiTeam);		
+		end
 		
 	elseif message == "Captured_RefineryS3OilCapturable" then
 	
@@ -133,14 +189,6 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		local soundContainer = CreateSoundContainer("Yskely Refinery Oil Spout Engage", "Browncoats.rte");
 		soundContainer:Play(Vector(0, 0));
-		
-	elseif message == "RefineryAssault_RefineryConsoleBroken" then
-		
-		self.stage3ConsolesBroken = self.stage3ConsolesBroken + 1;
-		
-		if self.stage3ConsolesBroken == 3 then
-			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
-		end
 	
 	elseif message == "Captured_RefineryS3FireWeaponryConsole" then	
 		
@@ -154,6 +202,80 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
 		self.stage3DrillOverloaded = true;
+		
+	elseif message == "RefineryAssault_S4DoorsBlownUp" then	
+		
+		if self.Stage ~= 5 then
+		
+			self.Stage = 5;
+			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+			
+			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+			self.stage4DoorExploSoundContainer = CreateSoundContainer("Yskely Refinery S4 Doors Explo");
+			self.stage4DoorExploSoundContainer:Play(pos);
+			self.stage4DoorExploDistSoundContainer = CreateSoundContainer("Yskely Refinery S4 Doors Explo Distant");
+			self.stage4DoorExploDistSoundContainer:Play(pos);		
+			
+			CameraMan:AddScreenShake(50, pos);
+			
+			-- Stage 5 generator stuff
+				
+			self.saveTable.stage5Generators = {};
+			
+			local i = 1;
+			
+			for particle in MovableMan.Particles do
+				if particle.PresetName == "Browncoat Refinery Generator Breakable Objective" then
+					particle.MissionCritical = false;
+					table.insert(self.saveTable.stage5Generators, particle)
+					
+					self.HUDHandler:AddObjective(self.humanTeam,
+					"S5DestroyGenerators" .. i,
+					"Destroy",
+					"Attack",
+					"Destroy backup generators",
+					"We need a keycard from one of the sub-commanders. Draw him to you by destroying some generators.",
+					particle,
+					true,
+					true);
+					
+					i = i + 1;
+				end
+			end
+
+			self.HUDHandler:AddObjective(self.humanTeam,
+			"S5DestroyGenerators",
+			"Destroy backup generators",
+			"Attack",
+			"Destroy backup generators",
+			"We need a keycard from one of the sub-commanders. Draw him to you by destroying some generators.",
+			nil,
+			false,
+			true,
+			true);
+			
+			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage4");
+			local task = self.tacticsHandler:AddTask("Patrol Stage 4", self.humanTeam, taskArea, "PatrolArea", 10);
+			local task = self.tacticsHandler:AddTask("Patrol Stage 4", self.aiTeam, taskArea, "PatrolArea", 10);
+			
+			self.tacticsHandler:RemoveTask("Patrol Stage 3", self.humanTeam);
+			self.tacticsHandler:RemoveTask("Patrol Stage 3", self.aiTeam);
+			
+			-- Straighten up the buy door situation
+			
+			self:SendMessage("Captured_RefineryS3BuyDoorConsole1", self.humanTeam);
+			self:SendMessage("Captured_RefineryS3BuyDoorConsole2", self.humanTeam);
+			self:SendMessage("Captured_RefineryS3BuyDoorConsole3", self.humanTeam);
+			
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 1", self.aiTeam);
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 2", self.aiTeam);
+			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);
+			
+			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole1");
+			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole2");
+			MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole3");
+
+		end
 		
 	end
 	
@@ -174,11 +296,21 @@ function RefineryAssault:HandleMessage(message, object)
 		self.stage2HoldingBothConsoles = true;
 		self.stage2TimeToHoldConsoles = 0;
 	elseif message == "SkipStage3" then
-		self.stage3ConsolesBroken = 3
+		self.stage3AllConsolesBroken = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
 		self.saveTable.enemyActorTables.stage3FacilityOperator = {};
 		self.stage3DrillOverloaded = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
+	elseif message == "SkipStage4" then
+		for k, door in pairs(self.saveTable.stage4Door) do
+			door:GibThis();
+		end
+		for k, door in pairs(self.saveTable.stage3Doors) do
+			door:GibThis();
+		end
+		self:SendMessage("RefineryAssault_S4DoorsBlownUp");
+	elseif message == "SkipStage5" then
+		
 	end
 	
 	
@@ -269,8 +401,8 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 						end
 					end
 				end
-				print("found closest area to task:");
-				print(area);
+				--print("found closest area to task:");
+				--print(area);
 				-- actually get the Area
 				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. areaThisIsIn);
 			else
@@ -622,14 +754,14 @@ function RefineryAssault:MonitorStage2()
 		
 		-- Setup stage 3 consoles
 		
-		self.stage3Consoles = {};
+		self.saveTable.stage3Consoles = {};
 		
 		local i = 1;
 		
 		for particle in MovableMan.Particles do
 			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
 				particle.MissionCritical = false;
-				table.insert(self.stage3Consoles, particle)
+				table.insert(self.saveTable.stage3Consoles, particle)
 				self.tacticsHandler:AddTask("Defend Refinery Console " .. i, self.aiTeam, particle, "Defend", 10);
 				self.tacticsHandler:AddTask("Attack Refinery Console " .. i, self.humanTeam, particle, "Attack", 10);
 				i = i + 1;
@@ -741,14 +873,36 @@ function RefineryAssault:MonitorStage3()
 			end
 		end
 		
-		if #self.saveTable.enemyActorTables.stage3FacilityOperator == 0 and not self.stage3FacilityOperatorKilled then
+		if #self.saveTable.enemyActorTables.stage3FacilityOperator == 0 then
 			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DefeatOperator");
 			self.stage3FacilityOperatorKilled = true;
 		end
 		
 	end
+	
+	if not self.stage3AllConsolesBroken then
 
-	if self.stage3ConsolesBroken == 3 and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
+		for k, console in pairs(self.saveTable.stage3Consoles) do
+			if not console or not MovableMan:ValidMO(console) then
+				self.saveTable.stage3Consoles[k] = nil;
+				
+				self.tacticsHandler:RemoveTask("Defend Refinery Console " .. k, self.aiTeam);
+				self.tacticsHandler:RemoveTask("Attack Refinery Console " .. k, self.humanTeam);
+
+			else
+				print(console)
+				print(k)
+			end
+		end
+		
+		if #self.saveTable.stage3Consoles == 0 then
+			self.stage3AllConsolesBroken = true;
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
+		end
+		
+	end
+
+	if self.stage3AllConsolesBroken and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
 	
 		-- initiate scripted sequence
 	
@@ -761,14 +915,14 @@ function RefineryAssault:MonitorStage3()
 		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
 		soundContainer:Play(pos);
 		
-		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 10000, true);
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 10500, true);
 
-	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(6000) then
+	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(6250) then
 	
-		for k, door in pairs(self.saveTable.stage3Doors) do
-			if MovableMan:ValidMO(door) then
-				ToADoor(door):OpenDoor();
-			end
+		if not self.stage3ScreenShake then
+			self.stage3ScreenShake = true;
+			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+			CameraMan:AddScreenShake(10, pos);
 		end
 		
 		for k, door in pairs(self.saveTable.stage4Door) do
@@ -777,13 +931,33 @@ function RefineryAssault:MonitorStage3()
 			end
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(7000) then
+		for k, door in pairs(self.saveTable.stage3Doors) do
+			if MovableMan:ValidMO(door) then
+				ToADoor(door):OpenDoor();
+			end
+		end
+		
+		if self.stage3DoorSequenceTimer:IsPastSimMS(7250) then
 			for k, door in pairs(self.saveTable.stage4Door) do
 				if MovableMan:ValidMO(door) then
 					ToADoor(door):StopDoor();
 					self.Stage = 4;
 					local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
 					soundContainer:Play(door.Pos);
+					CameraMan:AddScreenShake(20, door.Pos);
+					
+					self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+					
+					self.HUDHandler:AddObjective(self.humanTeam,
+					"S4DestroyDoor",
+					"Find a way to open the door",
+					"Attack",
+					"Find a way to open the door",
+					"They've jammed the last door! Find a way around and let our main force through.",
+					nil,
+					false,
+					true);
+					
 				end
 			end
 		end
@@ -802,7 +976,13 @@ function RefineryAssault:MonitorStage4()
 
 	for k, door in pairs(self.saveTable.stage4Door) do
 		if not door or not MovableMan:ValidMO(door) then
-			-- stage 5 crap
+		else
+			ToADoor(door):ResetSensorTimer();
+		end
+	end
+	
+	for k, door in pairs(self.saveTable.stage3Doors) do
+		if not door or not MovableMan:ValidMO(door) then
 		else
 			ToADoor(door):ResetSensorTimer();
 		end
@@ -811,5 +991,25 @@ function RefineryAssault:MonitorStage4()
 end
 
 function RefineryAssault:MonitorStage5()
+
+	local noGenerators = true;
+
+	for i, generator in ipairs(self.saveTable.stage5Generators) do
+		if not generator or not MovableMan:ValidMO(generator) then
+			self.saveTable.stage5Generators[i] = false;
+			self.HUDHandler:RemoveObjective(self.humanTeam, "S5DestroyGenerators" .. i);
+		else
+			noGenerators = false;
+		end
+	end
+	
+	if noGenerators then
+		self.Stage = 6;
+		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+	end
+
+end
+
+function RefineryAssault:MonitorStage6()
 
 end

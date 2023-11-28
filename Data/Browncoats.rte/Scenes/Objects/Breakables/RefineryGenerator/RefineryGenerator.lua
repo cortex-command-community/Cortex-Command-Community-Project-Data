@@ -6,6 +6,6 @@ end
 
 function OnDestroy(self)
 
-	self.Activity:SendMessage("RefineryAssault_RefineryConsoleBroken");
+	self.Activity:SendMessage("RefineryAssault_RefineryGeneratorBroken");
 
 end
