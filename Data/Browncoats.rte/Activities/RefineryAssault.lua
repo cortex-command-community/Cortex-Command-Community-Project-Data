@@ -147,7 +147,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
 	
-	self.playerGoldIncreaseAmount = 5000;	
+	self.playerGoldIncreaseAmount = 5;	
 	self.humanAIGoldIncreaseAmount = 50;
 	
 	self.aiTeamGoldIncreaseAmount = 0;

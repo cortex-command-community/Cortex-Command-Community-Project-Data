@@ -463,7 +463,7 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	local squadCount = math.random(3, 4);
 
 	local craft;
-	local order;
+	local squad;
 	local goldCost;
 
 	if squadType == "Elite" then
@@ -471,6 +471,14 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	else
 		craft, squad, goldCost = self.deliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCount, squadType);
 	end
+	
+	for k, actor in pairs(squad) do
+		actor.PlayerControllable = self.humansAreControllingAlliedActors;
+		actor.HUDVisible = self.humansAreControllingAlliedActors;
+	end
+	
+	craft.PlayerControllable = self.humansAreControllingAlliedActors;
+	craft.HUDVisible = self.humansAreControllingAlliedActors;
 	
 	local success = self.dockingHandler:SpawnDockingCraft(craft)
 			
@@ -495,6 +503,11 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 		order, goldCost = self.deliveryCreationHandler:CreateEliteSquad(team, squadCount);
 	else
 		order, goldCost = self.deliveryCreationHandler:CreateSquad(team, squadCount, squadType);
+	end
+	
+	for k, actor in pairs(order) do
+		actor.PlayerControllable = self.humansAreControllingAlliedActors;
+		actor.HUDVisible = self.humansAreControllingAlliedActors;
 	end
 	
 	--print("tried order for team: " .. team);
