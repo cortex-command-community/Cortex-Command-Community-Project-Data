@@ -474,7 +474,9 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	
 	for k, actor in pairs(squad) do
 		actor.PlayerControllable = self.humansAreControllingAlliedActors;
-		actor.HUDVisible = self.humansAreControllingAlliedActors;
+		if team == self.humanTeam then
+			actor.HUDVisible = self.humansAreControllingAlliedActors;
+		end
 	end
 	
 	craft.PlayerControllable = self.humansAreControllingAlliedActors;
