@@ -406,6 +406,8 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	-- DEBUG STAGE SKIPS
 
+	-- ActivityMan:GetActivity():SetTeamFunds(5000, 0)
+
 	-- ActivityMan:GetActivity():SendMessage("SkipCurrentStage");
 	if message == "SkipCurrentStage" then
 		message = "SkipStage" .. self.Stage;
@@ -734,6 +736,8 @@ function RefineryAssault:SetupFirstStage()
 	dropShip.AIMode = Actor.AIMODE_SENTRY;
 	dropShip.PlayerControllable = true;
 	
+	self.saveTable.playerBrains = {};
+	
 	for i, player in pairs(self.humanPlayers) do
 		local brain = PresetMan:GetLoadout("Infantry Brain", self.humanTeamTech, false);
 		if brain then
@@ -750,6 +754,7 @@ function RefineryAssault:SetupFirstStage()
 		self:SetObservationTarget(brain.Pos, player);
 		self:SwitchToActor(brain, player, self.humanTeam);
 		brain.Pos = dropShip.Pos + Vector(0 + (10 * i), 180);
+		table.insert(self.saveTable.playerBrains, brain);
 		MovableMan:AddActor(brain);
 		--dropShip:AddInventoryItem(brain);
 	end
@@ -1177,9 +1182,11 @@ function RefineryAssault:MonitorStage5()
 		self.saveTable.enemyActorTables.stage6SubCommanderSquad = self.deliveryCreationHandler:CreateSquad(self.aiTeam, squadTypeTable);
 
 		-- note index access, we get a table back
-		local subCommander = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
+		self.saveTable.stage6subCommander = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
+		self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
+		self.saveTable.stage6subCommander:AddInventoryItem(self.saveTable.stage6Keycard);
 		
-		table.insert(self.saveTable.enemyActorTables.stage6SubCommanderSquad, subCommander);
+		table.insert(self.saveTable.enemyActorTables.stage6SubCommanderSquad, self.saveTable.stage6subCommander);
 		
 		self.tacticsHandler:ApplyTaskToSquadActors(self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
 		self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
@@ -1194,12 +1201,22 @@ function RefineryAssault:MonitorStage5()
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
 		"S6GetKeycard",
-		"Get the subcommander's keycard",
+		"Get the keycard",
 		"Attack",
 		"Get the subcommander's keycard",
-		"That's the commander with the keycard we need. Take it from him.",
-		nil,
+		"That's the commander with the keycard we need. Get it to your own commander.",
+		self.saveTable.stage6Keycard,
 		false,
+		true);
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S6KillSubcommander",
+		"Kill",
+		"Attack",
+		"Kill the subcommander.",
+		"Kill the subcommander for his keycard.",
+		self.saveTable.stage6subCommander,
+		true,
 		true);
 		
 	end
@@ -1207,5 +1224,36 @@ function RefineryAssault:MonitorStage5()
 end
 
 function RefineryAssault:MonitorStage6()
+
+	-- if not self.saveTable.stage6subCommanderKilled then
+
+		-- if not self.saveTable.stage6subCommander or not MovableMan:ValidMO(self.saveTable.stage6subCommander) or self.saveTable.stage6subCommander:IsDead() then
+			-- self.HUDHandler:RemoveObjective(self.humanTeam, "S6KillSubcommander");
+			-- self.saveTable.stage6subCommanderKilled = true;
+		-- end
+
+	-- end
+	
+	for k, brain in pairs(self.saveTable.playerBrains) do
+		if not brain or not MovableMan:ValidMO(brain) then
+		else
+			for item in brain.Inventory do
+				if item.PresetName == "Browncoat Military Keycard" then
+					self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+					self.Stage = 7;
+					return;
+				end
+			end
+		end
+	end
+	
+	-- TODO figure out how to make it not spawn a new one if something that isn't a player brain picks it up
+	
+	if not self.saveTable.stage6Keycard or (self.saveTable.stage6Keycard.HasEverBeenAddedToMovableMan and not MovableMan:ValidMO(self.saveTable.stage6Keycard)) then
+		-- spawn a new one
+		self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
+		self.saveTable.stage6Keycard.Pos = self.stage6SubcommanderDoor.Pos
+		MovableMan:AddItem(self.saveTable.stage6Keycard);
+	end
 
 end
