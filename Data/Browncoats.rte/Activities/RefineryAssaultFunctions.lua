@@ -449,7 +449,12 @@ function RefineryAssault:HandleMessage(message, object)
 		end
 		self:SendMessage("RefineryAssault_S4DoorsBlownUp");
 	elseif message == "SkipStage5" then
-		
+		for i, generator in ipairs(self.saveTable.stage5Generators) do
+			if not generator or not MovableMan:ValidMO(generator) then
+			else
+				ToMOSRotating(generator):GibThis();
+			end
+		end		
 	end
 	
 	
@@ -1164,6 +1169,39 @@ function RefineryAssault:MonitorStage5()
 	if noGenerators then
 		self.Stage = 6;
 		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+		
+		-- Subcommander door spawn
+		
+		local squadTypeTable = {"Heavy", "CQB", "Heavy", "Sniper"};
+		
+		self.saveTable.enemyActorTables.stage6SubCommanderSquad = self.deliveryCreationHandler:CreateSquad(self.aiTeam, squadTypeTable);
+
+		-- note index access, we get a table back
+		local subCommander = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
+		
+		table.insert(self.saveTable.enemyActorTables.stage6SubCommanderSquad, subCommander);
+		
+		self.tacticsHandler:ApplyTaskToSquadActors(self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
+		self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
+		
+		for k, item in pairs(self.saveTable.enemyActorTables.stage6SubCommanderSquad) do
+			self.stage6SubcommanderDoor:AddInventoryItem(item);
+		end
+		
+		self.stage6SubcommanderDoor:SendMessage("BuyDoor_CustomTableOrder");
+		
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S6SubcommanderView", self.stage6SubcommanderDoor.Pos, 0.05, 5000, true);
+		
+		self.HUDHandler:AddObjective(self.humanTeam,
+		"S6GetKeycard",
+		"Get the subcommander's keycard",
+		"Attack",
+		"Get the subcommander's keycard",
+		"That's the commander with the keycard we need. Take it from him.",
+		nil,
+		false,
+		true);
+		
 	end
 
 end

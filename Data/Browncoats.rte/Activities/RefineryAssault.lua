@@ -37,7 +37,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	-- end
 	
 	for mo in MovableMan.AddedActors do
-		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) and not mo:NumberValueExists("SubcommanderDoor") then
+		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) then
 			table.insert(self.saveTable.buyDoorTables.All, mo)
 			self.saveTable.buyDoorTables[areaKey][tonumber(#self.saveTable.buyDoorTables.All)] = mo;
 		end
@@ -187,6 +187,16 @@ function RefineryAssault:StartActivity(newGame)
 	table.insert(self.stageFunctionTable, self.MonitorStage4);
 	table.insert(self.stageFunctionTable, self.MonitorStage5);
 	table.insert(self.stageFunctionTable, self.MonitorStage6);
+	
+	-- 6
+	
+	-- Find stage 6 subcommander door
+	for mo in MovableMan.AddedActors do
+		if mo.PresetName == "Refinery Subcommander Door" then
+			self.stage6SubcommanderDoor = mo;
+			mo.Team = 1;
+		end
+	end
 	
 	if newGame then
 	
