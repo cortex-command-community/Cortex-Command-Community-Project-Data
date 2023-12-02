@@ -54,6 +54,10 @@ function Update(self)
 								MovableMan:AddParticle(cross);
 							end
 							healTarget:RemoveWounds(self.healStrength);
+							if healTarget.regenSoftcap then
+								-- Special handling for Silver man regeneration
+								healTarget.regenSoftcap = math.min(healTarget.regenSoftcap + self.healStrength, healTarget.MaxHealth);
+							end
 						end
 					end
 				end
