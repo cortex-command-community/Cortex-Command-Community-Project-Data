@@ -24,12 +24,7 @@ function OnFire(self)
 			local targetToughnessCoefficient = 1/(math.sqrt(math.abs(target.Mass - target.InventoryMass) * 0.01) + math.sqrt(target.Material.StructuralIntegrity * 0.01));
 			local strength = math.max(self.maxStrength - target:RemoveWounds(math.ceil(self.maxStrength * targetToughnessCoefficient), true, false, false), self.baseStrength) * targetToughnessCoefficient;
 			target.Health = math.min(target.Health + strength, target.MaxHealth);
-
-			if target.regenSoftcap then
-				-- Special handling for Silver man regeneration
-				target.regenSoftcap = math.min(target.regenSoftcap + strength, target.MaxHealth);
-			end
-
+			
 			target:FlashWhite(50);
 			self.confirmSound:Play(self.Pos);
 
