@@ -187,6 +187,8 @@ function RefineryAssault:StartActivity(newGame)
 	table.insert(self.stageFunctionTable, self.MonitorStage4);
 	table.insert(self.stageFunctionTable, self.MonitorStage5);
 	table.insert(self.stageFunctionTable, self.MonitorStage6);
+	table.insert(self.stageFunctionTable, self.MonitorStage7);
+	table.insert(self.stageFunctionTable, self.MonitorStage8);
 	
 	-- 6
 	
@@ -293,6 +295,7 @@ function RefineryAssault:StartActivity(newGame)
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole3");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole4");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole5");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS7AuxAuthConsole");
 
 		-- Stage stuff
 

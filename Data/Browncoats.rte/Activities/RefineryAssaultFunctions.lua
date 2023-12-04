@@ -401,8 +401,17 @@ function RefineryAssault:HandleMessage(message, object)
 			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 5", self.aiTeam);		
 		end		
 		
-	end
+	elseif message == "RefineryAssault_S7BrainAuthorized" then		
 	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S7AuthorizeBrain");
+		self.saveTable.stage7BrainAuthorized = true;
+		
+	elseif message == "Captured_RefineryS7AuxAuthConsole" then	
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S7AuxAuth");
+		self.saveTable.stage7AuxAuthConsoleCaptured = true;
+		
+	end
 	
 	-- DEBUG STAGE SKIPS
 
@@ -457,6 +466,13 @@ function RefineryAssault:HandleMessage(message, object)
 				ToMOSRotating(generator):GibThis();
 			end
 		end		
+	elseif message == "SkipStage6" then
+	
+		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
+		MovableMan:SendGlobalMessage("ActivateRefineryAuthorizationConsole");
+		self.Stage = 7;		
+		
 	end
 	
 	
@@ -1232,28 +1248,90 @@ function RefineryAssault:MonitorStage6()
 			-- self.saveTable.stage6subCommanderKilled = true;
 		-- end
 
-	-- end
+	-- end	
 	
-	for k, brain in pairs(self.saveTable.playerBrains) do
-		if not brain or not MovableMan:ValidMO(brain) then
-		else
-			for item in brain.Inventory do
-				if item.PresetName == "Browncoat Military Keycard" then
-					self.HUDHandler:RemoveAllObjectives(self.humanTeam);
-					self.Stage = 7;
-					return;
-				end
-			end
-		end
-	end
-	
-	-- TODO figure out how to make it not spawn a new one if something that isn't a player brain picks it up
+	-- NOTE: on first frame when the keycard disappears it is, for some reason, not in any actor's inventory
+	-- so we have to wait a frame
 	
 	if not self.saveTable.stage6Keycard or (self.saveTable.stage6Keycard.HasEverBeenAddedToMovableMan and not MovableMan:ValidMO(self.saveTable.stage6Keycard)) then
-		-- spawn a new one
-		self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
-		self.saveTable.stage6Keycard.Pos = self.stage6SubcommanderDoor.Pos
-		MovableMan:AddItem(self.saveTable.stage6Keycard);
+		
+		if self.stage7FrameWaited then
+		
+			local keyCardLost = true;
+		
+			-- inefficient if misc. actor is holding onto it... and obj arrow disappears
+			-- hopefully AI doesn't ever randomly pick it up
+			-- alternative: auto drop it, force brain to pick it up first
+			for actor in MovableMan.Actors do
+				for item in actor.Inventory do
+					if item.PresetName == "Browncoat Military Keycard" then
+						keyCardLost = false;
+						if actor.Team == self.humanTeam and actor:IsInGroup("Brains") then
+							-- player brain got it
+							actor:RemoveInventoryItem("Browncoat Military Keycard");
+							self.HUDHandler:RemoveAllObjectives(self.humanTeam);
+							MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
+							MovableMan:SendGlobalMessage("ActivateRefineryAuthorizationConsole");
+							self.Stage = 7;
+							
+							for particle in MovableMan.Particles do
+								if particle.PresetName == "Refinery Authorization Console" then
+						
+									self.HUDHandler:AddObjective(self.humanTeam,
+									"S7AuthorizeBrain",
+									"Authorize yourself",
+									"Attack",
+									"Authorize your commander using the keycard",
+									"With the keycard, you can authorize your commander's physical signature to open the CNC-center blast door at this console.",
+									particle.Pos,
+									false,
+									true,
+									true);					
+							
+								elseif particle.PresetName == "Refinery S7 Auxiliary Authorization Console" then
+								
+									self.HUDHandler:AddObjective(self.humanTeam,
+									"S7AuxAuth",
+									"Hack",
+									"Attack",
+									"Hack the auxiliary authorization console",
+									"This console is also responsible for the CNC-center's door authorization list. Hack it.",
+									particle.Pos,
+									false,
+									true,
+									true);
+									
+								end
+							end	
+							
+							return;
+						end
+					end
+				end
+			end
+			
+			if keyCardLost then
+				-- spawn a new one
+				self.saveTable.stage6Keycard = CreateHeldDevice("Browncoat Military Keycard", "Browncoats.rte");
+				self.saveTable.stage6Keycard.Pos = self.stage6SubcommanderDoor.Pos
+				MovableMan:AddItem(self.saveTable.stage6Keycard);
+			end
+		else
+			self.stage7FrameWaited = true;
+		end
+		self.stage7FrameWaited = false;
 	end
+
+end
+
+function RefineryAssault:MonitorStage7()
+
+	if self.saveTable.stage7BrainAuthorized and self.saveTable.stage7AuxAuthConsoleCaptured then
+		self.Stage = 8;
+	end
+	
+end
+
+function RefineryAssault:MonitorStage8()
 
 end
