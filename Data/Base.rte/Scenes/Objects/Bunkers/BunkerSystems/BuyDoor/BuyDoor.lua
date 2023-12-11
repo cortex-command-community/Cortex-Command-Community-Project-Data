@@ -162,14 +162,14 @@ function Create(self)
 		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("cooldownTimer");
 		self:RemoveNumberValue("cooldownTimer");
 	end
-	self.cooldownTime = 3000;
+	self.cooldownTime = self:NumberValueExists("CooldownTime") and self:GetNumberValue("CooldownTime") or 3000;
 	
 	self.orderTimer = Timer();
 	if self:NumberValueExists("orderTimer") then
 		self.cooldownTimer.ElapsedRealTimeMS = self:GetNumberValue("orderTimer");
 		self:RemoveNumberValue("orderTimer");
 	end
-	self.orderDelay = 5000;
+	self.orderDelay = self:NumberValueExists("OrderDelay") and self:GetNumberValue("OrderDelay") or 5000;
 	
 	if self:NumberValueExists("orderDelivering") and self:GetNumberValue("orderDelivering") == 1 then
 		self.orderDelivering = true;

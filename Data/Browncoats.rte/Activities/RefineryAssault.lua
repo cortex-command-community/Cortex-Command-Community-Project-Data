@@ -37,7 +37,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	-- end
 	
 	for mo in MovableMan.AddedActors do
-		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) and not mo:NumberValueExists("SubcommanderDoor") then
+		if mo.PresetName == "Reinforcement Door" and area:IsInside(mo.Pos) then
 			table.insert(self.saveTable.buyDoorTables.All, mo)
 			self.saveTable.buyDoorTables[areaKey][tonumber(#self.saveTable.buyDoorTables.All)] = mo;
 		end
@@ -147,7 +147,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
 	
-	self.playerGoldIncreaseAmount = 5000;	
+	self.playerGoldIncreaseAmount = 5;	
 	self.humanAIGoldIncreaseAmount = 50;
 	
 	self.aiTeamGoldIncreaseAmount = 0;
@@ -187,6 +187,18 @@ function RefineryAssault:StartActivity(newGame)
 	table.insert(self.stageFunctionTable, self.MonitorStage4);
 	table.insert(self.stageFunctionTable, self.MonitorStage5);
 	table.insert(self.stageFunctionTable, self.MonitorStage6);
+	table.insert(self.stageFunctionTable, self.MonitorStage7);
+	table.insert(self.stageFunctionTable, self.MonitorStage8);
+	
+	-- 6
+	
+	-- Find stage 6 subcommander door
+	for mo in MovableMan.AddedActors do
+		if mo.PresetName == "Refinery Subcommander Door" then
+			self.stage6SubcommanderDoor = mo;
+			mo.Team = 1;
+		end
+	end
 	
 	if newGame then
 	
@@ -278,6 +290,12 @@ function RefineryAssault:StartActivity(newGame)
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole4");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3DrillOverloadConsole");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3OilCapturable");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole1");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole2");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole3");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole4");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole5");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS7AuxAuthConsole");
 
 		-- Stage stuff
 

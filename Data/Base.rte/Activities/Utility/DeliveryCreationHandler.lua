@@ -202,11 +202,11 @@ function DeliveryCreationHandler:Initialize(activity)
 					end
 				end
 				
-				if IsAHuman(entity) then
+				if IsAHuman(entity) and not entity:IsInGroup("Brains") then
 					entityInfoTable.PresetName = entity.PresetName;
 					entityInfoTable.ClassName = entity.ClassName;
 					table.insert(self.teamPresetTables[team]["Actors - AHuman"], entityInfoTable);
-				elseif IsACrab(entity) then
+				elseif IsACrab(entity) and not entity:IsInGroup("Brains") then
 					entityInfoTable.PresetName = entity.PresetName;
 					entityInfoTable.ClassName = entity.ClassName;
 					table.insert(self.teamPresetTables[team]["Actors - ACrab"], entityInfoTable);	
