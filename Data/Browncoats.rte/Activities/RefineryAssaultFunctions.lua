@@ -411,6 +411,11 @@ function RefineryAssault:HandleMessage(message, object)
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S7AuxAuth");
 		self.saveTable.stage7AuxAuthConsoleCaptured = true;
 		
+	elseif message == "RefineryAssault_S8BossDoorOpened" then	
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S8OpenBossDoor");
+		self.Stage = 9;
+		
 	end
 	
 	-- DEBUG STAGE SKIPS
@@ -472,6 +477,11 @@ function RefineryAssault:HandleMessage(message, object)
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
 		MovableMan:SendGlobalMessage("ActivateRefineryAuthorizationConsole");
 		self.Stage = 7;		
+		
+	elseif message == "SkipStage7" then
+	
+		self:SendMessage("Captured_RefineryS7AuxAuthConsole");
+		self:SendMessage("RefineryAssault_S7BrainAuthorized");
 		
 	end
 	
@@ -1302,7 +1312,7 @@ function RefineryAssault:MonitorStage6()
 									true);
 									
 								end
-							end	
+							end
 							
 							return;
 						end
@@ -1328,10 +1338,42 @@ function RefineryAssault:MonitorStage7()
 
 	if self.saveTable.stage7BrainAuthorized and self.saveTable.stage7AuxAuthConsoleCaptured then
 		self.Stage = 8;
+		
+		MovableMan:SendGlobalMessage("ActivateRefineryBossDoorConsole");
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Refinery Boss Door Console" then
+	
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S8OpenBossDoor",
+				"Open the door",
+				"Attack",
+				"Open the CNC-center door",
+				"We're in the home stretch. This is the last door to open to gain access to the main control console of the entire facility. Open it with your commander.",
+				particle.Pos,
+				false,
+				true,
+				true);					
+				
+			end
+		end		
+		
 	end
 	
 end
 
 function RefineryAssault:MonitorStage8()
+
+	-- nothing to actually do here... handled in messages
+
+end
+
+function RefineryAssault:MonitorStage9()
+
+
+end
+
+function RefineryAssault:MonitorStage10()
+
 
 end
