@@ -411,6 +411,11 @@ function RefineryAssault:HandleMessage(message, object)
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S7AuxAuth");
 		self.saveTable.stage7AuxAuthConsoleCaptured = true;
 		
+	elseif message == "RefineryAssault_S8BossDoorOpened" then	
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S8OpenBossDoor");
+		self.Stage = 9;
+		
 	end
 	
 	-- DEBUG STAGE SKIPS
@@ -471,7 +476,42 @@ function RefineryAssault:HandleMessage(message, object)
 		self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
 		MovableMan:SendGlobalMessage("ActivateRefineryAuthorizationConsole");
-		self.Stage = 7;		
+		self.Stage = 7;
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Refinery Authorization Console" then
+	
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S7AuthorizeBrain",
+				"Authorize yourself",
+				"Attack",
+				"Authorize your commander using the keycard",
+				"With the keycard, you can authorize your commander's physical signature to open the CNC-center blast door at this console.",
+				particle.Pos,
+				false,
+				true,
+				true);					
+		
+			elseif particle.PresetName == "Refinery S7 Auxiliary Authorization Console" then
+			
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S7AuxAuth",
+				"Hack",
+				"Attack",
+				"Hack the auxiliary authorization console",
+				"This console is also responsible for the CNC-center's door authorization list. Hack it.",
+				particle.Pos,
+				false,
+				true,
+				true);
+				
+			end
+		end
+		
+	elseif message == "SkipStage7" then
+	
+		self:SendMessage("Captured_RefineryS7AuxAuthConsole");
+		self:SendMessage("RefineryAssault_S7BrainAuthorized");
 		
 	end
 	
@@ -1271,11 +1311,12 @@ function RefineryAssault:MonitorStage6()
 							actor:RemoveInventoryItem("Browncoat Military Keycard");
 							self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 							MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS7AuxAuthConsole");
-							MovableMan:SendGlobalMessage("ActivateRefineryAuthorizationConsole");
 							self.Stage = 7;
 							
 							for particle in MovableMan.Particles do
 								if particle.PresetName == "Refinery Authorization Console" then
+								
+									particle:SendMessage("ActivateRefineryAuthorizationConsole");
 						
 									self.HUDHandler:AddObjective(self.humanTeam,
 									"S7AuthorizeBrain",
@@ -1302,7 +1343,7 @@ function RefineryAssault:MonitorStage6()
 									true);
 									
 								end
-							end	
+							end
 							
 							return;
 						end
@@ -1327,11 +1368,44 @@ end
 function RefineryAssault:MonitorStage7()
 
 	if self.saveTable.stage7BrainAuthorized and self.saveTable.stage7AuxAuthConsoleCaptured then
+
 		self.Stage = 8;
+		
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Refinery Boss Door Console" then
+	
+				particle:SendMessage("ActivateRefineryBossDoorConsole");
+	
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S8OpenBossDoor",
+				"Open the door",
+				"Attack",
+				"Open the CNC-center door",
+				"We're in the home stretch. This is the last door to the main control console of the entire facility. Open it with your authorized commander.",
+				particle.Pos,
+				false,
+				true,
+				true);					
+				
+			end
+		end		
+		
 	end
 	
 end
 
 function RefineryAssault:MonitorStage8()
+
+	-- nothing to actually do here... handled in messages
+
+end
+
+function RefineryAssault:MonitorStage9()
+
+
+end
+
+function RefineryAssault:MonitorStage10()
+
 
 end

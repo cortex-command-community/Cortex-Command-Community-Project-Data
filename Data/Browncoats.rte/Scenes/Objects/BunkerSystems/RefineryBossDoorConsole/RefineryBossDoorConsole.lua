@@ -1,6 +1,6 @@
 function OnMessage(self, message)
 
-	if message == "ActivateRefineryAuthorizationConsole" then
+	if message == "ActivateRefineryBossDoorConsole" then
 		self.Activated = true;
 	end
 	
@@ -22,7 +22,7 @@ function Create(self)
 	
 	self.detectRange = 200;
 	
-	self.orderPieSlice = CreatePieSlice("Refinery Authorization Console Action", "Browncoats.rte");
+	self.orderPieSlice = CreatePieSlice("Refinery Boss Door Console Action", "Browncoats.rte");
 end
 
 function ThreadedUpdate(self)
@@ -55,24 +55,30 @@ function SyncedUpdate(self)
 				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, true);
 				if dist:MagnitudeIsGreaterThan(self.detectRange) then
 					actor.PieMenu:RemovePieSlicesByPresetName(self.orderPieSlice.PresetName);
-					actor:RemoveNumberValue("RefineryAuthorizationConsole_Authorize");
+					actor:RemoveNumberValue("RefineryBossDoorConsole_Use");
 					self.closeActorTable[k] = nil;
 				else
 					actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.orderPieSlice, self);
-					if actor:NumberValueExists("RefineryAuthorizationConsole_Authorize") then
-						actor:RemoveNumberValue("RefineryAuthorizationConsole_Authorize");
+					if actor:NumberValueExists("RefineryBossDoorConsole_Use") then
+						actor:RemoveNumberValue("RefineryBossDoorConsole_Use");
 						
-						self.Activity:SendMessage("RefineryAssault_S7BrainAuthorized");
+						self.Activity:SendMessage("RefineryAssault_S8BossDoorOpened");
 						for k, v in pairs(self.closeActorTable) do
 							local actor = MovableMan:FindObjectByUniqueID(v);
 							actor = ToActor(actor);
 							if actor and MovableMan:ValidMO(actor) then
 								actor.PieMenu:RemovePieSlicesByPresetName(self.orderPieSlice.PresetName);
-								actor:RemoveNumberValue("RefineryAuthorizationConsole_Authorize");
+								actor:RemoveNumberValue("RefineryBossDoorConsole_Use");
 							end
 						end
 						
-						self:DisableScript("Browncoats.rte/Scenes/Objects/Bunkers/BunkerSystems/RefineryAuthorizationConsole/RefineryAuthorizationConsole.lua");
+						for actor in MovableMan.Actors do
+							if actor:NumberValueExists("BossVaultDoor") then
+								ToADoor(actor):OpenDoor();
+							end
+						end
+						
+						self:DisableScript("Browncoats.rte/Scenes/Objects/Bunkers/BunkerSystems/RefineryBossDoorConsole/RefineryBossDoorConsole.lua");
 						return;
 							
 					end

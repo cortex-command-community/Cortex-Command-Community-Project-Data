@@ -173,7 +173,6 @@ function RefineryAssault:StartActivity(newGame)
 	self.HUDHandler = require("Activities/Utility/HUDHandler");
 	self.HUDHandler:Initialize(self, newGame);
 	
-	
 	-- Stage stuff
 	
 	--2
@@ -189,6 +188,8 @@ function RefineryAssault:StartActivity(newGame)
 	table.insert(self.stageFunctionTable, self.MonitorStage6);
 	table.insert(self.stageFunctionTable, self.MonitorStage7);
 	table.insert(self.stageFunctionTable, self.MonitorStage8);
+	table.insert(self.stageFunctionTable, self.MonitorStage9);
+	table.insert(self.stageFunctionTable, self.MonitorStage10);
 	
 	-- 6
 	
@@ -203,6 +204,14 @@ function RefineryAssault:StartActivity(newGame)
 	if newGame then
 	
 		self.saveTable = {};
+		
+		self.saveTable.doorsToConstantlyReset = {};
+
+		for actor in MovableMan.AddedActors do
+			if actor:NumberValueExists("BossVaultDoor") then
+				table.insert(self.saveTable.doorsToConstantlyReset, actor);
+			end
+		end
 		
 		-- Always active base task for defenders
 		self.tacticsHandler:AddTask("Brainhunt", self.aiTeam, Vector(0, 0), "Brainhunt", 2);
@@ -418,6 +427,9 @@ function RefineryAssault:UpdateActivity()
 
 	if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
 		self.ActivityState = Activity.EDITING;
+	elseif UInputMan:KeyPressed(Key.G) and UInputMan:KeyHeld(Key.SPACE) then
+		-- have to do this to reenable enabling editing, dunno?
+		self.ActivityState = Activity.RUNNING;
 	end
 
 	-- Monitor stage objectives
@@ -456,7 +468,13 @@ function RefineryAssault:UpdateActivity()
 	self.HUDHandler:UpdateHUDHandler();
 	
 	
-	
+
+	for k, door in pairs(self.saveTable.doorsToConstantlyReset) do
+		if not door or not MovableMan:ValidMO(door) then
+		else
+			ToADoor(door):ResetSensorTimer();
+		end
+	end
 	
 	
 	
