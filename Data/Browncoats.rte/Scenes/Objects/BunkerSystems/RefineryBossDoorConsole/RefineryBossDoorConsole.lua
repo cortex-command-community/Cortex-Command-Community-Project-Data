@@ -62,9 +62,10 @@ function SyncedUpdate(self)
 					if actor:NumberValueExists("RefineryBossDoorConsole_Use") then
 						actor:RemoveNumberValue("RefineryBossDoorConsole_Use");
 						
-						self.Activity:SendMessage("RefineryAssault_S8BossDoorConsoleOpened");
+						self.Activity:SendMessage("RefineryAssault_S8BossDoorOpened");
 						for k, v in pairs(self.closeActorTable) do
 							local actor = MovableMan:FindObjectByUniqueID(v);
+							actor = ToActor(actor);
 							if actor and MovableMan:ValidMO(actor) then
 								actor.PieMenu:RemovePieSlicesByPresetName(self.orderPieSlice.PresetName);
 								actor:RemoveNumberValue("RefineryBossDoorConsole_Use");

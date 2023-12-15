@@ -65,6 +65,7 @@ function SyncedUpdate(self)
 						self.Activity:SendMessage("RefineryAssault_S7BrainAuthorized");
 						for k, v in pairs(self.closeActorTable) do
 							local actor = MovableMan:FindObjectByUniqueID(v);
+							actor = ToActor(actor);
 							if actor and MovableMan:ValidMO(actor) then
 								actor.PieMenu:RemovePieSlicesByPresetName(self.orderPieSlice.PresetName);
 								actor:RemoveNumberValue("RefineryAuthorizationConsole_Authorize");
