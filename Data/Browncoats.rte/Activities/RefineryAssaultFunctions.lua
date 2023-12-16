@@ -171,13 +171,24 @@ function RefineryAssault:HandleMessage(message, object)
 		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "FL-200 Heatlance", "HDFirearm", "Browncoats.rte");
 		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "IN-02 Backblast", "HDFirearm", "Browncoats.rte");
 		
-		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
-		-- don't remove the IN-02, castrates the brownies too much this early on.
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "IN-02 Backblast");
+		
+	elseif message == "Captured_RefineryS3GrenadeConsole" then	
+		
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "Fuel Bomb Bandolier", "TDExplosive", "Browncoats.rte");
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "Fire Bomb Bandolier", "TDExplosive", "Browncoats.rte");
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fuel Bomb Bandolier");
 		
 	elseif message == "Captured_RefineryS3DrillOverloadConsole" then	
 		
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
 		self.stage3DrillOverloaded = true;
+	
+	elseif message == "Captured_RefineryS4FuelPipeConsole" then	
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fire Bomb Bandolier");
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
 		
 	elseif message == "RefineryAssault_S4DoorsBlownUp" then	
 		
