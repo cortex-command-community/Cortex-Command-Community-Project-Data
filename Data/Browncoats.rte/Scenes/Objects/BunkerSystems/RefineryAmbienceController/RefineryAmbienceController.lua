@@ -74,6 +74,7 @@ function ThreadedUpdate(self)
 		
 		for player, container in pairs(self.playerIntOneShotContainers) do
 			container:Play(player);
+			container.CustomPanValue = math.random(-100, 100)/100;
 		end
 		
 	end
