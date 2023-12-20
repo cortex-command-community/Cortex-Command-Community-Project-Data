@@ -3,15 +3,29 @@
 
 function OnFire(self)
 
-	self.FireTimer:Reset();
-	CameraMan:AddScreenShake(5, self.Pos);
+	CameraMan:AddScreenShake(7, self.Pos);
+	
+	local shot = self.Shot:Clone();
+	shot.Pos = self.MuzzlePos;
+	shot.Vel = self.Vel + Vector(160, 0):RadRotate(self.RotAngle);
+	shot.Team = self.Team;
+	shot.RotAngle = self.RotAngle;
+	shot.HFlipped = self.HFlipped;
+	MovableMan:AddParticle(shot);
+	
+	self.animTimer:Reset();
+	self.firingAnim = true;
 	
 end
 
 function OnReload(self)
 
 	self.reloadToSmoke = true;
-	self.reloadSmokeTimer:Reset();
+	self.animTimer:Reset();
+	
+	if self.currentBaseFrame ~= 20 then
+		self.oldFrame = self.Frame;
+	end
 	
 end
 
@@ -22,21 +36,33 @@ function Create(self)
 	-- self.servoLoopSound.Pitch = 1;
 	-- self.servoLoopSound:Play(self.Pos);
 	
-	self.Shot = CreateMOSRotating("Flak Shell Browncoat AA-50", "Browncoats.rte");
+	self.Shot = CreateAEmitter("Browncoat AA-50 Shot", "Browncoats.rte");
 
-	self.FireTimer = Timer();
+	self.firingAnim = false;
+	self.animTimer = Timer();
+	self.firingAnimTime = (1 / (self.RateOfFire / 60) * 1000) - 30;	-- -30 for some buffer
+	self.currentBaseFrame = 0;
+	
+	self.currentBarrel = 0;
+	
+	self.topMuzzleOffset = Vector(55, -8);
+	self.bottomMuzzleOffset = Vector(55, 6);
+	
+	self.MuzzleOffset = self.topMuzzleOffset;
+	
+	for att in self.Attachables do
+		if string.find(att.PresetName, "Top") then	
+			self.topBarrel = ToAttachable(att);
+		elseif string.find(att.PresetName, "Bottom") then
+			self.bottomBarrel = ToAttachable(att);
+		end
+	end
 	
 	self.reloadSmokeTimer = Timer();
 	
 	self.rotationSpeed = 0.10;
 	self.smoothedRotAngle = self.RotAngle;
 	self.InheritedRotAngleTarget = 0;
-	
-	if self:NumberValueExists("KeepUnflipped") then
-		self.keepFlipped = true;
-	else
-		self.keepFlipped = false;
-	end
 	
 
 end
@@ -45,8 +71,6 @@ function Update(self)
 
 	--self.servoLoopSound.Pos = self.Pos;
 
-	self.HFlipped = self.keepFlipped;
-	
 	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
 	
 	self.playerControlled = (self.parent and self.parent:IsPlayerControlled()) and true or false;
@@ -74,26 +98,70 @@ function Update(self)
 	
 	self.InheritedRotAngleOffset = self.smoothedRotAngle - self.RotAngle;
 	
-	-- Mathemagical firing anim by filipex
-	local f = math.max(1 - math.min((self.FireTimer.ElapsedSimTimeMS) / 200, 1), 0)
-	self.Frame = math.floor(f * 8 + 0.55);
-
-
-	if self.FiredFrame then
-	
-		local shot = self.Shot:Clone();
-		shot.Pos = self.MuzzlePos;
-		shot.Vel = self.Vel + Vector(160, 0):RadRotate(self.RotAngle);
-		shot.Team = self.Team;
-		shot.RotAngle = self.RotAngle;
-		shot.HFlipped = self.HFlipped;
-		MovableMan:AddParticle(shot);
-
+	if self:DoneReloading() then
+		self.currentBaseFrame = 0;
+		self.Frame = 0;
 	end
 	
+	if self.firingAnim then
+	
+		self:Deactivate();
+	
+		local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / self.firingAnimTime);
+		local frameNum = math.floor(4 * progress);
+		self.Frame = self.currentBaseFrame + frameNum;
+		
+		local barrel = self.currentBarrel == 0 and self.topBarrel or self.bottomBarrel;
+		local jointOffsetX = 10 * math.sin(progress * math.pi);
+		barrel.JointOffset = Vector(jointOffsetX, 0);
+		
+		
+		if progress == 1 then
+			self.MuzzleOffset = self.currentBarrel == 0 and self.bottomMuzzleOffset or self.topMuzzleOffset;
+			barrel.JointOffset = Vector();
+			self.currentBarrel = (self.currentBarrel + 1) % 2;
+			self.firingAnim = false;
+			
+			-- surely this can be done better...
+			if not self:IsReloading() then
+				if self.RoundInMagCount == 1 then
+					self.currentBaseFrame = 20;
+				elseif self.RoundInMagCount == 2 then
+					self.currentBaseFrame = 16;
+				elseif self.RoundInMagCount == 3 then
+					self.currentBaseFrame = 12;
+				elseif self.RoundInMagCount == 4 then
+					self.currentBaseFrame = 8;
+				elseif self.RoundInMagCount == 5 then
+					self.currentBaseFrame = 4;
+				end
+				
+				self.Frame = self.currentBaseFrame;
+			end
+		end
+	end
+				
 	if self:IsReloading() then
-		-- manually timed according to sound
-		if self.reloadToSmoke and self.reloadSmokeTimer:IsPastSimMS(900) then
+		-- manually timed
+		
+		if self.currentBaseFrame ~= 20 then
+			local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / (self.firingAnimTime*3));
+			local frameNum = math.floor((20 - self.oldFrame) * progress);
+			self.Frame = self.oldFrame + frameNum;
+			if self.Frame == 20 then
+				self.currentBaseFrame = 20;
+				self.oldFrame = nil;
+				self.Frame = 20;
+			end
+		end
+		
+		if self.animTimer:IsPastSimMS(self.ReloadTime - 1000) then
+			local progress = math.min(1, (self.animTimer.ElapsedSimTimeMS - (self.ReloadTime - 1000)) / 1000);
+			local frameNum = math.floor(17 * progress);
+			self.Frame = self.currentBaseFrame + frameNum;
+		end
+		
+		if self.reloadToSmoke and self.animTimer:IsPastSimMS(900) then
 			self.reloadToSmoke = false;
 			
 			for i = 1, 8 do
@@ -101,7 +169,7 @@ function Update(self)
 				particle.GlobalAccScalar = 0.005
 				particle.Lifetime = math.random(800, 2500);
 				particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-40, -30)/100);
-				particle.Pos = self.Pos + Vector(-math.random(15, 17)*self.FlipFactor, math.random(-3, 3));
+				particle.Pos = self.Pos
 				MovableMan:AddParticle(particle);
 			end
 			
@@ -110,12 +178,12 @@ function Update(self)
 				particle.GlobalAccScalar = 0.005
 				particle.Lifetime = math.random(800, 2500);
 				particle.Vel = self.Vel + Vector(math.random(-20, 20)/100, -math.random(-100, -30)/100);
-				particle.Pos = self.Pos + Vector(-math.random(15, 17)*self.FlipFactor, math.random(-3, 3));
+				particle.Pos = self.Pos
 				MovableMan:AddParticle(particle);
 			end	
-			
 		end
 	end
+				
 	
 end
 
