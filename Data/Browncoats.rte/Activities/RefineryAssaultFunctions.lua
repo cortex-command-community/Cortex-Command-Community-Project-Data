@@ -427,6 +427,33 @@ function RefineryAssault:HandleMessage(message, object)
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S8OpenBossDoor");
 		self.Stage = 9;
 		
+		MovableMan:SendGlobalMessage("ActivateCapturable_RefineryS10FinalConsole");
+
+		for particle in MovableMan.Particles do
+			if particle.PresetName == "Refinery S9 Final Console" then
+
+				self.HUDHandler:AddObjective(self.humanTeam,
+				"S9FinalConsole",
+				"Capture",
+				"Attack",
+				"Capture the CNC-center console!",
+				"This is it! Get into that console and every Browncoat left on this base is at our mercy!",
+				particle.Pos,
+				false,
+				true,
+				true);		
+				
+				break;
+			end
+		end
+		
+	elseif message == "Captured_RefineryS9FinalConsole" then	
+	
+		self.HUDHandler:RemoveObjective(self.humanTeam, "S9FinalConsole");
+		self.saveTable.stage9FinalConsoleCaptured = true;
+
+	elseif message == "Refinery_RefineryS10FinalBossDead" then	
+		
 	end
 	
 	-- DEBUG STAGE SKIPS
@@ -523,6 +550,20 @@ function RefineryAssault:HandleMessage(message, object)
 	
 		self:SendMessage("Captured_RefineryS7AuxAuthConsole");
 		self:SendMessage("RefineryAssault_S7BrainAuthorized");
+		
+	elseif message == "SkipStage8" then
+
+		for actor in MovableMan.Actors do
+			if actor:NumberValueExists("BossVaultDoor") then
+				ToADoor(actor):OpenDoor();
+			end
+		end
+		
+		self:SendMessage("RefineryAssault_S8BossDoorOpened");
+		
+	elseif message == "SkipStage9" then
+	
+		self:SendMessage("Captured_RefineryS10FinalConsole");
 		
 	end
 	
@@ -1412,6 +1453,17 @@ function RefineryAssault:MonitorStage8()
 end
 
 function RefineryAssault:MonitorStage9()
+
+	if self.saveTable.stage9FinalConsoleCaptured and not self.stage9FinalTimer then
+	
+		self.stage9FinalTimer = Timer();
+		
+	elseif self.stage9FinalTimer and self.stage9FinalTimer:IsPastSimMS(5000) then
+	
+		self.Stage = 10;
+		MovableMan:SendGlobalMessage("Refinery_S10SpawnBoss", self.aiTeam);
+	
+	end
 
 
 end

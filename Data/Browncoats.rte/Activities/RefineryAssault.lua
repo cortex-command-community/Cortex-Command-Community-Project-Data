@@ -305,6 +305,7 @@ function RefineryAssault:StartActivity(newGame)
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole4");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS4BuyDoorConsole5");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS7AuxAuthConsole");
+		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS10FinalConsole");
 
 		-- Stage stuff
 

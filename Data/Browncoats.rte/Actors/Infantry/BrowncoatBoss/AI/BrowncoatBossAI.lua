@@ -237,4 +237,6 @@ function UpdateAI(self)
 end
 function Destroy(self)
 	self.AI:Destroy(self);
+	self.activity:SendMessage("Refinery_S10FinalBossDead");
+	
 end
