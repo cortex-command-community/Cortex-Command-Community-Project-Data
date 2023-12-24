@@ -86,6 +86,12 @@ function RefineryAssault:HandleMessage(message, object)
 		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
 		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 		
+	elseif message == "Captured_RefineryS3DockConsole" then
+	
+		if not self.saveTable.activeDocks[1] == 5 then -- ghetto check we haven't capped the s4 one
+			self.saveTable.activeDocks = {3, 4};
+		end
+		
 	elseif message == "Captured_RefineryS3BuyDoorConsole1" then
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_1");
@@ -298,7 +304,11 @@ function RefineryAssault:HandleMessage(message, object)
 				v.Team = self.aiTeam;
 			end
 
-			end
+		end
+		
+	elseif message == "Captured_RefineryS4DockConsole" then
+	
+		self.saveTable.activeDocks = {5, 6};
 		
 	elseif message == "Captured_RefineryS4BuyDoorConsole1" then
 		
@@ -628,12 +638,14 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	craft.HUDVisible = self.humansAreControllingAlliedActors;
 	craft:SetGoldValue(0);
 	
-	local success = self.dockingHandler:SpawnDockingCraft(craft)
+	-- reminder that only player team sends to dock in this activity.
+	local specificDock = self.saveTable.activeDocks[math.random(1, #self.saveTable.activeDocks)];
+	local success = self.dockingHandler:SpawnDockingCraft(craft, specificDock);
 			
 	if success then
 		self.tacticsHandler:ApplyTaskToSquadActors(squad, task);
 		self:ChangeAIFunds(team, -goldCost);
-		return squad
+		return squad;
 	end
 	
 	return false;
@@ -723,13 +735,12 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				randomSelection = usableBuyDoorTable[math.random(1, #usableBuyDoorTable)]
 			end
 			
-			if team == self.aiTeam and self.saveTable.cameraServerBroken >= 2 then
-				self.buyDoorHandler:ChangeCooldownTime(randomSelection, 15000);
-			else
-				self.buyDoorHandler:ChangeCooldownTime(randomSelection, 5000);
-			end
-			
 			if randomSelection then
+				if team == self.aiTeam and self.saveTable.cameraServersBroken and self.saveTable.cameraServersBroken >= 2 then
+					self.buyDoorHandler:ChangeCooldownTime(randomSelection, 15000);
+				else
+					self.buyDoorHandler:ChangeCooldownTime(randomSelection, 5000);
+				end
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
 					self.tacticsHandler:ApplyTaskToSquadActors(order, task);

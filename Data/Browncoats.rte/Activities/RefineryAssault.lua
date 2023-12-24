@@ -162,7 +162,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.tacticsHandler:Initialize(self, newGame);
 	
 	self.dockingHandler = require("Activities/Utility/DockingHandler");
-	self.dockingHandler:Initialize(self, true, newGame);
+	self.dockingHandler:Initialize(self, false, newGame);
 	
 	self.buyDoorHandler = require("Activities/Utility/BuyDoorHandler");
 	self.buyDoorHandler:Initialize(self, newGame);
@@ -204,6 +204,8 @@ function RefineryAssault:StartActivity(newGame)
 	if newGame then
 	
 		self.saveTable = {};
+		
+		self.saveTable.activeDocks = {1, 2};
 		
 		self.saveTable.doorsToConstantlyReset = {};
 
