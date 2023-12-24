@@ -1,9 +1,9 @@
-function OnMessage(self, message, orderList)
+function OnMessage(self, message, context)
 	--print("message gotten?")
 	--if self:IsInventoryEmpty() then
 		if message == "BuyDoor_CustomTableOrder" then
 			self.Unusable = true;
-			local finalOrder = BuyDoorSetupOrder(self, orderList, true);
+			local finalOrder = BuyDoorSetupOrder(self, context, true);
 			
 			--print("WE HAVE GOTTEN AN ORDER")
 			
@@ -15,6 +15,11 @@ function OnMessage(self, message, orderList)
 			end
 		end
 	--end
+	
+	if message == "BuyDoor_ChangeCooldownTime" then
+		self.cooldownTime = context;
+		self:SetNumberValue("CooldownTime", context);
+	end
 
 end
 
