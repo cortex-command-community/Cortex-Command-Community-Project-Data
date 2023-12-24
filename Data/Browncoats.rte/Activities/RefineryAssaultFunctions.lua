@@ -471,6 +471,11 @@ function RefineryAssault:HandleMessage(message, object)
 				break;
 			end
 		end
+
+	elseif message == "Captured_RefineryS9BossBankCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;		
 		
 	elseif message == "Captured_RefineryS9FinalConsole" then	
 	
