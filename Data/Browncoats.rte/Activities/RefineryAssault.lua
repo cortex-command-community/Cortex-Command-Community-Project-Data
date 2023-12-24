@@ -428,6 +428,17 @@ function RefineryAssault:UpdateActivity()
 
 	if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
 		self.ActivityState = Activity.EDITING;
+
+		-- Remove and refund the player's brains (otherwise edit mode does not work)
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local brain = self:GetPlayerBrain(player);
+				if MovableMan:IsActor(brain) then
+					self:ChangeTeamFunds(brain:GetTotalValue(0, 1), self:GetTeamOfPlayer(player));
+					MovableMan:RemoveActor(brain);
+				end
+			end
+		end
 	elseif UInputMan:KeyPressed(Key.G) and UInputMan:KeyHeld(Key.SPACE) then
 		-- have to do this to reenable enabling editing, dunno?
 		self.ActivityState = Activity.RUNNING;
