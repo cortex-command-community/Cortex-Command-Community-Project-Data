@@ -180,6 +180,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fuel Bomb Bandolier");
 		
+		
 	elseif message == "Captured_RefineryS3DrillOverloadConsole" then	
 		
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
@@ -189,6 +190,13 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fire Bomb Bandolier");
 		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
+		
+	elseif message == "Captured_RefineryS4AdvancedGunsConsole" then	
+		
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "BR-76 Stormbringer", "HDFirearm", "Browncoats.rte");
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "R-500 Extinction", "HDFirearm", "Browncoats.rte");
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "BR-76 Stormbringer");
 		
 	elseif message == "RefineryAssault_S4DoorsBlownUp" then	
 		
