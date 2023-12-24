@@ -86,6 +86,12 @@ function RefineryAssault:HandleMessage(message, object)
 		-- as soon as any of the hack consoles are captured, we don't wanna bother with the stage 1 counterattack anymore.
 		self.tacticsHandler:RemoveTask("Counterattack", self.aiTeam);
 		
+	elseif message == "Captured_RefineryS3DockConsole" then
+	
+		if not self.saveTable.activeDocks[1] == 5 then -- ghetto check we haven't capped the s4 one
+			self.saveTable.activeDocks = {3, 4};
+		end
+		
 	elseif message == "Captured_RefineryS3BuyDoorConsole1" then
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_1");
@@ -180,6 +186,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fuel Bomb Bandolier");
 		
+		
 	elseif message == "Captured_RefineryS3DrillOverloadConsole" then	
 		
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OverloadDrill");
@@ -189,6 +196,13 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "Fire Bomb Bandolier");
 		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "FL-200 Heatlance");
+		
+	elseif message == "Captured_RefineryS4AdvancedGunsConsole" then	
+		
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "BR-76 Stormbringer", "HDFirearm", "Browncoats.rte");
+		self.deliveryCreationHandler:AddAvailablePreset(self.humanTeam, "R-500 Extinction", "HDFirearm", "Browncoats.rte");
+		
+		self.deliveryCreationHandler:RemoveAvailablePreset(self.aiTeam, "BR-76 Stormbringer");
 		
 	elseif message == "RefineryAssault_S4DoorsBlownUp" then	
 		
@@ -290,7 +304,11 @@ function RefineryAssault:HandleMessage(message, object)
 				v.Team = self.aiTeam;
 			end
 
-			end
+		end
+		
+	elseif message == "Captured_RefineryS4DockConsole" then
+	
+		self.saveTable.activeDocks = {5, 6};
 		
 	elseif message == "Captured_RefineryS4BuyDoorConsole1" then
 		
@@ -311,9 +329,9 @@ function RefineryAssault:HandleMessage(message, object)
 					break;
 				end
 			end		
-			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 1", self.aiTeam, pos, "Attack", 20);		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 1", self.aiTeam, pos, "Attack", 20);		
 		else
-			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 1", self.aiTeam);		
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 1", self.aiTeam);		
 		end
 		
 	elseif message == "Captured_RefineryS4BuyDoorConsole2" then
@@ -335,9 +353,9 @@ function RefineryAssault:HandleMessage(message, object)
 					break;
 				end
 			end		
-			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 2", self.aiTeam, pos, "Attack", 20);		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 2", self.aiTeam, pos, "Attack", 20);		
 		else
-			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 2", self.aiTeam);		
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 2", self.aiTeam);		
 		end
 		
 	elseif message == "Captured_RefineryS4BuyDoorConsole3" then
@@ -359,9 +377,9 @@ function RefineryAssault:HandleMessage(message, object)
 					break;
 				end
 			end		
-			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 3", self.aiTeam, pos, "Attack", 20);		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 3", self.aiTeam, pos, "Attack", 20);		
 		else
-			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 3", self.aiTeam);		
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 3", self.aiTeam);		
 		end		
 		
 	elseif message == "Captured_RefineryS4BuyDoorConsole4" then
@@ -383,9 +401,9 @@ function RefineryAssault:HandleMessage(message, object)
 					break;
 				end
 			end		
-			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 4", self.aiTeam, pos, "Attack", 20);		
 		else
-			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 4", self.aiTeam);		
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 4", self.aiTeam);		
 		end
 		
 	elseif message == "Captured_RefineryS4BuyDoorConsole5" then
@@ -407,10 +425,27 @@ function RefineryAssault:HandleMessage(message, object)
 					break;
 				end
 			end		
-			self.tacticsHandler:AddTask("Attack S3 Buy Door Console 5", self.aiTeam, pos, "Attack", 20);		
+			self.tacticsHandler:AddTask("Attack S4 Buy Door Console 5", self.aiTeam, pos, "Attack", 20);		
 		else
-			self.tacticsHandler:RemoveTask("Attack S3 Buy Door Console 5", self.aiTeam);		
+			self.tacticsHandler:RemoveTask("Attack S4 Buy Door Console 5", self.aiTeam);		
 		end		
+		
+	elseif message == "Captured_RefineryS4BankCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;
+		
+	elseif message == "Captured_RefineryS4GoldVaultCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 4;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 4;
+		
+		self:ChangeAIFunds(self.humanTeam, 2000);
+		self:ChangeTeamFunds(2000, self.humanTeam); -- player, will also play gold sound
+		
+	elseif message == "Refinery_S4CameraServerBroken" then
+	
+		self.saveTable.cameraServerBroken = self.saveTable.cameraServerBroken == nil and 1 or self.saveTable.cameraServerBroken + 1;
 		
 	elseif message == "RefineryAssault_S7BrainAuthorized" then		
 	
@@ -446,6 +481,11 @@ function RefineryAssault:HandleMessage(message, object)
 				break;
 			end
 		end
+
+	elseif message == "Captured_RefineryS9BossBankCapturable" then
+	
+		self.humanAIGoldIncreaseAmount = self.humanAIGoldIncreaseAmount + 20;		
+		self.playerGoldIncreaseAmount = self.playerGoldIncreaseAmount + 20;		
 		
 	elseif message == "Captured_RefineryS9FinalConsole" then	
 	
@@ -598,12 +638,14 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	craft.HUDVisible = self.humansAreControllingAlliedActors;
 	craft:SetGoldValue(0);
 	
-	local success = self.dockingHandler:SpawnDockingCraft(craft)
+	-- reminder that only player team sends to dock in this activity.
+	local specificDock = self.saveTable.activeDocks[math.random(1, #self.saveTable.activeDocks)];
+	local success = self.dockingHandler:SpawnDockingCraft(craft, specificDock);
 			
 	if success then
 		self.tacticsHandler:ApplyTaskToSquadActors(squad, task);
 		self:ChangeAIFunds(team, -goldCost);
-		return squad
+		return squad;
 	end
 	
 	return false;
@@ -694,6 +736,11 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			end
 			
 			if randomSelection then
+				if team == self.aiTeam and self.saveTable.cameraServersBroken and self.saveTable.cameraServersBroken >= 2 then
+					self.buyDoorHandler:ChangeCooldownTime(randomSelection, 15000);
+				else
+					self.buyDoorHandler:ChangeCooldownTime(randomSelection, 5000);
+				end
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
 					self.tacticsHandler:ApplyTaskToSquadActors(order, task);
