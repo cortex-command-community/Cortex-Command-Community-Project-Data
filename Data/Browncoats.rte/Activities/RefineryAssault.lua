@@ -377,6 +377,7 @@ function RefineryAssault:ResumeLoadedGame()
 	self.dockingHandler:OnLoad(self.saveLoadHandler);
 	self.buyDoorHandler:OnLoad(self.saveLoadHandler);
 	self.deliveryCreationHandler:OnLoad(self.saveLoadHandler);
+	self.HUDHandler:OnLoad(self.saveLoadHandler);
 	
 	self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
 		
