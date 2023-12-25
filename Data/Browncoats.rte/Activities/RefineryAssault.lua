@@ -129,7 +129,7 @@ end
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 	
-	self.humansAreControllingAlliedActors = true;
+	self.humansAreControllingAlliedActors = false;
 	
 	self.humanTeam = Activity.TEAM_1;
 	self.aiTeam = Activity.TEAM_2;
