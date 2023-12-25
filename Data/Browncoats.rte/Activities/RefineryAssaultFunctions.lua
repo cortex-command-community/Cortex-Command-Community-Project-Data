@@ -667,7 +667,9 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 	
 	for k, actor in pairs(order) do
 		actor.PlayerControllable = self.humansAreControllingAlliedActors;
-		actor.HUDVisible = self.humansAreControllingAlliedActors;
+		if actor.Team == self.humanTeam then
+			actor.HUDVisible = self.humansAreControllingAlliedActors;
+		end
 	end
 	
 	--print("tried order for team: " .. team);
