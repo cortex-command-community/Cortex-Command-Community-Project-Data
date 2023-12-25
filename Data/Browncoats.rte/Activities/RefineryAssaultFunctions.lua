@@ -663,7 +663,7 @@ end
 
 function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificIndex)
 
-	local squadCount = math.random(1, 2);
+	local squadCount = math.random(2, 3);
 
 	local order;
 	local goldCost;
@@ -1261,19 +1261,24 @@ function RefineryAssault:MonitorStage3()
 			CameraMan:AddScreenShake(10, pos);
 		end
 		
-		for k, door in pairs(self.saveTable.stage4Door) do
-			if MovableMan:ValidMO(door) then
-				ToADoor(door):OpenDoor();
+		-- thou shalt deal with this bad code
+		if MovableMan:ValidMO(self.saveTable.stage3Doors[1]) then
+			ToADoor(self.saveTable.stage3Doors[1]):OpenDoor();
+		end
+		
+		if self.stage3DoorSequenceTimer:IsPastSimMS(7000) then
+			if MovableMan:ValidMO(self.saveTable.stage3Doors[2]) then
+				ToADoor(self.saveTable.stage3Doors[2]):OpenDoor();
 			end
 		end
 		
-		for k, door in pairs(self.saveTable.stage3Doors) do
-			if MovableMan:ValidMO(door) then
-				ToADoor(door):OpenDoor();
+		if self.stage3DoorSequenceTimer:IsPastSimMS(7750) then
+			if MovableMan:ValidMO(self.saveTable.stage4Door[1]) then
+				ToADoor(self.saveTable.stage4Door[1]):OpenDoor();
 			end
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(7250) then
+		if self.stage3DoorSequenceTimer:IsPastSimMS(8750) then
 			for k, door in pairs(self.saveTable.stage4Door) do
 				if MovableMan:ValidMO(door) then
 					ToADoor(door):StopDoor();
