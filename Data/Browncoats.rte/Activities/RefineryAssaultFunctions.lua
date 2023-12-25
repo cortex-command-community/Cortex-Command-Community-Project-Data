@@ -1241,7 +1241,7 @@ function RefineryAssault:MonitorStage3()
 	if self.stage3AllConsolesBroken and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
 	
 		-- initiate scripted sequence
-	
+		self.stage3PlayedDoorStopSound = false;
 		self.stage3DoorSequenceTimer = Timer();
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
@@ -1251,7 +1251,7 @@ function RefineryAssault:MonitorStage3()
 		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
 		soundContainer:Play(pos);
 		
-		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 10500, true);
+		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S3DoorSequence", pos, 0.08, 15000, true);
 
 	elseif self.stage3DoorSequenceTimer and self.stage3DoorSequenceTimer:IsPastSimMS(6250) then
 	
@@ -1266,41 +1266,44 @@ function RefineryAssault:MonitorStage3()
 			ToADoor(self.saveTable.stage3Doors[1]):OpenDoor();
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(7000) then
+		if self.stage3DoorSequenceTimer:IsPastSimMS(7500) then
 			if MovableMan:ValidMO(self.saveTable.stage3Doors[2]) then
 				ToADoor(self.saveTable.stage3Doors[2]):OpenDoor();
 			end
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(7750) then
+		if self.stage3DoorSequenceTimer:IsPastSimMS(8750) then
 			if MovableMan:ValidMO(self.saveTable.stage4Door[1]) then
 				ToADoor(self.saveTable.stage4Door[1]):OpenDoor();
 			end
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(8750) then
+		if self.stage3DoorSequenceTimer:IsPastSimMS(10000) then
 			for k, door in pairs(self.saveTable.stage4Door) do
 				if MovableMan:ValidMO(door) then
 					ToADoor(door):StopDoor();
-					self.Stage = 4;
-					local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
-					soundContainer:Play(door.Pos);
-					CameraMan:AddScreenShake(20, door.Pos);
-					
-					self.HUDHandler:RemoveAllObjectives(self.humanTeam);
-					
-					self.HUDHandler:AddObjective(self.humanTeam,
-					"S4DestroyDoor",
-					"Find a way to open the door",
-					"Attack",
-					"Find a way to open the door",
-					"They've jammed the last door! Find a way around and let our main force through.",
-					nil,
-					false,
-					true);
-					
+					if not self.stage3PlayedDoorStopSound then
+						local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
+						soundContainer:Play(door.Pos);
+						CameraMan:AddScreenShake(20, door.Pos);
+						self.stage3PlayedDoorStopSound = true;
+					end
 				end
 			end
+		end
+
+		if self.stage3DoorSequenceTimer:IsPastSimMS(12500) then
+			self.Stage = 4;
+			self.HUDHandler:RemoveAllObjectives(self.humanTeam);		
+			self.HUDHandler:AddObjective(self.humanTeam,
+				"S4DestroyDoor",
+				"Find a way to open the door",
+				"Attack",
+				"Find a way to open the door",
+				"They've jammed the last door! Find a way around and let our main force through.",
+				nil,
+				false,
+				true);
 		end
 		
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
