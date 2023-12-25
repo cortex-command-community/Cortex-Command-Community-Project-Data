@@ -117,8 +117,8 @@ end
 function BuyDoorHandler:ChangeCooldownTime(index, newTime)
 
 	if index and newTime then
-		if self.buyDoorTable[specificIndex] then
-			self.buyDoorTable[specificIndex]:SendMessage("BuyDoor_ChangeCooldownTime", newTime);
+		if self.buyDoorTable[index] then
+			self.buyDoorTable[index]:SendMessage("BuyDoor_ChangeCooldownTime", newTime);
 		else
 			print("Buy Door Handler was asked to change the cooldown time of an index that didn't exist!");
 			return false;
