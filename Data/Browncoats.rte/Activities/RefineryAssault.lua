@@ -403,6 +403,7 @@ function RefineryAssault:OnSave()
 	self.dockingHandler:OnSave(self.saveLoadHandler);
 	self.buyDoorHandler:OnSave(self.saveLoadHandler);
 	self.deliveryCreationHandler:OnSave(self.saveLoadHandler);
+	self.HUDHandler:OnSave(self.saveLoadHandler);
 	
 end
 
