@@ -27,7 +27,7 @@ function RefineryAssault:HandleMessage(message, object)
 			end
 	
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC1");
-			self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+			self:RemoveStringFromTable("LC1", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 				v.Team = self.humanTeam;
@@ -39,7 +39,7 @@ function RefineryAssault:HandleMessage(message, object)
 			self.stage2HoldingBothConsoles = false;
 		
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC1");
-			self.saveTable.buyDoorTables.teamAreas[self.humanTeam].LC1 = nil;
+			self:RemoveStringFromTable("LC1", self.saveTable.buyDoorTables.teamAreas[self.humanTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 				v.Team = self.aiTeam;
@@ -66,7 +66,7 @@ function RefineryAssault:HandleMessage(message, object)
 			end
 	
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
-			self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+			self:RemoveStringFromTable("LC2", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 				v.Team = self.humanTeam;
@@ -76,7 +76,7 @@ function RefineryAssault:HandleMessage(message, object)
 			self.stage2HoldingBothConsoles = false;
 			
 			table.insert(self.saveTable.buyDoorTables.teamAreas[self.aiTeam], "LC2");
-			self.saveTable.buyDoorTables.teamAreas[self.humanTeam].LC2 = nil;
+			self:RemoveStringFromTable("LC2", self.saveTable.buyDoorTables.teamAreas[self.humanTeam]);
 			
 			for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 				v.Team = self.aiTeam;
@@ -97,6 +97,7 @@ function RefineryAssault:HandleMessage(message, object)
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_1");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
 		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_1 = nil;
+		self:RemoveStringFromTable("S3_1", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
 			v.Team = object;
@@ -120,7 +121,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_2");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_2 = nil;
+		self:RemoveStringFromTable("S3_2", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_2) do
 			v.Team = object;
@@ -144,7 +145,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S3_3");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S3_3 = nil;
+		self:RemoveStringFromTable("S3_3", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S3_3) do
 			v.Team = object;
@@ -314,7 +315,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_1");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_1 = nil;
+		self:RemoveStringFromTable("S4_1", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S4_1) do
 			v.Team = object;
@@ -338,7 +339,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_2");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_2 = nil;
+		self:RemoveStringFromTable("S4_2", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S4_2) do
 			v.Team = object;
@@ -362,7 +363,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_3");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_3 = nil;
+		self:RemoveStringFromTable("S4_3", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S4_3) do
 			v.Team = object;
@@ -386,7 +387,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_4");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_4 = nil;
+		self:RemoveStringFromTable("S4_4", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S4_4) do
 			v.Team = object;
@@ -410,7 +411,7 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[object], "S4_1");
 		-- todo make this team selection better somehow... or maybe It Just Works. dunno. it's ugly.
-		self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2].S4_5 = nil;
+		self:RemoveStringFromTable("S4_5", self.saveTable.buyDoorTables.teamAreas[(object + 1) % 2]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.S4_5) do
 			v.Team = object;
@@ -515,14 +516,14 @@ function RefineryAssault:HandleMessage(message, object)
 		self.stage2TimeToHoldConsoles = 0;
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC2");
-		self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC2 = nil;
+		self:RemoveStringFromTable("LC2", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.LC2) do
 			v.Team = self.humanTeam;
 		end
 		
 		table.insert(self.saveTable.buyDoorTables.teamAreas[self.humanTeam], "LC1");
-		self.saveTable.buyDoorTables.teamAreas[self.aiTeam].LC1 = nil;
+		self:RemoveStringFromTable("LC1", self.saveTable.buyDoorTables.teamAreas[self.aiTeam]);
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.LC1) do
 			v.Team = self.humanTeam;
@@ -611,7 +612,15 @@ function RefineryAssault:HandleMessage(message, object)
 
 end
 
+function RefineryAssault:RemoveStringFromTable(str, tab)
 
+	for k, v in pairs(tab) do
+		if v == str then
+			table.remove(tab, k);
+		end
+	end
+	
+end
 
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
@@ -688,6 +697,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.saveTable.buyDoorTables.teamAreas[team][i]);
 				if area:IsInside(taskPos) then
 					areaThisIsIn = area;
+					--print("is inside teamowned area: " .. area.Name);
 					break;
 				end
 			end
@@ -704,6 +714,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			local closestDist = false;
 			if #self.saveTable.buyDoorTables.teamAreas[team] > 0 then
 				for k, area in pairs(self.saveTable.buyDoorTables.teamAreas[team]) do
+					--print(area)
 					for k, buyDoor in pairs(self.saveTable.buyDoorTables[area]) do
 						local dist = SceneMan:ShortestDistance(taskPos, buyDoor.Pos, SceneMan.SceneWrapsX).Magnitude;
 						if not closestDist then
