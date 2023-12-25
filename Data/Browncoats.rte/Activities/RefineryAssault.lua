@@ -129,7 +129,7 @@ end
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 	
-	self.humansAreControllingAlliedActors = false;
+	self.humansAreControllingAlliedActors = true;
 	
 	self.humanTeam = Activity.TEAM_1;
 	self.aiTeam = Activity.TEAM_2;
@@ -200,6 +200,11 @@ function RefineryAssault:StartActivity(newGame)
 			mo.Team = 1;
 		end
 	end
+
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
+	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
 	if newGame then
 	
@@ -285,14 +290,8 @@ function RefineryAssault:StartActivity(newGame)
 		automoverController.Pos = Vector();
 		automoverController.Team = self.aiTeam;
 		MovableMan:AddActor(automoverController);
-
-		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
-		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
-		SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
-		--SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 		
 		-- Tell capturables to deactivate, we'll activate them as we go along
-		
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole1");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole2");
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryS3BuyDoorConsole1");
