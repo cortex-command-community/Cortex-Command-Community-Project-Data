@@ -129,7 +129,7 @@ end
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 	
-	self.humansAreControllingAlliedActors = false;
+	self.humansAreControllingAlliedActors = true;
 	
 	self.humanTeam = Activity.TEAM_1;
 	self.aiTeam = Activity.TEAM_2;
@@ -465,11 +465,11 @@ function RefineryAssault:UpdateActivity()
 		--print("gottask")
 		local squad = self:SendBuyDoorDelivery(team, task);
 		if squad then
-			self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
+			self.tacticsHandler:AddSquad(team, squad, task.Name, true);
 		elseif team == self.humanTeam then
 			squad = self:SendDockDelivery(team, task);
 			if squad then
-				self.tacticsHandler:AddTaskedSquad(team, squad, task.Name);
+				self.tacticsHandler:AddSquad(team, squad, task.Name, true);
 			end
 		end
 	end

@@ -81,6 +81,8 @@ function TacticsHandler:OnSave(saveLoadHandler)
 	saveLoadHandler:SaveTableAsString("tacticsHandlerTeamList", self.teamList);
 end
 
+-- NO LONGER USED!
+-- old system before the switch to UniqueID... desynced on the regular
 function TacticsHandler:InvalidateActor(infoTable)
 
 	print("tried to invalidate, table values:")
@@ -158,18 +160,19 @@ end
 
 function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 	if task then	
-		--print("Applying Task:" .. task.Name)
+		print("Applying Task:" .. task.Name)
 		squad.taskName = task.Name;
 		local randomPatrolPoint;
 		if task.Type == "PatrolArea" then
 			randomPatrolPoint = task.Position.RandomPoint;
+			print("Task being applied is PatrolArea");
 		end
 		for actorIndex = 1, #squad do
-			local actor = squad[actorIndex];
+			local actor = MovableMan:FindObjectByUniqueID(squad[actorIndex]);
 			-- this is really strange. actors can get turned into blank Entity s without us knowing about it.
 			-- no clue why it happens, but sanity check it here.
-			if actor and actor.PresetName ~= "" then
-				actor = ToActor(squad[actorIndex]);
+			if actor then
+				actor = ToActor(actor);
 				actor:FlashWhite(1000);
 				actor:ClearAIWaypoints();
 				if task.Type == "Defend" or task.Type == "Attack" then
@@ -213,6 +216,7 @@ function TacticsHandler:RetaskSquad(squad, team)
 	local newTask = self:PickTask(team);
 	if newTask then
 		squad.taskName = newTask.Name;
+		print("new task: " .. newTask.Name);
 		return self:ApplyTaskToSquadActors(squad.Actors, newTask);
 	else
 		return false;
@@ -303,29 +307,44 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 	
 end
 
-function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
+function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask)
 
 	--print("AddTaskSquad" .. team)
 	
 	if team and squadTable and taskName then
+	
 		local squadEntry = {};
-		squadEntry.Actors = squadTable;
+		squadEntry.Actors = {};
+		
 		if #squadTable == 0 then
 			print("Tried to add a squad with no actors in it?!");
 			return false;
 		end
+		
+		for k, actor in pairs(squadTable) do
+			table.insert(squadEntry.Actors, actor.UniqueID);
+		end
+		
 		squadEntry.taskName = taskName;
 		table.insert(self.teamList[team].squadList, squadEntry); 
-		for k, act in ipairs(squadEntry.Actors) do
-			local squadInfo = {};
-			squadInfo.Team = team;
-			squadInfo.squadIndex = #self.teamList[team].squadList;
-			squadInfo.actorIndex = k;
-			--print("added script and sent message")
-			--print("task: " .. taskName)
-			act:AddScript("Base.rte/Activities/Utility/TacticsActorInvalidator.lua");
-			act:SendMessage("TacticsHandler_InitSquadInfo", squadInfo);
+		
+		if applyTask then
+			self:ApplyTaskToSquadActors(squadEntry.Actors, taskName);
 		end
+		
+		-- old system before the switch to UniqueID... desynced on the regular
+		
+		-- for k, act in ipairs(squadEntry.Actors) do
+			-- local squadInfo = {};
+			-- squadInfo.Team = team;
+			-- squadInfo.squadIndex = #self.teamList[team].squadList;
+			-- squadInfo.actorIndex = k;
+			-- --print("added script and sent message")
+			-- --print("task: " .. taskName)
+			-- act:AddScript("Base.rte/Activities/Utility/TacticsActorInvalidator.lua");
+			-- act:SendMessage("TacticsHandler_InitSquadInfo", squadInfo);
+		-- end
+		
 		--print("addedtaskedsquad: " .. #self.teamList[team].squadList)
 		--print("newtaskname: " .. self.teamList[team].squadList[#self.teamList[team].squadList].taskName)
 	else
@@ -337,6 +356,9 @@ function TacticsHandler:AddTaskedSquad(team, squadTable, taskName)
 	
 end
 
+
+-- NO LONGER USED!
+-- old system before the switch to UniqueID... desynced on the regular
 function TacticsHandler:CommunicateSquadIndexesToActors()
 
 	for team, v in pairs(self.teamList) do
@@ -368,14 +390,11 @@ function TacticsHandler:UpdateSquads(team)
 			local noActors = true;
 			
 			for actorIndex = 1, #self.teamList[team].squadList[i].Actors do
-				local actor = self.teamList[team].squadList[i].Actors[actorIndex];
-				--print(actor)
-				-- this is really strange. actors can get turned into blank Entity s without us knowing about it.
-				-- no clue why it happens, but sanity check it here.
-				if actor and actor.PresetName ~= "" then
+				local actor = MovableMan:FindObjectByUniqueID(self.teamList[team].squadList[i].Actors[actorIndex]);
+				if actor then
 					noActors = false;
 					if actor.HasEverBeenAddedToMovableMan then
-						actor = ToActor(self.teamList[team].squadList[i].Actors[actorIndex]);
+						actor = ToActor(actor);
 					
 						actor:FlashWhite(100);
 						--print("detected actor! " .. actor.PresetName .. " of team " .. actor.Team);
@@ -433,10 +452,12 @@ function TacticsHandler:UpdateSquads(team)
 		end
 	end
 	
+	-- old system before the switch to UniqueID... desynced on the regular
+	
 	-- squad indexes have shifted if we've removed any, so tell all the actors that
-	if squadRemoved then
-		self:CommunicateSquadIndexesToActors()
-	end
+	--if squadRemoved then
+	--	self:CommunicateSquadIndexesToActors()
+	--end
 
 end
 

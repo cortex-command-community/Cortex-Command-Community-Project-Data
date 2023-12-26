@@ -652,7 +652,6 @@ function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadTyp
 	local success = self.dockingHandler:SpawnDockingCraft(craft, specificDock);
 			
 	if success then
-		self.tacticsHandler:ApplyTaskToSquadActors(squad, task);
 		self:ChangeAIFunds(team, -goldCost);
 		return squad;
 	end
@@ -735,8 +734,8 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			end
 		end
 		
-		print(team)
-		print(areaThisIsIn.Name)
+		--print(team)
+		--print(areaThisIsIn.Name)
 		
 		if areaThisIsIn then
 			--print(areaThisIsIn.Name)
@@ -756,7 +755,6 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				end
 				local success = self.buyDoorHandler:SendCustomOrder(order, team, randomSelection);
 				if success then
-					self.tacticsHandler:ApplyTaskToSquadActors(order, task);
 					self:ChangeAIFunds(team, -goldCost);
 					return order;
 				end
@@ -832,7 +830,7 @@ function RefineryAssault:SetupStartingActors()
 
 	for k, v in pairs(stage1SquadsTable) do
 		local task = self.tacticsHandler:PickTask(self.aiTeam);
-		self.tacticsHandler:AddTaskedSquad(self.aiTeam, stage1SquadsTable[k], task.Name);
+		self.tacticsHandler:AddSquad(self.aiTeam, stage1SquadsTable[k], task.Name, true);
 	end
 	
 	self.saveTable.enemyActorTables.stage3FacilityOperator = {};
@@ -889,11 +887,11 @@ function RefineryAssault:SetupFirstStage()
 	
 	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
-	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
+	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
 	squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
-	self.tacticsHandler:AddTaskedSquad(self.humanTeam, squad, task.Name);
+	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
 	-- Set up player squad and dropship
 	
@@ -1013,7 +1011,7 @@ function RefineryAssault:MonitorStage1()
 			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
 			
-			self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.saveTable.enemyActorTables.stage1CounterAttActors, task.Name);
+			self.tacticsHandler:AddSquad(self.aiTeam, self.saveTable.enemyActorTables.stage1CounterAttActors, task.Name, true);
 			
 		end
 		
@@ -1364,8 +1362,7 @@ function RefineryAssault:MonitorStage5()
 		
 		table.insert(self.saveTable.enemyActorTables.stage6SubCommanderSquad, self.saveTable.stage6subCommander);
 		
-		self.tacticsHandler:ApplyTaskToSquadActors(self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
-		self.tacticsHandler:AddTaskedSquad(self.aiTeam, self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
+		self.tacticsHandler:AddSquad(self.aiTeam, self.saveTable.enemyActorTables.stage6SubCommanderSquad, "Brainhunt");
 		
 		for k, item in pairs(self.saveTable.enemyActorTables.stage6SubCommanderSquad) do
 			self.stage6SubcommanderDoor:AddInventoryItem(item);
