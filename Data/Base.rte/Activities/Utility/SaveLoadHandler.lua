@@ -62,6 +62,8 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 		tmp = tmp .. string.format("%q", "SAVELOADHANDLERUNIQUEID_" .. tostring(val.UniqueID))
 	elseif val.FirstBox then -- ghetto area check
 		tmp = tmp .. string.format("%q", "SAVELOADHANDLERAREA_" .. tostring(val.Name))
+	elseif val.ElapsedSimTimeMS then -- ghetto timer check
+		tmp = tmp .. string.format("%q", "SAVELOADHANDLERTIMER_" .. tostring(val.ElapsedSimTimeMS) .. "_" .. tostring(val.ElapsedRealTimeMS))
 	else
 		tmp = tmp .. '"[inserializeable datatype:' .. type(val) .. ']"'
 	end
@@ -184,6 +186,24 @@ function SaveLoadHandler:ParseTableForAreas(tab)
 		
 end
 
+function SaveLoadHandler:ParseTableForTimers(tab)
+	for k, v in pairs(tab) do
+		if type(v) == "string" and string.find(v, "SAVELOADHANDLERTIMER_") then
+			local elapsedTimes = string.sub(v, 22, -1);
+			local delimiterPosition = string.find(elapsedTimes, "_");
+			local elapsedSimTime = string.sub(elapsedTimes, 1, delimiterPosition - 1);
+			local elapsedRealTime = string.sub(elapsedTimes, delimiterPosition + 1, -1);
+			tab[k] = Timer();
+			tab[k].ElapsedSimTimeMS = tonumber(elapsedSimTime);
+			tab[k].ElapsedRealTimeMS = tonumber(elapsedRealTime);
+			print("SaveLoadHandler loaded a Timer with SimTime: " .. elapsedSimTime .. " and RealTime: " .. elapsedRealTime);
+		elseif type(v) == "table" then
+			self:ParseTableForTimers(v);
+		end
+	end
+		
+end
+
 function SaveLoadHandler:ReadSavedStringAsTable(name)
 	print(ActivityMan:GetActivity())
 	print(ActivityMan:GetActivity():LoadString(name))
@@ -199,6 +219,7 @@ function SaveLoadHandler:ReadSavedStringAsTable(name)
 	self:ParseTableForMOs(tab);
 	self:ParseTableForVectors(tab);
 	self:ParseTableForAreas(tab);
+	self:ParseTableForTimers(tab);
 	
 	return tab;
 
