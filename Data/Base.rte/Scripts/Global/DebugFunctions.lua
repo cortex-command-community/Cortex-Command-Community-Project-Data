@@ -50,7 +50,7 @@ function DebugFunctionsScript:UpdateScript()
 			self.Activity:SendMessage("SkipCurrentStage");
 		end
 	
-		-- Team switch controlled actor: Keypad 0 is team -1, incremental
+		-- Team switch controlled actor: Keypad 1 is team -1, incremental
 		local teamNum;
 		local toSwitch = false;
 		if UInputMan:KeyPressed(Key.KP_1) then
