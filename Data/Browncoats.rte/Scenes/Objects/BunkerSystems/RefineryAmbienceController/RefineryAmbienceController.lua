@@ -2,6 +2,8 @@ function Create(self)
 
 	local activity = ActivityMan:GetActivity();
 	
+	print("Refinery Ambience Controller initialized")
+	
 	self.playerIndoornesses = {};
 	self.playerExtContainers = {};
 	self.playerIntContainers = {};
@@ -23,7 +25,6 @@ function Create(self)
 			self.playerIntContainers[player]:Play(player);
 			
 			self.playerIntOneShotContainers[player].Volume = 0;
-			
 		end
 	end
 	
@@ -37,11 +38,14 @@ end
 
 function ThreadedUpdate(self)
 
+	self.ToSettle = false;
+	self.ToDelete = false;
+
 	for player, indoorness in pairs(self.playerIndoornesses) do
 	
 		local cursorPos = CameraMan:GetScrollTarget(player)
 		
-		if SceneMan.Scene:WithinArea("Indoor Area", cursorPos) then		
+		if SceneMan.Scene:WithinArea("IndoorArea", cursorPos) then		
 			self.playerIndoornesses[player] = math.min(1, indoorness + TimerMan.DeltaTimeSecs * 0.5);			
 		else			
 			self.playerIndoornesses[player] = math.max(0, indoorness - TimerMan.DeltaTimeSecs * 0.5);			
@@ -79,4 +83,8 @@ function ThreadedUpdate(self)
 		
 	end
 
+end
+
+function Destroy(self)
+	print("Refinery Ambience Controller was destroyed! This should never happen.");
 end

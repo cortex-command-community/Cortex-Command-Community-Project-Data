@@ -167,8 +167,13 @@ function TacticsHandler:GetTaskByName(taskName, team)
 				return self.saveTable.teamList[team].taskList[t];
 			end
 		end
+	else
+		print("Tacticshandler tried to get task " .. taskName .. " by name but wasn't given a team!");
+		return false;
 	end
 	
+	-- not actually an error, sometimes we just use this to verify
+	--print("Tacticshandler could not find task named: " .. taskName .. " in team: " .. team);
 	return false;
 
 end
@@ -238,9 +243,6 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 				else
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
-			else
-				--print("during task application, actor was invalidated")
-				actor = false; -- do some cleanup while we're at it
 			end
 		end
 	else
@@ -256,9 +258,35 @@ function TacticsHandler:RetaskSquad(squad, team)
 
 	local newTask = self:PickTask(team);
 	if newTask then
-		squad.taskName = newTask.Name;
-		print("new task: " .. newTask.Name);
-		return self:ApplyTaskToSquadActors(squad.Actors, newTask);
+	
+		squad.idleTimer:Reset();
+		squad.retaskTimer:Reset();
+	
+		-- iterate through all squads and see if any are under our minimumSquadActorCount
+		-- if so, fold this one into that one instead of making a new squad, and apply the new task
+		local squadToMergeInto;
+		if squad.activeActorCount > 0 and #squad.Actors < self.maximumSquadActorCount then
+			for k, squad in pairs(self.saveTable.teamList[team].squadList) do
+				if squad.activeActorCount < self.minimumSquadActorCount then
+					squadToMergeInto = squad;
+					break;
+				end
+			end
+		end
+		
+		if squadToMergeInto then
+			for k, actor in pairs(squad.Actors) do
+				table.insert(squadToMergeInto.Actors, actor);
+			end
+			squad.Actors = {}; -- will be wiped next update for being empty
+			squad.activeActorCount = 0;
+			print("during retasking, squads were merged");
+			return self:ApplyTaskToSquadActors(squadToMergeInto.Actors, taskName);	
+		else
+			squad.taskName = newTask.Name;
+			print("new task: " .. newTask.Name);
+			return self:ApplyTaskToSquadActors(squad.Actors, newTask);
+		end
 	else
 		return false;
 	end
@@ -303,9 +331,13 @@ function TacticsHandler:RemoveTask(name, team)
 	
 end
 
-function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
+function TacticsHandler:AddTask(name, team, taskPos, taskType, priority, retaskTimeMultiplier)
 
 	print("AddTask")
+	
+	if not retaskTimeMultiplier then
+		retaskTimeMultiplier = 1;
+	end
 	
 	local task;
 
@@ -318,9 +350,20 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 			end
 		end
 	
+		local retaskTime;
 		if not taskType then
 			taskType = "Attack";
+			retaskTime = 120000;
+		elseif taskType == "Attack" then
+			retaskTime = 120000 * retaskTimeMultiplier;
+		elseif taskType == "Defend" then
+			retaskTime = 180000 * retaskTimeMultiplier;
+		elseif taskType == "PatrolArea" then
+			retaskTime = 100000 * retaskTimeMultiplier;
+		elseif taskType == "Brainhunt" then
+			retaskTime = 240000 * retaskTimeMultiplier;
 		end
+		
 		if not priority then
 			priority = 5;
 		end
@@ -334,6 +377,7 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority)
 			task.Position = task.Position.RandomPoint;
 		end
 		task.Priority = priority;
+		task.retaskTime = retaskTime;
 		
 		table.insert(self.saveTable.teamList[team].taskList, task);
 		
@@ -364,7 +408,7 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask)
 		local squadToMergeInto;
 		if #squadTable < self.maximumSquadActorCount then
 			for k, squad in pairs(self.saveTable.teamList[team].squadList) do
-				if squad.activeActorCount < self.minimumSquadActorCount then
+				if squad.activeActorCount > 0 and squad.activeActorCount < self.minimumSquadActorCount then
 					squadToMergeInto = squad;
 					break;
 				end
@@ -388,6 +432,9 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask)
 			squadEntry.taskName = taskName;
 			squadEntry.activeActorCount = #squadTable;
 			squadEntry.idleTimer = Timer();
+			squadEntry.retaskTimer = Timer();
+			local task = self:GetTaskByName(taskName, team);
+			squadEntry.retaskTime = task.retaskTime;
 			table.insert(self.saveTable.teamList[team].squadList, squadEntry); 
 			
 			if applyTask then
@@ -445,73 +492,76 @@ function TacticsHandler:UpdateSquads(team)
 
 	-- backwards iterate to remove safely
 	for i = #self.saveTable.teamList[team].squadList, 1, -1 do
+		--print("checking squad: " .. i);
 		local squad = self.saveTable.teamList[team].squadList[i];
 		local task = self:GetTaskByName(squad.taskName, team);
 		if task then
 			
 			local wholePatrolSquadIdle = true;
 			squad.activeActorCount = 0;
-			
-			for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
-				print(self.saveTable.teamList[team].squadList[i].Actors[actorIndex])
-				local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
-				print(actor)
-				if actor then
-					squad.activeActorCount = squad.activeActorCount + 1;
-					if actor.HasEverBeenAddedToMovableMan then
-						actor = ToActor(actor);
-					
-						actor:FlashWhite(100);
-						--print("detected actor! " .. actor.PresetName .. " of team " .. actor.Team);
+			if #squad.Actors > 0 then
+				for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
+					--print("uniqueID being checked:" .. self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
+					local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
+					--print(actor)
+					if actor then
+						local lastActor = actorIndex == #self.saveTable.teamList[team].squadList[i].Actors;
+						squad.activeActorCount = squad.activeActorCount + 1;
+						if actor.HasEverBeenAddedToMovableMan then
+							actor = ToActor(actor);
+						
+							actor:FlashWhite(100);
+							--print("detected actor! " .. actor.PresetName .. " of team " .. actor.Team);
 
-						-- all is well, update task
-						
-						local pos = not task.Position.PresetName and task.Position or task.Position.Pos; -- severely ghetto MO check
-						
-						if task.Type == "Attack" then
-						
-						elseif task.Type == "Defend" then
-							if actor:NumberValueExists("tacticsHandlerRandomStopDistance") then
-								local dist = SceneMan:ShortestDistance(actor.Pos, pos, SceneMan.SceneWrapsX);
-								if dist.Magnitude < actor:GetNumberValue("tacticsHandlerRandomStopDistance") then
-									actor:ClearAIWaypoints();
+							-- all is well, update task
+							
+							local pos = not task.Position.PresetName and task.Position or task.Position.Pos; -- severely ghetto MO check
+							
+							if task.Type == "Attack" then
+							
+							elseif task.Type == "Defend" then
+								if actor:NumberValueExists("tacticsHandlerRandomStopDistance") then
+									local dist = SceneMan:ShortestDistance(actor.Pos, pos, SceneMan.SceneWrapsX);
+									if dist.Magnitude < actor:GetNumberValue("tacticsHandlerRandomStopDistance") then
+										actor:ClearAIWaypoints();
+										actor.AIMode = Actor.AIMODE_SENTRY;
+									end
+								end
+							elseif task.Type == "PatrolArea" then
+								local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint(), SceneMan.SceneWrapsX);
+								--print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
+								if actor.AIMode == Actor.AIMODE_SENTRY or dist.Magnitude < 40 then
 									actor.AIMode = Actor.AIMODE_SENTRY;
+									if lastActor and wholePatrolSquadIdle == true then
+										-- if we're the last one and the whole squad is ready to go
+										print("squad repatrolled")
+										self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i].Actors, task)
+									end
+								else
+									--print("squad: " .. i .. "patrolsquadnotfullyidle")
+									wholePatrolSquadIdle = false;
 								end
 							end
-						elseif task.Type == "PatrolArea" then
-							local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint(), SceneMan.SceneWrapsX);
-							--print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
-							if actor.AIMode == Actor.AIMODE_SENTRY or dist.Magnitude < 40 then
-								actor.AIMode = Actor.AIMODE_SENTRY;
-								if actorIndex == #self.saveTable.teamList[team].squadList[i].Actors and wholePatrolSquadIdle == true then
-									-- if we're the last one and the whole squad is ready to go
-									print("squad repatrolled")
-									self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i].Actors, task)
+							
+							if task.Type ~= "Sentry" then
+								if actor.AIMode ~= Actor.AIMODE_SENTRY then
+									squad.idleTimer:Reset();
 								end
-							else
-								--print("squad: " .. i .. "patrolsquadnotfullyidle")
-								wholePatrolSquadIdle = false;
 							end
-						end
-						
-						if task.Type ~= "Sentry" then
-							if actor.AIMode ~= Actor.AIMODE_SENTRY then
-								squad.idleTimer:Reset();
+							
+							if lastActor then
+								if squad.idleTimer:IsPastSimMS(self.squadIdleTimeLimitMS) or squad.retaskTimer:IsPastSimMS(task.retaskTime) then
+									self:RetaskSquad(squad, team);
+								end
 							end
-							if squad.idleTimer:IsPastSimMS(self.squadIdleTimeLimitMS) then
-								self:RetaskSquad(squad, team);
-								squad.idleTimer:Reset();
-							end
-						end
 
-						if actor:GetLastAIWaypoint().Magnitude == 0 then
-							-- our waypoint is 0, 0, so something's gone wrong
-							--print("weirdwaypoint")
-							--self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i], task);
+							if actor:GetLastAIWaypoint().Magnitude == 0 then
+								-- our waypoint is 0, 0, so something's gone wrong
+								--print("weirdwaypoint")
+								--self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i], task);
+							end
 						end
 					end
-				else
-					actor = false;
 				end
 			end
 			
