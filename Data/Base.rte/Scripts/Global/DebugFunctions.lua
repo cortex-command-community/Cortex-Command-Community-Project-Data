@@ -35,7 +35,20 @@ function DebugFunctionsScript:UpdateScript()
 		else
 			for actor in MovableMan.Actors do actor.HUDVisible = true end
 		end
-			
+		
+		-- Keypad plus to give player teams 1000 funds
+		if UInputMan:KeyPressed(Key.KP_PLUS) then
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				if self.Activity:PlayerActive(player) and self.Activity:PlayerHuman(player) then
+					self.Activity:ChangeTeamFunds(1000, self.Activity:GetTeamOfPlayer(player));
+				end
+			end
+		end
+		
+		-- Keypad enter to skip mission stage for compatible activities
+		if UInputMan:KeyPressed(Key.KP_ENTER) then
+			self.Activity:SendMessage("SkipCurrentStage");
+		end
 	
 		-- Team switch controlled actor: Keypad 0 is team -1, incremental
 		local teamNum;
