@@ -86,13 +86,13 @@ function TacticsHandler:OnLoad(saveLoadHandler)
 	
 	print("loading tacticshandler...");
 	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerTeamList");
-	for k, team in pairs(self.saveTable.teamList) do
-		for k, squad in pairs(team.squadList) do
-			for k, actor in pairs(squad.Actors) do
-				squad.Actors[k] = actor.UniqueID;
+	for team = 0, #self.saveTable.teamList do
+		for squad = 1, #self.saveTable.teamList[team].squadList do
+			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
 				print("tacticshandler converted following actor to following uniqueid:")
-				print(actor)
-				print(actor.UniqueID)
+				print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
+				self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
+				print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
 			end
 		end
 	end
@@ -107,18 +107,51 @@ function TacticsHandler:OnSave(saveLoadHandler)
 	-- saving/loading destroys all not-in-sim entities forever
 	-- fugg :DD
 	-- salvage what we can, resolve our uniqueids into MOs that the saveloadhandler can handle at least
-	for t, team in pairs(self.saveTable.teamList) do
-		for k, squad in pairs(team.squadList) do
-			for k, uniqueID in pairs(squad.Actors) do
-				local actor = MovableMan:FindObjectByUniqueID(uniqueID);
+	
+	for team = 0, #self.saveTable.teamList do
+		for squad = 1, #self.saveTable.teamList[team].squadList do
+			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
+				print("Trying to save squad: " .. squad .. " of team " .. team);
+				print("tacticshandler tried to save the following actor:")
+				print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
+				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" then
+					print("ERROR: Tacticshandler UniqueID was not a number! Something's very broken.");
+					print("It was: ");
+					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
+					break;
+				end
+				local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
 				if actor then
-					squad.Actors[k] = actor;
+					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = actor;
 				else
-					squad.Actors[k] = nil;
+					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = nil;
 				end
 			end
 		end
 	end
+	
+	-- for t, team in pairs(self.saveTable.teamList) do
+		-- for sI, squad in pairs(team.squadList) do
+			-- print("Trying to save squad: " .. sI .. " of team " .. t);
+			-- print("This squad had task: " .. squad.taskName);
+			-- for aI, uniqueID in pairs(squad.Actors) do
+				-- print("tacticshandler tried to save the following actor:")
+				-- print(uniqueID)
+				-- if type(uniqueID) ~= "number" then
+					-- print("ERROR: Tacticshandler UniqueID was not a number! Something's very broken.");
+					-- print("It was: ");
+					-- print(uniqueID);
+					-- break;
+				-- end
+				-- local actor = MovableMan:FindObjectByUniqueID(uniqueID);
+				-- if actor then
+					-- squad.Actors[sI] = actor;
+				-- else
+					-- squad.Actors[sI] = nil;
+				-- end
+			-- end
+		-- end
+	-- end
 					
 	saveLoadHandler:SaveTableAsString("tacticsHandlerTeamList", self.saveTable);
 	print("saved tacticshandler!")
@@ -147,7 +180,7 @@ function TacticsHandler:ReapplyAllTasks()
 			local squad = self.saveTable.teamList[team].squadList[i];
 			local taskName = squad.taskName
 			if not (taskName and self:GetTaskByName(taskName, team)) then
-				self:RetaskSquad(squad, team);
+				self:RetaskSquad(squad, team, false);
 			else
 				local task = self:GetTaskByName(taskName, team);
 				self:ApplyTaskToSquadActors(squad.Actors, task);
@@ -209,7 +242,6 @@ end
 function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 	if task then	
 		--print("Applying Task:" .. task.Name)
-		squad.taskName = task.Name;
 		local randomPatrolPoint;
 		if task.Type == "PatrolArea" then
 			randomPatrolPoint = task.Position.RandomPoint;
@@ -243,6 +275,7 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 				else
 					actor.AIMode = Actor.AIMODE_BRAINHUNT;
 				end
+				--print("during applying task to actors, this actor was iterated over: " .. actor.PresetName)
 			end
 		end
 	else
@@ -253,7 +286,7 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 	return true;
 end
 
-function TacticsHandler:RetaskSquad(squad, team)
+function TacticsHandler:RetaskSquad(squad, team, allowMerge)
 	print("retasking squad with task name: " .. squad.taskName)
 
 	local newTask = self:PickTask(team);
@@ -265,10 +298,10 @@ function TacticsHandler:RetaskSquad(squad, team)
 		-- iterate through all squads and see if any are under our minimumSquadActorCount
 		-- if so, fold this one into that one instead of making a new squad, and apply the new task
 		local squadToMergeInto;
-		if squad.activeActorCount > 0 and #squad.Actors < self.maximumSquadActorCount then
-			for k, squad in pairs(self.saveTable.teamList[team].squadList) do
-				if squad.activeActorCount < self.minimumSquadActorCount then
-					squadToMergeInto = squad;
+		if allowMerge and squad.activeActorCount > 0 and #squad.Actors < self.maximumSquadActorCount then
+			for k, checkedSquad in pairs(self.saveTable.teamList[team].squadList) do
+				if checkedSquad.activeActorCount > 0 and checkedSquad.activeActorCount < self.minimumSquadActorCount then
+					squadToMergeInto = checkedSquad;
 					break;
 				end
 			end
@@ -277,6 +310,7 @@ function TacticsHandler:RetaskSquad(squad, team)
 		if squadToMergeInto then
 			for k, actor in pairs(squad.Actors) do
 				table.insert(squadToMergeInto.Actors, actor);
+				print("during retasking, this actor was moved: " .. actor);
 			end
 			squad.Actors = {}; -- will be wiped next update for being empty
 			squad.activeActorCount = 0;
@@ -315,7 +349,7 @@ function TacticsHandler:RemoveTask(name, team)
 				--print("task name to del: " .. task.Name);
 				if self.saveTable.teamList[team].squadList[i].taskName == task.Name then
 					--print("tried to retask")
-					self:RetaskSquad(self.saveTable.teamList[team].squadList[i], team);
+					self:RetaskSquad(self.saveTable.teamList[team].squadList[i], team, false);
 				end
 			end
 		else
@@ -407,9 +441,9 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask)
 		-- if so, fold this one into that one instead of making a new squad, and apply the new task
 		local squadToMergeInto;
 		if #squadTable < self.maximumSquadActorCount then
-			for k, squad in pairs(self.saveTable.teamList[team].squadList) do
-				if squad.activeActorCount > 0 and squad.activeActorCount < self.minimumSquadActorCount then
-					squadToMergeInto = squad;
+			for k, checkedSquad in pairs(self.saveTable.teamList[team].squadList) do
+				if checkedSquad.activeActorCount > 0 and checkedSquad.activeActorCount < self.minimumSquadActorCount then
+					squadToMergeInto = checkedSquad;
 					break;
 				end
 			end
@@ -418,7 +452,10 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask)
 		if squadToMergeInto then
 			for k, actor in pairs(squadTable) do
 				table.insert(squadToMergeInto.Actors, actor.UniqueID);
+				--print("during adding squad, this actor was merged");
+				--print(actor)
 			end
+			print("newly added squad was instead merged into old one");
 			self:ApplyTaskToSquadActors(squadToMergeInto.Actors, taskName);
 		else
 	
@@ -492,7 +529,7 @@ function TacticsHandler:UpdateSquads(team)
 
 	-- backwards iterate to remove safely
 	for i = #self.saveTable.teamList[team].squadList, 1, -1 do
-		--print("checking squad: " .. i);
+		--print("checking squad: " .. i .. " of team: " .. team);
 		local squad = self.saveTable.teamList[team].squadList[i];
 		local task = self:GetTaskByName(squad.taskName, team);
 		if task then
@@ -501,6 +538,16 @@ function TacticsHandler:UpdateSquads(team)
 			squad.activeActorCount = 0;
 			if #squad.Actors > 0 then
 				for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
+					--print("squad actor: " .. self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
+				end
+			end
+			if #squad.Actors > 0 then
+				for actorIndex = 1, #self.saveTable.teamList[team].squadList[i].Actors do
+					if type(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]) ~= "number" then
+						print("ERROR: Tacticshandler UniqueID was not a number! Something's very broken.");
+						print("It was: " .. self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
+						break;
+					end
 					--print("uniqueID being checked:" .. self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
 					local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[i].Actors[actorIndex]);
 					--print(actor)
@@ -551,7 +598,7 @@ function TacticsHandler:UpdateSquads(team)
 							
 							if lastActor then
 								if squad.idleTimer:IsPastSimMS(self.squadIdleTimeLimitMS) or squad.retaskTimer:IsPastSimMS(task.retaskTime) then
-									self:RetaskSquad(squad, team);
+									self:RetaskSquad(squad, team, false);
 								end
 							end
 
@@ -573,7 +620,7 @@ function TacticsHandler:UpdateSquads(team)
 		else
 			print("retasking not actual task")
 		
-			self:RetaskSquad(self.saveTable.teamList[team].squadList[i], team);
+			self:RetaskSquad(self.saveTable.teamList[team].squadList[i], team, false);
 		end
 	end
 	

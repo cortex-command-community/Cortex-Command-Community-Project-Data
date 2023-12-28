@@ -147,7 +147,7 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 				end
 			end
 			if didNotFindAnMO then
-				print("WARNING: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken.");
+				print("ERROR: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken.");
 				print("Not found: " .. v)
 			end
 		elseif type(v) == "table" then
@@ -308,7 +308,7 @@ function SaveLoadHandler:LoadLocallySavedMO(self, name)
 	end
 	
 	if notFound then
-		print("WARNING: SaveLoadHandler could not resolve a locally saved MO!");
+		print("ERROR: SaveLoadHandler could not resolve a locally saved MO!");
 		return false;
 	end
 	
