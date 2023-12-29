@@ -311,51 +311,54 @@ function HUDHandler:UpdateHUDHandler()
 		end
 			
 		-- Objectives
+		
+		if not PerformanceMan.ShowPerformanceStats == true then
 	
-		local skippedListings = 0;
-		local extraDescSpacing = 0;
-		for i, objTable in pairs(self.saveTable.teamTables[team].Objectives) do
-			local spectatorView = false;
-			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+			local skippedListings = 0;
+			local extraDescSpacing = 0;
+			for i, objTable in pairs(self.saveTable.teamTables[team].Objectives) do
+				local spectatorView = false;
+				for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
 
-				if objTable.showArrowOnlyOnSpectatorView == false or (self.Activity:GetViewState(player) == Activity.ACTORSELECT) then
-					spectatorView = true;
-				end
-				
-				if objTable.doNotShowInList then
-				
-					skippedListings = skippedListings + 1;
-						
-				else
-				
-					local spacing = (self.objListSpacing*(i-skippedListings));
+					if objTable.showArrowOnlyOnSpectatorView == false or (self.Activity:GetViewState(player) == Activity.ACTORSELECT) then
+						spectatorView = true;
+					end
 					
-					if ((i - skippedListings == 1) or objTable.showDescEvenWhenNotFirst) then
-						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
-						local pos = self:MakeRelativeToScreenPos(player, vec)
-						PrimitiveMan:DrawTextPrimitive(pos, objTable.longName, false, 0, 0);
-						-- Description
-						if not (objTable.showDescOnlyOnSpectatorView and not spectatorView) then
-							PrimitiveMan:DrawTextPrimitive(pos + Vector(10, self.descriptionSpacing), objTable.Description, true, 0, 0);			
-							extraDescSpacing = 10*(i-skippedListings);
-						end
-						
+					if objTable.doNotShowInList then
+					
+						skippedListings = skippedListings + 1;
+							
 					else
-						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
-						local pos = self:MakeRelativeToScreenPos(player, vec)
-						PrimitiveMan:DrawTextPrimitive(pos, objTable.shortName, false, 0, 0);
-					end					
 					
+						local spacing = (self.objListSpacing*(i-skippedListings));
+						
+						if ((i - skippedListings == 1) or objTable.showDescEvenWhenNotFirst) then
+							local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
+							local pos = self:MakeRelativeToScreenPos(player, vec)
+							PrimitiveMan:DrawTextPrimitive(pos, objTable.longName, false, 0, 0);
+							-- Description
+							if not (objTable.showDescOnlyOnSpectatorView and not spectatorView) then
+								PrimitiveMan:DrawTextPrimitive(pos + Vector(10, self.descriptionSpacing), objTable.Description, true, 0, 0);			
+								extraDescSpacing = 10*(i-skippedListings);
+							end
+							
+						else
+							local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
+							local pos = self:MakeRelativeToScreenPos(player, vec)
+							PrimitiveMan:DrawTextPrimitive(pos, objTable.shortName, false, 0, 0);
+						end					
+						
+					end
 				end
+				
+				-- c++ objectives are per team, not per player, so we can't do it per player yet...
+				
+				if objTable.Position and spectatorView then
+					local pos = not objTable.Position.PresetName and objTable.Position or objTable.Position.Pos; -- severely ghetto mo check
+					self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
+				end
+				
 			end
-			
-			-- c++ objectives are per team, not per player, so we can't do it per player yet...
-			
-			if objTable.Position and spectatorView then
-				local pos = not objTable.Position.PresetName and objTable.Position or objTable.Position.Pos; -- severely ghetto mo check
-				self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
-			end
-			
 		end
 	end
 
