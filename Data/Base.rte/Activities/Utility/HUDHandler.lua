@@ -42,22 +42,22 @@ function HUDHandler:Initialize(activity, newGame)
 	
 	if newGame then
 		
-		self.mainTable = {};
+		self.saveTable = {};
 		
-		self.mainTable.playersInTeamTables = {};
-		self.mainTable.teamTables = {};
+		self.saveTable.playersInTeamTables = {};
+		self.saveTable.teamTables = {};
 
 		for team = 0, self.Activity.TeamCount do
-			self.mainTable.playersInTeamTables[team] = {};
-			self.mainTable.teamTables[team] = {};
-			self.mainTable.teamTables[team].Objectives = {};
+			self.saveTable.playersInTeamTables[team] = {};
+			self.saveTable.teamTables[team] = {};
+			self.saveTable.teamTables[team].Objectives = {};
 			
-			self.mainTable.teamTables[team].cameraQueue = {};
+			self.saveTable.teamTables[team].cameraQueue = {};
 		end
 		
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self.Activity:PlayerActive(player) and self.Activity:PlayerHuman(player) then
-				table.insert(self.mainTable.playersInTeamTables[self.Activity:GetTeamOfPlayer(player)], player);
+				table.insert(self.saveTable.playersInTeamTables[self.Activity:GetTeamOfPlayer(player)], player);
 			end
 		end
 		
@@ -73,7 +73,24 @@ end
 function HUDHandler:OnLoad(saveLoadHandler)
 	
 	print("loading HUDHandler...");
-	self.mainTable = saveLoadHandler:ReadSavedStringAsTable("HUDHandlerMainTable");
+	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("HUDHandlerMainTable");
+	
+	-- i can't tell why it goes wonky when just loaded straight, but it does, so:
+	
+	for team, teamTable in pairs(self.saveTable.teamTables) do
+		local tempTable = {};
+		for i, objTable in ipairs(teamTable.Objectives) do
+			tempTable[i] = {};
+			for k, v in pairs(objTable) do
+				tempTable[i][k] = v;
+			end
+		end
+		self:RemoveAllObjectives(team);
+		for k, objTable in ipairs(tempTable) do
+			self:AddObjective(team, objTable);
+		end
+	end
+	
 	print("loaded HUDHandler!");
 	
 end
@@ -81,7 +98,7 @@ end
 function HUDHandler:OnSave(saveLoadHandler)
 	
 	print("saving HUD handler")
-	saveLoadHandler:SaveTableAsString("HUDHandlerMainTable", self.mainTable);	
+	saveLoadHandler:SaveTableAsString("HUDHandlerMainTable", self.saveTable);	
 	print("saved HUDHandler!");
 	
 	-- camera timers deliberately not saved, might as well reset them all
@@ -117,28 +134,28 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 		return false;
 	end
 	
-	for i, cameraTable in ipairs(self.mainTable.teamTables[team].cameraQueue) do
+	for i, cameraTable in ipairs(self.saveTable.teamTables[team].cameraQueue) do
 		if cameraTable.Name == name then
 			print("HUD Handler tried to add a camera pan event with a name already in use!");
 			return false;
 		end
 	end
 	
-	if #self.mainTable.teamTables[team].cameraQueue == 0 then
+	if #self.saveTable.teamTables[team].cameraQueue == 0 then
 		self.teamCameraTimers[team]:Reset();
 	end
 	
-	table.insert(self.mainTable.teamTables[team].cameraQueue, cameraTable);
+	table.insert(self.saveTable.teamTables[team].cameraQueue, cameraTable);
 	
-	return self.mainTable.teamTables[team].cameraQueue[#self.mainTable.teamTables[team].cameraQueue];
+	return self.saveTable.teamTables[team].cameraQueue[#self.saveTable.teamTables[team].cameraQueue];
 	
 end
 
 function HUDHandler:RemoveCameraPanEvent(team, name)
 
-	for i, cameraTable in ipairs(self.mainTable.teamTables[team].cameraQueue) do
+	for i, cameraTable in ipairs(self.saveTable.teamTables[team].cameraQueue) do
 		if cameraTable.Name == name then
-			table.remove(self.mainTable.teamTables[team].cameraQueue, i);
+			table.remove(self.saveTable.teamTables[team].cameraQueue, i);
 			break;
 		end
 	end
@@ -147,7 +164,7 @@ end
 
 function HUDHandler:RemoveAllCameraPanEvents(team)
 
-	self.mainTable.teamTables[team].cameraQueue = {};
+	self.saveTable.teamTables[team].cameraQueue = {};
 	
 end
 
@@ -157,6 +174,7 @@ function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortNa
 	
 	if type(objInternalNameOrFullTable) == "table" then
 		objTable = objInternalNameOrFullTable;
+		print("Added objective via full table")
 	elseif objTeam and objInternalNameOrFullTable then
 		
 		objTable = {};
@@ -176,24 +194,24 @@ function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortNa
 		return false;
 	end
 	
-	for i, objTable in ipairs(self.mainTable.teamTables[objTeam].Objectives) do
+	for i, objTable in ipairs(self.saveTable.teamTables[objTeam].Objectives) do
 		if objTable.internalName == objInternalName then
 			print("HUD Handler tried to add an objective with an internal name already in use!");
 			return false;
 		end
 	end
 	
-	table.insert(self.mainTable.teamTables[objTeam].Objectives, objTable);
+	table.insert(self.saveTable.teamTables[objTeam].Objectives, objTable);
 	
-	return self.mainTable.teamTables[objTeam].Objectives[#self.mainTable.teamTables[objTeam].Objectives];
+	return self.saveTable.teamTables[objTeam].Objectives[#self.saveTable.teamTables[objTeam].Objectives];
 	
 end
 
 function HUDHandler:RemoveObjective(objTeam, objInternalName)
 
-	for i, objTable in ipairs(self.mainTable.teamTables[objTeam].Objectives) do
+	for i, objTable in ipairs(self.saveTable.teamTables[objTeam].Objectives) do
 		if objTable.internalName == objInternalName then
-			table.remove(self.mainTable.teamTables[objTeam].Objectives, i);
+			table.remove(self.saveTable.teamTables[objTeam].Objectives, i);
 			break;
 		end
 	end
@@ -202,13 +220,13 @@ end
 
 function HUDHandler:RemoveAllObjectives(team)
 
-	self.mainTable.teamTables[team].Objectives = {};
+	self.saveTable.teamTables[team].Objectives = {};
 	
 end
 
 function HUDHandler:MakeObjectivePrimary(objTeam, objInternalName)
 
-	for i, objTable in ipairs(self.mainTable.teamTables[objTeam].Objectives) do
+	for i, objTable in ipairs(self.saveTable.teamTables[objTeam].Objectives) do
 		if objTable.internalName == objInternalName then
 			table.insert(objTable, 1, table.remove(objTable, i));
 			break;
@@ -221,23 +239,23 @@ function HUDHandler:UpdateHUDHandler()
 
 	self.Activity:ClearObjectivePoints();
 
-	for team = 0, #self.mainTable.teamTables do
+	for team = 0, #self.saveTable.teamTables do
 	
 		-- Camera pan events
 		
-		local cameraTable = self.mainTable.teamTables[team].cameraQueue[1];
+		local cameraTable = self.saveTable.teamTables[team].cameraQueue[1];
 		
 		if cameraTable then
 		
 			local pos = not cameraTable.Position.PresetName and cameraTable.Position or cameraTable.Position.Pos; -- severely ghetto mo check
 		
-			for k, player in pairs(self.mainTable.playersInTeamTables[team]) do
+			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
 				CameraMan:SetScrollTarget(pos, cameraTable.Speed, player);
 			end
 			
 			-- not ideal: anyone pressing any key can skip the panning event... but the alternatives are much more roundabout
 			if self.teamCameraTimers[team]:IsPastSimMS(cameraTable.holdTime) or (not cameraTable.notCancellable and UInputMan:AnyKeyPress()) then
-				table.remove(self.mainTable.teamTables[team].cameraQueue, 1);
+				table.remove(self.saveTable.teamTables[team].cameraQueue, 1);
 				self.teamCameraTimers[team]:Reset();
 			end
 			
@@ -247,9 +265,9 @@ function HUDHandler:UpdateHUDHandler()
 	
 		local skippedListings = 0;
 		local extraDescSpacing = 0;
-		for i, objTable in pairs(self.mainTable.teamTables[team].Objectives) do
+		for i, objTable in pairs(self.saveTable.teamTables[team].Objectives) do
 			local showArrows = false;
-			for k, player in pairs(self.mainTable.playersInTeamTables[team]) do
+			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
 
 				if objTable.showArrowOnlyOnSpectatorView == false or (self.Activity:GetViewState(player) == Activity.ACTORSELECT) then
 					showArrows = true;
