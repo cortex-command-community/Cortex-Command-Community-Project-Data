@@ -972,7 +972,7 @@ function RefineryAssault:MonitorStage1()
 				local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
 				craft:ClearAIWaypoints();
 				craft:AddAISceneWaypoint(Vector(pos.X - 300, pos.Y));
-				craft:AddAISceneWaypoint(Vector(pos.X - 300, SceneMan.SceneHeight + 9999));
+				craft:AddAISceneWaypoint(Vector(pos.X - 300, SceneMan.Scene.Height + 500));
 				craft.AIMode = Actor.AIMODE_GOTO;
 				craft:CloseHatch();
 				self.saveTable.stage1InitialDropship = nil;

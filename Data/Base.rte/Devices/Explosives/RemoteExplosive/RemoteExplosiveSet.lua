@@ -1,3 +1,12 @@
+function OnMessage(self, message, object)
+
+	if message == "RemoteExplosive_Detonate" and object == self.alliedTeam then
+		self.Vel = Vector(10, 0):RadRotate(self.RotAngle);
+		self:GibThis();
+	end
+
+end
+
 function Create(self)
 	self.blinkTimer = Timer();
 
@@ -9,15 +18,6 @@ function Create(self)
 	self.Team = self.alliedTeam;
 	self.Sharpness = 0;
 	self.autoDetonate = self:NumberValueExists("AutoDetonate");
-
-	if RemoteExplosiveTableA == nil then
-		RemoteExplosiveTableA = {};
-		RemoteExplosiveTableB = {};
-	end
-
-	self.tableNum = #RemoteExplosiveTableA + 1;
-	RemoteExplosiveTableA[self.tableNum] = self;
-	RemoteExplosiveTableB[self.tableNum] = self.alliedTeam;
 
 	self.activateSound = CreateSoundContainer("Explosive Device Activate", "Base.rte");
 
@@ -119,9 +119,4 @@ function RemoteExplosiveStick(self)
 			end
 		end
 	end
-end
-
-function Destroy(self)
-	RemoteExplosiveTableA[self.tableNum] = nil;
-	RemoteExplosiveTableB[self.tableNum] = nil;
 end
