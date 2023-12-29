@@ -96,6 +96,9 @@ function TacticsHandler:OnLoad(saveLoadHandler)
 					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
 					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
 					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
+				else
+					print("tacticshandler removed stale uniqueID on load");
+					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = -1;
 				end
 			end
 		end
