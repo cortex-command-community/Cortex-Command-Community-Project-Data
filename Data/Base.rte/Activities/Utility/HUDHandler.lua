@@ -20,9 +20,7 @@ function HUDHandler:Create()
 	return Members;
 end
 
-function HUDHandler:Initialize(activity, newGame)
-	
-	print("HUDHandlerinited")
+function HUDHandler:Initialize(activity, newGame, verboseLogging)
 	
 	self.Activity = activity;
 	
@@ -63,6 +61,8 @@ function HUDHandler:Initialize(activity, newGame)
 		
 	end
 	
+	print("INFO: HUDHandler initialized!")
+	
 	-- DEBUG TEST OBJECTIVES
 	
 	--self:AddObjective(0, "TestObj1", "TestOne", "Attack", "Test the objective One", "This is a test One objective! Testing.", nil, true, true);
@@ -72,7 +72,7 @@ end
 
 function HUDHandler:OnLoad(saveLoadHandler)
 	
-	print("loading HUDHandler...");
+	print("INFO: HUDHandler loading...");
 	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("HUDHandlerMainTable");
 	
 	-- i can't tell why it goes wonky when just loaded straight, but it does, so:
@@ -91,15 +91,15 @@ function HUDHandler:OnLoad(saveLoadHandler)
 		end
 	end
 	
-	print("loaded HUDHandler!");
+	print("INFO: HUDHandler loaded!");
 	
 end
 
 function HUDHandler:OnSave(saveLoadHandler)
 	
-	print("saving HUD handler")
+	print("INFO: HUDHandler saving...");
 	saveLoadHandler:SaveTableAsString("HUDHandlerMainTable", self.saveTable);	
-	print("saved HUDHandler!");
+	print("INFO: HUDHandler saved!");
 	
 	-- camera timers deliberately not saved, might as well reset them all
 	
@@ -130,13 +130,13 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 		cameraTable.notCancellable = notCancellable or false;
 		
 	else
-		print("HUD Handler tried to add a camera pan event with no team, no name, or no position!");
+		print("ERROR: HUDHandler tried to add a camera pan event with no team, no name, or no position!");
 		return false;
 	end
 	
 	for i, cameraTable in ipairs(self.saveTable.teamTables[team].cameraQueue) do
 		if cameraTable.Name == name then
-			print("HUD Handler tried to add a camera pan event with a name already in use!");
+			print("ERROR: HUDHandler tried to add a camera pan event with a name already in use!");
 			return false;
 		end
 	end
@@ -168,13 +168,43 @@ function HUDHandler:RemoveAllCameraPanEvents(team)
 	
 end
 
+function HUDHandler:SetCameraMinimumAndMaximumX(team, minimumX, maximumX)
+
+	if team then
+	
+		if minimumX and not maximumX then
+			self.maximumX = SceneMan.SceneWidth;
+		elseif maximumX and maximumX < minimumX then
+			print("ERROR: HUDHandler tried to set a camera max X that was smaller than the min X!");
+			return false;
+		end
+	
+		self.saveTable.teamTables[team].cameraMinimumX = minimumX;
+		self.saveTable.teamTables[team].cameraMaximumX = maximumX;
+		
+		if self.verboseLogging then
+			print("INFO: HUDHandler set Camera Minimum X " .. minimumX .. " and Camera Maximum X " .. maximumX .. " for team " .. team);
+		end
+
+	else
+		print("ERROR: HUDHandler tried to set camera min/max X without being given any arguments!");
+		return false;
+	end
+	
+	if SceneMan.SceneWrapsX then
+		print("WARNING: HUDHandler set camera minimum and maximum X with the current scene wrapping at the X axis!");
+	end
+	
+	return true;
+	
+end
+
 function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos, doNotShowInList, showArrowOnlyOnSpectatorView, alwaysShowDescription)
 
 	local objTable;
 	
 	if type(objInternalNameOrFullTable) == "table" then
 		objTable = objInternalNameOrFullTable;
-		print("Added objective via full table")
 	elseif objTeam and objInternalNameOrFullTable then
 		
 		objTable = {};
@@ -190,13 +220,13 @@ function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortNa
 		objTable.alwaysShowDescription = alwaysShowDescription or false;
 		
 	else
-		print("HUD Handler tried to add an objective with no team or no internal name!");
+		print("ERROR: HUD Handler tried to add an objective with no team or no internal name!");
 		return false;
 	end
 	
 	for i, objTable in ipairs(self.saveTable.teamTables[objTeam].Objectives) do
 		if objTable.internalName == objInternalName then
-			print("HUD Handler tried to add an objective with an internal name already in use!");
+			print("ERROR: HUD Handler tried to add an objective with an internal name already in use!");
 			return false;
 		end
 	end
@@ -259,6 +289,22 @@ function HUDHandler:UpdateHUDHandler()
 				self.teamCameraTimers[team]:Reset();
 			end
 			
+		else -- enforce min/max limits
+		
+			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+				if self.saveTable.teamTables[team].cameraMinimumX then
+					local adjustedCameraMinimumX = self.saveTable.teamTables[team].cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
+					if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
+						CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, player);
+					end
+				end
+			
+				if self.saveTable.teamTables[team].cameraMaximumX then
+					if CameraMan:GetScrollTarget(player).X > self.saveTable.teamTables[team].cameraMaximumX then
+						CameraMan:SetScrollTarget(Vector(self.saveTable.teamTables[team].cameraMaximumX, CameraMan:GetScrollTarget(player).Y), 0.25, player);
+					end
+				end
+			end
 		end
 			
 		-- Objectives

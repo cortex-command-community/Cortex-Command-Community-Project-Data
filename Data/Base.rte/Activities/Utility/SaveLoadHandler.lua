@@ -11,7 +11,9 @@ function SaveLoadHandler:Create()
 	return Members;
 end
 
-function SaveLoadHandler:Initialize()
+function SaveLoadHandler:Initialize(verboseLogging)
+
+	self.verboseLogging = verboseLogging;
 	
 	--print("SaveLoadHandlerinited")
 	
@@ -22,11 +24,6 @@ end
 function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 	skipnewlines = skipnewlines or false
 	depth = depth or 0
-	
-	--print("looking at val: ");
-	--print(val)
-	print("with name: ")
-	print(name)
 
 	local tmp = string.rep(" ", depth)
 
@@ -68,8 +65,10 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 		tmp = tmp .. '"[inserializeable datatype:' .. type(val) .. ']"'
 	end
 	
-	print("saved this table just now:")
-	print(tmp)
+	if self.verboseLogging and depth == 0 then
+		print("INFO: SaveLoadHandler serialized this table:")
+		print(tmp)
+	end
 
 	return tmp
 end
@@ -81,7 +80,9 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 		local didNotFindAnMO = true;
 		if type(v) == "string" and string.find(v, "SAVELOADHANDLERUNIQUEID_") then
 			local id = math.abs(tonumber(string.sub(v, 25, -1)));
-			print("ID: " .. id);
+			if self.verboseLogging then
+				print("INFO: SaveLoadHandler is parsing looking for this ID:" .. id)
+			end
 			for particle in MovableMan.AddedParticles do
 				if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then
 					--particle:removeNumberValue("saveLoadHandlerUniqueID");
@@ -147,7 +148,7 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 				end
 			end
 			if didNotFindAnMO then
-				print("ERROR: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken.");
+				print("ERROR: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken. The saved ID was:");
 				print("Not found: " .. v)
 			end
 		elseif type(v) == "table" then
@@ -155,8 +156,10 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 		end
 		if mo then
 			tab[k] = mo;
-			print("Set found MO!");
-			print(v);
+			if self.verboseLogging then
+				print("INFO: SaveLoadHandler set this found MO:");
+				print(v);
+			end
 		end
 	end
 end
@@ -196,7 +199,9 @@ function SaveLoadHandler:ParseTableForTimers(tab)
 			tab[k] = Timer();
 			tab[k].ElapsedSimTimeMS = tonumber(elapsedSimTime);
 			tab[k].ElapsedRealTimeMS = tonumber(elapsedRealTime);
-			print("SaveLoadHandler loaded a Timer with SimTime: " .. elapsedSimTime .. " and RealTime: " .. elapsedRealTime);
+			if self.verboseLogging then
+				print("INFO: SaveLoadHandler loaded a Timer with SimTime: " .. elapsedSimTime .. " and RealTime: " .. elapsedRealTime);
+			end
 		elseif type(v) == "table" then
 			self:ParseTableForTimers(v);
 		end
@@ -205,8 +210,6 @@ function SaveLoadHandler:ParseTableForTimers(tab)
 end
 
 function SaveLoadHandler:ReadSavedStringAsTable(name)
-	print(ActivityMan:GetActivity())
-	print(ActivityMan:GetActivity():LoadString(name))
 	local savedString = ActivityMan:GetActivity():LoadString(name)
 	if savedString == "" then
 		savedString = "{}";
@@ -215,10 +218,21 @@ function SaveLoadHandler:ReadSavedStringAsTable(name)
 	local tab = loadstring("return " .. savedString)()
 	-- Parse for saved MOSRotatings
 	-- Very mildly inefficient in terms of looping even after resolving a value, but it happens once on startup
-	print("Parsing table for MOs: " .. name);
+	if self.verboseLogging then
+		print("INFO: SaveLoadHandler is parsing this table for MOs: " .. name);
+	end
 	self:ParseTableForMOs(tab);
+	if self.verboseLogging then
+		print("INFO: SaveLoadHandler is parsing this table for Vectors: " .. name);
+	end
 	self:ParseTableForVectors(tab);
+	if self.verboseLogging then
+		print("INFO: SaveLoadHandler is parsing this table for Areas: " .. name);
+	end
 	self:ParseTableForAreas(tab);
+	if self.verboseLogging then
+		print("INFO: SaveLoadHandler is parsing this table for Timers: " .. name);
+	end
 	self:ParseTableForTimers(tab);
 	
 	return tab;
@@ -240,7 +254,9 @@ function SaveLoadHandler:LoadLocallySavedMO(self, name)
 	local didNotFindAnMO = false;
 	
 	local notFound = true;
-	print("Finding locally saved MO: " .. name);
+	if self.verboseLogging then
+		print("INFO: SaveLoadHandler is finding this locally saved MO: " .. name);
+	end
 	local id = math.abs(tonumber(string.sub(v, 25, -1)));
 	for particle in MovableMan.AddedParticles do
 		if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then

@@ -447,9 +447,13 @@ function TacticsHandler:AddTask(name, team, taskPos, taskType, priority, retaskT
 	
 end
 
-function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask)
+function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask, allowMerge)
 
 	--print("AddTaskSquad" .. team)
+	
+	if not allowMerge == false then
+		allowMerge = true;
+	end
 	
 	if team and squadTable and taskName then
 	
@@ -461,7 +465,7 @@ function TacticsHandler:AddSquad(team, squadTable, taskName, applyTask)
 		-- iterate through all squads and see if any are under our minimumSquadActorCount
 		-- if so, fold this one into that one instead of making a new squad, and apply the new task
 		local squadToMergeInto;
-		if #squadTable < self.maximumSquadActorCount then
+		if allowMerge and #squadTable < self.maximumSquadActorCount then
 			for k, checkedSquad in pairs(self.saveTable.teamList[team].squadList) do
 				if checkedSquad.activeActorCount > 0 and checkedSquad.activeActorCount < self.minimumSquadActorCount then
 					squadToMergeInto = checkedSquad;
@@ -602,8 +606,8 @@ function TacticsHandler:UpdateSquads(team)
 									actor.AIMode = Actor.AIMODE_SENTRY;
 									if lastActor and wholePatrolSquadIdle == true then
 										-- if we're the last one and the whole squad is ready to go
-										print("squad repatrolled")
-										self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i].Actors, task)
+										--print("squad repatrolled")
+										--self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i].Actors, task)
 									end
 								else
 									--print("squad: " .. i .. "patrolsquadnotfullyidle")

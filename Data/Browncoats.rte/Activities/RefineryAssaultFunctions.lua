@@ -2,10 +2,10 @@ function RefineryAssault:HandleMessage(message, object)
 
 	self.tacticsHandler:OnMessage(message, object);
 
-	print("activitygotmessage")
+	--print("activitygotmessage")
 	
-	print(message)
-	print(object)
+	--print(message)
+	--print(object)
 	
 	-- this is ugly, but there's no way to avoid this stuff except hiding it away even harder than in this separate script...
 
@@ -504,6 +504,7 @@ function RefineryAssault:HandleMessage(message, object)
 	-- ActivityMan:GetActivity():SendMessage("SkipCurrentStage");
 	if message == "SkipCurrentStage" then
 		message = "SkipStage" .. self.Stage;
+		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, SceneMan.SceneWidth + 9999);
 	end
 
 	-- ActivityMan:GetActivity():SendMessage("SkipStage1");
@@ -900,7 +901,8 @@ function RefineryAssault:SetupFirstStage()
 	dropShip.Team = self.humanTeam;
 	dropShip.Pos = dropShipPos;
 	dropShip.AIMode = Actor.AIMODE_SENTRY;
-	dropShip.PlayerControllable = true;
+	dropShip.PlayerControllable = self.humansAreControllingAlliedActors;
+	dropShip:SetGoldValue(0);
 	
 	self.saveTable.playerBrains = {};
 	
@@ -924,7 +926,9 @@ function RefineryAssault:SetupFirstStage()
 		MovableMan:AddActor(brain);
 		--dropShip:AddInventoryItem(brain);
 	end
-		
+	
+	self.saveTable.stage1InitialDropship = dropShip;
+	
 	MovableMan:AddActor(dropShip)
 	dropShip:OpenHatch();
 	
@@ -939,10 +943,33 @@ function RefineryAssault:SetupFirstStage()
 	nil,
 	false,
 	true);
+	
+	-- HUD handler camera limits
+	
+	self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 2500);
+	
 
 end
 
 function RefineryAssault:MonitorStage1()
+
+	-- Send away the initial dropship once it's empty
+	if self.saveTable.stage1InitialDropship then
+		local craft = self.saveTable.stage1InitialDropship;
+		if not craft or not MovableMan:ValidMO(craft) or craft:IsDead() then
+			self.saveTable.stage1InitialDropship = nil;
+		else
+			if craft:IsInventoryEmpty() then
+				local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
+				craft:ClearAIWaypoints();
+				craft:AddAISceneWaypoint(Vector(pos.X - 300, pos.Y));
+				craft:AddAISceneWaypoint(Vector(pos.X - 300, SceneMan.SceneHeight + 9999));
+				craft.AIMode = Actor.AIMODE_GOTO;
+				craft:CloseHatch();
+				self.saveTable.stage1InitialDropship = nil;
+			end
+		end
+	end
 
 	local noActors = true;
 

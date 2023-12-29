@@ -19,7 +19,7 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 	-- remove BuyDoorArea_ from the area name to get our table key
 	local areaKey = string.sub(area.Name, 13, -1);
 	
-	print("area key: " .. areaKey);
+	--print("area key: " .. areaKey);
 
 	self.saveTable.buyDoorTables[areaKey] = {};
 	
@@ -129,6 +129,8 @@ end
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
 	
+	self.verboseLogging = true;
+	
 	self.humansAreControllingAlliedActors = true;
 	
 	self.humanTeam = Activity.TEAM_1;
@@ -171,7 +173,7 @@ function RefineryAssault:StartActivity(newGame)
 	self.deliveryCreationHandler:Initialize(self);
 	
 	self.HUDHandler = require("Activities/Utility/HUDHandler");
-	self.HUDHandler:Initialize(self, newGame);
+	self.HUDHandler:Initialize(self, newGame, self.verboseLogging);
 	
 	-- Stage stuff
 	
@@ -276,7 +278,7 @@ function RefineryAssault:StartActivity(newGame)
 		self.saveTable.buyDoorTables.teamAreas[self.aiTeam] = {"LC1", "LC2", "S3_1", "S3_2", "S3_3", "S4_1", "S4_2", "S4_3", "S4_4", "S4_5", "S4_6"};
 		
 		for k, v in pairs(self.saveTable.buyDoorTables.All) do
-			print(v)
+			--print(v)
 			v.Team = self.aiTeam;
 		end
 		
