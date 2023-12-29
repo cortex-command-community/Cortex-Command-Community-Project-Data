@@ -50,11 +50,9 @@ function ThreadedUpdate(self)
 end
 
 function SyncedUpdate(self)
-
 	for k, explosive in pairs(self.explosiveTable) do
 		explosive:SendMessage("RemoteExplosive_Detonate", self.alliedTeam);
 	end
 	
 	self.explosiveTable = nil;
-
 end
