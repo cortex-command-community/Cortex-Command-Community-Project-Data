@@ -158,7 +158,7 @@ function RefineryAssault:StartActivity(newGame)
 	
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
-	self.saveLoadHandler:Initialize(self, newGame);
+	self.saveLoadHandler:Initialize(true);
 	
 	self.tacticsHandler = require("Activities/Utility/TacticsHandler");
 	self.tacticsHandler:Initialize(self, newGame);
