@@ -88,11 +88,15 @@ function TacticsHandler:OnLoad(saveLoadHandler)
 	self.saveTable = saveLoadHandler:ReadSavedStringAsTable("tacticsHandlerTeamList");
 	for team = 0, #self.saveTable.teamList do
 		for squad = 1, #self.saveTable.teamList[team].squadList do
-			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
-				print("tacticshandler converted following actor to following uniqueid:")
-				print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
-				self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
-				print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
+			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do	
+				-- note that if it IS a number then it's probably a stale UniqueID with no actor
+				-- that we didn't convert when saving... but that's fine, we deal with stale IDs constantly.
+				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" then
+					print("tacticshandler converted following actor to following uniqueid:")
+					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
+					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
+					print(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex])
+				end
 			end
 		end
 	end
@@ -107,6 +111,7 @@ function TacticsHandler:OnSave(saveLoadHandler)
 	-- saving/loading destroys all not-in-sim entities forever
 	-- fugg :DD
 	-- salvage what we can, resolve our uniqueids into MOs that the saveloadhandler can handle at least
+
 	
 	for team = 0, #self.saveTable.teamList do
 		for squad = 1, #self.saveTable.teamList[team].squadList do
@@ -123,8 +128,6 @@ function TacticsHandler:OnSave(saveLoadHandler)
 				local actor = MovableMan:FindObjectByUniqueID(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
 				if actor then
 					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = actor;
-				else
-					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = nil;
 				end
 			end
 		end
@@ -154,6 +157,21 @@ function TacticsHandler:OnSave(saveLoadHandler)
 	-- end
 					
 	saveLoadHandler:SaveTableAsString("tacticsHandlerTeamList", self.saveTable);
+	
+	-- and now so we can actually keep playing...
+	-- turn them back, lol
+	
+	for team = 0, #self.saveTable.teamList do
+		for squad = 1, #self.saveTable.teamList[team].squadList do
+			for actorIndex = 1, #self.saveTable.teamList[team].squadList[squad].Actors do
+				if type(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) ~= "number" and IsActor(self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]) then
+					self.saveTable.teamList[team].squadList[squad].Actors[actorIndex] = self.saveTable.teamList[team].squadList[squad].Actors[actorIndex].UniqueID;
+					print("turned back to uniqueID: " .. self.saveTable.teamList[team].squadList[squad].Actors[actorIndex]);
+				end
+			end
+		end
+	end
+
 	print("saved tacticshandler!")
 end
 

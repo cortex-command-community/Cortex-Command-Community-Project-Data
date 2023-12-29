@@ -498,7 +498,7 @@ function DeliveryCreationHandler:CreateRandomInfantry(team)
 	end
 	
 	if self.infantryFunc then
-		actor = self:infantryFunc(team);
+		local actor = self:infantryFunc(team);
 		return actor;
 	else
 		print("Something when wrong when DeliveryCreationHandler was picking a random infantry type to create!");
