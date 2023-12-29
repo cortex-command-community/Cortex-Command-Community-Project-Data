@@ -968,14 +968,20 @@ function RefineryAssault:MonitorStage1()
 		if not craft or not MovableMan:ValidMO(craft) or craft:IsDead() then
 			self.saveTable.stage1InitialDropship = nil;
 		else
-			if craft:IsInventoryEmpty() then
+			if self.saveTable.stage1InitialDropshipToReturn then
+				if craft.AIMode == Actor.AIMODE_SENTRY then
+					craft.AIMode = Actor.AIMODE_RETURN;
+					self.saveTable.stage1InitialDropship = nil;
+					self.saveTable.stage1InitialDropshipToReturn = nil;
+				end
+			elseif craft:IsInventoryEmpty() then
 				local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
 				craft:ClearAIWaypoints();
 				craft:AddAISceneWaypoint(Vector(pos.X - 300, pos.Y));
-				craft:AddAISceneWaypoint(Vector(pos.X - 300, SceneMan.Scene.Height + 500));
+				craft.DeliveryState = ACraft.LAUNCH;
 				craft.AIMode = Actor.AIMODE_GOTO;
 				craft:CloseHatch();
-				self.saveTable.stage1InitialDropship = nil;
+				self.saveTable.stage1InitialDropshipToReturn = true;
 			end
 		end
 	end

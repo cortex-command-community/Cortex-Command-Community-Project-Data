@@ -494,6 +494,15 @@ function RefineryAssault:UpdateActivity()
 	
 	-- Debug
 	
+	if UInputMan.FlagAltState then
+
+		-- Unlimit camera
+		if UInputMan:KeyPressed(Key.KP_8) then
+			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 999999);
+		end
+		
+	end
+	
 	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
 	
 	local debugTrigger = UInputMan:KeyPressed(Key.I)

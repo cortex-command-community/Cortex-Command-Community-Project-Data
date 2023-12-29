@@ -3,6 +3,7 @@ function OnMessage(self, message, object)
 	if message == "RemoteExplosive_Detonate" and object == self.alliedTeam then
 		self.Vel = Vector(10, 0):RadRotate(self.RotAngle);
 		self:GibThis();
+		self.toDelete = true;
 	end
 
 end
@@ -24,7 +25,7 @@ function Create(self)
 	RemoteExplosiveStick(self);
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	--TODO: Remove Sharpness hack!
 	if self.Sharpness == 0 then
 		self.ToDelete = false;

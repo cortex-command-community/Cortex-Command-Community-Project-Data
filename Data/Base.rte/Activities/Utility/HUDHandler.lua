@@ -21,6 +21,8 @@ function HUDHandler:Create()
 end
 
 function HUDHandler:Initialize(activity, newGame, verboseLogging)
+
+	self.verboseLogging = verboseLogging
 	
 	self.Activity = activity;
 	
@@ -199,7 +201,7 @@ function HUDHandler:SetCameraMinimumAndMaximumX(team, minimumX, maximumX)
 	
 end
 
-function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos, doNotShowInList, showArrowOnlyOnSpectatorView, alwaysShowDescription)
+function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortName, objType, objLongName, objDescription, objPos, doNotShowInList, showArrowOnlyOnSpectatorView, showDescEvenWhenNotFirst, showDescOnlyOnSpectatorView)
 
 	local objTable;
 	
@@ -217,7 +219,8 @@ function HUDHandler:AddObjective(objTeam, objInternalNameOrFullTable, objShortNa
 		objTable.Position = objPos;
 		objTable.doNotShowInList = doNotShowInList or false;
 		objTable.showArrowOnlyOnSpectatorView = showArrowOnlyOnSpectatorView or false;
-		objTable.alwaysShowDescription = alwaysShowDescription or false;
+		objTable.showDescEvenWhenNotFirst = showDescEvenWhenNotFirst or false;
+		objTable.showDescOnlyOnSpectatorView = showDescOnlyOnSpectatorView == false or true;
 		
 	else
 		print("ERROR: HUD Handler tried to add an objective with no team or no internal name!");
@@ -312,11 +315,11 @@ function HUDHandler:UpdateHUDHandler()
 		local skippedListings = 0;
 		local extraDescSpacing = 0;
 		for i, objTable in pairs(self.saveTable.teamTables[team].Objectives) do
-			local showArrows = false;
+			local spectatorView = false;
 			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
 
 				if objTable.showArrowOnlyOnSpectatorView == false or (self.Activity:GetViewState(player) == Activity.ACTORSELECT) then
-					showArrows = true;
+					spectatorView = true;
 				end
 				
 				if objTable.doNotShowInList then
@@ -327,14 +330,15 @@ function HUDHandler:UpdateHUDHandler()
 				
 					local spacing = (self.objListSpacing*(i-skippedListings));
 					
-					if (i - skippedListings == 1) or objTable.alwaysShowDescription then
+					if ((i - skippedListings == 1) or objTable.showDescEvenWhenNotFirst) then
 						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
 						local pos = self:MakeRelativeToScreenPos(player, vec)
 						PrimitiveMan:DrawTextPrimitive(pos, objTable.longName, false, 0, 0);
 						-- Description
-						PrimitiveMan:DrawTextPrimitive(pos + Vector(10, self.descriptionSpacing), objTable.Description, true, 0, 0);
-						
-						extraDescSpacing = 10*(i-skippedListings);
+						if not (objTable.showDescOnlyOnSpectatorView and not spectatorView) then
+							PrimitiveMan:DrawTextPrimitive(pos + Vector(10, self.descriptionSpacing), objTable.Description, true, 0, 0);			
+							extraDescSpacing = 10*(i-skippedListings);
+						end
 						
 					else
 						local vec = Vector(self.objListStartXOffset, self.objListStartYOffset + spacing + extraDescSpacing);
@@ -347,7 +351,7 @@ function HUDHandler:UpdateHUDHandler()
 			
 			-- c++ objectives are per team, not per player, so we can't do it per player yet...
 			
-			if objTable.Position and showArrows then
+			if objTable.Position and spectatorView then
 				local pos = not objTable.Position.PresetName and objTable.Position or objTable.Position.Pos; -- severely ghetto mo check
 				self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
 			end

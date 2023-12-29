@@ -26,12 +26,17 @@ function ThreadedUpdate(self)
 				self.Magazine.RoundCount = math.ceil(100 * (1 - 1 * self.delayTimer.ElapsedSimTimeMS/self.detonateDelay));
 			end
 			if self.actionPhase >= 1 then
+			
+				self.explosiveTable = {};
 
 				for particle in MovableMan.Particles do
 					if particle.PresetName == "Remote Explosive Active" then
-						particle:SendMessage("RemoteExplosive_Detonate", self.alliedTeam);
+						table.insert(self.explosiveTable, particle);
 					end
 				end
+				
+				self:RequestSyncedUpdate();
+				
 				self.detonateSound:Play(self.Pos);
 				self:Reload();
 			end
@@ -42,4 +47,14 @@ function ThreadedUpdate(self)
 			self.actionPhase = 0;
 		end
 	end
+end
+
+function SyncedUpdate(self)
+
+	for k, explosive in pairs(self.explosiveTable) do
+		explosive:SendMessage("RemoteExplosive_Detonate", self.alliedTeam);
+	end
+	
+	self.explosiveTable = nil;
+
 end
