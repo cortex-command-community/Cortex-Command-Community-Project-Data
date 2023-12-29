@@ -321,7 +321,7 @@ function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className,
 		
 		-- this is true when redoing this stuff from OnLoad, so avoid duplicates entries
 		if not doNotSaveNewEntry then
-			table.insert(self.teamAddedPresets[team], presetTable);
+			table.insert(self.saveTable.teamAddedPresets[team], presetTable);
 		end
 		return true;
 
@@ -338,7 +338,7 @@ function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName, doNotSa
 
 	local found = false;
 
-	for i, groupTable in pairs(self.teamPresetTables[team]) do
+	for i, groupTable in pairs(self.saveTable.teamPresetTables[team]) do
 		for presetIndex, presetTable in pairs(groupTable) do
 			if presetTable.PresetName == presetName then
 				table.remove(presetTable, presetIndex);
@@ -352,7 +352,7 @@ function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName, doNotSa
 	if found then
 		-- this is true when redoing this stuff from OnLoad, so avoid duplicates entries
 		if not doNotSaveNewEntry then
-			table.insert(self.teamRemovedPresets[team], presetName);
+			table.insert(self.saveTable.teamRemovedPresets[team], presetName);
 		end
 		return true;
 	else
