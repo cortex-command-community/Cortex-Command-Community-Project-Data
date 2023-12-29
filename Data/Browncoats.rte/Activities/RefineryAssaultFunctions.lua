@@ -210,6 +210,7 @@ function RefineryAssault:HandleMessage(message, object)
 		if self.Stage ~= 5 then
 		
 			self.Stage = 5;
+			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, SceneMan.SceneWidth + 9999);
 			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 			
 			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
@@ -531,6 +532,14 @@ function RefineryAssault:HandleMessage(message, object)
 		end		
 
 	elseif message == "SkipStage3" then
+	
+		for k, v in pairs(self.saveTable.buyDoorTables.S3_1) do
+			if v.Team == 1 then
+				self:SendMessage("Captured_RefineryS3BuyDoorConsole1", self.humanTeam);
+			end
+			break;
+		end
+
 		self.stage3AllConsolesBroken = true;
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3DestroyConsoles");
 		self.saveTable.enemyActorTables.stage3FacilityOperator = {};
@@ -1086,6 +1095,8 @@ function RefineryAssault:MonitorStage1()
 		objPos,
 		true,
 		true);
+		
+		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 6300);
 	
 	end	
 	
@@ -1220,6 +1231,8 @@ function RefineryAssault:MonitorStage2()
 		true,
 		true);
 		
+		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 12000);
+		
 	end
 	
 end
@@ -1266,7 +1279,6 @@ function RefineryAssault:MonitorStage3()
 	if self.stage3AllConsolesBroken and self.stage3FacilityOperatorKilled and self.stage3DrillOverloaded and not self.stage3DoorSequenceTimer then
 	
 		-- initiate scripted sequence
-		self.stage3PlayedDoorStopSound = false;
 		self.stage3DoorSequenceTimer = Timer();
 	
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
@@ -1297,22 +1309,22 @@ function RefineryAssault:MonitorStage3()
 			end
 		end
 		
-		if self.stage3DoorSequenceTimer:IsPastSimMS(8750) then
+		if not self.stage3PlayedDoorStopSound == true and self.stage3DoorSequenceTimer:IsPastSimMS(8750) then
 			if MovableMan:ValidMO(self.saveTable.stage4Door[1]) then
 				ToADoor(self.saveTable.stage4Door[1]):OpenDoor();
 			end
 		end
 		
 		if self.stage3DoorSequenceTimer:IsPastSimMS(10000) then
-			for k, door in pairs(self.saveTable.stage4Door) do
-				if MovableMan:ValidMO(door) then
+			if MovableMan:ValidMO(self.saveTable.stage4Door[1]) then
+				local door = self.saveTable.stage4Door[1];
+				ToADoor(door):ResetSensorTimer();
+				if not self.stage3PlayedDoorStopSound then
 					ToADoor(door):StopDoor();
-					if not self.stage3PlayedDoorStopSound then
-						local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
-						soundContainer:Play(door.Pos);
-						CameraMan:AddScreenShake(20, door.Pos);
-						self.stage3PlayedDoorStopSound = true;
-					end
+					local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Stop", "Browncoats.rte");
+					soundContainer:Play(door.Pos);
+					CameraMan:AddScreenShake(20, door.Pos);
+					self.stage3PlayedDoorStopSound = true;
 				end
 			end
 		end
@@ -1330,6 +1342,8 @@ function RefineryAssault:MonitorStage3()
 				false,
 				true);
 		end
+		
+		self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 14500);
 		
 		self:GetBanner(GUIBanner.YELLOW, 0):ShowText("DOORS OPEN WOW!", GUIBanner.FLYBYLEFTWARD, 1500, Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight), 0.4, 4000, 0)
 

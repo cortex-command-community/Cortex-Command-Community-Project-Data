@@ -131,7 +131,7 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.verboseLogging = true;
 	
-	self.humansAreControllingAlliedActors = true;
+	self.humansAreControllingAlliedActors = false;
 	
 	self.humanTeam = Activity.TEAM_1;
 	self.aiTeam = Activity.TEAM_2;
