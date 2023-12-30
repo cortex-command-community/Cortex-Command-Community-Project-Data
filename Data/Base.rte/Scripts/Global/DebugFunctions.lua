@@ -49,6 +49,15 @@ function DebugFunctionsScript:UpdateScript()
 		if UInputMan:KeyPressed(Key.KP_ENTER) then
 			self.Activity:SendMessage("SkipCurrentStage");
 		end
+
+		-- Press delete to destroy all actors except brains and the current selected one
+		if UInputMan:KeyPressed(Key.DELETE) then
+			for actor in MovableMan.Actors do 
+				if not actor:IsPlayerControlled() and not actor:IsInGroup("Brains") and not actor.MissionCritical then 
+					actor.ToDelete = true 
+				end 
+			end
+		end
 	
 		-- Team switch controlled actor: Keypad 1 is team -1, incremental
 		local teamNum;
