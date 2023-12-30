@@ -72,7 +72,7 @@ function SyncedUpdate(self)
 							end
 						end
 						
-						self:DisableScript("Browncoats.rte/Scenes/Objects/Bunkers/BunkerSystems/RefineryAuthorizationConsole/RefineryAuthorizationConsole.lua");
+						self:DisableScript();
 						return;
 							
 					end
