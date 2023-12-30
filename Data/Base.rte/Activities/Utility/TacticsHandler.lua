@@ -275,7 +275,6 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 				actor:FlashWhite(1000);
 				actor:ClearAIWaypoints();
 				if task.Type == "Defend" or task.Type == "Attack" then
-
 					actor.AIMode = Actor.AIMODE_GOTO;
 					if task.Position.PresetName then -- ghetto check if this is an MO, IsMOSRotating wigs out
 						actor:AddAIMOWaypoint(task.Position);
@@ -286,11 +285,13 @@ function TacticsHandler:ApplyTaskToSquadActors(squad, task)
 						end
 					end
 					actor:UpdateMovePath();
+					--actor:SetMovePathToUpdate();
 				elseif task.Type == "PatrolArea" then
 					actor.AIMode = Actor.AIMODE_GOTO;
 					actor:AddAISceneWaypoint(randomPatrolPoint);
 					--print("officially changed ai mode")
 					actor:UpdateMovePath();
+					--actor:SetMovePathToUpdate();
 				elseif task.Type == "Sentry" then
 					actor.AIMode = Actor.AIMODE_SENTRY;
 				else
@@ -602,7 +603,7 @@ function TacticsHandler:UpdateSquads(team)
 							elseif task.Type == "PatrolArea" then
 								local dist = SceneMan:ShortestDistance(actor.Pos, actor:GetLastAIWaypoint(), SceneMan.SceneWrapsX);
 								--print("squad: " .. i .. "patrol dist: " .. dist.Magnitude)
-								if actor.AIMode == Actor.AIMODE_SENTRY or dist.Magnitude < 40 then
+								if actor.AIMode == Actor.AIMODE_SENTRY or (not actor.IsWaitingOnNewMovePath and dist:MagnitudeIsLessThan(40)) then
 									actor.AIMode = Actor.AIMODE_SENTRY;
 									if lastActor and wholePatrolSquadIdle == true then
 										-- if we're the last one and the whole squad is ready to go
@@ -627,7 +628,7 @@ function TacticsHandler:UpdateSquads(team)
 								end
 							end
 
-							if actor:GetLastAIWaypoint().Magnitude == 0 then
+							if not actor.IsWaitingOnNewMovePath and actor:GetLastAIWaypoint():IsZero() then
 								-- our waypoint is 0, 0, so something's gone wrong
 								--print("weirdwaypoint")
 								--self:ApplyTaskToSquadActors(self.saveTable.teamList[team].squadList[i], task);

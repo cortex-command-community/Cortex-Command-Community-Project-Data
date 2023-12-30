@@ -262,6 +262,7 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 	if dockingSuccess == true then
 		MovableMan:AddActor(craft);
 		craft:UpdateMovePath();
+		--craft:SetMovePathToUpdate();
 	else
 		--print("failed")
 	end
@@ -600,7 +601,7 @@ function DockingHandler:SpawnRegularDockingCraft(craft, specificDock)
 		
 	if dockingSuccess == true then
 		MovableMan:AddActor(craft);
-		craft:UpdateMovePath();
+		--craft:SetMovePathToUpdate();
 	else
 		--print("failed")
 		return false;
