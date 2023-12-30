@@ -73,97 +73,82 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 	return tmp
 end
 
-function SaveLoadHandler:ParseTableForMOs(tab)
+function SaveLoadHandler:FindMOWithId(id)
+	for act in MovableMan.AddedActors do
+		if math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+			--act:removeNumberValue("saveLoadHandlerUniqueID");
+			return act;
+		end
+		for item in act.Inventory do
+			if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+				--item:removeNumberValue("saveLoadHandlerUniqueID");
+				return item;
+			end
+		end
+	end
+	for act in MovableMan.Actors do
+		if math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+			--act:removeNumberValue("saveLoadHandlerUniqueID");
+			return act;
+		end
+		for item in act.Inventory do
+			if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+				--item:removeNumberValue("saveLoadHandlerUniqueID");
+				return item;
+			end
+		end
+	end
 
+	for item in MovableMan.AddedItems do
+		if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+			--item:removeNumberValue("saveLoadHandlerUniqueID");
+			return item;
+		end
+	end
+	for item in MovableMan.Items do
+		if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+			--item:removeNumberValue("saveLoadHandlerUniqueID");
+			return item;
+		end
+	end
+
+	for particle in MovableMan.AddedParticles do
+		if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+			--particle:removeNumberValue("saveLoadHandlerUniqueID");
+			return particle;
+		end
+	end
+	for particle in MovableMan.Particles do
+		if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then
+			--particle:removeNumberValue("saveLoadHandlerUniqueID");
+			return particle;
+		end
+	end
+
+	return nil;
+end
+
+function SaveLoadHandler:ParseTableForMOs(tab)
 	for k, v in pairs(tab) do
-		local mo;
-		local didNotFindAnMO = true;
 		if type(v) == "string" and string.find(v, "SAVELOADHANDLERUNIQUEID_") then
 			local id = math.abs(tonumber(string.sub(v, 25, -1)));
 			if self.verboseLogging then
 				print("INFO: SaveLoadHandler is parsing looking for this ID:" .. id)
 			end
-			for particle in MovableMan.AddedParticles do
-				if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-					--particle:removeNumberValue("saveLoadHandlerUniqueID");
-					mo = particle;
-					didNotFindAnMO = false;
-					break;
+			local mo = self:FindMOWithId(id);
+			if mo then
+				tab[k] = mo;
+				if self.verboseLogging then
+					print("INFO: SaveLoadHandler set this found MO:");
+					print(v);
 				end
-			end
-			for act in MovableMan.AddedActors do
-				if math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-					--act:removeNumberValue("saveLoadHandlerUniqueID");
-					mo = act;
-					didNotFindAnMO = false;
-					break;
-				end
-				for item in act.Inventory do
-					if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-						--item:removeNumberValue("saveLoadHandlerUniqueID");
-						mo = item;
-						didNotFindAnMO = false;
-						break;
-					end
-				end
-			end
-			for item in MovableMan.AddedItems do
-				if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-					--item:removeNumberValue("saveLoadHandlerUniqueID");
-					mo = item;
-					didNotFindAnMO = false;
-					break;
-				end
-			end
-			for particle in MovableMan.Particles do
-				if math.abs(particle:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-					--particle:removeNumberValue("saveLoadHandlerUniqueID");
-					mo = particle;
-					didNotFindAnMO = false;
-					break;
-				end
-			end
-			for act in MovableMan.Actors do
-				if math.abs(act:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-					--act:removeNumberValue("saveLoadHandlerUniqueID");
-					mo = act;
-					didNotFindAnMO = false;
-					break;
-				end
-				for item in act.Inventory do
-					if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-						--item:removeNumberValue("saveLoadHandlerUniqueID");
-						mo = item;
-						didNotFindAnMO = false;
-						break;
-					end
-				end
-			end
-			for item in MovableMan.Items do
-				if math.abs(item:GetNumberValue("saveLoadHandlerUniqueID")) == id then
-					--item:removeNumberValue("saveLoadHandlerUniqueID");
-					mo = item;
-					didNotFindAnMO = false;
-					break;
-				end
-			end
-			if didNotFindAnMO then
+			else
 				print("ERROR: SaveLoadHandler could not resolve a saved MO UniqueID! A loaded table is likely broken. The saved ID was:");
 				print("Not found: " .. v)
 			end
 		elseif type(v) == "table" then
 			self:ParseTableForMOs(v);
 		end
-
-		if mo then
-			if self.verboseLogging then
-				print("INFO: SaveLoadHandler set this found MO:");
-				print(v);
-			end
-		end
-
-		-- Set as nil if not found, so it doesn't store a string
-		tab[k] = mo;
 	end
 end
 
