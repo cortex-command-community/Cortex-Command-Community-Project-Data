@@ -154,13 +154,16 @@ function SaveLoadHandler:ParseTableForMOs(tab)
 		elseif type(v) == "table" then
 			self:ParseTableForMOs(v);
 		end
+
 		if mo then
-			tab[k] = mo;
 			if self.verboseLogging then
 				print("INFO: SaveLoadHandler set this found MO:");
 				print(v);
 			end
 		end
+
+		-- Set as nil if not found, so it doesn't store a string
+		tab[k] = mo;
 	end
 end
 
