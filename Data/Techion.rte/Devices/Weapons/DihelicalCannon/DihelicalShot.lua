@@ -69,7 +69,7 @@ function Update(self)
 		--Cancel the beam if there's a terrain collision.
 		local trace = Vector(fireVector.X, fireVector.Y):SetMagnitude(self.damageSpeed * 0.1);
 
-		local strSumRay = SceneMan:CastStrengthSumRay(downPos, downPos + trace, 1, 160);
+		local strSumRay = SceneMan:CastStrengthSumRay(downPos, downPos + trace, 3, 160);
 		self.hits = self.hits + math.sqrt(strSumRay);
 
 		if SceneMan:GetTerrMatter(upPos.X, upPos.Y) == rte.airID then

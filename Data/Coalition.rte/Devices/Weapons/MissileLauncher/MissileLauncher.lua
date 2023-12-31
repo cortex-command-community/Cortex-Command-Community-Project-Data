@@ -17,12 +17,15 @@ function Create(self)
 
 	self.arrow = CreateMOSRotating("Grapple Gun Guide Arrow");
 	self.detectSound = CreateSoundContainer("Mine Activate", "Base.rte");
+	self.missile = CreateAEmitter("Particle Coalition Missile Launcher", "Coalition.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local parent = self:GetRootParent();
+	local sharpAimProgress = 0;
 	if parent and IsActor(parent) then
 		parent = ToActor(parent);
+		sharpAimProgress = parent.SharpAimProgress;
 		local controller = parent:GetController();
 		local screen = ActivityMan:GetActivity():ScreenOfPlayer(controller.Player);
 		local playerControlled = parent:IsPlayerControlled();
@@ -85,18 +88,19 @@ function Update(self)
 		end
 	end
 	if self.FiredFrame then
-		self.missile = CreateAEmitter("Particle Coalition Missile Launcher", "Coalition.rte");
-		self.missile.Pos = self.MuzzlePos;
-		local fireVector = Vector(self.fireVel * self.FlipFactor, 0):RadRotate(self.RotAngle);
-		self.missile.Vel = self.Vel + fireVector + Vector(0, -math.abs(math.cos(fireVector.AbsRadAngle)));
-		self.missile.RotAngle = self.missile.Vel.AbsRadAngle;
-		self.missile.AngularVel = math.cos(self.missile.Vel.AbsRadAngle) * 10;
-		self.missile.Team = self.Team;
-		self.missile.IgnoresTeamHits = true;
+		local missile = self.missile:Clone();
+		missile.Pos = self.MuzzlePos;
+		local shake = math.rad(self.ShakeRange * (1 - sharpAimProgress) + self.SharpShakeRange * sharpAimProgress) * RangeRand(-1, 1);
+		local fireVector = Vector(self.fireVel * self.FlipFactor, 0):RadRotate(self.RotAngle + shake);
+		missile.Vel = self.Vel + fireVector + Vector(0, -math.abs(math.cos(fireVector.AbsRadAngle)));
+		missile.RotAngle = missile.Vel.AbsRadAngle;
+		missile.AngularVel = math.cos(missile.Vel.AbsRadAngle) * 10 + shake;
+		missile.Team = self.Team;
+		missile.IgnoresTeamHits = true;
 
 		if self.target and IsMOSRotating(self.target) then
-			self.missile:SetNumberValue("TargetID", self.target.ID);
+			missile:SetNumberValue("TargetID", self.target.ID);
 		end
-		MovableMan:AddParticle(self.missile);
+		MovableMan:AddParticle(missile);
 	end
 end
